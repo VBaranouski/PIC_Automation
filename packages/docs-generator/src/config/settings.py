@@ -96,12 +96,19 @@ class Settings:
 # Loader
 # ---------------------------------------------------------------------------
 
-def load_settings(config_path: str = "config.yaml", env_path: str = ".env") -> Settings:
+def load_settings(config_path: str = "config.yaml", env_path: str = None) -> Settings:
     """
     Load .env via python-dotenv and config.yaml via pyyaml.
     Raises ValueError if required secrets are missing.
     """
-    # Load .env (does not override already-set env vars)
+    # Resolve .env path: local → parent → grandparent (monorepo root)
+    if env_path is None:
+        for candidate in [".env", "../.env", "../../.env"]:
+            if Path(candidate).exists():
+                env_path = candidate
+                break
+        else:
+            env_path = ".env"
     load_dotenv(dotenv_path=env_path, override=False)
 
     # Load YAML config

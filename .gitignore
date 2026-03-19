@@ -33,11 +33,17 @@ output/full_release_notes/*.pptx
 output/bug_reports/*.html
 
 # Environment & secrets
+packages/.env
+packages/.env.*
 packages/pw-autotest/config/.env.*
+packages/docs-generator/src/config/.env.*
 *.env.local
 packages/pw-autotest/config/users/qa.users.ts
 packages/pw-autotest/config/users/dev.users.ts
 packages/pw-autotest/config/users/ppr.users.ts
+packages/docs-generator/src/config/users/qa.users.ts
+packages/docs-generator/src/config/users/dev.users.ts
+packages/docs-generator/src/config/users/ppr.users.ts
 
 # IDE & OS
 .DS_Store
