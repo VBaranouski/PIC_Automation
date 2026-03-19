@@ -15,7 +15,7 @@ const usersByEnvironment: UsersByEnvironment = {
  * Environment defaults to TEST_ENV env var, then 'dev'.
  */
 export function getUser(role: UserRole, envName?: string): UserCredentials {
-  const env = (envName || process.env.TEST_ENV || 'dev') as EnvironmentName;
+  const env = (envName || process.env.TEST_ENV || 'qa') as EnvironmentName;
   const users = usersByEnvironment[env];
   if (!users) {
     throw new Error(`No users configured for environment: "${env}". Available: ${Object.keys(usersByEnvironment).join(', ')}`);
@@ -32,7 +32,7 @@ export function getUser(role: UserRole, envName?: string): UserCredentials {
  * Role is determined by TEST_ROLE env var, defaults to 'product_owner'.
  */
 export function getDefaultUser(envName?: string): UserCredentials {
-  const role = (process.env.TEST_ROLE || 'product_owner') as UserRole;
+  const role = (process.env.TEST_ROLE || 'process_quality_leader') as UserRole;
   return getUser(role, envName);
 }
 

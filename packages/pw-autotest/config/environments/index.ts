@@ -10,7 +10,7 @@ const environments: Record<EnvironmentName, Environment> = {
 };
 
 export function getEnvironment(name?: string): Environment {
-  const envName = (name || process.env.TEST_ENV || 'dev') as EnvironmentName;
+  const envName = (name || process.env.TEST_ENV || 'qa') as EnvironmentName;
   const env = environments[envName];
   if (!env) {
     throw new Error(`Unknown environment: "${envName}". Available: ${Object.keys(environments).join(', ')}`);
