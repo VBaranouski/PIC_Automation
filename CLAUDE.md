@@ -10,8 +10,8 @@ Python Click CLI for automated documentation generation with Jira, Confluence, F
 
 **Commands** (run from `packages/docs-generator/`):
 ```bash
-python main.py release-notes --version "2.4.1" [--project PROJ] [--publish]
-python main.py full-release-notes --version "2.4.1" [--project PROJ] [--publish]
+python main.py release-notes-short --version "2.4.1" [--project PROJ] [--publish]
+python main.py release-notes-detailed --version "2.4.1" [--project PROJ] [--publish]
 python main.py meeting-notes --file "standup.txt" | --all
 python main.py test-cases --story PROJ-452 [--story PROJ-453 ...]
 python main.py pptx-release-notes --spec "spec.json"

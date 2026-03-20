@@ -16,9 +16,23 @@ from src.config.settings import Settings
 
 _PRIORITY_ORDER = {"blocker": 0, "critical": 1, "high": 2, "medium": 3, "low": 4}
 
+_MONTH_ABBR = [
+    "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+
 
 def _sort_by_priority(issues: list[JiraIssue]) -> list[JiraIssue]:
     return sorted(issues, key=lambda i: _PRIORITY_ORDER.get(i.priority.lower(), 5))
+
+
+def _format_period(iso_date: str) -> str:
+    """Convert '2026-03-01' -> 'Mar 1, 2026'."""
+    try:
+        y, m, d = iso_date.split("-")
+        return f"{_MONTH_ABBR[int(m)]} {int(d)}, {y}"
+    except Exception:
+        return iso_date
 
 
 class BugReportGenerator:
@@ -55,9 +69,18 @@ class BugReportGenerator:
     # Public
     # ------------------------------------------------------------------
 
-    def generate(self) -> str:
-        """Fetch issues from JIRA and write the HTML report. Returns the output path."""
+    def generate(self, since: str | None = None) -> str:
+        """Fetch issues from JIRA and write the HTML report. Returns the output path.
+
+        Args:
+            since: Optional ISO date string (e.g. '2026-03-01') overriding the
+                   default _SIT_START / _UAT_START / _PROD_START class constants.
+        """
         today = date.today().strftime(self._settings.output.date_format)
+
+        sit_start  = since or self._SIT_START
+        uat_start  = since or self._UAT_START
+        prod_start = since or self._PROD_START
 
         sit_ids = ", ".join(self._SIT_REPORTERS)
         uat_ids = ", ".join(self._UAT_REPORTERS)
@@ -71,19 +94,19 @@ class BugReportGenerator:
         sit_jql = (
             "issuetype in (Bug, Defect) "
             f"AND reporter in ({sit_ids}) "
-            f'AND created >= "{self._SIT_START}" '
+            f'AND created >= "{sit_start}" '
             "ORDER BY created DESC"
         )
         uat_jql = (
             "issuetype = Bug "
             f"AND (reporter in ({uat_ids}) {uat_names_or}) "
-            f'AND created >= "{self._UAT_START}" '
+            f'AND created >= "{uat_start}" '
             "ORDER BY created DESC"
         )
         prod_jql = (
             "issuetype = Defect "
             f"AND ({prod_names}) "
-            f'AND created >= "{self._PROD_START}" '
+            f'AND created >= "{prod_start}" '
             "ORDER BY created DESC"
         )
 
@@ -103,7 +126,8 @@ class BugReportGenerator:
         prod_issues = _sort_by_priority(self._jira.search_issues(prod_jql))
         print(f"    -> {len(prod_issues)} issue(s) found.")
 
-        html = self._render_html(sit_issues, uat_issues, prod_issues, today)
+        period_display = _format_period(since or self._SIT_START)
+        html = self._render_html(sit_issues, uat_issues, prod_issues, today, period_display)
 
         out_dir = Path(self._settings.paths.output_bug_reports)
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -122,6 +146,7 @@ class BugReportGenerator:
         uat: list[JiraIssue],
         prod: list[JiraIssue],
         today: str,
+        period_display: str,
     ) -> str:
         template = self._jinja.get_template(f"bug_report_{self._style}.html.j2")
         return template.render(
@@ -131,9 +156,9 @@ class BugReportGenerator:
             sit_reporters=self._SIT_REPORTERS,
             uat_reporters=self._UAT_REPORTERS + self._UAT_DISPLAY_REPORTERS,
             prod_reporters=self._PROD_DISPLAY_REPORTERS,
-            sit_period="Jan 19, 2026",
-            uat_period="Jan 19, 2026",
-            prod_period="Jan 19, 2026",
+            sit_period=period_display,
+            uat_period=period_display,
+            prod_period=period_display,
             generated_date=today,
             branding=self._settings.branding,
         )

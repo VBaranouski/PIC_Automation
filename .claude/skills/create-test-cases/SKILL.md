@@ -7,29 +7,13 @@ description: Use when the user provides a Jira user story ID and wants test case
 
 Generate comprehensive test cases from a Jira user story using the SE-DevTools CLI and Claude AI.
 
-## Workflow
-
-```dot
-digraph create_test_cases {
-  rankdir=TB;
-  "Get story ID(s)" -> "Jira accessible?";
-  "Jira accessible?" -> "Run CLI" [label="yes"];
-  "Jira accessible?" -> "Manual creation" [label="no"];
-  "Run CLI" -> "Review output";
-  "Manual creation" -> "Review output";
-  "Review output" -> "Report to user";
-}
-```
-
-### Step 1 — Identify the story
+### Identify the story
 
 - Get the story ID(s) from the user (e.g., `PROJ-452`)
 - If the project key isn't clear, ask for confirmation
 - Multiple stories: pass each with `--story`
 
-### Step 2a — Run the CLI (when Jira is accessible)
-
-Run from `packages/docs-generator/`:
+### Run the CLI (Jira accessible)
 
 ```bash
 cd packages/docs-generator
@@ -38,20 +22,17 @@ python main.py test-cases --story PROJ-452
 python main.py test-cases --story PROJ-452 --story PROJ-453
 ```
 
-Output file: `../../output/test_cases/test_cases_PROJ-XXX.html`
+Output: `../../output/test_cases/test_cases_PROJ-XXX.html`
 
-### Step 2b — Manual creation (fallback, no Jira access)
+### Manual creation (no Jira access)
 
 If the user provides story text / acceptance criteria directly:
 
-1. Read the provided story content
-2. Apply the manual-tester methodology:
-   - Identify all acceptance criteria
-   - Create test cases: happy path, negative, boundary, edge cases
-   - Follow the TC-[Feature]-[Number] naming convention
-3. Present test cases in the structured format (see manual-tester agent)
+1. Load the methodology: read `.claude/conventions/manual-testing-methodology.md`
+2. Apply it: requirement analysis, scenario design, test case writing
+3. Present test cases in the structured format from the methodology
 
-### Step 3 — Review & report
+### Report
 
 - Confirm the output file path
 - Summarize: number of test cases generated, scenarios covered
@@ -59,13 +40,13 @@ If the user provides story text / acceptance criteria directly:
 
 ## Output Format
 
-Generated HTML output: `output/test_cases/test_cases_PROJ-XXX.html`
+CLI output: `output/test_cases/test_cases_PROJ-XXX.html`
 
-For manual cases, present in markdown with the standard test case structure:
-```
-**Test Case ID**: TC-[Feature]-[Number]
-**Title**: ...
-**Priority**: Critical / High / Medium / Low
-**Steps**: ...
-**Expected Result**: ...
+For manual cases, use the format from the methodology skill:
+```text
+Test Case ID: TC-[Feature]-[Number]
+Title:        ...
+Priority:     Critical / High / Medium / Low
+Steps:        ...
+Expected Result: ...
 ```

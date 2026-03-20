@@ -80,6 +80,14 @@ class JiraClient:
         data = self._get(f"/project/{key}/versions")
         return [self._parse_version(v, key) for v in data]
 
+    def get_version_by_id(self, version_id: str) -> JiraVersion:
+        """Fetch a version directly by its numeric ID."""
+        raw = self._get(f"/version/{version_id}")
+        project_key = raw.get("projectId", "")
+        # Resolve project key from the version's self URL or project field
+        raw_key = raw.get("project", "") or self._config.project_key
+        return self._parse_version(raw, raw_key)
+
     def get_version_by_name(self, version_name: str, project_key: Optional[str] = None) -> JiraVersion:
         """Find a specific version by name. Raises ValueError if not found."""
         versions = self.get_versions(project_key)

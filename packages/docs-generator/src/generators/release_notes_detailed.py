@@ -31,7 +31,7 @@ from src.utils.date_utils import format_jira_date, today_str
 from src.utils.file_utils import ensure_dir, read_text, sanitize_filename, write_text
 
 # Path to the mandatory template file (relative to project root)
-_TEMPLATE_FILE = Path("output/full_release_notes/template/release_notes_template.md")
+_TEMPLATE_FILE = Path("output/release_notes_detailed/template/release_notes_template.md")
 
 
 class FullReleaseNotesGenerator:
@@ -86,17 +86,17 @@ class FullReleaseNotesGenerator:
         # 3. Load optional spec file
         spec_content = ""
         if spec_filename:
-            spec_path = Path(self._settings.paths.input_full_release_notes) / spec_filename
+            spec_path = Path(self._settings.paths.input_release_notes_detailed) / spec_filename
             if not spec_path.exists():
                 raise FileNotFoundError(
                     f"Spec file not found: {spec_path}\n"
-                    f"Place it in '{self._settings.paths.input_full_release_notes}/'."
+                    f"Place it in '{self._settings.paths.input_release_notes_detailed}/'."
                 )
             spec_content = read_text(spec_path)
             print(f"  Loaded spec file: {spec_filename}")
         else:
             # Auto-detect: use first .txt or .md file in input folder
-            input_dir = Path(self._settings.paths.input_full_release_notes)
+            input_dir = Path(self._settings.paths.input_release_notes_detailed)
             candidates = [f for f in input_dir.iterdir()
                           if f.is_file() and f.suffix.lower() in (".txt", ".md")
                           and not f.name.startswith(".")]
@@ -106,7 +106,7 @@ class FullReleaseNotesGenerator:
 
         # 4. Generate HTML body via Claude
         print(f"  Generating full release notes via Claude AI...")
-        html_body = self._claude.generate_full_release_notes(
+        html_body = self._claude.generate_release_notes_detailed(
             version_name=version_name,
             project_name=version.project_key,
             release_date=version.release_date or "TBD",
@@ -145,7 +145,7 @@ class FullReleaseNotesGenerator:
         if not _TEMPLATE_FILE.exists():
             raise FileNotFoundError(
                 f"Template file not found: {_TEMPLATE_FILE}\n"
-                "Expected: output/full_release_notes/template/release_notes_template.md"
+                "Expected: output/release_notes_detailed/template/release_notes_template.md"
             )
         return read_text(_TEMPLATE_FILE)
 
@@ -157,7 +157,7 @@ class FullReleaseNotesGenerator:
         total_issues: int,
         html_body: str,
     ) -> str:
-        template = self._jinja.get_template("full_release_notes.html.j2")
+        template = self._jinja.get_template("release_notes_detailed.html.j2")
         return template.render(
             version_name=version_name,
             project_key=project_key,
@@ -171,6 +171,6 @@ class FullReleaseNotesGenerator:
     def _write_output(self, version_name: str, project_key: str, html: str) -> Path:
         safe_version = sanitize_filename(version_name)
         date_str = today_str(self._settings.output.date_format)
-        filename = f"{project_key}_{safe_version}_full_{date_str}.html"
-        out_dir = ensure_dir(self._settings.paths.output_full_release_notes)
+        filename = f"{project_key}_{safe_version}_detailed_{date_str}.html"
+        out_dir = ensure_dir(self._settings.paths.output_release_notes_detailed)
         return write_text(html, out_dir / filename)

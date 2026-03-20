@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Optional
 
 from jinja2 import Environment, FileSystemLoader
-from xhtml2pdf import pisa
 
 from src.clients.confluence_client import ConfluenceClient
 from src.clients.jira_client import JiraClient, JiraIssue, JiraVersion
@@ -31,15 +30,19 @@ class ReleaseNotesContext:
 class ReleaseNotesGenerator:
     """Orchestrates JIRA data fetch → render → file output for Release Notes."""
 
+    _STYLES = {"default", "hacker"}
+
     def __init__(
         self,
         jira: JiraClient,
         settings: Settings,
         confluence: Optional[ConfluenceClient] = None,
+        style: str = "default",
     ) -> None:
         self._jira = jira
         self._settings = settings
         self._confluence = confluence
+        self._style = style if style in self._STYLES else "default"
         self._jinja = Environment(
             loader=FileSystemLoader(settings.paths.templates_dir),
             autoescape=False,
@@ -51,103 +54,124 @@ class ReleaseNotesGenerator:
 
     def generate(
         self,
-        version_name: str,
+        version_name: Optional[str] = None,
         project_key: Optional[str] = None,
         publish_to_confluence: bool = False,
-    ) -> tuple[str, str, str]:
+        version_id: Optional[str] = None,
+        release_date_override: Optional[str] = None,
+    ) -> tuple[str, str]:
         """
         Full pipeline: fetch → render → write outputs.
-        Returns (txt_filepath, html_filepath, pdf_filepath).
+        Returns (txt_filepath, html_filepath).
         Optionally publishes to Confluence if publish_to_confluence=True.
+        Supply either version_name or version_id.
         """
-        ctx = self._fetch_data(version_name, project_key or self._settings.jira.project_key)
+        ctx = self._fetch_data(
+            version_name,
+            project_key or self._settings.jira.project_key,
+            version_id=version_id,
+            release_date_override=release_date_override,
+        )
 
         html_content = self._render_html(ctx)
         txt_content = self._render_txt(ctx)
 
-        txt_path, html_path, pdf_path = self._write_outputs(ctx, html_content, txt_content)
+        txt_path, html_path = self._write_outputs(ctx, html_content, txt_content)
 
         if publish_to_confluence and self._confluence:
-            page_title = f"Release Notes — {ctx.project_key} {version_name}"
+            page_title = f"Release Notes — {ctx.project_key} {ctx.version.name}"
             url = self._confluence.publish_release_notes(page_title, html_content)
             print(f"  Published to Confluence: {url}")
 
-        return str(txt_path), str(html_path), str(pdf_path)
+        return str(txt_path), str(html_path)
 
     # ------------------------------------------------------------------
     # Internal steps
     # ------------------------------------------------------------------
 
-    def _fetch_data(self, version_name: str, project_key: str) -> ReleaseNotesContext:
-        print(f"  Fetching version '{version_name}' from JIRA project '{project_key}'...")
-        version = self._jira.get_version_by_name(version_name, project_key)
+    def _fetch_data(
+        self,
+        version_name: Optional[str],
+        project_key: str,
+        version_id: Optional[str] = None,
+        release_date_override: Optional[str] = None,
+    ) -> ReleaseNotesContext:
+        if version_id:
+            print(f"  Fetching version ID '{version_id}' from JIRA...")
+            version = self._jira.get_version_by_id(version_id)
+            if not version.project_key:
+                version.project_key = project_key
+            version_name = version.name
+        else:
+            print(f"  Fetching version '{version_name}' from JIRA project '{project_key}'...")
+            version = self._jira.get_version_by_name(version_name, project_key)
 
         print(f"  Fetching issues for version '{version_name}'...")
-        issues_by_type = self._jira.get_issues_by_version(version_name, project_key)
+        issues_by_type = self._jira.get_issues_by_version(version_name, version.project_key or project_key)
 
         total = sum(len(v) for v in issues_by_type.values())
         print(f"  Found {total} issues across {len(issues_by_type)} types.")
 
-        # Format the release date for display
-        version.release_date = format_jira_date(version.release_date)
+        # Apply release date override or format what came from JIRA
+        if release_date_override:
+            version.release_date = release_date_override
+        else:
+            version.release_date = format_jira_date(version.release_date)
 
+        effective_project_key = version.project_key or project_key
         return ReleaseNotesContext(
             version=version,
             issues_by_type=issues_by_type,
             generated_date=today_str(self._settings.output.date_format),
-            project_key=project_key,
+            project_key=effective_project_key,
             total_issues=total,
         )
 
     def _render_html(self, ctx: ReleaseNotesContext) -> str:
-        template = self._jinja.get_template("release_notes.html.j2")
+        template_name = "release_notes_short.html.j2" if self._style == "default" else f"release_notes_short_{self._style}.html.j2"
+        template = self._jinja.get_template(template_name)
 
         release_type = self._get_release_type(ctx.version.name)
 
         # Group all issues by priority
+        defect_types = {"bug", "defect"}
         high_issues: list = []
         medium_issues: list = []
         low_issues: list = []
+        feature_issues: list = []
+
         for issues in ctx.issues_by_type.values():
             for issue in issues:
-                p = (issue.priority or "medium").lower()
-                if p in ("highest", "high", "critical", "blocker"):
-                    high_issues.append(issue)
-                elif p in ("low", "lowest", "minor", "trivial"):
-                    low_issues.append(issue)
+                if issue.issue_type.lower() in defect_types:
+                    p = (issue.priority or "medium").lower()
+                    if p in ("highest", "high", "critical", "blocker"):
+                        high_issues.append(issue)
+                    elif p in ("low", "lowest", "minor", "trivial"):
+                        low_issues.append(issue)
+                    else:
+                        medium_issues.append(issue)
                 else:
-                    medium_issues.append(issue)
+                    feature_issues.append(issue)
 
-        # Build intro announcement text
-        all_issues = high_issues + medium_issues + low_issues
+        all_issues = high_issues + medium_issues + low_issues + feature_issues
         n = len(all_issues)
-        defect_types = {"bug", "defect"}
-        is_defect_only = all(
-            i.issue_type.lower() in defect_types for i in all_issues
-        ) if all_issues else True
+        fix_count = len(high_issues) + len(medium_issues) + len(low_issues)
+        feat_count = len(feature_issues)
 
-        if is_defect_only:
-            intro_text = (
-                f"We are pleased to announce the successful deployment of the "
-                f"<strong>{ctx.project_key} {release_type} {ctx.version.name}</strong>. "
-                f"This update addresses {n} defect{'s' if n != 1 else ''} "
-                f"identified in the system."
-            )
-        else:
-            feat_count = sum(
-                1 for i in all_issues if i.issue_type.lower() not in defect_types
-            )
-            fix_count = n - feat_count
-            parts = []
-            if feat_count:
-                parts.append(f"{feat_count} enhancement{'s' if feat_count != 1 else ''}")
-            if fix_count:
-                parts.append(f"{fix_count} defect fix{'es' if fix_count != 1 else ''}")
-            intro_text = (
-                f"We are pleased to announce the deployment of the "
-                f"<strong>{ctx.project_key} {release_type} {ctx.version.name}</strong>. "
-                f"This release delivers " + " and ".join(parts) + "."
-            )
+        parts = []
+        if feat_count:
+            parts.append(f"{feat_count} new feature{'s' if feat_count != 1 else ''}")
+        if fix_count:
+            parts.append(f"{fix_count} defect fix{'es' if fix_count != 1 else ''}")
+
+        intro_text = (
+            f"We are pleased to announce the successful deployment of the "
+            f"<strong>{ctx.project_key} {release_type} {ctx.version.name}</strong>. "
+            f"This release delivers " + " and ".join(parts) + "."
+            if parts else
+            f"We are pleased to announce the successful deployment of the "
+            f"<strong>{ctx.project_key} {release_type} {ctx.version.name}</strong>."
+        )
 
         tag_map = {
             "Hotfix": f"#{ctx.project_key} &nbsp;#Release &nbsp;#HotFix",
@@ -167,6 +191,7 @@ class ReleaseNotesGenerator:
             high_issues=high_issues,
             medium_issues=medium_issues,
             low_issues=low_issues,
+            feature_issues=feature_issues,
             release_type=release_type,
             intro_text=intro_text,
             hashtags=hashtags,
@@ -232,28 +257,19 @@ class ReleaseNotesGenerator:
         lines += [sep, f"Generated by SE-DevTools — {self._settings.branding.company_name}"]
         return "\n".join(lines)
 
-    @staticmethod
-    def _html_to_pdf(html_content: str, pdf_path: Path) -> Path:
-        """Convert HTML string to PDF using xhtml2pdf."""
-        pdf_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(pdf_path, "wb") as f:
-            pisa.CreatePDF(html_content, dest=f)
-        return pdf_path
-
     def _write_outputs(
         self, ctx: ReleaseNotesContext, html: str, txt: str
-    ) -> tuple[Path, Path, Path]:
+    ) -> tuple[Path, Path]:
         safe_version = sanitize_filename(ctx.version.name)
-        base_name = self._settings.output.release_notes_filename_pattern.format(
+        base_name = self._settings.output.release_notes_short_filename_pattern.format(
             project=ctx.project_key,
             version=safe_version,
             date=ctx.generated_date,
         )
 
-        out_dir = ensure_dir(self._settings.paths.output_release_notes)
+        out_dir = ensure_dir(self._settings.paths.output_release_notes_short)
 
         txt_path = write_text(txt, out_dir / f"{base_name}.txt")
         html_path = write_text(html, out_dir / f"{base_name}.html")
-        pdf_path = self._html_to_pdf(html, out_dir / f"{base_name}.pdf")
 
-        return txt_path, html_path, pdf_path
+        return txt_path, html_path

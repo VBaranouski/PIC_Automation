@@ -13,10 +13,10 @@ cp .env.example .env   # fill in JIRA_*, CONFLUENCE_*, FIGMA_API_TOKEN, ANTHROPI
 
 ```bash
 # Release notes from a JIRA version
-python main.py release-notes --version "2.4.1" [--project PROJ] [--publish]
+python main.py release-notes-short --version "2.4.1" [--project PROJ] [--publish]
 
 # Full AI-generated release notes (PICASso format)
-python main.py full-release-notes --version "2.4.1" [--project PROJ] [--spec "spec.txt"] [--publish]
+python main.py release-notes-detailed --version "2.4.1" [--project PROJ] [--spec "spec.txt"] [--publish]
 
 # Meeting notes from a transcript file in input/transcripts/
 python main.py meeting-notes --file "standup.txt"
@@ -26,7 +26,7 @@ python main.py meeting-notes --all        # process every .txt in input/transcri
 python main.py test-cases --story PROJ-452 [--story PROJ-453 ...]
 
 # PPTX release notes from a JSON spec file
-python main.py pptx-release-notes --spec "output/full_release_notes/template/pptx_spec_template.json"
+python main.py pptx-release-notes --spec "output/release_notes_detailed/template/pptx_spec_template.json"
 
 # Bug & defect report (SIT / UAT / Production sections)
 python main.py bug-report                  # default corporate style
@@ -60,16 +60,16 @@ The project follows a three-layer pipeline: **clients -> generators -> templates
 
 ### Generators overview
 
-| Generator                  | File                                    | Template(s)                                                  | JIRA? | AI? |
-| -------------------------- | --------------------------------------- | ------------------------------------------------------------ | ----- | --- |
-| `ReleaseNotesGenerator`    | `src/generators/release_notes.py`       | `release_notes.html.j2`                                      | Yes   | No  |
-| `FullReleaseNotesGenerator`| `src/generators/full_release_notes.py`  | `full_release_notes.html.j2`                                 | Yes   | Yes |
-| `MeetingNotesGenerator`    | `src/generators/meeting_notes.py`       | `meeting_notes.html.j2`                                      | No    | Yes |
-| `TestCasesGenerator`       | `src/generators/test_cases.py`          | `test_cases.html.j2`                                         | Yes   | Yes |
-| `PptxReleaseNotesGenerator` | `src/generators/pptx_release_notes.py` | N/A (programmatic python-pptx)                               | No    | No  |
-| `BugReportGenerator`       | `src/generators/bug_report.py`          | `bug_report_default.html.j2`, `bug_report_hacker.html.j2`    | Yes   | No  |
-| `EmailSummaryGenerator`    | `src/generators/email_summary.py`       | `email_summary.html.j2`                                      | Yes   | No  |
-| `StoryCoverageGenerator`   | `src/generators/story_coverage.py`      | `story_coverage.html.j2`                                     | Yes   | No  |
+| Generator                   | File                                       | Template(s)                                                 | JIRA? | AI? |
+| --------------------------- | ------------------------------------------ | ----------------------------------------------------------- | ----- | --- |
+| `ReleaseNotesGenerator`     | `src/generators/release_notes_short.py`    | `release_notes_short.html.j2`                               | Yes   | No  |
+| `FullReleaseNotesGenerator` | `src/generators/release_notes_detailed.py` | `release_notes_detailed.html.j2`                            | Yes   | Yes |
+| `MeetingNotesGenerator`     | `src/generators/meeting_notes.py`          | `meeting_notes.html.j2`                                     | No    | Yes |
+| `TestCasesGenerator`        | `src/generators/test_cases.py`             | `test_cases.html.j2`                                        | Yes   | Yes |
+| `PptxReleaseNotesGenerator` | `src/generators/pptx_release_notes.py`     | N/A (programmatic python-pptx)                              | No    | No  |
+| `BugReportGenerator`        | `src/generators/bug_report.py`             | `bug_report_{style}.html.j2`                                | Yes   | No  |
+| `EmailSummaryGenerator`     | `src/generators/email_summary.py`          | `email_summary.html.j2`                                     | Yes   | No  |
+| `StoryCoverageGenerator`    | `src/generators/story_coverage.py`         | `story_coverage.html.j2`                                    | Yes   | No  |
 
 ### Template styles
 
@@ -128,7 +128,7 @@ JIRA REST API v3 returns descriptions as **Atlassian Document Format (ADF)** JSO
 
 ### Confluence publishing
 
-Confluence publishing is **opt-in only** via the `--publish` flag on `release-notes` and `full-release-notes`. `ConfluenceClient.publish_release_notes()` checks for an existing page by title and creates or updates accordingly.
+Confluence publishing is **opt-in only** via the `--publish` flag on `release-notes` and `release-notes-detailed`. `ConfluenceClient.publish_release_notes()` checks for an existing page by title and creates or updates accordingly.
 
 ### Output file naming
 
@@ -149,3 +149,15 @@ Jinja2 templates use CSS variables driven by `branding.*` values from `config.ya
 ### Jinja2 autoescape caveat
 
 Templates use `autoescape=True`. Do not use HTML entities like `&nbsp;` in Jinja2 expressions (e.g. `join()` separators) -- they get double-escaped to `&amp;nbsp;`. Use plain text equivalents instead.
+
+## Testing Guidelines
+
+When writing test cases or test code for this package:
+
+- Mock all external API calls (JIRA, Confluence, Figma, Anthropic) — never hit live services in tests
+- Follow PEP 8 and use type hints in test code
+- Consider API rate limiting scenarios
+- Test both valid and malformed Confluence page structures
+- Test ADF-to-text conversion for JIRA descriptions (`JiraClient._adf_to_text()`)
+- Verify error messages are clear and actionable
+- Test config loading with missing/invalid `.env` and `config.yaml`

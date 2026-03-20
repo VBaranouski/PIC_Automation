@@ -3,18 +3,20 @@ SE-DevTools - Schneider Electric Developer Productivity CLI
 ============================================================
 
 Commands:
-  release-notes        Simple issue table release notes from a JIRA version
-  full-release-notes   Full AI-generated document (PICASso format) from a JIRA version
+  release-notes-short    Simple issue table release notes from a JIRA version
+  release-notes-detailed Full AI-generated document (PICASso format) from a JIRA version
   pptx-release-notes   SE-branded PPTX presentation from a JSON spec file
   meeting-notes        Meeting notes from transcript files (Claude AI)
   test-cases           Test cases from JIRA user stories (Claude AI)
+  user-stories         User Stories from Confluence spec + Figma mockups (Claude AI)
 
 Usage:
-  python main.py release-notes --version "2.4.1" [--project PROJ] [--publish]
-  python main.py full-release-notes --version "2.4.1" [--project PROJ] [--spec "spec.txt"] [--publish]
+  python main.py release-notes-short --version "2.4.1" [--project PROJ] [--publish]
+  python main.py release-notes-detailed --version "2.4.1" [--project PROJ] [--spec "spec.txt"] [--publish]
   python main.py pptx-release-notes --spec "spec.json"
   python main.py meeting-notes --file "standup.txt" | --all
   python main.py test-cases --story PROJ-452 [--story PROJ-453 ...]
+  python main.py user-stories --confluence-url "https://..." [--figma-url "https://..."] [--example-story PROJ-123] [--epic PROJ-800]
 """
 
 from __future__ import annotations
@@ -25,16 +27,18 @@ import click
 
 from src.ai.claude_client import ClaudeClient
 from src.clients.confluence_client import ConfluenceClient
+from src.clients.figma_client import FigmaClient
 from src.clients.jira_client import JiraClient
 from src.config.settings import load_settings
 from src.generators.bug_report import BugReportGenerator
 from src.generators.email_summary import EmailSummaryGenerator
 from src.generators.story_coverage import StoryCoverageGenerator
-from src.generators.full_release_notes import FullReleaseNotesGenerator
+from src.generators.release_notes_detailed import FullReleaseNotesGenerator
 from src.generators.pptx_release_notes import PptxReleaseNotesGenerator
 from src.generators.meeting_notes import MeetingNotesGenerator
-from src.generators.release_notes import ReleaseNotesGenerator
+from src.generators.release_notes_short import ReleaseNotesGenerator
 from src.generators.test_cases import TestCasesGenerator
+from src.generators.user_stories import UserStoriesGenerator
 
 
 # ---------------------------------------------------------------------------
@@ -58,11 +62,16 @@ def cli(ctx: click.Context) -> None:
 # release-notes command
 # ---------------------------------------------------------------------------
 
-@cli.command("release-notes")
+@cli.command("release-notes-short")
 @click.option(
     "--version", "-v",
-    required=True,
+    default=None,
     help="JIRA version / release name (e.g. '2.4.1' or 'Sprint 42').",
+)
+@click.option(
+    "--version-id",
+    default=None,
+    help="JIRA version numeric ID (alternative to --version name).",
 )
 @click.option(
     "--project", "-p",
@@ -76,27 +85,51 @@ def cli(ctx: click.Context) -> None:
     default=False,
     help="Publish generated HTML to Confluence after creation.",
 )
+@click.option(
+    "--release-date",
+    default=None,
+    help="Override the release date shown in the output (e.g. '28 March 2026').",
+)
+@click.option(
+    "--style",
+    default="default",
+    show_default=True,
+    type=click.Choice(["default", "hacker"], case_sensitive=False),
+    help="Visual style for the HTML output.",
+)
 @click.pass_context
-def release_notes_cmd(ctx: click.Context, version: str, project: str | None, publish: bool) -> None:
+def release_notes_cmd(
+    ctx: click.Context,
+    version: str | None,
+    version_id: str | None,
+    project: str | None,
+    publish: bool,
+    release_date: str | None,
+    style: str,
+) -> None:
     """Generate release notes from a JIRA version/release."""
-    settings = ctx.obj["settings"]
+    if not version and not version_id:
+        raise click.UsageError("Provide either --version or --version-id.")
 
-    click.echo(click.style(f"\n[SE-DevTools] Generating Release Notes for version '{version}'", bold=True))
+    settings = ctx.obj["settings"]
+    label = version_id or version
+    click.echo(click.style(f"\n[SE-DevTools] Generating Release Notes for version '{label}'", bold=True))
 
     jira = JiraClient(settings.jira)
     confluence = ConfluenceClient(settings.confluence) if publish else None
-    generator = ReleaseNotesGenerator(jira, settings, confluence=confluence)
+    generator = ReleaseNotesGenerator(jira, settings, confluence=confluence, style=style)
 
     try:
-        txt_path, html_path, pdf_path = generator.generate(
+        txt_path, html_path = generator.generate(
             version_name=version,
+            version_id=version_id,
             project_key=project,
             publish_to_confluence=publish,
+            release_date_override=release_date,
         )
         click.echo(click.style("\n  Done!", fg="green", bold=True))
         click.echo(f"  TXT  -> {txt_path}")
         click.echo(f"  HTML -> {html_path}")
-        click.echo(f"  PDF  -> {pdf_path}")
     except Exception as exc:
         click.echo(click.style(f"\n  [ERROR] {exc}", fg="red"), err=True)
         sys.exit(1)
@@ -210,10 +243,10 @@ def test_cases_cmd(ctx: click.Context, story_ids: tuple[str, ...]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# full-release-notes command
+# release-notes-detailed command
 # ---------------------------------------------------------------------------
 
-@cli.command("full-release-notes")
+@cli.command("release-notes-detailed")
 @click.option(
     "--version", "-v",
     required=True,
@@ -228,7 +261,7 @@ def test_cases_cmd(ctx: click.Context, story_ids: tuple[str, ...]) -> None:
     "--spec", "-s",
     "spec_filename",
     default=None,
-    help="Spec file in input/full_release_notes/ with feature descriptions (auto-detected if omitted).",
+    help="Spec file in input/release_notes_detailed/ with feature descriptions (auto-detected if omitted).",
 )
 @click.option(
     "--publish",
@@ -248,7 +281,7 @@ def full_release_notes_cmd(
     settings = ctx.obj["settings"]
 
     if not settings.ai.api_key:
-        click.echo(click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for full-release-notes. Add it to your .env file.", fg="red"), err=True)
+        click.echo(click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for release-notes-detailed. Add it to your .env file.", fg="red"), err=True)
         sys.exit(1)
 
     click.echo(click.style(f"\n[SE-DevTools] Generating Full Release Notes for version '{version}'", bold=True))
@@ -307,20 +340,23 @@ def pptx_release_notes_cmd(ctx: click.Context, spec_path: str) -> None:
 
 @cli.command("bug-report")
 @click.option("--style", type=click.Choice(["default", "hacker"], case_sensitive=False), default="default", help="Visual style for the report.")
+@click.option("--since", default=None, help="Only include defects created on or after this date (ISO format, e.g. '2026-03-01').")
 @click.pass_context
-def bug_report_cmd(ctx: click.Context, style: str) -> None:
+def bug_report_cmd(ctx: click.Context, style: str, since: str | None) -> None:
     """Generate a SIT / UAT / Production bug & defect report from JIRA."""
     settings = ctx.obj["settings"]
 
     click.echo(click.style("\n[SE-DevTools] Generating Bug & Defect Report", bold=True))
     click.echo(f"  Style: {style}")
+    if since:
+        click.echo(f"  Since: {since}")
     click.echo("  Querying JIRA for three reporter groups...")
 
     jira = JiraClient(settings.jira)
     generator = BugReportGenerator(jira, settings, style=style)
 
     try:
-        html_path = generator.generate()
+        html_path = generator.generate(since=since)
         click.echo(click.style("\n  Done!", fg="green", bold=True))
         click.echo(f"  HTML -> {html_path}")
     except Exception as exc:
@@ -375,6 +411,87 @@ def story_coverage_cmd(ctx: click.Context) -> None:
     except Exception as exc:
         click.echo(click.style(f"\n  [ERROR] {exc}", fg="red"), err=True)
         sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# user-stories command
+# ---------------------------------------------------------------------------
+
+@cli.command("user-stories")
+@click.option(
+    "--confluence-url",
+    required=True,
+    help="Full Confluence page URL containing the functional specification.",
+)
+@click.option(
+    "--figma-url",
+    default=None,
+    help="Figma design URL (file + node-id). Screenshot will be embedded in HTML output.",
+)
+@click.option(
+    "--example-story",
+    "example_stories",
+    multiple=True,
+    help="JIRA story ID to use as a writing-format reference. Repeatable: --example-story PROJ-1 --example-story PROJ-2.",
+)
+@click.option(
+    "--epic",
+    default=None,
+    help="Parent Epic/Feature JIRA key for additional context (e.g. PIC-8802).",
+)
+@click.option(
+    "--project", "-p",
+    default=None,
+    help="JIRA project key. Overrides the value in config.yaml.",
+)
+@click.pass_context
+def user_stories_cmd(
+    ctx: click.Context,
+    confluence_url: str,
+    figma_url: str | None,
+    example_stories: tuple[str, ...],
+    epic: str | None,
+    project: str | None,
+) -> None:
+    """Generate User Stories from a Confluence spec and optional Figma mockups using Claude AI."""
+    settings = ctx.obj["settings"]
+
+    if not settings.ai.api_key:
+        click.echo(
+            click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for user-stories. Add it to your .env file.", fg="red"),
+            err=True,
+        )
+        import sys; sys.exit(1)
+
+    click.echo(click.style("\n[SE-DevTools] Generating User Stories", bold=True))
+    click.echo(f"  Spec:  {confluence_url}")
+    if figma_url:
+        click.echo(f"  Figma: {figma_url}")
+    if example_stories:
+        click.echo(f"  Examples: {', '.join(example_stories)}")
+    if epic:
+        click.echo(f"  Epic:  {epic}")
+
+    confluence = ConfluenceClient(settings.confluence)
+    figma = FigmaClient(settings.figma) if (figma_url and settings.figma.api_token) else None
+    jira = JiraClient(settings.jira) if (example_stories or epic) else None
+    claude = ClaudeClient(settings.ai)
+
+    generator = UserStoriesGenerator(confluence, figma, jira, claude, settings)
+
+    try:
+        html_path = generator.generate(
+            confluence_url=confluence_url,
+            figma_url=figma_url,
+            example_story_ids=list(example_stories) if example_stories else None,
+            epic_key=epic,
+            project_key=project,
+        )
+        click.echo(click.style("\n  Done!", fg="green", bold=True))
+        click.echo(f"  HTML -> {html_path}")
+    except Exception as exc:
+        click.echo(click.style(f"\n  [ERROR] {exc}", fg="red"), err=True)
+        import sys; sys.exit(1)
 
 
 # ---------------------------------------------------------------------------

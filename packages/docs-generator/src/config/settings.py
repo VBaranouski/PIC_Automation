@@ -52,21 +52,23 @@ class AIConfig:
 @dataclass
 class PathConfig:
     input_transcripts: str
-    input_full_release_notes: str
-    output_release_notes: str
+    input_release_notes_detailed: str
+    output_release_notes_short: str
     output_meeting_notes: str
     output_test_cases: str
-    output_full_release_notes: str
+    output_release_notes_detailed: str
     output_bug_reports: str
+    output_user_stories: str
     templates_dir: str
 
 
 @dataclass
 class OutputConfig:
     date_format: str
-    release_notes_filename_pattern: str
+    release_notes_short_filename_pattern: str
     meeting_notes_filename_pattern: str
     test_cases_filename_pattern: str
+    user_stories_filename_pattern: str
 
 
 @dataclass
@@ -171,24 +173,28 @@ def load_settings(config_path: str = "config.yaml", env_path: str = None) -> Set
         ),
         paths=PathConfig(
             input_transcripts=paths_cfg.get("input_transcripts", "input/transcripts"),
-            input_full_release_notes=paths_cfg.get("input_full_release_notes", "input/full_release_notes"),
-            output_release_notes=paths_cfg.get("output_release_notes", "output/release_notes"),
+            input_release_notes_detailed=paths_cfg.get("input_release_notes_detailed", "input/release_notes_detailed"),
+            output_release_notes_short=paths_cfg.get("output_release_notes_short", "output/release_notes_short"),
             output_meeting_notes=paths_cfg.get("output_meeting_notes", "output/meeting_notes"),
             output_test_cases=paths_cfg.get("output_test_cases", "output/test_cases"),
-            output_full_release_notes=paths_cfg.get("output_full_release_notes", "output/full_release_notes"),
+            output_release_notes_detailed=paths_cfg.get("output_release_notes_detailed", "output/release_notes_detailed"),
             output_bug_reports=paths_cfg.get("output_bug_reports", "output/bug_reports"),
+            output_user_stories=paths_cfg.get("output_user_stories", "output/user_stories"),
             templates_dir=paths_cfg.get("templates_dir", "src/templates"),
         ),
         output=OutputConfig(
             date_format=output_cfg.get("date_format", "%Y-%m-%d"),
-            release_notes_filename_pattern=output_cfg.get(
-                "release_notes_filename_pattern", "{project}_{version}_{date}"
+            release_notes_short_filename_pattern=output_cfg.get(
+                "release_notes_short_filename_pattern", "{project}_{version}_{date}"
             ),
             meeting_notes_filename_pattern=output_cfg.get(
                 "meeting_notes_filename_pattern", "{transcript_stem}_{date}"
             ),
             test_cases_filename_pattern=output_cfg.get(
                 "test_cases_filename_pattern", "{story_id}_test_cases_{date}"
+            ),
+            user_stories_filename_pattern=output_cfg.get(
+                "user_stories_filename_pattern", "user_stories_{title}_{date}"
             ),
         ),
         branding=BrandingConfig(

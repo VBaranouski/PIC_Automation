@@ -21,16 +21,24 @@ traces/
 storage/
 blob-report/
 
-# Generated output (keep templates, ignore generated files)
-output/release_notes/*.txt
-output/release_notes/*.html
-output/release_notes/*.pdf
+# Generated output (keep .gitkeep and template/ subdirs, ignore generated files)
+output/release_notes_short/*.txt
+output/release_notes_short/*.html
+output/release_notes_detailed/*.html
+output/release_notes_detailed/*.pptx
 output/meeting_notes/*.txt
 output/meeting_notes/*.html
 output/test_cases/*.html
-output/full_release_notes/*.html
-output/full_release_notes/*.pptx
 output/bug_reports/*.html
+output/user_stories/*.html
+
+# Input files (keep .gitkeep, ignore uploaded content)
+input/transcripts/*.txt
+input/transcripts/*.docx
+input/transcripts/*.pdf
+input/release_notes_detailed/*.txt
+input/release_notes_detailed/*.md
+input/release_notes_detailed/*.json
 
 # Environment & secrets
 packages/.env

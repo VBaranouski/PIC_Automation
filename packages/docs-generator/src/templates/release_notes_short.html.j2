@@ -215,7 +215,7 @@
   <li>{% if defect %}Fixed an issue where {{ issue.summary[0] | lower }}{{ issue.summary[1:] }}.{% else %}{{ issue.summary }}{% endif %}</li>
   {% endmacro %}
 
-  <!-- HIGH PRIORITY -->
+  <!-- HIGH PRIORITY FIXES -->
   {% if high_issues %}
   <div class="section high">
     <div class="section-title">
@@ -229,7 +229,7 @@
   </div>
   {% endif %}
 
-  <!-- MEDIUM PRIORITY -->
+  <!-- MEDIUM PRIORITY FIXES -->
   {% if medium_issues %}
   <div class="section medium">
     <div class="section-title">
@@ -243,7 +243,7 @@
   </div>
   {% endif %}
 
-  <!-- LOW PRIORITY -->
+  <!-- LOW PRIORITY FIXES -->
   {% if low_issues %}
   <div class="section low">
     <div class="section-title">
@@ -253,6 +253,22 @@
     </div>
     <ul>
       {% for issue in low_issues %}{{ issue_li(issue) }}{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- NEW FEATURES & ENHANCEMENTS -->
+  {% if feature_issues %}
+  <div class="section low">
+    <div class="section-title">
+      <div class="priority-dot" style="background:{{ branding.primary_color }};"></div>
+      <h2>New Features and Enhancements</h2>
+      <span class="count">{{ feature_issues | length }} item{{ 's' if feature_issues | length != 1 else '' }}</span>
+    </div>
+    <ul>
+      {% for issue in feature_issues %}
+      <li>{{ issue.summary }}</li>
+      {% endfor %}
     </ul>
   </div>
   {% endif %}

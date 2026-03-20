@@ -70,6 +70,16 @@ class TestCase:
     test_type: str           # "Positive" | "Negative" | "Edge Case"
 
 
+@dataclass
+class UserStory:
+    title: str
+    as_a: str
+    i_want: str
+    so_that: str
+    acceptance_criteria: list[str]
+    source_requirement: str
+
+
 # ---------------------------------------------------------------------------
 # System prompts
 # ---------------------------------------------------------------------------
@@ -135,6 +145,36 @@ Each element must follow this schema:
 }
 
 Generate at least 8 test cases. Ensure thorough coverage across all test types.
+"""
+
+_SYSTEM_USER_STORIES = """\
+You are a senior Business Analyst for Schneider Electric.
+Your task is to analyze a functional specification and generate JIRA-ready User Stories.
+
+CRITICAL RULES:
+- Extract user stories ONLY from the specification provided. Do NOT invent requirements.
+- Every story must trace back to a specific section or requirement in the spec.
+- Be specific and complete — a developer must be able to implement from the story alone.
+- Write acceptance criteria as verifiable conditions (Given/When/Then or plain conditions).
+- The "as_a" field should describe the specific user role, never just "user" generically.
+- Generate one story per distinct functional requirement or user-facing capability.
+- No assumptions, no guesses — only facts explicitly stated in the specification.
+
+Respond ONLY with a valid JSON array — no markdown fences, no explanatory text.
+
+Each element must follow this schema exactly:
+{
+  "title": "Short imperative title (e.g. 'Delegate Permission to Another User')",
+  "as_a": "specific user role from the specification",
+  "i_want": "clear, concrete capability or feature",
+  "so_that": "concrete business benefit or goal",
+  "acceptance_criteria": [
+    "Criterion 1 — specific verifiable condition",
+    "Criterion 2",
+    "..."
+  ],
+  "source_requirement": "Brief quote or section reference from the spec this story covers"
+}
 """
 
 # Full release notes — system prompt base (template content injected at call time)
@@ -258,7 +298,59 @@ class ClaudeClient:
             for i, tc in enumerate(data)
         ]
 
-    def generate_full_release_notes(
+    def generate_user_stories(
+        self,
+        spec_text: str,
+        epic_context: str = "",
+        example_stories_text: str = "",
+        figma_context: str = "",
+    ) -> list[UserStory]:
+        """
+        Send a functional specification to Claude and parse structured User Stories.
+        Returns a list of UserStory dataclass instances.
+        """
+        parts: list[str] = []
+
+        if epic_context:
+            parts.append(f"PARENT EPIC CONTEXT:\n{epic_context}\n")
+
+        if example_stories_text:
+            parts.append(
+                "FORMAT EXAMPLES (do NOT generate stories about these — use them only to "
+                "understand the expected writing style and format):\n"
+                + example_stories_text
+            )
+
+        parts.append(f"FUNCTIONAL SPECIFICATION:\n{spec_text}")
+
+        if figma_context:
+            parts.append(f"FIGMA DESIGN REFERENCE:\n{figma_context}")
+
+        parts.append(
+            "\nNow generate ALL user stories that fully cover the functional specification above. "
+            "Return ONLY the JSON array."
+        )
+
+        user_message = "\n\n".join(parts)
+        response_text = self._call_claude(_SYSTEM_USER_STORIES, user_message)
+        data = self._parse_json_response(response_text)
+
+        if not isinstance(data, list):
+            data = data.get("stories", [])
+
+        return [
+            UserStory(
+                title=s.get("title", ""),
+                as_a=s.get("as_a", ""),
+                i_want=s.get("i_want", ""),
+                so_that=s.get("so_that", ""),
+                acceptance_criteria=s.get("acceptance_criteria", []),
+                source_requirement=s.get("source_requirement", ""),
+            )
+            for s in data
+        ]
+
+    def generate_release_notes_detailed(
         self,
         version_name: str,
         project_name: str,
