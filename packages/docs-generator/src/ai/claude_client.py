@@ -203,7 +203,7 @@ class ClaudeClient:
     """Wraps the Anthropic SDK with domain-specific methods."""
 
     def __init__(self, config: AIConfig) -> None:
-        self._client = anthropic.Anthropic(api_key=config.api_key)
+        self._client = anthropic.Anthropic()
         self._model = config.model
         self._max_tokens = config.max_tokens
 

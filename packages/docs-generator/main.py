@@ -158,10 +158,6 @@ def meeting_notes_cmd(ctx: click.Context, filename: str | None, process_all: boo
     """Generate meeting notes from transcript files using Claude AI."""
     settings = ctx.obj["settings"]
 
-    if not settings.ai.api_key:
-        click.echo(click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for meeting-notes. Add it to your .env file.", fg="red"), err=True)
-        sys.exit(1)
-
     if not filename and not process_all:
         click.echo(
             click.style(
@@ -215,10 +211,6 @@ def meeting_notes_cmd(ctx: click.Context, filename: str | None, process_all: boo
 def test_cases_cmd(ctx: click.Context, story_ids: tuple[str, ...]) -> None:
     """Generate test cases from JIRA user stories using Claude AI."""
     settings = ctx.obj["settings"]
-
-    if not settings.ai.api_key:
-        click.echo(click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for test-cases. Add it to your .env file.", fg="red"), err=True)
-        sys.exit(1)
 
     click.echo(
         click.style(
@@ -279,10 +271,6 @@ def full_release_notes_cmd(
 ) -> None:
     """Generate a full AI-powered release notes document (PICASso format) from JIRA data."""
     settings = ctx.obj["settings"]
-
-    if not settings.ai.api_key:
-        click.echo(click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for release-notes-detailed. Add it to your .env file.", fg="red"), err=True)
-        sys.exit(1)
 
     click.echo(click.style(f"\n[SE-DevTools] Generating Full Release Notes for version '{version}'", bold=True))
 
@@ -455,13 +443,6 @@ def user_stories_cmd(
 ) -> None:
     """Generate User Stories from a Confluence spec and optional Figma mockups using Claude AI."""
     settings = ctx.obj["settings"]
-
-    if not settings.ai.api_key:
-        click.echo(
-            click.style("\n  [ERROR] ANTHROPIC_API_KEY is required for user-stories. Add it to your .env file.", fg="red"),
-            err=True,
-        )
-        import sys; sys.exit(1)
 
     click.echo(click.style("\n[SE-DevTools] Generating User Stories", bold=True))
     click.echo(f"  Spec:  {confluence_url}")

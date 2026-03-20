@@ -44,7 +44,6 @@ class FigmaConfig:
 
 @dataclass
 class AIConfig:
-    api_key: str
     model: str
     max_tokens: int
 
@@ -121,7 +120,6 @@ def load_settings(config_path: str = "config.yaml", env_path: str = None) -> Set
     with yaml_path.open("r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
-    # Validate required secrets (ANTHROPIC_API_KEY is optional — only needed for AI commands)
     required = {
         "JIRA_BASE_URL": os.getenv("JIRA_BASE_URL"),
         "JIRA_EMAIL": os.getenv("JIRA_EMAIL"),
@@ -167,7 +165,6 @@ def load_settings(config_path: str = "config.yaml", env_path: str = None) -> Set
             base_url="https://api.figma.com",
         ),
         ai=AIConfig(
-            api_key=os.getenv("ANTHROPIC_API_KEY", ""),
             model=ai_cfg.get("model", "claude-sonnet-4-6"),
             max_tokens=ai_cfg.get("max_tokens", 4096),
         ),

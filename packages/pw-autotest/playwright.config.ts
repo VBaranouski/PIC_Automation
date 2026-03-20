@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
 import { getEnvironment } from './config/environments';
+
+// Load shared secrets from monorepo root .env
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const environment = getEnvironment(process.env.TEST_ENV);
 

@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env   # fill in JIRA_*, CONFLUENCE_*, FIGMA_API_TOKEN, ANTHROPIC_API_KEY
+# .env lives at the monorepo root (auto-discovered at ../../.env relative to this package)
+# To create it from scratch: cp packages/docs-generator/.env.example .env  (run from repo root)
 ```
 
 ## Commands

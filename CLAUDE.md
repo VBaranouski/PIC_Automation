@@ -24,10 +24,11 @@ python main.py story-coverage
 ```bash
 cd packages/docs-generator
 pip install -r requirements.txt
-cp .env.example .env  # fill in JIRA_*, CONFLUENCE_*, FIGMA_API_TOKEN, ANTHROPIC_API_KEY
+# .env lives at repo root — copy the example and fill in your tokens:
+cp packages/docs-generator/.env.example .env
 ```
 
-**Architecture:** clients → generators → Jinja2 templates. Config: `.env` (secrets) + `config.yaml` (settings). See `packages/docs-generator/CLAUDE.md` for full details.
+**Architecture:** clients → generators → Jinja2 templates. Config: `.env` at repo root (secrets) + `config.yaml` (settings). See `packages/docs-generator/CLAUDE.md` for full details.
 
 ---
 

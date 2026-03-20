@@ -12,7 +12,7 @@ Pipeline:
 Differs from release_notes.py (simple table dump):
   - AI synthesizes narrative sections: Revision History, Introduction, Objectives,
     New Features & Enhancements (numbered subsections), Defect Fixes
-  - Requires ANTHROPIC_API_KEY
+  - Uses Claude Code Pro subscription for AI (no API key required)
   - HTML only output (no .txt)
 """
 
