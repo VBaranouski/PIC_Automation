@@ -20,31 +20,25 @@ You are a Senior QA Engineer with 15+ years of experience in software quality as
 
 - `/create-test-cases` — Create test cases and test scenarios
 
-## JIRA & Confluence MCP Integration (MANDATORY)
+## JIRA & Confluence Data Fetching (MANDATORY)
 
-Use MCP tools directly for all JIRA and Confluence data fetching — do NOT run Python CLI fetch commands.
+Spawn the `atlas` subagent (Haiku) for all JIRA and Confluence data fetching. Do NOT call `jira_*` or `confluence_*` MCP tools directly.
 
-**Fetch a JIRA story:**
+Describe what you need in your prompt and include the expected JSON schema. Atlas handles all MCP calls and returns structured data.
 
-```text
-mcp__mcp-atlassian__jira_get_issue(issue_key="PIC-123", fields=["summary","description","customfield_10014","attachment"])
-```
-
-> `customfield_10014` = Acceptance Criteria on this Jira instance.
-
-**Search JIRA issues:**
+**Example — fetch a story:**
 
 ```text
-mcp__mcp-atlassian__jira_search(jql="project = PIC AND issuetype = Story AND fixVersion = 'X.X'", fields=["key","summary","status","priority"])
+Fetch Jira issue PIC-123.
+Return JSON: {"key":"PIC-123","summary":"...","description":"plain text","acceptance_criteria":"plain text from customfield_10014","status":"...","priority":"...","assignee":"..."}
 ```
 
-**Fetch a Confluence spec page:**
+**Example — fetch a Confluence spec:**
 
 ```text
-mcp__mcp-atlassian__confluence_get_page(page_id="<id>")
+Fetch Confluence page https://confluence.se.com/.../pages/12345/...
+Return JSON: {"page_title":"...","spec_text":"plain text of page body"}
 ```
-
-Extract the page ID from the URL: `…/pages/<pageId>/…`
 
 ---
 

@@ -21,55 +21,53 @@ MCP fetches JIRA data. Python renders the HTML shell. You write the narrative bo
 
 ---
 
-## Step 2 — Fetch release data via MCP
+## Step 2 — Fetch release data via Atlas agent (Haiku)
 
-### 2a — Get version metadata
+### 2a — Spawn Atlas to fetch Jira version and issues
 
-```text
-mcp__mcp-atlassian__jira_get_project_versions(project_key="PIC")
-```
-
-Find the entry where `name` matches the requested version. Extract: `id`, `name`, `releaseDate`, `released`.
-
-### 2b — Get all issues for this version
+Use this prompt template:
 
 ```text
-mcp__mcp-atlassian__jira_search(
-  jql="project = PIC AND fixVersion = '<version>' ORDER BY issuetype ASC, key ASC",
-  fields=["key","summary","status","priority","issuetype","assignee"],
-  max_results=200
-)
+RELEASE_DATA_FETCH_MODE
+
+version: <version name>
+project_key: <project key, default PIC>
+
+1. Call jira_get_project_versions(project_key="<project_key>") and find the entry matching the version name. Extract: id, name, releaseDate, released.
+2. Call jira_search(jql="project = <project_key> AND fixVersion = '<version>' ORDER BY issuetype ASC, key ASC", fields=["key","summary","status","priority","issuetype","assignee"], max_results=200).
+   If total > 200, paginate with start_at until all issues are fetched.
+3. Group issues by fields.issuetype.name.
+
+Return ONLY this JSON object:
+{
+  "version_name": "<name>",
+  "project_key": "<key>",
+  "release_date": "<releaseDate or empty string>",
+  "released": <true|false>,
+  "total_issues": <number>,
+  "issues_by_type": {
+    "Story": [{"key": "PIC-1", "summary": "...", "status": "Done", "priority": "High", "assignee": "Name"}],
+    "Bug": [],
+    "Task": []
+  }
+}
 ```
 
-If `total > 200`, paginate using `start_at` until all issues are fetched.
+### 2b — Read spec file and HTML template (you do this)
 
-Group results by `fields.issuetype.name`. Each issue entry:
+- If `--spec` was provided, use the Read tool to load it → `spec_content`.
+- Read `projects/docs-generator/src/templates/release_notes_detailed.html.j2` → `template_content`.
 
-```json
-{"key": "PIC-123", "summary": "...", "status": "Done", "priority": "High", "assignee": "Name"}
-```
+### 2c — Write release data JSON
 
-### 2c — Read spec file (optional)
-
-If `--spec` was provided, use the Read tool to load it → `spec_content`.
-
-### 2d — Read HTML template
-
-```bash
-Read projects/docs-generator/src/templates/release_notes_detailed.html.j2
-```
-
-Store as `template_content` (used to understand required sections for Step 3).
-
-### 2e — Write release data JSON
-
-Write `output/release_notes_detailed/release_data_<version>_<date>.json`:
+Merge the Atlas result with `spec_content` and `template_content`. Write to `output/release_notes_detailed/release_data_<version>_<date>.json`:
 
 ```json
 {
   "version_name": "2.4.1",
   "project_key": "PIC",
   "release_date": "2026-03-20",
+  "released": true,
   "total_issues": 48,
   "issues_by_type": {
     "Story": [{"key": "PIC-1", "summary": "...", "status": "Done", "priority": "High", "assignee": "Name"}],

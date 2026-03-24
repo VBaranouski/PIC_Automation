@@ -20,49 +20,39 @@ Ask the user for:
 
 ---
 
-## Step 2 — Fetch issues via MCP
+## Step 2 — Fetch issues via Atlas agent (Haiku)
 
-### 2a — Get version metadata (if version name provided)
-
-```text
-mcp__mcp-atlassian__jira_get_project_versions(project_key="PIC")
-```
-
-Find the entry matching the requested version name or ID. Extract: `id`, `name`, `releaseDate`, `released`, `description`.
-
-### 2b — Get all issues for this version
+Spawn the `atlas` subagent with this prompt template:
 
 ```text
-mcp__mcp-atlassian__jira_search(
-  jql="project = PIC AND fixVersion = '<version>' ORDER BY issuetype ASC, key ASC",
-  fields=["key","summary","status","priority","issuetype","assignee"],
-  max_results=200
-)
-```
+RELEASE_DATA_FETCH_MODE
 
-If `total > 200`, paginate using `start_at` until all issues are fetched.
+version: <version name or ID>
+project_key: <project key, default PIC>
+release_date_override: <user-provided date or omit>
 
-Group results by `fields.issuetype.name`.
+1. Call jira_get_project_versions(project_key="<project_key>") and find the entry matching the version name or ID. Extract: id, name, releaseDate, released, description.
+2. Call jira_search(jql="project = <project_key> AND fixVersion = '<version>' ORDER BY issuetype ASC, key ASC", fields=["key","summary","status","priority","issuetype","assignee"], max_results=200).
+   If total > 200, paginate with start_at until all issues are fetched.
+3. Group issues by fields.issuetype.name. Each entry: {key, summary, status, priority, issue_type, assignee}.
 
-### 2c — Write release data JSON
-
-Write `output/release_notes_short/release_data_short_<version>_<date>.json`:
-
-```json
+Return ONLY this JSON object:
 {
-  "version_name": "2.4.1",
-  "version_description": "Optional description",
-  "release_date": "28 March 2026",
-  "released": true,
-  "project_key": "PIC",
-  "total_issues": 48,
-  "generated_date": "2026-03-22",
+  "version_name": "<name>",
+  "version_description": "<description or empty string>",
+  "release_date": "<release_date_override if provided, else releaseDate from Jira, formatted as 'DD Month YYYY'>",
+  "released": <true|false>,
+  "project_key": "<key>",
+  "total_issues": <number>,
+  "generated_date": "<today YYYY-MM-DD>",
   "issues_by_type": {
     "Story": [{"key": "PIC-1", "summary": "...", "status": "Done", "priority": "High", "issue_type": "Story", "assignee": "Name"}],
     "Bug": []
   }
 }
 ```
+
+Write the returned JSON as-is to `output/release_notes_short/release_data_short_<version>_<date>.json`.
 
 ---
 

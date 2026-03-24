@@ -19,59 +19,34 @@ Get from the user:
 
 ---
 
-## Step 2 — Fetch story data via MCP
+## Step 2 — Fetch story data via Atlas agent (Haiku)
 
-Use `data-receiver` agent for data fetch.
-For each story ID, call:
-
-```text
-mcp__mcp-atlassian__jira_get_issue(
-  issue_key="PROJ-452",
-  fields=["summary","status","priority","assignee","description","customfield_10014","attachment"]
-)
-```
-
-From the response, extract:
-
-| Field | Source |
-|---|---|
-| `key` | `issue.key` |
-| `summary` | `fields.summary` |
-| `description` | `fields.description` — convert ADF to plain text (see below) |
-| `acceptance_criteria` | `fields.customfield_10014` — convert ADF to plain text |
-| `status` | `fields.status.name` |
-| `priority` | `fields.priority.name` |
-| `assignee` | `fields.assignee.displayName` (or empty string if null) |
-
-**ADF → plain text:** Recursively walk the `content` tree and collect all `text` node values, joining with newlines at paragraph/heading boundaries.
-
-**Screenshots (attachments):** For any attachment with a `.png`, `.jpg`, or `.jpeg` mime type, call:
+Spawn the `atlas` subagent for each story ID. Use this prompt template:
 
 ```text
-mcp__mcp-atlassian__jira_download_attachments(
-  issue_key="PROJ-452",
-  attachment_ids=["<id1>", "<id2>"]
-)
-```
+TEST_CASE_FETCH_MODE
 
-Each result is a base64-encoded image. Build `story_screenshots` as `[["filename.png", "data:image/png;base64,..."], ...]`.
+story_id: <STORY-ID>
 
-Write the following JSON to `output/test_cases/story_data_<STORY-ID>_<date>.json`:
-
-```json
+Fetch the Jira issue and return ONLY this JSON object:
 {
-  "key": "PROJ-452",
-  "summary": "...",
-  "description": "plain text",
-  "acceptance_criteria": "plain text",
-  "status": "In Progress",
-  "priority": "High",
-  "assignee": "Name",
-  "story_screenshots": [["filename.png", "data:image/png;base64,..."]]
+  "key": "<issue key>",
+  "summary": "<summary>",
+  "description": "<plain text — recursively extract all text node values from ADF content tree, join with newlines>",
+  "acceptance_criteria": "<plain text from customfield_10014 — same ADF extraction>",
+  "status": "<fields.status.name>",
+  "priority": "<fields.priority.name>",
+  "assignee": "<fields.assignee.displayName or empty string if null>",
+  "story_screenshots": [["filename.png", "data:image/png;base64,<FULL untruncated base64 string>"]]
 }
+
+Use: jira_get_issue(issue_key="<story_id>", fields=["summary","status","priority","assignee","description","customfield_10014","attachment"])
+For image attachments (.png/.jpg/.jpeg): call jira_download_attachments and include verbatim base64 in story_screenshots.
 ```
 
-Process one story at a time — separate JSON files.
+Write the returned JSON as-is to `output/test_cases/story_data_<STORY-ID>_<date>.json`.
+
+Process one story at a time — separate Atlas spawns and JSON files.
 
 ---
 

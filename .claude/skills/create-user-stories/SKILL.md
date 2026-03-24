@@ -13,7 +13,7 @@ MCP handles data fetching from Confluence and Jira. Python renders HTML. You han
 ## Step 1 — Collect inputs
 
 | Input | How provided | Required? |
-|-------|------|-----------|
+| ----- | ---- | --------- |
 | Confluence page URL | User prompt | **Yes** |
 | Figma design URL | User prompt | Optional — auto-detected from spec_text in Step 2 |
 | Example JIRA story IDs | User prompt | Optional |
@@ -22,99 +22,25 @@ MCP handles data fetching from Confluence and Jira. Python renders HTML. You han
 
 ---
 
-## Step 2 — Fetch spec data via MCP
+## Step 2 — Fetch spec data via Atlas agent (Haiku)
 
-### 2a — Fetch Confluence page content
-
-Parse the page ID from the URL:
-
-- Pattern `/pages/(\d+)` in the path, OR
-- Query param `pageId=(\d+)`
-
-Then call:
+Spawn the `atlas` subagent to handle all Confluence and Jira fetching. Use this exact prompt template:
 
 ```text
-mcp__mcp-atlassian__confluence_get_page(
-  page_id="<id>",
-  expand="body.storage,version"
-)
+SPEC_FETCH_MODE
+
+confluence_url: <value from Step 1>
+epic_key: <value or omit>
+example_story_ids: <comma-separated list or omit>
+figma_url: <value or omit>
 ```
 
-Extract:
+Atlas returns a JSON object. Parse it to extract:
 
-- `page_title` = `title` field
-- `spec_text` = strip all HTML tags from `body.storage.value` to get readable plain text. Preserve paragraph structure with newlines.
+- `page_title`, `spec_text`, `figma_url`, `image_names`, `confluence_screenshots`
+- `epic_context`, `example_stories_text` (if present)
 
-### 2b — Fetch Confluence page images
-
-```text
-mcp__mcp-atlassian__confluence_get_attachments(page_id="<id>")
-```
-
-For each attachment with a media type of `image/*`:
-
-```text
-mcp__mcp-atlassian__confluence_download_attachment(
-  page_id="<id>",
-  attachment_id="<attachment_id>"
-)
-```
-
-Build:
-
-- `image_names` = list of attachment filenames (e.g. `["screenshot1.png", "design.png"]`)
-- `confluence_screenshots` = list of `[filename, "data:image/png;base64,..."]` pairs
-
-### 2c — Fetch epic context (optional)
-
-If the user provided an epic key:
-
-```text
-mcp__mcp-atlassian__jira_get_issue(issue_key="<epic>", fields=["summary","description"])
-```
-
-Convert ADF description to plain text (recursively extract all `text` node values). Format as:
-
-```
-Epic: <summary>
-<first 800 characters of description>
-```
-
-Store as `epic_context`.
-
-### 2d — Fetch example stories (optional)
-
-For each example story ID provided:
-
-```text
-mcp__mcp-atlassian__jira_get_issue(issue_key="<id>", fields=["summary","description","customfield_10014"])
-```
-
-Format each as:
-
-```
-Story: <key> — <summary>
-Description: <plain text description>
-Acceptance Criteria: <plain text from customfield_10014>
-```
-
-Concatenate all as `example_stories_text`.
-
-### 2e — Write spec data JSON
-
-Write `output/user_stories/spec_data_<sanitized_title>_<date>.json`:
-
-```json
-{
-  "page_title": "Specification title",
-  "spec_text": "plain text extracted from Confluence page body",
-  "epic_context": "optional: formatted epic summary + description",
-  "example_stories_text": "optional: formatted example stories",
-  "figma_url": "optional: if user provided a Figma URL",
-  "image_names": ["screenshot1.png", "screenshot2.png"],
-  "confluence_screenshots": [["screenshot1.png", "data:image/png;base64,..."]]
-}
-```
+Write the JSON as-is to `output/user_stories/spec_data_<sanitized_title>_<date>.json`.
 
 Sanitize the title for the filename: replace non-alphanumeric characters with underscores, truncate to 40 chars.
 
