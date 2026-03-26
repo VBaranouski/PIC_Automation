@@ -34,6 +34,9 @@ export class NewProductPage extends BasePage {
   get productDefinitionSelect(): Locator { return this.l.productDefinitionSelect; }
   get productTypeSelect(): Locator     { return this.l.productTypeSelect; }
   get digitalOfferCheckbox(): Locator  { return this.l.digitalOfferCheckbox; }
+  get vestaIdInput(): Locator                 { return this.l.vestaIdInput; }
+  get docItOwnerSearchBox(): Locator          { return this.l.docItOwnerSearchBox; }
+  get docProjectManagerSearchBox(): Locator   { return this.l.docProjectManagerSearchBox; }
   get commercialRefInput(): Locator    { return this.l.commercialRefInput; }
   get dataProtectionCheckbox(): Locator { return this.l.dataProtectionCheckbox; }
   get brandLabelCheckbox(): Locator    { return this.l.brandLabelCheckbox; }
@@ -41,10 +44,11 @@ export class NewProductPage extends BasePage {
   get productDescriptionToggle(): Locator { return this.l.productDescriptionToggle; }
   get productDescriptionEditor(): Locator { return this.l.productDescriptionEditor; }
 
-  get productOrganizationTab(): Locator  { return this.l.productOrganizationTab; }
-  get productTeamTab(): Locator          { return this.l.productTeamTab; }
-  get securitySummaryTab(): Locator      { return this.l.securitySummaryTab; }
-  get productConfigurationTab(): Locator { return this.l.productConfigurationTab; }
+  get productOrganizationTab(): Locator          { return this.l.productOrganizationTab; }
+  get productTeamTab(): Locator                  { return this.l.productTeamTab; }
+  get securitySummaryTab(): Locator              { return this.l.securitySummaryTab; }
+  get productConfigurationTab(): Locator         { return this.l.productConfigurationTab; }
+  get digitalOfferCertificationTab(): Locator    { return this.l.digitalOfferCertificationTab; }
 
   get orgLevel1Select(): Locator   { return this.l.orgLevel1Select; }
   get orgLevel2Select(): Locator   { return this.l.orgLevel2Select; }
@@ -140,6 +144,33 @@ export class NewProductPage extends BasePage {
 
   async toggleDigitalOffer(): Promise<void> {
     await this.l.digitalOfferCheckbox.click();
+  }
+
+  /**
+   * Fills the Digital Offer Certification (DOC) section that appears after toggling Digital Offer.
+   * DOC searchboxes (IT Owner, Project Manager) are directly visible — no edit-link click needed.
+   * Uses pressSequentially() to trigger the OutSystems search API.
+   */
+  async fillDigitalOfferDetails(data: {
+    vestaId: string;
+    searchQuery: string;
+    itOwnerFullName: string;
+    projectManagerFullName: string;
+  }): Promise<void> {
+    await this.l.vestaIdInput.fill(data.vestaId);
+
+    await this.l.docItOwnerSearchBox.pressSequentially(data.searchQuery, { delay: 150 });
+    const itOwnerResult = this.page.getByText(data.itOwnerFullName, { exact: true }).first();
+    await itOwnerResult.waitFor({ state: 'visible', timeout: 30_000 });
+    await itOwnerResult.click();
+
+    // Wait for IT Owner selection to settle before typing in Project Manager field.
+    // OutSystems updates the DOC section after each selection, replacing DOM elements.
+    await this.l.docProjectManagerSearchBox.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.docProjectManagerSearchBox.pressSequentially(data.searchQuery, { delay: 150 });
+    const pmResult = this.page.getByText(data.projectManagerFullName, { exact: true }).first();
+    await pmResult.waitFor({ state: 'visible', timeout: 30_000 });
+    await pmResult.click();
   }
 
   async toggleDataProtection(): Promise<void> {
@@ -255,6 +286,10 @@ export class NewProductPage extends BasePage {
 
   async expectOrgLevel3Enabled(timeout = 40_000): Promise<void> {
     await expect(this.l.orgLevel3Select).toBeEnabled({ timeout });
+  }
+
+  async expectDigitalOfferCertificationTabVisible(): Promise<void> {
+    await expect(this.l.digitalOfferCertificationTab).toBeVisible({ timeout: 30_000 });
   }
 
   async expectProductDetailLoaded(): Promise<void> {

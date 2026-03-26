@@ -250,8 +250,7 @@ export class LandingPage extends BasePage {
   }
 
   async expectColumnHeadersExist(): Promise<void> {
-    const headers = await this.getColumnHeaders();
-    expect(headers.length).toBeGreaterThan(0);
+    await expect(this.l.grid.getByRole('columnheader').first()).toBeVisible();
   }
 
   async expectColumnHeadersContain(expected: string[]): Promise<void> {
@@ -262,13 +261,12 @@ export class LandingPage extends BasePage {
   }
 
   async expectGridHasRows(): Promise<void> {
-    const rowCount = await this.getGridRowCount();
-    expect(rowCount).toBeGreaterThan(0);
+    // nth(1) skips the header row — asserts at least one data row exists
+    await expect(this.l.grid.getByRole('row').nth(1)).toBeVisible();
   }
 
   async expectRecordCountGreaterThan(n: number): Promise<void> {
-    const count = await this.getRecordCount();
-    expect(Number(count)).toBeGreaterThan(n);
+    await expect.poll(async () => Number(await this.getRecordCount())).toBeGreaterThan(n);
   }
 
   async expectRecordCountLessThan(n: number, timeout = 30_000): Promise<void> {
@@ -279,6 +277,8 @@ export class LandingPage extends BasePage {
   }
 
   async expectDefaultPageSize(): Promise<number> {
+    // Wait for at least one data row before reading count
+    await expect(this.l.grid.getByRole('row').nth(1)).toBeVisible();
     const rowCount = await this.getGridRowCount();
     expect(rowCount).toBeGreaterThan(0);
     expect(rowCount).toBeLessThanOrEqual(10);
@@ -286,13 +286,15 @@ export class LandingPage extends BasePage {
   }
 
   async expectRowCountAtLeast(n: number): Promise<void> {
-    const rowCount = await this.getGridRowCount();
-    expect(rowCount).toBeGreaterThanOrEqual(n);
+    // nth(n) checks that at least n data rows exist (header is at index 0)
+    await expect(this.l.grid.getByRole('row').nth(n)).toBeVisible();
   }
 
   async expectCurrentPageNumber(expected: number): Promise<void> {
-    const currentPage = await this.getCurrentPageNumber();
-    expect(currentPage).toBe(expected);
+    // The active pagination button has "current page" in its accessible name
+    await expect(
+      this.l.paginationNav.getByRole('button', { name: /current page/ }),
+    ).toContainText(String(expected));
   }
 
   async expectTasksFiltersVisible(): Promise<void> {

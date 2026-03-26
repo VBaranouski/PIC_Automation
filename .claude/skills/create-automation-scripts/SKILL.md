@@ -9,9 +9,11 @@ AI-powered test generation that reads test scenarios, explores the real applicat
 
 **Core principle:** Never guess locators — always explore the real DOM via MCP snapshots first.
 
-> **Prerequisite:** Before generating any code, read these convention files:
-> - `.claude/rules/typescript-conventions.md`
-> - `.claude/rules/testing-patterns.md`
+> **Prerequisite:** Before generating any code, read these files in order:
+> 1. `.claude/rules/typescript-conventions.md`
+> 2. `.claude/rules/testing-patterns.md`
+> 3. `.claude/rules/outsystems_patterns.md`
+> 4. `.claude/rules/automation-testing/reference/outsystems-picasso.md`
 
 ## When to Use
 
@@ -51,18 +53,29 @@ OutSystems keeps WebSocket connections alive. `waitForLoadState('networkidle')` 
 // WRONG
 await page.waitForLoadState('networkidle');
 // RIGHT
-await expect(element).toBeVisible({ timeout: 15_000 });
+await element.waitFor({ state: 'visible', timeout: 30_000 });
 ```
 
-### NEVER use `selectOption()`
-OutSystems **never** uses native `<select>` — all dropdowns are custom OSUI widgets.
+### `selectOption()` — native `<select>` only, NEVER on OSUI custom widgets
+
+PICASso uses **both** native `<select>` and OSUI custom dropdown widgets. Always check the DOM snapshot.
+
+**Native `<select>` — `selectOption()` is correct:**
 ```typescript
-// WRONG
-await combobox.selectOption({ label: 'Germany' });
-// RIGHT — click-to-open → click-to-select
+// Product State, Definition, Type and Org Levels are native <select>
+await page.getByRole('combobox', { name: 'Product State*' }).selectOption({ label: 'Under development' });
+await page.getByRole('combobox', { name: 'Org Level 1*' }).selectOption({ label: 'Energy Management' });
+```
+
+**OSUI custom dropdown widget — click-to-open, click-to-select:**
+```typescript
+// Filter dropdowns (vscomp, osui-dropdown) are custom widgets — selectOption() silently fails
 await page.locator('.osui-dropdown').filter({ hasText: 'Select Country' }).click();
+await page.locator('.osui-dropdown__list').waitFor();
 await page.getByText('Germany', { exact: true }).click();
 ```
+
+**How to tell the difference:** Try `selectOption()` in the browser. If it throws or the value doesn't change, it's a custom widget.
 
 ### ALWAYS scope grid elements to active tabpanel
 Multiple tabs = multiple hidden grids in DOM.
@@ -90,6 +103,36 @@ Test data varies between environments. Assert data exists, not exact counts.
 ### Use column headers from real DOM
 Always snapshot first, then use exact header text (including casing).
 
+### CSS-generated asterisks are NOT in DOM text
+OutSystems adds `*` to required labels via CSS. Never include it in locator text:
+```typescript
+// WRONG — asterisk is CSS-generated, not in DOM
+page.getByText('Product Owner*')
+// RIGHT
+page.getByText('Product Owner', { exact: true })
+// NOTE: getByRole accessible names sometimes DO include *, so snapshot first
+page.getByRole('textbox', { name: 'Product Name*' })
+```
+
+### Use `pressSequentially()` for search/autocomplete — NEVER `fill()`
+OutSystems search APIs listen to keydown events. `fill()` sets the value without triggering the search:
+```typescript
+// WRONG — no search results appear
+await searchBox.fill('Ulad');
+// RIGHT — each keystroke triggers the OutSystems search API
+await searchBox.pressSequentially('Ulad', { delay: 150 });
+```
+
+### OutSystems partial refreshes can reset form fields
+After switching tabs on a multi-tab form (e.g. Product Organization, Product Team), OutSystems AJAX
+may replace DOM elements — resetting previously filled dropdowns. Re-apply values before saving:
+```typescript
+await fillProductOrganization({ ... });
+await fillProductTeam({ ... });
+// Re-apply dropdowns reset by partial refresh before save:
+await selectProductDropdowns({ state: '...', definition: '...', type: '...' });
+```
+
 ## Locator DOs and DON'Ts
 
 | DO | DON'T |
@@ -102,6 +145,7 @@ Always snapshot first, then use exact header text (including casing).
 | Use `pressSequentially()` for search/autocomplete | Use `.fill()` on OutSystems autocomplete inputs |
 | Use regex `{ name: /Order #\d+/ }` for dynamic content | Hardcode IDs or dynamic values in locators |
 | Add a comment when using `.nth()` or `.first()` | Use positional selectors without explaining why |
+| Use `selectOption()` for native `<select>` only | Use `selectOption()` on OSUI custom widgets |
 
 ## Verification Strategy
 
@@ -109,7 +153,7 @@ Always snapshot first, then use exact header text (including casing).
 
 | User Action | Verification | Example |
 |---|---|---|
-| Submit a form | Success message appears | `await expect(page.getByText('Product saved')).toBeVisible()` |
+| Submit a form | Success message appears | `await element.waitFor(); await expect(element).toBeVisible()` |
 | Delete an item | Item disappears from list | `await expect(row).not.toBeVisible()` |
 | Navigate to page | Key heading/content visible | `await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()` |
 | Select a dropdown | Dependent section updates | `await expect(orgLevel2Select).toBeEnabled()` |
@@ -117,6 +161,7 @@ Always snapshot first, then use exact header text (including casing).
 | Close a dialog | Dialog gone | `await expect(page.getByRole('dialog')).not.toBeVisible()` |
 | Fill and save a form | Saved values persist | `await expect(nameInput).toHaveValue('Expected Name')` |
 | Toggle a checkbox | State reflected | `await expect(checkbox).toBeChecked()` |
+| Save product | Edit Product button appears | `await expect(editProductButton).toBeVisible({ timeout: 60_000 })` |
 
 ### What NOT to Verify
 
@@ -148,8 +193,8 @@ await expect(page).toHaveURL(/.*ProductDetail\?ProductId=(?!0)\d+/);
 
 ## Waiting & Timeout Strategy
 
-> **Never add a timeout to an individual action or assertion.**
-> Identify a UI readiness signal and `waitFor()` on that signal before acting.
+> **Identify a UI readiness signal and `waitFor()` on that signal before acting.**
+> `waitFor({ timeout })` on readiness signals is correct. `expect().toBeVisible({ timeout: 60_000 })` is the anti-pattern — it hides slow responses.
 
 ### Readiness Signals
 
@@ -160,6 +205,7 @@ await expect(page).toHaveURL(/.*ProductDetail\?ProductId=(?!0)\d+/);
 | Content placeholder resolves | Sections loading async data |
 | Table/list populates | Pages that load data asynchronously |
 | Element becomes enabled | Forms that disable inputs until data loads |
+| Edit Product button appears | After saving a product (not URL change) |
 | ~~`networkidle`~~ | **BANNED** — OutSystems WebSocket keeps it alive forever |
 
 ### Waiting Patterns
@@ -179,8 +225,7 @@ await waitForOSScreenLoad(page);  // see src/helpers/wait.helper.ts
 
 **Wait for element to become enabled:**
 ```typescript
-await page.getByLabel('Email').fill('user@example.com');
-await expect(page.getByRole('button', { name: 'Submit' })).toBeEnabled();
+await expect(page.getByRole('combobox', { name: 'Org Level 2*' })).toBeEnabled({ timeout: 30_000 });
 ```
 
 ### What NOT to Do
@@ -188,10 +233,10 @@ await expect(page.getByRole('button', { name: 'Submit' })).toBeEnabled();
 ```typescript
 // NEVER — hard sleep
 await page.waitForTimeout(5000);
+// NEVER — inline timeout on expect hides slow responses
+await expect(page.getByText('Success')).toBeVisible({ timeout: 60_000 });
 // NEVER — inline timeout on click
 await page.getByRole('button', { name: 'Submit' }).click({ timeout: 60_000 });
-// NEVER — large timeout on assertion hides issues
-await expect(page.getByText('Success')).toBeVisible({ timeout: 60_000 });
 // NEVER — OutSystems WebSocket keeps network alive
 await page.waitForLoadState('networkidle');
 ```
@@ -224,18 +269,30 @@ IDs starting with `b` + number (`b1-`, `b12-`) or widget type prefix (`Input_`, 
 
 ### Widget Interaction Patterns
 
-**Dropdown (NEVER `selectOption()`):**
+**Native `<select>` (product form dropdowns, org levels, pagination):**
+```typescript
+await page.getByRole('combobox', { name: 'Product State*' }).selectOption({ label: 'Under development' });
+```
+
+**OSUI Custom Dropdown:**
 ```typescript
 await page.locator('.osui-dropdown').filter({ hasText: 'Select Country' }).click();
 await page.locator('.osui-dropdown__list').waitFor();
 await page.getByText('Germany', { exact: true }).click();
 ```
 
-**Searchable Dropdown / Autocomplete:**
+**User Lookup (Team Role):**
 ```typescript
-await page.locator('.osui-dropdown').filter({ hasText: 'Select Product' }).click();
-await page.locator('.osui-dropdown__search-input').fill('Widget');
-await page.getByText('Widget Pro 2000', { exact: true }).click();
+const roleContainer = page.getByText('Product Owner', { exact: true }).locator('..');
+const editLink = roleContainer.getByRole('link').first();
+await editLink.waitFor({ state: 'visible', timeout: 240_000 });
+await editLink.click();
+const searchBox = roleContainer.getByRole('searchbox', { name: 'Type 4 letters' });
+await searchBox.waitFor({ state: 'visible', timeout: 30_000 });
+await searchBox.pressSequentially('Ulad', { delay: 150 });
+const result = roleContainer.getByText('Uladzislau Baranouski', { exact: true }).first();
+await result.waitFor({ state: 'visible', timeout: 30_000 });
+await result.click();
 ```
 
 **Date Picker:**
@@ -316,8 +373,18 @@ await allure.description('What this test verifies');
 | Type | Path | Convention |
 |------|------|-----------|
 | Test file | `tests/{feature}/{name}.spec.ts` | kebab-case |
-| Page Object | `src/pages/{Name}Page.ts` | PascalCase |
+| Page Object | `src/pages/{name}.page.ts` | kebab-case |
+| Locators | `src/locators/{name}.locators.ts` | kebab-case |
 | Barrel export | `src/pages/index.ts` | Always update |
+
+## Test Timeouts
+
+| Test type | `test.setTimeout` | Why |
+|-----------|-------------------|-----|
+| Standard navigation / form | `90_000` | Sufficient for most OutSystems pages |
+| Product creation (no team) | `180_000` | Multiple tabs + AJAX refreshes |
+| Product creation with team roles | `360_000` | 4 user lookups × up to 240s each |
+| Product creation with Digital Offer | `360_000` | Team roles + DOC search API calls |
 
 ## Quick Checklist
 
@@ -338,23 +405,25 @@ await allure.description('What this test verifies');
 - [ ] Explored all target pages/tabs via MCP snapshots
 - [ ] Used exact locator text from DOM (not guessed)
 - [ ] Scoped grid elements to `tabpanel`
-- [ ] No `networkidle`, no `waitForTimeout()`, no `selectOption()`
+- [ ] No `networkidle`, no `waitForTimeout()`, no `selectOption()` on OSUI widgets
 - [ ] No hardcoded row counts or dropdown values
-- [ ] `test.setTimeout(90_000)` for OutSystems
+- [ ] Correct `test.setTimeout()` for test type (see table above)
 - [ ] All Allure metadata present
 - [ ] TypeScript compiles clean (`npx tsc --noEmit`)
 - [ ] Updated barrel exports
-- [ ] Assertions verify user-visible outcomes, not internals
-- [ ] No inline `{ timeout: ... }` on actions/assertions — use `waitFor()` then assert
+- [ ] Assertions are web-first (no `await value; expect(value)` pattern)
+- [ ] No `expect().toBeVisible({ timeout: 60_000 })` — use `waitFor()` then `expect()`
 - [ ] Uses `waitForOSScreenLoad()` after navigation / data-triggering actions
-- [ ] OutSystems widget interactions use OSUI class patterns
+- [ ] `{ exact: true }` on any text locator that could partially match other elements
+- [ ] `pressSequentially({ delay: 150 })` for any search/autocomplete input
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
 | `waitForLoadState('networkidle')` | Wait for specific element visibility |
-| `dropdown.selectOption({ label: 'X' })` | Click trigger → click option text |
+| `dropdown.selectOption({ label: 'X' })` on OSUI widget | Click trigger → click option text |
+| `selectOption()` not working at all | Snapshot to confirm it's not a custom widget |
 | `getByRole('grid')` unscoped | `getByRole('tabpanel').getByRole('grid')` |
 | Asserting `rowCount > 10` | Assert `row.nth(1).toBeVisible()` |
 | `getByText('exact text')` strict violation | Add `.first()` or use `locator('text=...')` |
@@ -368,7 +437,7 @@ await allure.description('What this test verifies');
 | `expect(rows).toHaveCount(42)` exact count | `expect(row.nth(1)).toBeVisible()` |
 | `toHaveAttribute('data-status', ...)` | Verify visible status text |
 | `toHaveCSS('background-color', ...)` | Verify visible state change |
-| `expect(text).toBeVisible({ timeout: 60_000 })` | `waitFor({ timeout: 30_000 })` then `expect().toBeVisible()` |
+| `expect(text).toBeVisible({ timeout: 60_000 })` | `element.waitFor({ timeout: 30_000 })` then `expect(element).toBeVisible()` |
 | `button.click({ timeout: 60_000 })` | `waitFor()` on readiness signal, then `click()` |
 | `locator('#Input_Username')` | `getByPlaceholder()` or scope to `[data-block]` |
 | Missing `waitForOSScreenLoad()` after nav | Add `waitForOSScreenLoad(page)` before interacting |
@@ -378,3 +447,5 @@ await allure.description('What this test verifies');
 | `import { test } from '@playwright/test'` | `import { test } from '@fixtures/index'` |
 | `import { LoginPage } from '../../src/pages'` | `import { LoginPage } from '@pages/index'` |
 | `const x: any = ...` | Define interface or use `unknown` |
+| Saving product then checking URL for non-zero ID | Check for `Edit Product` button visibility |
+| Not re-applying form dropdowns before save | Add `selectProductDropdowns()` call after tab operations |

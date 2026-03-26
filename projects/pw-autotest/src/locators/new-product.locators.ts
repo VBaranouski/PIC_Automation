@@ -17,20 +17,28 @@ export const newProductLocators = (page: Page) => ({
   productStateSelect:      page.getByRole('combobox', { name: 'Product State*' }),
   productDefinitionSelect: page.getByRole('combobox', { name: 'Product Definition*' }),
   productTypeSelect:       page.getByRole('combobox', { name: 'Product Type*' }),
-  digitalOfferCheckbox:    page.getByText('Digital Offer').locator('..').getByRole('checkbox'),
+  // { exact: true } prevents partial match against the tooltip text: "Digital Offer is a commercial offering solution..."
+  digitalOfferCheckbox:    page.getByText('Digital Offer', { exact: true }).locator('..').getByRole('checkbox'),
   commercialRefInput:      page.getByRole('textbox', { name: 'Commercial Reference Number' }),
   dataProtectionCheckbox:  page.getByText('Data Protection & Privacy').locator('..').getByRole('checkbox'),
   brandLabelCheckbox:      page.getByText('Brand Label').locator('..').getByRole('checkbox'),
+
+  // Digital Offer Certification (DOC) section — visible only when Digital Offer checkbox is checked
+  // Searchboxes are directly exposed in the grid (no edit-link click required, unlike Product Team)
+  vestaIdInput:               page.getByRole('textbox', { name: 'VESTA ID*' }),
+  docItOwnerSearchBox:        page.getByRole('gridcell', { name: /IT Owner/ }).getByRole('searchbox'),
+  docProjectManagerSearchBox: page.getByRole('gridcell', { name: /Project Manager/ }).getByRole('searchbox'),
 
   // Product Description accordion
   productDescriptionToggle: page.getByRole('button', { name: /PRODUCT DESCRIPTION/ }),
   productDescriptionEditor: page.getByRole('textbox', { name: /Rich Text Editor/ }),
 
   // Bottom section tabs
-  productOrganizationTab:  page.getByRole('tab', { name: /Product Organization/ }),
-  productTeamTab:          page.getByRole('tab', { name: /Product Team/ }),
-  securitySummaryTab:      page.getByRole('tab', { name: /Security Summary/ }),
-  productConfigurationTab: page.getByRole('tab', { name: /Product Configuration/ }),
+  productOrganizationTab:           page.getByRole('tab', { name: /Product Organization/ }),
+  productTeamTab:                   page.getByRole('tab', { name: /Product Team/ }),
+  securitySummaryTab:               page.getByRole('tab', { name: /Security Summary/ }),
+  productConfigurationTab:          page.getByRole('tab', { name: /Product Configuration/ }),
+  digitalOfferCertificationTab:     page.getByRole('tab', { name: /Digital Offer Certification/ }),
 
   // Product Organization fields
   orgLevel1Select:  page.getByRole('combobox', { name: 'Org Level 1*' }),
