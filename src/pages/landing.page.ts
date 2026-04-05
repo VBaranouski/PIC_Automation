@@ -42,6 +42,7 @@ export class LandingPage extends BasePage {
   get tasksProductDropdown(): Locator    { return this.l.tasksProductDropdown; }
   get tasksDateRangePicker(): Locator    { return this.l.tasksDateRangePicker; }
   get tasksShowClosedCheckbox(): Locator { return this.l.tasksShowClosedCheckbox; }
+  get tasksAssigneeLabel(): Locator      { return this.l.tasksAssigneeLabel; }
 
   get productsSearchDropdown(): Locator          { return this.l.productsSearchDropdown; }
   get productsProductIdDropdown(): Locator       { return this.l.productsProductIdDropdown; }
@@ -681,5 +682,24 @@ export class LandingPage extends BasePage {
 
   async clickHeaderLogo(): Promise<void> {
     await this.l.headerLogoLink.click();
+  }
+
+  // ==================== Tasks Date Range ====================
+
+  async expectTasksDateRangePickerVisible(): Promise<void> {
+    await expect(this.l.tasksDateRangePicker).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ==================== Releases Date Range ====================
+
+  async expectReleasesDateRangePickerVisible(): Promise<void> {
+    await expect(this.l.releasesDateRangePicker).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ==================== Tasks Assignee ====================
+
+  async expectTasksAssigneeComboboxVisible(): Promise<void> {
+    // The "Assignee" on My Tasks is a read-only label showing the current user — not an interactive combobox
+    await expect(this.l.tasksAssigneeLabel).toBeVisible({ timeout: 15_000 });
   }
 }

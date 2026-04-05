@@ -35,6 +35,7 @@ export const landingLocators = (page: Page) => ({
   tasksProductDropdown:    page.getByRole('tabpanel').locator('div').filter({ hasText: 'Product' }).first(),
   tasksDateRangePicker:    page.getByRole('textbox', { name: 'Select a date.' }),
   tasksShowClosedCheckbox: page.getByRole('tabpanel').getByRole('checkbox'),
+  tasksAssigneeLabel:      page.getByRole('tabpanel').getByText('Assignee', { exact: true }).first(),
 
   // My Products filters
   productsSearchDropdown:          page.getByRole('tabpanel').getByRole('combobox').first(),

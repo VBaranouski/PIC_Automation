@@ -61,6 +61,10 @@ export const newProductLocators = (page: Page) => ({
   productConfigurationTab:          page.getByRole('tab', { name: /Product Configuration/ }),
   digitalOfferCertificationTab:     page.getByRole('tab', { name: /Digital Offer Certification/ }),
 
+  // Digital Offer Certification tab content
+  docCertificationGrid:       page.getByRole('tabpanel').locator('table').first(),
+  docCertificationEmptyState: page.getByText(/No DOC|no certification|No Digital/i).first(),
+
   // Product Organization fields
   orgLevel1Select:  page.getByRole('combobox', { name: 'Org Level 1*' }),
   orgLevel2Select:  page.getByRole('combobox', { name: 'Org Level 2*' }),
@@ -83,6 +87,19 @@ export const newProductLocators = (page: Page) => ({
   editProductButton:    page.getByRole('button', { name: 'Edit Product' }),
   viewHistoryLink:      page.getByRole('link', { name: /View History/ }),
   actionsManagementLink: page.getByRole('link', { name: 'Actions Management' }),
+
+  // Actions Management page
+  actionsManagementGrid:    page.locator('table').first(),
+  actionsManagementHeading: page.getByRole('heading', { name: /Actions Management/i }).first(),
+
+  // View History popup dialog
+  historyDialog:         page.getByRole('dialog').filter({ has: page.getByText('Product Change History') }).first(),
+  historyGrid:           page.getByRole('dialog').locator('table').first(),
+  historySearchInput:    page.getByRole('dialog').getByRole('searchbox').first(),
+  historyActivityFilter: page.getByRole('dialog').getByRole('combobox', { name: 'Activity' }).first(),
+  historyDateFromInput:  page.getByRole('dialog').getByRole('textbox', { name: 'Select a date.' }).first(),
+  historyResetButton:    page.getByRole('dialog').getByRole('button', { name: 'Reset' }),
+  historyCloseButton:    page.getByRole('dialog').locator('.popup-structure-header i.fa-times').first(),
 
   // Vendor display (disabled in edit mode, text in view mode)
   vendorInput:  page.getByRole('textbox', { name: 'Vendor' }),

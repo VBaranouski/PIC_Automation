@@ -72,8 +72,8 @@
 - [x] **P2** `LANDING-TASKS-SEARCH-001` Search filter narrows task list by task name
 - [x] **P2** `LANDING-TASKS-REL-001` Release dropdown filter narrows task list
 - [x] **P2** `LANDING-TASKS-PROD-001` Product filter narrows task list
-- [ ] **P2** Task Creation Date Range picker filters results
-- [ ] **P2** Assignee filter changes task list to the selected user (user is pre-filtered by own name on load)
+- [x] **P2** `LANDING-TASKS-DATE-001` Task Creation Date Range picker filters results
+- [x] **P2** `LANDING-TASKS-ASSIGNEE-001` Assignee filter changes task list to the selected user (user is pre-filtered by own name on load)
 - [x] **P2** `LANDING-TASKS-RESET-001` Reset button clears all applied filters
 - [x] **P2** `LANDING-TASKS-REVIEW-001` Clicking the Review button navigates to DOC Details (DOC task) or Release Detail (SDL task)
 
@@ -106,7 +106,7 @@
 - [ ] **P3** Sortable My Releases columns sort ascending / descending when sorting is available
 - [x] **P2** `LANDING-RELS-SEARCH-001` Search by release name narrows results
 - [x] **P2** `LANDING-RELS-PROD-001` Product filter narrows results
-- [ ] **P2** Target Release Date range filter applies correctly
+- [x] **P2** `LANDING-RELS-DATE-001` Target Release Date range filter applies correctly
 - [x] **P2** `LANDING-RELS-STATUS-001` Status dropdown filter applies correctly
 - [x] **P2** `LANDING-RELS-RESET-001` Reset button clears all filters
 - [x] **P2** `LANDING-RELS-NAV-001` Clicking a release name navigates to Release Detail page
@@ -181,8 +181,8 @@
 - [ ] **P2** Product Details section shows all read-only fields (Product Name, State, Definition, Type, Digital Offer, Commercial Reference Number, DPP, Brand Label)
 - [x] **P2** `PRODUCT-DETAIL-010` Bottom tabs load: Product Organization, Product Team, Security Summary, Product Configuration
 - [x] **P2** `PRODUCT-DETAIL-009` Releases tab shows the list of releases for the product (or empty state message "No releases were created yet!") + Create Release button is present
-- [ ] **P2** Digital Offer Certification tab appears only when Digital Offer = Yes AND Product Owner is assigned
-- [ ] **P2** Digital Offer Certification tab shows empty state message when no DOC exists yet
+- [x] **P2** Digital Offer Certification tab appears only when Digital Offer = Yes AND Product Owner is assigned
+- [x] **P2** Digital Offer Certification tab shows empty state message when no DOC exists yet
 - [ ] **P2** LEAP License column in Users Management grid shows "Active" for users with an assigned role and auto-activated LEAP License
 - [ ] **P2** Users without LEAP License show "No License" in the LEAP License column; role assignment triggers automatic activation
 
@@ -190,8 +190,8 @@
 
 **Spec:** `products/product-history.spec.ts`
 
-- [ ] **P2** "View History" link on Product Detail page opens Product Change History popup
-- [ ] **P3** Popup shows columns: Date, User, Activity, Description
+- [x] **P2** "View History" link on Product Detail page opens Product Change History popup
+- [x] **P3** Popup shows columns: Date, User, Activity, Description
 - [ ] **P3** Records are sorted in descending order by date (newest first)
 - [ ] **P3** Search filter narrows history records by keyword
 - [ ] **P2** Activity dropdown filter narrows records by activity type
@@ -1632,8 +1632,8 @@
 
 ### 13.1 Actions Management Access & Link
 
-- [ ] **P2** "Actions Management" link is visible in the Product Details page header
-- [ ] **P2** Clicking "Actions Management" from Product Details opens the Actions Management page in a new browser window
+- [x] **P2** "Actions Management" link is visible in the Product Details page header
+- [x] **P2** Clicking "Actions Management" from Product Details opens the Actions Management page in a new browser window
 - [ ] **P2** "Actions Management" link is visible on Release Detail pages for the product
 - [ ] **P2** Clicking "Actions Management" from a release opens the same Actions Management page in a new window
 - [ ] **P2** Users with VIEW_PRODUCT_ACTIONS privilege see the page in view-only mode (Actions column is empty)

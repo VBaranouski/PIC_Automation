@@ -408,3 +408,61 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
     });
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 3.2 — Product Detail: Digital Offer Certification Tab
+// ────────────────────────────────────────────────────────────────────────────
+test.describe('Product Details - Digital Offer Certification Tab @regression', () => {
+  test.setTimeout(180_000);
+
+  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
+    await loginPage.goto();
+    await loginPage.waitForPageLoad();
+    await loginPage.login(userCredentials.login, userCredentials.password);
+    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
+  });
+
+  test('should display Digital Offer Certification tab on a Digital Offer product @regression', async ({ newProductPage, page }) => {
+    await allure.suite('Products - Digital Offer Certification');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PROD-DOC-CERT-001: Navigate to a product with Digital Offer enabled and verify ' +
+      'the Digital Offer Certification bottom tab is visible.',
+    );
+
+    await test.step('Navigate to Digital Offer product', async () => {
+      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Verify Digital Offer Certification tab is visible', async () => {
+      await newProductPage.expectDigitalOfferCertificationTabVisible();
+    });
+  });
+
+  test('should show Digital Offer Certification content when tab is clicked @regression', async ({ newProductPage, page }) => {
+    await allure.suite('Products - Digital Offer Certification');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PROD-DOC-CERT-002: Click the Digital Offer Certification tab and verify ' +
+      'the tab becomes active.',
+    );
+
+    await test.step('Navigate to Digital Offer product', async () => {
+      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Click Digital Offer Certification tab', async () => {
+      await newProductPage.clickDigitalOfferCertificationTab();
+    });
+
+    await test.step('Verify tab is active', async () => {
+      await newProductPage.expectDigitalOfferCertificationTabActive();
+    });
+  });
+});

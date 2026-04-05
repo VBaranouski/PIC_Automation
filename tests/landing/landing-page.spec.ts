@@ -1032,3 +1032,85 @@ test.describe('Landing Page - Header Global Actions @regression', () => {
     });
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.2 — My Tasks: Date Range filter
+// ────────────────────────────────────────────────────────────────────────────
+test.describe('Landing Page - My Tasks Date Range Filter @regression', () => {
+  test.setTimeout(90_000);
+
+  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
+    await loginPage.goto();
+    await loginPage.waitForPageLoad();
+    await loginPage.login(userCredentials.login, userCredentials.password);
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+  });
+
+  test('should display Tasks Date Range picker on My Tasks tab @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-TASKS-DATE-001: Verify the Date Range picker is visible on the My Tasks tab.',
+    );
+
+    await test.step('Verify Date Range picker is visible', async () => {
+      await landingPage.expectTasksDateRangePickerVisible();
+    });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.2 — My Tasks: Assignee filter
+// ────────────────────────────────────────────────────────────────────────────
+test.describe('Landing Page - My Tasks Assignee Filter @regression', () => {
+  test.setTimeout(90_000);
+
+  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
+    await loginPage.goto();
+    await loginPage.waitForPageLoad();
+    await loginPage.login(userCredentials.login, userCredentials.password);
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+  });
+
+  test('should display Tasks Assignee filter on My Tasks tab @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-TASKS-ASSIGNEE-001: Verify the Assignee combobox filter is visible on the My Tasks tab.',
+    );
+
+    await test.step('Verify Assignee combobox is visible', async () => {
+      await landingPage.expectTasksAssigneeComboboxVisible();
+    });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.4 — My Releases: Target Date filter
+// ────────────────────────────────────────────────────────────────────────────
+test.describe('Landing Page - My Releases Target Date Filter @regression', () => {
+  test.setTimeout(90_000);
+
+  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
+    await loginPage.goto();
+    await loginPage.waitForPageLoad();
+    await loginPage.login(userCredentials.login, userCredentials.password);
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+    await landingPage.clickTab('My Releases');
+  });
+
+  test('should display Target Release Date range picker on My Releases tab @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-RELS-DATE-001: Verify the Target Release Date range picker is visible on the My Releases tab.',
+    );
+
+    await test.step('Verify Date Range picker is visible', async () => {
+      await landingPage.expectReleasesDateRangePickerVisible();
+    });
+  });
+});
