@@ -225,6 +225,18 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.cancelDocButton).toBeHidden();
   }
 
+  /**
+   * Checks whether the Revoke DOC button is present in the header.
+   * Returns false when the current user lacks the REVOKE_DOC privilege.
+   */
+  async hasRevokeDocButton(): Promise<boolean> {
+    return this.l.revokeDocButton.isVisible().catch(() => false);
+  }
+
+  async expectRevokeDocButtonVisible(): Promise<void> {
+    await expect(this.l.revokeDocButton).toBeVisible({ timeout: 15_000 });
+  }
+
   async expectDocIdFormat(): Promise<void> {
     await expect(this.l.docIdHeader).toBeVisible({ timeout: 30_000 });
     // DOC ID format: DOC- followed by digits (length varies by environment)
@@ -617,6 +629,10 @@ export class DocDetailsPage extends BasePage {
 
   async expectITSGridColumnHeadersVisible(): Promise<void> {
     await expect(this.l.itsGrid.locator('thead tr').first()).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectITSNoResultsMessageVisible(): Promise<void> {
+    await expect(this.l.itsNoResultsMessage).toBeVisible({ timeout: 15_000 });
   }
 
   async clickITSGridColumnHeader(headerText: string | RegExp): Promise<void> {

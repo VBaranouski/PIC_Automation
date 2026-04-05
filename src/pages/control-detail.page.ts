@@ -105,4 +105,24 @@ export class ControlDetailPage extends BasePage {
       this.l.noFindingsMessage.or(this.l.findingsTable),
     ).toBeVisible({ timeout: 30_000 });
   }
+
+  /**
+   * Asserts the EVIDENCE LINKS section heading is visible (later-stage controls only).
+   * Falls back to the "No evidence links" empty-state message.
+   */
+  async expectEvidenceLinksSectionOrEmpty(): Promise<void> {
+    await expect(
+      this.l.evidenceLinksSection.or(this.l.noEvidenceLinksMessage),
+    ).toBeVisible({ timeout: 30_000 });
+  }
+
+  /**
+   * Asserts the COMMENTS section heading is visible (later-stage controls only).
+   * Falls back to the "No comments" empty-state message.
+   */
+  async expectCommentsSectionOrEmpty(): Promise<void> {
+    await expect(
+      this.l.commentsSection.or(this.l.noCommentsMessage),
+    ).toBeVisible({ timeout: 30_000 });
+  }
 }

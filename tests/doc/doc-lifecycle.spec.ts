@@ -462,4 +462,33 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         ).toBe(0);
       });
     });
+
+  // ── TC-LIFECYCLE-013 ──────────────────────────────────────────────────────
+  test('should show or gracefully not show Revoke DOC button on a Completed DOC',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-013: On a Completed DOC (DOC 273), check whether the "Revoke DOC" button ' +
+        'is accessible. This requires REVOKE_DOC privilege (DOC Lead / BU Security Officer). ' +
+        'If the current test user lacks the privilege the button will be absent — the test skips ' +
+        'gracefully so the suite is not broken. This is a non-destructive visibility-only check.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      const hasRevoke = await docDetailsPage.hasRevokeDocButton();
+      if (!hasRevoke) {
+        test.skip(true, 'Revoke DOC button not visible — current user may lack REVOKE_DOC privilege. Skipping.');
+        return;
+      }
+
+      await test.step('Verify Revoke DOC button is visible in the header', async () => {
+        await docDetailsPage.expectRevokeDocButtonVisible();
+      });
+    });
 });

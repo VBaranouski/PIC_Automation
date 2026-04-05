@@ -248,5 +248,88 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
         await controlDetailPage.expectFindingsSectionOrEmptyState();
       });
     });
+
+    // ── DOC-CONTROL-010 ─────────────────────────────────────────────────────────
+    test('should display the EVIDENCE LINKS section on a later-stage Control Detail page', async ({ page, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-010: On a later-stage DOC control (Actions Closure), the Control Detail page ' +
+        'must display the EVIDENCE LINKS section heading, or a "No evidence links" empty-state.',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (!laterStageControlUrl) { test.skip(true, 'Control Detail URL not captured — run DOC-CONTROL-007 first.'); return; }
+        await page.goto(laterStageControlUrl);
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify Evidence Links section or empty-state is visible', async () => {
+        await controlDetailPage.expectEvidenceLinksSectionOrEmpty();
+      });
+    });
+
+    // ── DOC-CONTROL-011 ─────────────────────────────────────────────────────────
+    test('should display the COMMENTS section on a later-stage Control Detail page', async ({ page, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-011: On a later-stage DOC control (Actions Closure), the Control Detail page ' +
+        'must display the COMMENTS section heading, or a "No comments" empty-state.',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (!laterStageControlUrl) { test.skip(true, 'Control Detail URL not captured — run DOC-CONTROL-007 first.'); return; }
+        await page.goto(laterStageControlUrl);
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify Comments section or empty-state is visible', async () => {
+        await controlDetailPage.expectCommentsSectionOrEmpty();
+      });
+    });
+  });
+
+  test.describe('completed DOC controls (DOC 273)', () => {
+    test.describe.configure({ mode: 'serial' });
+
+    let completedDocControlUrl: string;
+
+    // ── DOC-CONTROL-012 ─────────────────────────────────────────────────────────
+    test('should NOT show Descope Control button on a Completed DOC Control Detail page', async ({
+      page, docDetailsPage, controlDetailPage,
+    }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-012: On a Completed DOC (DOC 273), the Control Detail page must be read-only: ' +
+        'the "Descope Control" button must NOT be visible.',
+      );
+
+      await test.step('Navigate to Completed DOC 273 and open ITS Checklist tab', async () => {
+        await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898');
+        await docDetailsPage.waitForOSLoad();
+        await docDetailsPage.clickITSChecklistTab();
+      });
+
+      const hasControls = await docDetailsPage.hasITSControls();
+      if (!hasControls) {
+        test.skip(true, 'No ITS controls available in completed DOC 273 — cannot navigate to Control Detail.');
+        return;
+      }
+
+      await test.step('Click the first Control ID link to open Control Detail', async () => {
+        await docDetailsPage.clickFirstControlIdLink();
+        completedDocControlUrl = page.url();
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify Descope Control button is NOT visible on a Completed DOC', async () => {
+        await controlDetailPage.expectDescopeControlButtonHidden();
+      });
+    });
   });
 });

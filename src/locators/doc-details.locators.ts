@@ -53,6 +53,9 @@ export const docDetailsLocators = (page: Page) => ({
   // --- Cancel DOC button (visible in header for users with cancel privilege) ---
   cancelDocButton: page.getByRole('button', { name: 'Cancel DOC' }),
 
+  // --- Revoke DOC button (visible for users with REVOKE_DOC privilege on Completed DOCs) ---
+  revokeDocButton: page.getByRole('button', { name: 'Revoke DOC' }),
+
   // --- First DOC link in the certification table (on Product Detail page) ---
   // Scope to the Digital Offer Certification grid and then to the row in Controls Scoping status.
   certificationGrid: page.getByRole('grid').filter({ has: page.getByRole('columnheader', { name: 'DOC ID' }) }).first(),

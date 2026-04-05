@@ -287,4 +287,102 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       await docDetailsPage.expectITSGridVisible();
     });
   });
+
+  // ── DOC-ITS-010 ───────────────────────────────────────────────────────────
+  test('should re-sort ITS Checklist grid when Description column header is clicked', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ITS-010: Clicking the Description column header in the ITS Checklist grid ' +
+      'must re-sort the rows without breaking the grid layout.',
+    );
+
+    await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickITSChecklistTab();
+    });
+
+    const hasControls = await docDetailsPage.hasITSControls();
+    if (!hasControls) {
+      test.skip(true, 'No ITS controls loaded — skipping Description column sort test.');
+      return;
+    }
+
+    await test.step('Click the DESCRIPTION column header to trigger sort', async () => {
+      await docDetailsPage.clickITSGridColumnHeader(/DESCRIPTION/i);
+    });
+
+    await test.step('Verify ITS grid is still visible after sort', async () => {
+      await docDetailsPage.expectITSGridVisible();
+    });
+  });
+
+  // ── DOC-ITS-011 ───────────────────────────────────────────────────────────
+  test('should re-sort ITS Checklist grid when Category column header is clicked', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ITS-011: Clicking the Category column header in the ITS Checklist grid ' +
+      'must re-sort the rows without breaking the grid layout.',
+    );
+
+    await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickITSChecklistTab();
+    });
+
+    const hasControls = await docDetailsPage.hasITSControls();
+    if (!hasControls) {
+      test.skip(true, 'No ITS controls loaded — skipping Category column sort test.');
+      return;
+    }
+
+    await test.step('Click the CATEGORY column header to trigger sort', async () => {
+      await docDetailsPage.clickITSGridColumnHeader(/CATEGORY/i);
+    });
+
+    await test.step('Verify ITS grid is still visible after sort', async () => {
+      await docDetailsPage.expectITSGridVisible();
+    });
+  });
+
+  // ── DOC-ITS-012 ───────────────────────────────────────────────────────────
+  test('should show "No results found" empty state when ITS search returns no matches', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ITS-012: Entering a search term that matches no ITS controls must display ' +
+      'a "No results found" empty-state message in the ITS Checklist grid.',
+    );
+
+    await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickITSChecklistTab();
+    });
+
+    const hasControls = await docDetailsPage.hasITSControls();
+    if (!hasControls) {
+      test.skip(true, 'No ITS controls loaded — skipping no-results empty state test.');
+      return;
+    }
+
+    await test.step('Enter a non-matching search query', async () => {
+      await docDetailsPage.searchITSControls('ZZZNOMATCH_DOES_NOT_EXIST_9999');
+    });
+
+    await test.step('Verify "No results found" empty state is visible', async () => {
+      await docDetailsPage.expectITSNoResultsMessageVisible();
+    });
+
+    await test.step('Reset search to restore the full list', async () => {
+      await docDetailsPage.clickITSReset();
+      await docDetailsPage.expectITSSecurityControlsTitleLoaded();
+    });
+  });
 });

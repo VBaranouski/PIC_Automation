@@ -21,8 +21,9 @@ export const controlDetailLocators = (page: Page) => ({
   // Control name is in .header-title-structure__title (plain div, NOT a heading role).
   // The control name is the raw control ID text (e.g. "11-AUG_ TEST NEW"), not "ITS-NNN" format.
   controlIdHeader:       page.locator('.header-title-structure__title').first(),
-  // No status badge visible in Controls Scoping stage.
-  assessmentStatusBadge: page.locator('[class*="status-badge"], [class*="badge"]').first(),
+  // Assessment status is rendered as a plain div with text like "Assessment Completed",
+  // "Assessment In Progress", "Assessment Not Started", etc.  — NOT a .badge class element.
+  assessmentStatusBadge: page.getByText(/Assessment (Completed|In Progress|Not Started|Pending|Approved|Rejected)/i).first(),
 
   // ─── Content sections ────────────────────────────────────────────────────
   // Description and Evidence Expectation are <label class="OSFillParent"> inside div.info-large.
@@ -40,6 +41,17 @@ export const controlDetailLocators = (page: Page) => ({
   // ─── Stage-specific messages ─────────────────────────────────────────────
   // Shown during Controls Scoping stage — before Risk Assessment has started.
   scopingStageReadOnlyMessage: page.getByText(/No evidence links, findings or comments yet/),
+
+  // ─── Evidence Links section ──────────────────────────────────────────────
+  // Visible on later-stage controls (Risk Assessment and beyond).
+  // Section heading text rendered by OutSystems as a label or span.
+  evidenceLinksSection:    page.getByText(/EVIDENCE LINKS/i).first(),
+  noEvidenceLinksMessage:  page.getByText(/No evidence links/i).first(),
+
+  // ─── Comments section ────────────────────────────────────────────────────
+  // Visible on later-stage controls (Risk Assessment and beyond).
+  commentsSection:   page.getByText(/COMMENTS/i).first(),
+  noCommentsMessage: page.getByText(/No comments/i).first(),
 
   // ─── Findings section ────────────────────────────────────────────────────
   // No heading tags — finding these by text in a label/span.
