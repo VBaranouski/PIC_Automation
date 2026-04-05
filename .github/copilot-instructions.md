@@ -16,29 +16,44 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 └── package.json
 ```
 
-## Default workflow
+## Default workflow — 7-Step Canonical Process
 
-1. Identify the test scenario from Jira, Confluence, or free-text input.
-2. Walk the scenario in-browser with Playwright MCP before finalizing locators.
-3. Generate or update Playwright TypeScript code in `src/` and `tests/`.
-4. Run the targeted `npx playwright test ...` command and fix remaining issues.
-5. If the failure is caused by product behavior, classify it as a likely defect.
-6. Update the automation testing plans and coverage artifacts in `docs/ai/`.
+> Full rules in `.github/instructions/automation-workflow.instructions.md`
+> Entry prompt: `.github/prompts/run-full-automation-workflow.prompt.md`
+
+1. **PLAN** — Identify the next `[ ]` scenario from `docs/ai/automation-testing-plan.md`; record TC ID, WF, spec file, POM.
+2. **STEPS** — Write numbered test steps + expected results; update plan marker to `[~]`; apply role codes from `picasso-roles-and-access.md`.
+3. **CODE** — Draft TypeScript test using four-layer rule: locator factory → page object method → test with Allure metadata + `test.step()`.
+4. **MCP VALIDATE** — Open Playwright MCP Chrome; snapshot every page section; verify all locators against live DOM; walk the full user journey; fix locators and POM methods.
+5. **TERMINAL RUN** — `npx playwright test <spec> --project=pw-autotest`; fix all failures; run `npx tsc --noEmit`; use `test.fail()` for product defects — never weaken assertions.
+6. **UPDATE PLAN** — Change `[ ]` to `[x]`/`[~]`; update runtime status table; update coverage matrix; sync `.html` version.
+7. **PROPOSE NEXT** — Output a structured Next Scope Proposal with TC IDs, priorities, effort, and a parallel agent plan if batch ≥ 3.
+
+**Multi-agent rule:** spawn one agent per spec file for batches of 3+ scenarios; agents share plan reads, never share write access to the same file.
 
 ## Read before generating automation assets
 
+- `.github/instructions/automation-workflow.instructions.md` ← **MASTER WORKFLOW — read first for any test creation task**
 - `.github/instructions/pw-autotest.instructions.md`
 - `.github/instructions/automation-scripts.instructions.md`
 - `.github/instructions/browser-mcp.instructions.md`
 - `.github/instructions/naming.instructions.md`
+- `.github/instructions/outsystems-picasso.instructions.md` ← PICASso/OutSystems-specific patterns (select vs OSUI, user lookup, partial refresh, timeouts)
+- `.github/instructions/typescript.instructions.md` ← TypeScript conventions, class order, type safety, import aliases
+- `.github/instructions/testing-patterns.instructions.md` ← Four-layer architecture, locator priority, web-first assertions, fixtures, Allure metadata
+- `.github/instructions/quality-checklist.instructions.md` ← Pre-commit checklist, common pitfalls, flaky-test prevention
+- `.github/instructions/picasso-roles-and-access.md` ← Role codes, privilege names, and access-based test scenarios (78 roles, 157 privileges)
 
 ## Prompt entry points
 
+- `.github/prompts/run-full-automation-workflow.prompt.md` ← **PRIMARY ENTRY POINT — use for all new test creation sessions**
 - `.github/prompts/run-automation-pipeline.prompt.md`
 - `.github/prompts/generate-automation-test-cases.prompt.md`
 - `.github/prompts/generate-playwright-tests.prompt.md`
 - `.github/prompts/validate-browser-locators.prompt.md`
 - `.github/prompts/generate-tests.prompt.md`
+- `.github/prompts/generate-doc-certification-tests.prompt.md` ← WF 11.14 DOC Certification Decision
+- `.github/prompts/generate-doc-release-linkage-tests.prompt.md` ← WF 11.16 DOC–Release Linkage
 
 ## Core rules
 

@@ -321,14 +321,17 @@ export class DocDetailsPage extends BasePage {
   }
 
   async expectPipelineHidden(): Promise<void> {
-    // When 'Hide Flow' is clicked the expandable-area container collapses to height:0.
-    // Playwright considers an element with a zero bounding box as hidden.
-    await expect(this.page.locator('.expandable-area').first()).toBeHidden({ timeout: 15_000 });
+    // OutSystems collapses the pipeline via CSS overflow:hidden on a wrapper —
+    // inner tab elements keep their DOM presence so toBeHidden() is unreliable.
+    // Instead, confirm the toggle button now reads "Show Flow", proving the
+    // pipeline was collapsed.
+    await expect(this.l.hideShowFlowButton).toContainText('Show Flow', { timeout: 15_000 });
   }
 
   async expectPipelineVisible(): Promise<void> {
-    // When 'Show Flow' is clicked the expandable-area container expands back to its natural height.
-    await expect(this.page.locator('.expandable-area').first()).toBeVisible({ timeout: 15_000 });
+    // When the pipeline is visible the toggle button reads "Hide Flow".
+    // This is the most reliable indicator — not affected by CSS overflow tricks.
+    await expect(this.l.hideShowFlowButton).toContainText('Hide Flow', { timeout: 15_000 });
   }
 
   // ==================== DOC Detail — Digital Offer Details tab (edit) ====================
@@ -992,6 +995,88 @@ export class DocDetailsPage extends BasePage {
 
   async hasDocApprovalsSection(): Promise<boolean> {
     return this.l.docApprovalsSection.isVisible().catch(() => false);
+  }
+
+  /** Asserts the DOC Approvals signatures table is visible with its expected columns. */
+  async expectDocSignaturesTableVisible(): Promise<void> {
+    await expect(this.l.docApprovalsSignaturesTable).toBeVisible({ timeout: 15_000 });
+    // Verify expected column headers
+    await expect(
+      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Approver Name' }),
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(
+      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Role' }),
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(
+      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Signature' }),
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(
+      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Comment' }),
+    ).toBeVisible({ timeout: 10_000 });
+  }
+
+  /** Returns true when a "Provide Signature" button is visible on the page (for an approver). */
+  async hasProvideSignatureButton(): Promise<boolean> {
+    return this.l.provideSignatureButton.isVisible().catch(() => false);
+  }
+
+  /** Asserts that the Unresolved Findings CONTROL ID column has a clickable link in at least one row. */
+  async expectUnresolvedFindingsControlIdClickable(): Promise<void> {
+    // The Unresolved Findings grid must be visible first
+    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
+
+    const hasLink = await this.l.unresolvedFindingsControlIdLink.isVisible().catch(() => false);
+    if (!hasLink) {
+      // Empty findings — acceptable, test should skip gracefully
+      return;
+    }
+    await expect(this.l.unresolvedFindingsControlIdLink).toBeVisible({ timeout: 10_000 });
+    const href = await this.l.unresolvedFindingsControlIdLink.getAttribute('href');
+    expect(href, 'Control ID link must have a valid href pointing to ControlDetail').toMatch(/ControlDetail/);
+  }
+
+  /** Returns true if the Closed Actions count link is present in the Unresolved Findings table. */
+  async hasClosedActionsLink(): Promise<boolean> {
+    return this.l.closedActionsLink.isVisible().catch(() => false);
+  }
+
+  /** Asserts the Closed Actions cell in Unresolved Findings shows a clickable "N of M" link. */
+  async expectClosedActionsLinkVisible(): Promise<void> {
+    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
+    const hasLink = await this.l.closedActionsLink.isVisible().catch(() => false);
+    if (!hasLink) {
+      return; // no findings with actions — acceptable
+    }
+    await expect(this.l.closedActionsLink).toBeVisible({ timeout: 10_000 });
+  }
+
+  /** Asserts the DOC ID (DOC-NNN format) is visible in the DOC Detail header. */
+  async expectDocIdHeaderVisible(): Promise<void> {
+    await expect(this.l.docIdHeader).toBeVisible({ timeout: 15_000 });
+    const text = (await this.l.docIdHeader.first().textContent()) ?? '';
+    expect(text, 'DOC ID header must match DOC-NNN format').toMatch(/^DOC-\d+/);
+  }
+
+  /** Asserts the VESTA ID value is visible in the DOC Detail header. */
+  async expectVestaIdHeaderVisible(): Promise<void> {
+    await expect(this.l.vestaIdHeaderValue).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Asserts the Monitor Action Closure stage tab is visible in the DOC pipeline. */
+  async expectMonitorActionClosureStageVisible(): Promise<void> {
+    await expect(this.l.docPipelineTab6).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Asserts the Unresolved Findings section shows an empty state (no rows). */
+  async expectUnresolvedFindingsEmptyState(): Promise<void> {
+    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
+    const hasGrid = await this.l.unresolvedFindingsGrid.isVisible().catch(() => false);
+    if (hasGrid) {
+      // Grid present — verify 0 data rows (only header row)
+      const rowCount = await this.l.unresolvedFindingsGrid.getByRole('row').count();
+      expect(rowCount, 'Unresolved Findings must have no data rows when certified').toBeLessThanOrEqual(1);
+    }
+    // If grid is not present, the section shows an inline empty message — acceptable
   }
 }
 

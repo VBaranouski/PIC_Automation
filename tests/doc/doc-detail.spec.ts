@@ -249,4 +249,72 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
       ).toBeVisible({ timeout: 20_000 });
     });
   });
+
+  // ── DOC-DETAIL-010 ────────────────────────────────────────────────────────
+  test('should navigate to Release Detail page when the Release link in DOC header is clicked', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.description(
+      'DOC-DETAIL-010: Clicking the Release link in the DOC Detail header must navigate ' +
+      'to the associated Release Detail page (URL matches /ReleaseDetail).',
+    );
+
+    const completedDocUrl =
+      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+
+    await test.step('Navigate to a completed DOC that has an associated release', async () => {
+      await page.goto(completedDocUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Verify the Release header value is a clickable link', async () => {
+      const releaseLink = page.getByText(/Release/).locator('..').getByRole('link').first();
+      const isLinkVisible = await releaseLink.isVisible().catch(() => false);
+      if (!isLinkVisible) {
+        test.skip(
+          true,
+          'No Release link visible in DOC header — this DOC may use "Other Release" (plain text); skipping navigation test.',
+        );
+        return;
+      }
+      await expect(releaseLink).toBeVisible({ timeout: 15_000 });
+    });
+
+    await test.step('Click the Release link and verify navigation to Release Detail page', async () => {
+      const releaseLink = page.getByText(/Release/).locator('..').getByRole('link').first();
+      const href = await releaseLink.getAttribute('href');
+      if (!href) {
+        test.skip(true, 'Release link has no href attribute — skipping navigation test.');
+        return;
+      }
+      await page.goto(new URL(href, page.url()).toString(), {
+        waitUntil: 'domcontentloaded',
+        timeout: 30_000,
+      });
+      await expect.poll(() => page.url(), { timeout: 30_000 }).toMatch(/ReleaseDetail/);
+    });
+  });
+
+  // ── DOC-DETAIL-011 ────────────────────────────────────────────────────────
+  test('should display DOC ID and VESTA ID in the DOC Detail header', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-DETAIL-011: The DOC Detail header must display the DOC ID in DOC-NNN ' +
+      'format and a non-empty VESTA ID value.',
+    );
+
+    await test.step('Navigate to the seed DOC', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Verify DOC ID is shown in DOC-NNN format', async () => {
+      await docDetailsPage.expectDocIdHeaderVisible();
+    });
+
+    await test.step('Verify VESTA ID value is visible in the header', async () => {
+      await docDetailsPage.expectVestaIdHeaderVisible();
+    });
+  });
 });

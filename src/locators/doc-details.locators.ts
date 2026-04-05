@@ -5,6 +5,8 @@ export const docDetailsLocators = (page: Page) => ({
   // DOC ID format is DOC-NNN (varies by environment size); use flexible digit match
   docIdHeader:              page.getByText(/^DOC-\d+/),
   vestaIdHeaderValue:       page.getByText(/VESTA ID/).locator('..').getByText(/\d+/).first(),
+  // DOC Name displayed in the header row (scoped to header region to avoid tabpanel matches)
+  docNameHeader:            page.locator('.doc-header, [class*="doc-name"], .page-header').getByText(/\w/).first(),
   releaseHeaderLink:        page.getByText(/Release/).locator('..').getByRole('link').first(),
   releaseHeaderText:        page.getByText(/Release/).locator('..'),
   targetReleaseDateHeader:  page.getByText(/Target Release Date/).locator('..'),
@@ -83,6 +85,8 @@ export const docDetailsLocators = (page: Page) => ({
   docPipelineTab3: page.getByRole('tab', { name: /Risk Assessment/ }),
   docPipelineTab4: page.getByRole('tab', { name: /Risk Summary/ }),
   docPipelineTab5: page.getByRole('tab', { name: /Issue Certification/ }),
+  // Stage 6 — visible on DOCs that have reached the Monitor Action Closure stage
+  docPipelineTab6: page.getByRole('tab', { name: /Monitor Action Closure/i }),
 
   // Toggle that hides / shows the 5-stage pipeline flow header
   // DOM: DIV.expandable-area--toggle containing a SPAN with 'Hide Flow' or 'Show Flow'
@@ -219,6 +223,22 @@ export const docDetailsLocators = (page: Page) => ({
   // Risk Summary cards on the Certification Decision tab
   // ITS card uses case-insensitive regex to match "ITS Control Summary" or "ITS CONTROL SUMMARY"
   certDecisionItsCardTitle:     page.getByRole('tabpanel').getByText(/ITS Control Summary/i).first(),
+
+  // ─── DOC Detail — Certification Decision tab — DOC Approvals / Signatures ───
+  // The DOC Approvals signatures table has columns: Approver Name, Role, Signature, Comment
+  docApprovalsSignaturesTable: page.locator('table').filter({
+    has: page.locator('th').filter({ hasText: 'Approver Name' }),
+  }).first(),
+  // "Provide Signature" button is shown per approver row when the user has the signature privilege
+  provideSignatureButton: page.getByRole('button', { name: 'Provide Signature' }).first(),
+  // Unresolved Findings — CONTROL ID column links navigate to Control Detail page
+  unresolvedFindingsControlIdLink: page.locator('table').filter({
+    has: page.locator('th').filter({ hasText: 'FINDING ID' }),
+  }).first().getByRole('link').first(),
+  // Closed Actions count link in Unresolved Findings table (e.g. "0 of 1") — opens actions popup
+  closedActionsLink: page.locator('table').filter({
+    has: page.locator('th').filter({ hasText: 'CLOSED ACTIONS' }),
+  }).first().locator('td').filter({ hasText: /\d+ of \d+/ }).first().getByRole('link').first(),
 });
 
 export type DocDetailsLocators = ReturnType<typeof docDetailsLocators>;

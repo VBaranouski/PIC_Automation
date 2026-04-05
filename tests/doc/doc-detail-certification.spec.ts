@@ -242,4 +242,328 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			await docDetailsPage.expectDocApprovalsSectionVisible();
 		});
 	});
+
+	// ── DOC-CERT-007 ──────────────────────────────────────────────────────────
+	test('should show Send for Rework button on a DOC in Certification Approval status', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.description(
+			'DOC-CERT-007: In Certification Approval status, the Certification Decision tab must ' +
+			'display a "Send for Rework" button allowing an approver to reject the proposed decision ' +
+			'and return the DOC to the initiator for rework.',
+		);
+
+		await test.step('Open a DOC in Certification Approval status', async () => {
+			await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, [
+				'Certification Approval',
+			]);
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Verify "Send for Rework" button is visible', async () => {
+			const sendForReworkBtn = page.getByRole('button', { name: 'Send for Rework' });
+			const isVisible = await sendForReworkBtn.isVisible().catch(() => false);
+			if (!isVisible) {
+				test.skip(
+					true,
+					'Send for Rework button not visible — current user may lack SEND_FOR_REWORK privilege or DOC has no active approval request.',
+				);
+				return;
+			}
+			await expect(sendForReworkBtn).toBeVisible({ timeout: 15_000 });
+		});
+	});
+
+	// ── DOC-CERT-008 ──────────────────────────────────────────────────────────
+	test('should display pipeline stage labelled "Risk Summary Review" (not "Review Risk Summary")', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.description(
+			'DOC-CERT-008: The DOC pipeline header must show the stage name "Risk Summary Review". ' +
+			'The legacy label "Review Risk Summary" must not appear anywhere on the page.',
+		);
+
+		await test.step('Open a DOC at Issue Certification stage (any eligible status)', async () => {
+			await openDocWithCertDecisionTab(page, landingPage, docDetailsPage);
+		});
+
+		await test.step('Verify pipeline stage is labelled "Risk Summary Review"', async () => {
+			await expect(
+				page.getByRole('tab', { name: 'Risk Summary Review', exact: true }).first(),
+			).toBeVisible({ timeout: 15_000 });
+		});
+
+		await test.step('Verify the legacy label "Review Risk Summary" does not appear', async () => {
+			const legacyStage = page.getByRole('tab', { name: 'Review Risk Summary', exact: true });
+			await expect(legacyStage).toBeHidden({ timeout: 5_000 });
+		});
+	});
+
+	// ── DOC-CERT-009 ──────────────────────────────────────────────────────────
+	test('should show warning text when no proposed decision has been set on a Decision Proposal DOC', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-009: When no Proposed Decision has been set, the Certification Decision tab must ' +
+			'display an orange warning icon with the text "Proposed certification decision is not specified." ' +
+			'to prompt the Digital Risk Lead to propose a decision before submitting for approval.',
+		);
+
+		await test.step('Open a DOC in Decision Proposal status', async () => {
+			await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ['Decision Proposal']);
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Check for warning text — skip gracefully if decision is already set on this DOC', async () => {
+			const hasWarning = await docDetailsPage.hasCertDecisionWarning();
+			if (!hasWarning) {
+				test.skip(
+					true,
+					'Warning text not visible — the available Decision Proposal DOC in this environment ' +
+					'already has a proposed decision set. Skipping DOC-CERT-009.',
+				);
+				return;
+			}
+			await expect(
+				page.getByText(/Proposed certification decision is not specified/i).first(),
+				'Warning text must be visible when no Proposed Decision has been set',
+			).toBeVisible({ timeout: 10_000 });
+		});
+	});
+
+	// ── DOC-CERT-010 ──────────────────────────────────────────────────────────
+	test('should display Proposed Decision value on the Certification Decision tab after decision is set', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-010: After a Proposed Decision has been saved, the Certification Decision tab must ' +
+			'display a "Proposed Decision" label with the saved decision value ' +
+			'(e.g. Certified, Certified with Exception, Waiver).',
+		);
+
+		await test.step('Open a DOC that has a Certification Decision tab', async () => {
+			await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, CERT_DECISION_STATUSES);
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Verify Proposed Decision label is visible', async () => {
+			const hasWarning = await docDetailsPage.hasCertDecisionWarning();
+			if (hasWarning) {
+				test.skip(
+					true,
+					'No decision has been set on the available DOC — DOC-CERT-010 requires a saved decision. Skipping.',
+				);
+				return;
+			}
+			// The "Proposed Decision" label should be visible on the Certification Decision panel
+			await expect(
+				page.getByText('Proposed Decision').first(),
+				'"Proposed Decision" label must be visible once a decision has been saved',
+			).toBeVisible({ timeout: 15_000 });
+		});
+
+		await test.step('Verify the decision value is one of the expected values', async () => {
+			const hasWarning = await docDetailsPage.hasCertDecisionWarning();
+			if (hasWarning) return; // already skipped above
+
+			// Decision value appears as text nearby; valid values are Certified, Certified with Exception, Waiver
+			const decisionPanel = page.getByRole('tabpanel').filter({
+				has: page.getByText('Proposed Decision'),
+			}).first();
+
+			const panelText = await decisionPanel.textContent().catch(() => '');
+			const hasValidDecision = /Certified|Waiver/i.test(panelText ?? '');
+			expect(
+				hasValidDecision,
+				`Expected Proposed Decision panel to contain a valid decision value (Certified / Certified with Exception / Waiver), got: "${panelText?.substring(0, 200)}"`,
+			).toBe(true);
+		});
+	});
+
+	// ── DOC-CERT-011 ──────────────────────────────────────────────────────────
+	test('should show DOC Approvals signatures table with correct columns in Certification Approval status', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-011: In Certification Approval status (or Actions Closure / Completed with signatures), ' +
+			'the DOC Approvals table must be visible with columns: Approver Name, Role, Signature, Comment.',
+		);
+
+		await test.step('Open a DOC with a DOC Approvals section', async () => {
+			await openDocWithCertDecisionTab(
+				page,
+				landingPage,
+				docDetailsPage,
+				['Certification Approval', 'Actions Closure', 'Completed'],
+			);
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Verify the DOC Approvals section is present', async () => {
+			const hasApprovals = await docDetailsPage.hasDocApprovalsSection();
+			if (!hasApprovals) {
+				test.skip(
+					true,
+					'DOC Approvals section not found on the available DOC — status may not have triggered approver rows. Skipping DOC-CERT-011.',
+				);
+				return;
+			}
+			await docDetailsPage.expectDocApprovalsSectionVisible();
+		});
+
+		await test.step('Verify DOC Approvals signatures table has correct columns', async () => {
+			const hasApprovals = await docDetailsPage.hasDocApprovalsSection();
+			if (!hasApprovals) return;
+			await docDetailsPage.expectDocSignaturesTableVisible();
+		});
+	});
+
+	// ── DOC-CERT-012 ──────────────────────────────────────────────────────────
+	test('should show clickable CONTROL ID link in Unresolved Findings table', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-012: The Unresolved Findings section must display a CONTROL ID column ' +
+			'with a clickable link that navigates to the Control Detail page for each finding.',
+		);
+
+		await test.step('Open a DOC at Issue Certification stage with findings', async () => {
+			await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ISSUE_CERT_STATUSES);
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Verify Unresolved Findings section is present', async () => {
+			await docDetailsPage.expectUnresolvedFindingsSectionVisible();
+		});
+
+		await test.step('Verify CONTROL ID column has a clickable link when findings exist', async () => {
+			const hasGrid = await docDetailsPage.hasUnresolvedFindingsGrid();
+			if (!hasGrid) {
+				test.skip(
+					true,
+					'No Unresolved Findings rows found on available DOC — skipping CONTROL ID link assertion.',
+				);
+				return;
+			}
+			await docDetailsPage.expectUnresolvedFindingsControlIdClickable();
+		});
+	});
+
+	// ── DOC-CERT-013 ──────────────────────────────────────────────────────────
+	test('should show clickable Closed Actions count link in Unresolved Findings table', async ({
+		page,
+		landingPage,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-013: The Closed Actions column in the Unresolved Findings table must show ' +
+			'a clickable "N of M" count link (e.g. "0 of 1") that opens a List of Actions popup.',
+		);
+
+		await test.step('Open a DOC at Issue Certification stage with findings', async () => {
+			await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ISSUE_CERT_STATUSES);
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Verify Unresolved Findings section is present', async () => {
+			await docDetailsPage.expectUnresolvedFindingsSectionVisible();
+		});
+
+		await test.step('Verify Closed Actions column has a clickable count link when findings exist', async () => {
+			const hasGrid = await docDetailsPage.hasUnresolvedFindingsGrid();
+			if (!hasGrid) {
+				test.skip(
+					true,
+					'No Unresolved Findings rows found on available DOC — skipping Closed Actions link assertion.',
+				);
+				return;
+			}
+			await docDetailsPage.expectClosedActionsLinkVisible();
+		});
+	});
+
+	// ── DOC-CERT-014 ──────────────────────────────────────────────────────────
+	test('should show Monitor Action Closure pipeline stage for a DOC in Actions Closure status', async ({
+		page,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-014: A DOC that has reached the Actions Closure stage must show ' +
+			'"Monitor Action Closure" as a visible step in the DOC pipeline header.',
+		);
+
+		const actionsClosureUrl =
+			'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+
+		await test.step('Navigate to the Actions Closure DOC', async () => {
+			await page.goto(actionsClosureUrl);
+			await docDetailsPage.waitForOSLoad();
+		});
+
+		await test.step('Verify Monitor Action Closure stage is visible in the pipeline', async () => {
+			await docDetailsPage.expectMonitorActionClosureStageVisible();
+		});
+	});
+
+	// ── DOC-CERT-015 ──────────────────────────────────────────────────────────
+	test('should show empty Unresolved Findings for a Completed/Certified DOC', async ({
+		page,
+		docDetailsPage,
+	}) => {
+		await allure.suite('DOC / DOC Detail / Certification Decision');
+		await allure.severity('normal');
+		await allure.tag('regression');
+		await allure.description(
+			'DOC-CERT-015: On a Completed/Certified DOC, opening the Certification ' +
+			'Decision tab must show no rows in the Unresolved Findings section.',
+		);
+
+		const completedDocUrl =
+			'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+
+		await test.step('Navigate to the Completed DOC', async () => {
+			await page.goto(completedDocUrl);
+			await docDetailsPage.waitForOSLoad();
+		});
+
+		await test.step('Open the Certification Decision tab', async () => {
+			await docDetailsPage.clickCertificationDecisionTab();
+		});
+
+		await test.step('Verify Unresolved Findings section shows empty state', async () => {
+			await docDetailsPage.expectUnresolvedFindingsEmptyState();
+		});
+	});
 });

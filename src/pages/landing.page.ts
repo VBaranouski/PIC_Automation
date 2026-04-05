@@ -249,12 +249,57 @@ export class LandingPage extends BasePage {
     await this.waitForGridDataRows();
   }
 
+  async filterDocsByProduct(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.docsProductDropdown, option);
+    await this.waitForGridDataRows();
+  }
+
+  async filterDocsByCertDecision(decision: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.docsCertDecisionDropdown, decision);
+    await this.waitForGridDataRows();
+  }
+
+  async filterDocsByVestaId(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.docsVestaIdDropdown, option);
+    await this.waitForGridDataRows();
+  }
+
+  async filterDocsByDocLead(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.docsDocLeadDropdown, option);
+    await this.waitForGridDataRows();
+  }
+
   async searchDocsByName(query: string): Promise<void> {
     await this.l.docsSearchBox.waitFor({ state: 'visible', timeout: 30_000 });
     await this.l.docsSearchBox.fill(query);
     await this.l.docsSearchBox.press('Enter');
     await waitForOSScreenLoad(this.page);
     await this.waitForGridDataRows();
+  }
+
+  /**
+   * Types a query that is expected to return no results, then waits for the
+   * grid to stabilise. Returns the visible empty-state cell text.
+   */
+  async searchDocsByNameExpectEmpty(query: string): Promise<void> {
+    await this.l.docsSearchBox.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.docsSearchBox.fill(query);
+    await this.l.docsSearchBox.press('Enter');
+    await waitForOSScreenLoad(this.page);
+    // Wait until grid has either no data rows or shows an empty-state cell
+    await expect(this.l.grid).toBeVisible({ timeout: 30_000 });
+  }
+
+  /** Asserts the My DOCs grid shows an empty-state message (no matching records). */
+  async expectDocsGridEmptyState(): Promise<void> {
+    // When no records match, the grid renders a single row with a "no data" cell
+    const emptyCell = this.l.grid.locator('td').filter({ hasText: /no .*(found|results|data|certifications)/i }).first();
+    const rowCount = await this.l.grid.getByRole('row').count();
+    if (rowCount <= 1) {
+      // Header only — grid is empty
+      return;
+    }
+    await expect(emptyCell).toBeVisible({ timeout: 15_000 });
   }
 
   async searchTasksByName(query: string): Promise<void> {

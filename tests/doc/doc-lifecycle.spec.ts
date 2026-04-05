@@ -293,4 +293,173 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.expectITSSecurityControlsTitleVisible();
       });
     });
+
+  // ── TC-LIFECYCLE-008 ──────────────────────────────────────────────────────
+  test('should show Action Plan tab accessible in read-only mode on a Completed DOC',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-008: After a DOC is Completed, the Action Plan tab must still be ' +
+        'accessible and render the action plan panel, but write controls such as "Add Action" ' +
+        'must NOT appear — the tab is fully frozen.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Open the Action Plan tab', async () => {
+        await docDetailsPage.clickActionPlanTab();
+      });
+
+      await test.step('Verify Action Plan panel title is visible in read-only mode', async () => {
+        await docDetailsPage.expectActionPlanTitleVisible();
+      });
+
+      await test.step('Verify no "Add Action" button is present (frozen state)', async () => {
+        const addActionBtn = page.getByRole('button', { name: /Add Action/i });
+        await expect(addActionBtn).toBeHidden({ timeout: 10_000 });
+      });
+    });
+
+  // ── TC-LIFECYCLE-009 ──────────────────────────────────────────────────────
+  test('should not show Edit Roles button on a Completed DOC (Roles tab frozen)',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-009: After a DOC is Completed, the Roles & Responsibilities tab must be ' +
+        'frozen — the "Edit Roles" button must NOT appear so that role assignments cannot be changed.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Open the Roles & Responsibilities tab', async () => {
+        await docDetailsPage.clickRolesResponsibilitiesTab();
+      });
+
+      await test.step('Verify Roles grid is visible in read-only mode', async () => {
+        await docDetailsPage.expectRolesGridVisible();
+      });
+
+      await test.step('Verify "Edit Roles" button is NOT present (frozen state)', async () => {
+        const isEditRolesVisible = await docDetailsPage.isEditRolesButtonVisible();
+        expect(
+          isEditRolesVisible,
+          '"Edit Roles" button must not appear on a Completed DOC',
+        ).toBe(false);
+      });
+    });
+
+  // ── TC-LIFECYCLE-010 ──────────────────────────────────────────────────────
+  test('should not show Propose Decision or Submit for Approval buttons on a Completed DOC',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-010: After a DOC is Completed, the Certification Decision tab must be ' +
+        'frozen — neither the "Propose Decision" nor the "Submit for Approval" buttons must be ' +
+        'present, preventing any modification to the certified decision.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Open the Certification Decision tab', async () => {
+        const certTab = page.getByRole('tab', { name: 'Certification Decision' });
+        const isTabVisible = await certTab.isVisible().catch(() => false);
+        if (!isTabVisible) {
+          test.skip(true, 'Certification Decision tab not available on this DOC — skipping frozen-state check.');
+          return;
+        }
+        await docDetailsPage.clickCertificationDecisionTab();
+      });
+
+      await test.step('Verify "Propose Decision" button is NOT present (frozen state)', async () => {
+        const proposeDecisionBtn = page.getByRole('button', { name: 'Propose Decision' });
+        await expect(proposeDecisionBtn).toBeHidden({ timeout: 10_000 });
+      });
+
+      await test.step('Verify "Submit for Approval" button is NOT present (frozen state)', async () => {
+        const submitForApprovalBtn = page.getByRole('button', { name: 'Submit for Approval' });
+        await expect(submitForApprovalBtn).toBeHidden({ timeout: 10_000 });
+      });
+    });
+
+  // ── TC-LIFECYCLE-011 ──────────────────────────────────────────────────────
+  test('should show Risk Summary tab with all four summary sections on a Completed DOC',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-011: The Risk Summary tab must be accessible on a Completed DOC and ' +
+        'must display all four summary sections: SDL FCSR Summary, Data Protection and Privacy ' +
+        'Summary, ITS Control Summary, and Controls.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Open the Risk Summary tab', async () => {
+        await docDetailsPage.clickRiskSummaryTab();
+      });
+
+      await test.step('Verify all four Risk Summary sections are visible', async () => {
+        await docDetailsPage.expectRiskSummarySectionsVisible();
+      });
+    });
+
+  // ── TC-LIFECYCLE-012 ──────────────────────────────────────────────────────
+  test('should hide all Descope action buttons on a Completed DOC (ITS Checklist frozen)',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-012: After a DOC is Completed, the ITS Checklist tab must be fully frozen. ' +
+        'The Descope (×) action link must NOT be present on any control row, preventing any ' +
+        'further changes to the control scope.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Open the ITS Checklist tab', async () => {
+        await docDetailsPage.clickITSChecklistTab();
+      });
+
+      await test.step('Verify the ITS grid title is visible in read-only mode', async () => {
+        await docDetailsPage.expectITSSecurityControlsTitleVisible();
+      });
+
+      await test.step('Verify no Descope (×) action links appear in any control row', async () => {
+        const itsPanel = page
+          .getByRole('tabpanel')
+          .filter({ has: page.getByText('IT SECURITY CONTROLS') })
+          .first();
+        // Descope is rendered as an anchor inside the last cell of each data row.
+        // On a Completed DOC all action links must be absent.
+        const descopeLinks = itsPanel.locator('table tbody tr td:last-child a');
+        const count = await descopeLinks.count();
+        expect(
+          count,
+          'Descope (×) action links must not appear in any ITS row on a Completed DOC',
+        ).toBe(0);
+      });
+    });
 });

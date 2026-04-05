@@ -59,6 +59,8 @@ export const landingLocators = (page: Page) => ({
   docsStatusDropdown:       page.getByRole('tabpanel').getByRole('combobox').nth(2),
   docsCertDecisionDropdown: page.getByRole('tabpanel').getByRole('combobox').nth(3),
   docsDocLeadDropdown:      page.getByRole('tabpanel').getByRole('combobox').nth(4),
+  // Empty-state row rendered by the grid when a search/filter returns no matches
+  docsGridEmptyState:       page.locator('[role="tabpanel"]:not([aria-hidden="true"])').getByRole('grid').locator('td, [class*="no-data"], [class*="empty"]').first(),
 
   // Reports & Dashboards filters
   reportsOrgLevel1Dropdown:     page.getByRole('tabpanel').getByRole('combobox').first(),
