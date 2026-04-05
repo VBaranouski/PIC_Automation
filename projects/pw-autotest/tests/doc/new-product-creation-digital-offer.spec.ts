@@ -6,10 +6,12 @@ test.describe('Products - New Product Creation with Digital Offer @regression', 
   // each with up to 240s wait for the edit link widget to appear.
   test.setTimeout(360_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, newProductPage, userCredentials }) => {
+  test.beforeEach(async ({ page, loginPage, landingPage, newProductPage, userCredentials }) => {
     await loginPage.goto();
     await loginPage.waitForPageLoad();
     await loginPage.login(userCredentials.login, userCredentials.password);
+    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
 
     // OutSystems login redirect is slow — wait for New Product button as readiness signal
     await landingPage.clickNewProduct();
@@ -21,7 +23,7 @@ test.describe('Products - New Product Creation with Digital Offer @regression', 
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.description(
-      'Verify that a Process Quality Leader can create a new product with the Digital Offer option enabled, ' +
+      'DOC-SETUP-001: Verify that a Process Quality Leader can create a new product with the Digital Offer option enabled, ' +
       'and that the Digital Offer Certification tab appears on the saved product.',
     );
 
@@ -67,13 +69,15 @@ test.describe('Products - New Product Creation with Digital Offer @regression', 
       });
     });
 
-    await test.step('Re-apply product dropdowns before save', async () => {
+    await test.step('Re-apply product details before save', async () => {
       // OutSystems partial refreshes during Org/Team tab operations can reset
-      // Product State, Definition, and Type dropdowns. Re-select them.
-      await newProductPage.selectProductDropdowns({
+      // Product State, Definition, Type, and Product Name. Re-apply them.
+      await newProductPage.fillProductInformation({
+        name: productName,
         state: 'Under development (not yet released)',
         definition: 'System',
         type: 'Embedded Device',
+        description: 'Automated test product with Digital Offer enabled for certification tab verification.',
       });
     });
 

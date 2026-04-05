@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PICASso GRC — 3D Application Map</title>
+  <script src="https://unpkg.com/3d-force-graph@1"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; overflow: hidden; }
+    #app { display: flex; height: 100vh; width: 100vw; }
+
+    /* Sidebar */
+    #sidebar {
+      width: 360px; min-width: 360px; background: #161b22; border-right: 1px solid #30363d;
+      display: flex; flex-direction: column; z-index: 10; overflow-y: auto;
+    }
+    #sidebar-header { padding: 16px; border-bottom: 1px solid #30363d; }
+    #sidebar-header h1 { font-size: 15px; color: #58a6ff; margin-bottom: 4px; }
+    #sidebar-header p { font-size: 11px; color: #8b949e; }
+
+    #search-box { padding: 12px 16px; border-bottom: 1px solid #30363d; }
+    #search-input {
+      width: 100%; padding: 8px 12px; background: #0d1117; border: 1px solid #30363d;
+      border-radius: 6px; color: #c9d1d9; font-size: 13px; outline: none;
+    }
+    #search-input:focus { border-color: #58a6ff; }
+    #search-input::placeholder { color: #484f58; }
+
+    #legend { padding: 12px 16px; border-bottom: 1px solid #30363d; }
+    #legend h3 { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; padding: 2px 0; font-size: 12px; cursor: pointer; transition: color 0.15s; }
+    .legend-item:hover { color: #f0f6fc; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .legend-line { width: 20px; height: 2px; flex-shrink: 0; border-radius: 1px; }
+
+    #stats { padding: 12px 16px; border-bottom: 1px solid #30363d; }
+    #stats h3 { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+    .stat-value { color: #58a6ff; font-weight: 600; }
+
+    #controls-panel { padding: 12px 16px; border-bottom: 1px solid #30363d; }
+    #controls-panel h3 { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .control-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .control-row label { font-size: 12px; flex: 1; }
+    .control-row input[type="range"] { width: 100px; accent-color: #58a6ff; }
+    .control-row input[type="checkbox"] { accent-color: #58a6ff; }
+    .ctrl-btn {
+      padding: 6px 14px; background: #21262d; border: 1px solid #30363d; border-radius: 6px;
+      color: #c9d1d9; font-size: 12px; cursor: pointer; transition: all 0.15s; margin-right: 4px;
+    }
+    .ctrl-btn:hover { background: #30363d; border-color: #484f58; }
+
+    #detail-panel { flex: 1; overflow-y: auto; padding: 16px; }
+    #detail-panel h3 { font-size: 14px; color: #58a6ff; margin-bottom: 8px; }
+    .detail-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 4px; }
+    .detail-value { font-size: 13px; color: #c9d1d9; line-height: 1.5; }
+    .detail-list { list-style: none; padding: 0; }
+    .detail-list li { font-size: 12px; padding: 2px 0; color: #c9d1d9; }
+    .detail-list li::before { content: '•'; color: #58a6ff; margin-right: 6px; }
+    .coverage-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    }
+    .coverage-partial { background: rgba(210,153,34,0.2); color: #d29922; }
+    .coverage-full { background: rgba(63,185,80,0.2); color: #3fb950; }
+    .coverage-none { background: rgba(248,81,73,0.2); color: #f85149; }
+    .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; margin: 1px 2px; background: #21262d; color: #8b949e; }
+
+    #graph-container { flex: 1; position: relative; }
+    #graph-container canvas { display: block; }
+
+    /* HTML overlay labels */
+    #labels-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 5; overflow: hidden;
+    }
+    .node-label {
+      position: absolute; white-space: nowrap; transform: translate(-50%, 0);
+      font-size: 11px; padding: 2px 7px; border-radius: 4px;
+      background: rgba(13,17,23,0.82); color: #e6edf3;
+      pointer-events: none; transition: opacity 0.15s;
+      border: 1px solid rgba(48,54,61,0.5); backdrop-filter: blur(2px);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .node-label.page-label { font-size: 12px; font-weight: 600; }
+    .node-label.excluded-label { color: #484f58; font-size: 10px; }
+
+    #info-badge {
+      position: absolute; top: 12px; right: 12px; background: rgba(22,27,34,0.85); border: 1px solid #30363d;
+      border-radius: 8px; padding: 8px 14px; font-size: 11px; color: #8b949e; z-index: 10;
+      pointer-events: none; backdrop-filter: blur(6px);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    /* View toggle */
+    #view-toggle {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 10;
+      display: flex; gap: 4px; background: rgba(22,27,34,0.85); border: 1px solid #30363d;
+      border-radius: 8px; padding: 4px; backdrop-filter: blur(6px);
+    }
+    .view-btn {
+      padding: 6px 16px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;
+      color: #8b949e; background: transparent; transition: all 0.15s;
+    }
+    .view-btn.active { background: #58a6ff; color: #0d1117; font-weight: 600; }
+    .view-btn:hover:not(.active) { color: #c9d1d9; background: #21262d; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>🎨 PICASso GRC — 3D App Map</h1>
+      <p>WebGL force-graph • Orbit controls • Click node for details</p>
+    </div>
+    <div id="search-box">
+      <input id="search-input" type="text" placeholder="Search nodes, elements…" autocomplete="off">
+    </div>
+    <div id="legend">
+      <h3>Node Types</h3>
+      <div class="legend-item" data-type="page"><div class="legend-dot" style="background:#58a6ff"></div>Page</div>
+      <div class="legend-item" data-type="tab"><div class="legend-dot" style="background:#d29922"></div>Tab</div>
+      <div class="legend-item" data-type="dialog"><div class="legend-dot" style="background:#bc8cff"></div>Dialog / Modal</div>
+      <div class="legend-item" data-type="external"><div class="legend-dot" style="background:#f85149"></div>External System ↗️</div>
+      <div class="legend-item" data-type="unmapped"><div class="legend-dot" style="background:#ffa657"></div>Available (Unmapped) 📦</div>
+      <div class="legend-item" data-type="wip"><div class="legend-dot" style="background:#bc8cff;border:2px dashed #e6edf3"></div>Work in Progress ⏳</div>
+      <h3 style="margin-top:8px">Links</h3>
+      <div class="legend-item"><div class="legend-line" style="background:#58a6ff"></div>Navigation</div>
+      <div class="legend-item"><div class="legend-line" style="background:#d29922"></div>Tab Switch</div>
+      <div class="legend-item"><div class="legend-line" style="background:#bc8cff"></div>Mode Switch</div>
+    </div>
+    <div id="controls-panel">
+      <h3>3D Controls</h3>
+      <div class="control-row">
+        <label>Particle Speed</label>
+        <input type="range" id="particle-speed" min="0" max="20" value="6" step="1">
+      </div>
+      <div class="control-row">
+        <label>Link Opacity</label>
+        <input type="range" id="link-opacity" min="1" max="10" value="4" step="1">
+      </div>
+      <div class="control-row">
+        <input type="checkbox" id="toggle-labels" checked>
+        <label for="toggle-labels">Show Labels</label>
+      </div>
+      <div class="control-row">
+        <input type="checkbox" id="toggle-particles" checked>
+        <label for="toggle-particles">Link Particles</label>
+      </div>
+      <div class="control-row">
+        <input type="checkbox" id="toggle-dag">
+        <label for="toggle-dag">DAG Layout (Hierarchical)</label>
+      </div>
+      <div style="margin-top:8px">
+        <button class="ctrl-btn" id="btn-reset-cam">Reset Camera</button>
+        <button class="ctrl-btn" id="btn-spin">Auto-Rotate</button>
+      </div>
+    </div>
+    <div id="detail-panel">
+      <p style="font-size:12px;color:#484f58">Click a node to see details</p>
+    </div>
+  </div>
+  <div id="graph-container">
+    <div id="info-badge">🖱️ Left-drag: rotate • Right-drag: pan • Scroll: zoom • Click: inspect</div>
+    <div id="view-toggle">
+      <a href="application-map.html" class="view-btn">2D View</a>
+      <button class="view-btn active">3D View</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const mapData = {
+  nodes: [
+    { id: "login", label: "Login Page", type: "page", url: "/GRC_Th/Login", coverage: "partial",
+      desc: "This page allows users to authenticate via Schneider Electric SSO through the LEAP enterprise portal.",
+      elements: ["Username input", "Password input", "Login button", "Login SSO button", "Remember me checkbox", "Forgot password link"],
+      tests: ["login.spec.ts"] },
+
+    { id: "landing", label: "Landing Page", type: "page", url: "/GRC_PICASso/HomePage", coverage: "partial",
+      desc: "This page allows users to access their personalized dashboard with four tabs, create products, access role delegation, and view reports.",
+      elements: ["NavBar (Home, BackOffice*, PIM*, STAC*, DCP*)", "User profile section", "Notification bell", "New Product button", "Roles Delegation link"],
+      tests: ["landing-page.spec.ts"] },
+
+    { id: "new-product", label: "New Product Form", type: "page", url: "/GRC_PICASso/ProductDetail?ProductId=0", coverage: "partial",
+      desc: "This page allows users to register a new product with org hierarchy, tracking tools, team assignments, and security parameters.",
+      elements: ["Product Name*", "Product State* (4 opt)", "Product Definition* (3 opt, cascading)", "Product Type* (11 opt)", "Digital Offer → VESTA ID grid", "IT Owner* / Project Manager* (searchbox)", "Commercial Ref", "DPP checkbox → confirmation dialog", "Brand Label → Vendor* mandatory", "Rich Text Editor", "Org Level 1*/2*/3* (cascading)", "Product Team (PO, SM, SDPA, PQL, DPA)", "Security Summary", "Product Configuration", "Save/Cancel/Reset"],
+      tests: ["create-product.spec.ts"] },
+
+    { id: "product-detail", label: "Product Detail", type: "page", url: "/GRC_PICASso/ProductDetail?ProductId={id}", coverage: "partial",
+      desc: "This page allows users to view and manage all product aspects: details, team, security, status mapping, releases, and change history.",
+      elements: ["Header (name, PIC-XXXX, Active badge)", "Edit Product", "View History", "Actions Management", "Product Details tab", "Releases tab", "DOC tab (dynamic)", "Organization tab", "Team tab", "Security Summary tab", "Configuration tab", "Edit mode (all fields)", "Leave Page / DPP dialogs"],
+      tests: ["product-detail.spec.ts", "edit-product.spec.ts"] },
+
+    { id: "release-detail", label: "Release Detail", type: "page", url: "/GRC_PICASso/ReleaseDetail?ReleaseId={id}", coverage: "partial",
+      desc: "This page allows users to manage the full release lifecycle through a 7-stage workflow with requirements, CSRR, and FCSR decision.",
+      elements: ["Workflow bar (7 stages)", "Submit/Rework/Approve", "Release Details", "Roles & Responsibilities", "Questionnaire", "Process Requirements", "Product Requirements", "Review & Confirm", "CSRR (10 sub-sections)", "FCSR Decision", "DP&P Review"],
+      tests: ["release-detail.spec.ts", "create-release.spec.ts"] },
+
+    { id: "doc-detail", label: "DOC Detail", type: "page", url: "/GRC_PICASso_DOC/DOCDetail?DOCId={id}&ProductId={id}", coverage: "partial",
+      desc: "This page allows users to manage Digital Offer Certification through a 5-stage workflow. Auto-created for Digital Offer products.",
+      elements: ["DOC header (DOC-789, Pending Initiation, VESTA ID: 12345)", "5-stage workflow pipeline", "Digital Offer Details tab", "Cancel DOC button", "Initiate DOC button", "Edit Details button", "View History link"],
+      tests: ["doc-details.spec.ts", "doc-initiation.spec.ts"] },
+
+    { id: "roles-delegation", label: "Roles Delegation", type: "page", url: "/GRC_PICASso/RolesDelegation", coverage: "none",
+      desc: "This page allows users to delegate roles to designated individuals with bulk actions, history tracking, and auto task reassignment.",
+      elements: ["My Roles tab (grid: checkbox, Role Name, Scope, delegated person, Start date, Expiration date, Delegate button)", "Bulk Actions: Delegate, Remove Delegation", "Org Level Users tab", "Search user by name", "Delegation History link", "Delegate Role dialog", "Delegation History dialog"],
+      tests: [] },
+
+    { id: "actions-management", label: "Actions Management", type: "page", url: "/GRC_PICASso/ActionsManagement", coverage: "none",
+      desc: "This page allows users to manage all actions across releases with Jira integration, status bar chart, and history.",
+      elements: ["Actions grid", "Create Action", "Refresh Jira", "Status chart", "Filters", "History"],
+      tests: [] },
+
+    // Tabs
+    { id: "my-tasks", label: "My Tasks", type: "tab", parent: "landing", coverage: "partial",
+      desc: "This tab allows users to view and manage all pending tasks across releases with filtering and pagination.",
+      elements: ["Search", "Release filter", "Product filter", "Date Range", "Assignee", "Show Closed", "Grid (12 cols)"],
+      tests: ["landing-page.spec.ts"] },
+
+    { id: "my-products", label: "My Products", type: "tab", parent: "landing", coverage: "partial",
+      desc: "This tab allows users to browse all associated products with search, status filtering, and inactivation.",
+      elements: ["Search", "Product ID", "Org Level 1/2", "Product Owner", "DOC Lead", "Show active only", "Grid (12 cols)"],
+      tests: ["landing-page.spec.ts"] },
+
+    { id: "my-releases", label: "My Releases", type: "tab", parent: "landing", coverage: "partial",
+      desc: "This tab allows users to view all releases with filtering by product, status, and date range.",
+      elements: ["Search", "Product", "Date Range", "Status", "Show active only", "Grid (10 cols)"],
+      tests: ["landing-page.spec.ts"] },
+
+    { id: "my-docs", label: "My DOCs", type: "tab", parent: "landing", coverage: "partial",
+      desc: "This tab allows users to view and manage DOC certifications with search and status filtering.",
+      elements: ["DOC name search", "Product", "VESTA ID", "DOC Status", "Cert Decision", "DOC Lead", "Grid (9 cols)"],
+      tests: ["landing-page.spec.ts"] },
+
+    // Dialogs
+    { id: "create-release-dlg", label: "Create Release", type: "dialog", parent: "product-detail", coverage: "partial",
+      desc: "This dialog allows users to create a new release or onboard an existing one with version, date, and pen test details.",
+      elements: ["Release Type radio", "Version*", "Target Date*", "Change Summary", "Pen Testing", "Create & Scope"],
+      tests: ["create-release.spec.ts"] },
+
+    { id: "clone-release-dlg", label: "Clone Release", type: "dialog", parent: "product-detail", coverage: "none",
+      desc: "This dialog allows users to clone a release, inheriting questionnaire, requirements, and CSRR data.", elements: ["Version*", "Date*", "Summary", "Clone"], tests: [] },
+
+    { id: "product-history-dlg", label: "Product History", type: "dialog", parent: "product-detail", coverage: "none",
+      desc: "This dialog allows users to review all tracked changes to a product with filtering and pagination.", elements: ["Grid: Date, User, Activity, Description", "Filters"], tests: [] },
+
+    { id: "release-history-dlg", label: "Release History", type: "dialog", parent: "release-detail", coverage: "none",
+      desc: "This dialog allows users to review all release activities with filtering and search.", elements: ["Grid: Date, User, Activity, Description", "Filters"], tests: [] },
+
+    { id: "req-bulk-edit-dlg", label: "Bulk Edit Reqs", type: "dialog", parent: "req-management", coverage: "none",
+      desc: "This dialog allows users to change status, evidence, and justification for multiple requirements at once.", elements: ["Status", "Evidence Link", "Justification", "Save"], tests: [] },
+
+    { id: "req-summary-dlg", label: "Req Summary Pie", type: "dialog", parent: "req-management", coverage: "none",
+      desc: "This dialog shows a pie chart of requirements status distribution with filters and export options.", elements: ["Pie chart", "Filters", "Download"], tests: [] },
+
+    { id: "custom-req-dlg", label: "Custom Requirement", type: "dialog", parent: "req-management", coverage: "none",
+      desc: "This dialog allows users to add custom product requirements with name, code, condition, and source.", elements: ["Name*", "Code*", "Condition*", "Description*", "Source*"], tests: [] },
+
+    { id: "doc-initiation-dlg", label: "DOC Initiation", type: "dialog", parent: "product-detail", coverage: "partial",
+      desc: "This dialog allows users to initiate a DOC by specifying VESTA ID, IT Owner, and Project Manager.", elements: ["VESTA ID", "IT Owner", "Project Manager", "Initiate DOC"], tests: ["doc-initiation.spec.ts"] },
+
+    { id: "leave-page-dlg", label: "Leave Page", type: "dialog", parent: "product-detail", coverage: "partial",
+      desc: "This dialog warns users about unsaved changes when leaving edit mode.",
+      elements: ["Title: Leave Page", "Message", "Cancel (stay)", "Leave (discard)"], tests: ["edit-product.spec.ts"] },
+
+    { id: "dpp-save-dlg", label: "DPP Save Confirm", type: "dialog", parent: "product-detail", coverage: "partial",
+      desc: "This dialog confirms activation of Data Protection & Privacy tasks when saving with DPP toggled on.",
+      elements: ["Title: Save Product", "Warning", "Cancel", "Save"], tests: ["create-product.spec.ts"] },
+
+    { id: "workflow-sidebar", label: "Roles & Responsibilities", type: "dialog", parent: "release-detail", coverage: "none",
+      desc: "This sidebar shows stage details, responsible individuals, submission progress, and rework justification.",
+      elements: ["Stage header", "Submissions", "Users table", "Prev/Next"], tests: [] },
+
+    { id: "delegate-role-dlg", label: "Delegate Role", type: "dialog", parent: "roles-delegation", coverage: "none",
+      desc: "This dialog allows users to assign role delegation with assignee, dates, and justification.",
+      elements: ["Assignee* (user picker with tooltip)", "Start Date* (datetime, pre-filled)", "Expiration Date* (datetime)", "Info: 3-month recommendation", "Justification* (textarea 0/200)", "Cancel / Delegate buttons"], tests: [] },
+
+    { id: "delegation-history-dlg", label: "Delegation History", type: "dialog", parent: "roles-delegation", coverage: "none",
+      desc: "This dialog shows a log of all delegation activities with filtering and pagination.",
+      elements: ["Search by description/user/action name", "Activity filter (Assignment, Removal, Update, Expiration)", "Date Range picker", "Search/Reset buttons", "Grid: Date, User, Role Holder, Activity, Description, Origin", "Pagination (1134 records, 114 pages)"], tests: [] },
+
+    // External integrations
+    { id: "jira", label: "JIRA", type: "external", size: "lg",
+      desc: "Integrated tracking tool for process/product requirements and actions.",
+      elements: [], tests: [] },
+    { id: "jama", label: "JAMA (Orchestra)", type: "external", size: "lg",
+      desc: "Integrated tracking tool for product requirements via Orchestra middleware.",
+      elements: [], tests: [] },
+    { id: "bdba-sca", label: "BDBA (SCA)", type: "external", wip: true, size: "lg",
+      desc: "WIP: Black Duck Binary Analysis for importing SCA scan results into CSRR.",
+      elements: [], tests: [] },
+    { id: "coverity-sast", label: "Coverity (SAST)", type: "external", wip: true,
+      desc: "WIP: Coverity SAST integration for importing static code analysis results.",
+      elements: [], tests: [] },
+    // Available in PICASso but not mapped in this exploration
+    { id: "backoffice", label: "BackOffice", type: "unmapped", desc: "Available in PICASso GRC — not described in this map yet.", elements: [], tests: [] },
+    { id: "reports", label: "Reports", type: "unmapped", desc: "Available in PICASso GRC — not described in this map yet.", elements: [], tests: [] },
+    // Requirements management group
+    { id: "req-management", label: "Requirements Mgmt", type: "tab", parent: "release-detail", coverage: "none",
+      desc: "Group: requirements management features within a release.",
+      elements: [], tests: [] },
+    // WIP features from Confluence Functional Requirements
+    { id: "req-update-popup", label: "Req Update Pop-up", type: "dialog", wip: true, parent: "req-management",
+      desc: "WIP: Dialog to review requirement changes when creating release from previous version.",
+      elements: ["Change types table", "Apply Selected / Keep Current", "View Details"], tests: [] },
+    { id: "req-status-update", label: "Update Req Status", type: "dialog", wip: true, parent: "req-management",
+      desc: "WIP: Dialog to bulk transfer statuses from replaced requirements to replacements.",
+      elements: ["Status transfer grid", "Evidence copy", "Apply / Cancel"], tests: [] },
+    { id: "req-traceability", label: "Req Traceability", type: "dialog", wip: true, parent: "req-management",
+      desc: "WIP: Traceability view showing requirement mapping pairs with focus filters.",
+      elements: ["Mapping pair dropdown", "Focus filter", "Priority filter", "Hierarchy display"], tests: [] },
+    // Delegated Requirements Traceability
+    { id: "delegated-req-trace", label: "Delegated Req Trace", type: "dialog", parent: "req-management",
+      confluencePage: 587596145,
+      desc: "Dialog for managing delegated requirements traceability across products/releases.",
+      elements: ["Product Name", "Release", "Requirement", "Due Date", "Delegated Part", "+Add Product", "+Add Requirement"], tests: [] },
+    // Questionnaire tab within Release Detail
+    { id: "questionnaire", label: "Questionnaire", type: "tab", parent: "release-detail",
+      desc: "Tab where users answer questions to scope requirements. Calculates Privacy Risk and Risk Classification.",
+      elements: ["Start Questionnaire", "Question list", "Submit", "Edit Answers"], tests: [] },
+    // Scoping Review & Confirm tab
+    { id: "scope-review-tab", label: "Scope Review", type: "tab", parent: "release-detail",
+      confluencePage: 479092135,
+      desc: "Tab for scoping review: Req Summary charts, Previous FCSR Summary, Participants, Key Discussion Topics, Decision, Actions.",
+      elements: ["Req Summary donut charts", "Previous FCSR Summary", "Participants", "Key Discussion Topics", "Scope Review Decision", "Actions + Jira submit"], tests: [] },
+    // Requirements Mapping (WIP)
+    { id: "req-mapping", label: "Req Mapping", type: "dialog", wip: true, parent: "req-management",
+      desc: "WIP: Mapping pairs between cybersecurity standards with traceability view.",
+      confluencePage: 697186575, elements: [], tests: [] },
+    // CRA Risk Profile Calculator (WIP)
+    { id: "risk-profile-calc", label: "Risk Profile Calc", type: "page", wip: true,
+      desc: "WIP: CRA Product Risk Profile Calculator with Likelihood/Impact factors.",
+      confluencePage: 576728755, elements: [], tests: [] },
+    // Report Configurator (Confluence 576736204)
+    { id: "report-configurator", label: "Report Configurator", type: "dialog", parent: "product-detail",
+      confluencePage: 576736204,
+      desc: "Pop-up for generating PDF reports (Scope Approval, FCSR, Actions, DPP). Accessible from releases list.",
+      elements: ["Section selector", "Generate Report in PDF", "Cancel"], tests: [] },
+    // Intel DS/Informatica (Confluence 681885751)
+    { id: "intel-ds", label: "Intel DS", type: "external",
+      confluencePage: 681885751,
+      desc: "Intel DS/Informatica integration for training completion progress data exchange.",
+      elements: [], tests: [] },
+    // Data Ingestion API (Confluence 683835899)
+    { id: "data-ingestion-api", label: "Data Ingestion API", type: "external", size: "lg",
+      confluencePage: 683835899,
+      desc: "REST API for ingesting data from external tools. OAuth 2.0 Client Credentials.",
+      elements: [], tests: [] },
+    // Data Extraction API (Confluence 684370146)
+    { id: "data-extraction-api", label: "Data Extraction API", type: "external", size: "lg",
+      confluencePage: 684370146,
+      desc: "REST API for extracting data from PICASso Staging Area. System/user/PowerQuery auth.",
+      elements: [], tests: [] },
+    // Requirements Upload (Confluence 431746081) — Outdated
+    { id: "req-upload", label: "Req Upload", type: "dialog", wip: true, parent: "req-management",
+      confluencePage: 431746081,
+      desc: "WIP (Outdated): Upload Process/Product requirement statuses via Excel file.",
+      elements: ["Download template", "Select file", "Validation"], tests: [] },
+  ],
+  links: [
+    { source: "login", target: "landing", label: "Login", type: "navigation" },
+    { source: "landing", target: "my-tasks", label: "Tab", type: "tab-switch" },
+    { source: "landing", target: "my-products", label: "Tab", type: "tab-switch" },
+    { source: "landing", target: "my-releases", label: "Tab", type: "tab-switch" },
+    { source: "landing", target: "my-docs", label: "Tab", type: "tab-switch" },
+    { source: "landing", target: "new-product", label: "New Product", type: "navigation" },
+    { source: "landing", target: "roles-delegation", label: "Roles Delegation", type: "navigation" },
+    { source: "my-tasks", target: "release-detail", label: "Click task", type: "navigation" },
+    { source: "my-products", target: "product-detail", label: "Click product", type: "navigation" },
+    { source: "my-releases", target: "release-detail", label: "Click release", type: "navigation" },
+    { source: "my-docs", target: "doc-detail", label: "Click DOC", type: "navigation" },
+    { source: "new-product", target: "product-detail", label: "Save", type: "navigation" },
+    { source: "new-product", target: "landing", label: "Cancel", type: "navigation" },
+    { source: "new-product", target: "leave-page-dlg", label: "Cancel (dirty)", type: "navigation" },
+    { source: "new-product", target: "dpp-save-dlg", label: "Save (DPP)", type: "navigation" },
+    { source: "product-detail", target: "new-product", label: "Edit Product", type: "mode-switch" },
+    { source: "product-detail", target: "release-detail", label: "Open release", type: "navigation" },
+    { source: "product-detail", target: "doc-detail", label: "Initiate DOC", type: "navigation" },
+    { source: "product-detail", target: "actions-management", label: "Actions Mgmt", type: "navigation" },
+    { source: "product-detail", target: "landing", label: "Home", type: "navigation" },
+    { source: "product-detail", target: "create-release-dlg", label: "Create Release", type: "navigation" },
+    { source: "product-detail", target: "clone-release-dlg", label: "Clone Release", type: "navigation" },
+    { source: "product-detail", target: "product-history-dlg", label: "View History", type: "navigation" },
+    { source: "product-detail", target: "doc-initiation-dlg", label: "Initiate DOC", type: "navigation" },
+    { source: "product-detail", target: "leave-page-dlg", label: "Cancel (dirty)", type: "navigation" },
+    { source: "product-detail", target: "dpp-save-dlg", label: "Save (DPP)", type: "navigation" },
+    { source: "release-detail", target: "landing", label: "Home", type: "navigation" },
+    { source: "release-detail", target: "product-detail", label: "Product link", type: "navigation" },
+    { source: "release-detail", target: "actions-management", label: "Actions Mgmt", type: "navigation" },
+    { source: "release-detail", target: "release-history-dlg", label: "View History", type: "navigation" },
+    { source: "release-detail", target: "workflow-sidebar", label: "Need Help", type: "navigation" },
+    // Requirements management group
+    { source: "release-detail", target: "req-management", label: "Requirements", type: "navigation" },
+    { source: "req-management", target: "req-bulk-edit-dlg", label: "Bulk Edit", type: "navigation" },
+    { source: "req-management", target: "req-summary-dlg", label: "Summary", type: "navigation" },
+    { source: "req-management", target: "custom-req-dlg", label: "+Custom", type: "navigation" },
+    { source: "doc-detail", target: "landing", label: "Home", type: "navigation" },
+    { source: "roles-delegation", target: "delegate-role-dlg", label: "Delegate", type: "navigation" },
+    { source: "roles-delegation", target: "delegation-history-dlg", label: "Delegation History", type: "navigation" },
+    // Available but not mapped
+    { source: "landing", target: "backoffice", label: "Available", type: "unmapped" },
+    { source: "landing", target: "reports", label: "Available", type: "unmapped" },
+    // Integration links
+    { source: "release-detail", target: "jira", label: "Submit to JIRA", type: "external" },
+    { source: "release-detail", target: "jama", label: "Submit to JAMA", type: "external" },
+    { source: "actions-management", target: "jira", label: "Submit Actions", type: "external" },
+    { source: "release-detail", target: "bdba-sca", label: "Import SCA (WIP)", type: "external", wip: true },
+    { source: "release-detail", target: "coverity-sast", label: "Import SAST (WIP)", type: "external", wip: true },
+    // Questionnaire
+    { source: "release-detail", target: "questionnaire", label: "Questionnaire tab", type: "tab-switch" },
+    // Scoping Review & Confirm
+    { source: "release-detail", target: "scope-review-tab", label: "Review & Confirm tab", type: "tab-switch" },
+    // Requirements Mapping
+    { source: "req-management", target: "req-mapping", label: "Req Mapping", type: "navigation", wip: true },
+    // Risk Profile Calculator
+    { source: "product-detail", target: "risk-profile-calc", label: "Calculate Risk", type: "navigation", wip: true },
+    // WIP requirement links (routed through req-management)
+    { source: "req-management", target: "req-update-popup", label: "Req Updated", type: "navigation", wip: true },
+    { source: "req-management", target: "req-status-update", label: "Update Status", type: "navigation", wip: true },
+    { source: "req-management", target: "req-traceability", label: "Traceability", type: "navigation", wip: true },
+    { source: "req-management", target: "delegated-req-trace", label: "Delegation", type: "navigation" },
+    // Report Configurator
+    { source: "product-detail", target: "report-configurator", label: "Generate Report", type: "navigation" },
+    // Intel DS Integration
+    { source: "release-detail", target: "intel-ds", label: "Training Sync", type: "external" },
+    // Data APIs (connected to login)
+    { source: "login", target: "data-ingestion-api", label: "Ingestion API", type: "external" },
+    { source: "login", target: "data-extraction-api", label: "Extraction API", type: "external" },
+    // Requirements Upload
+    { source: "req-management", target: "req-upload", label: "Upload XLSX", type: "navigation", wip: true },
+  ]
+};
+
+// ===== CONFIG =====
+const nodeColors = { page: "#58a6ff", tab: "#d29922", dialog: "#bc8cff", excluded: "#484f58", external: "#f85149", unmapped: "#ffa657" };
+const linkColors = { navigation: "#58a6ff", "tab-switch": "#d29922", "mode-switch": "#bc8cff", excluded: "#30363d", external: "#f85149", unmapped: "#ffa657" };
+const nodeSize = { page: 8, tab: 5, dialog: 4, excluded: 2, external: 3, unmapped: 8 };
+const getV = d => d.size === "lg" ? 6 : (nodeSize[d.type] || 4);
+const isPeripheral = t => t === "excluded" || t === "external" || t === "unmapped";
+
+// Pre-compute link curvature (before the library mutates source/target to objects)
+const curvatureMap = {};
+mapData.links.forEach((link, idx) => {
+  const pair = [link.source, link.target].sort().join('|');
+  if (!curvatureMap[pair]) curvatureMap[pair] = [];
+  curvatureMap[pair].push(idx);
+});
+mapData.links.forEach((link, idx) => {
+  const pair = [link.source, link.target].sort().join('|');
+  const group = curvatureMap[pair];
+  link._curvature = group.length > 1 ? 0.2 * (group.indexOf(idx) + 1) : 0;
+});
+
+// ===== BUILD GRAPH =====
+const container = document.getElementById("graph-container");
+let showLabels = true;
+let showParticles = true;
+let autoRotate = false;
+let hoveredNode = null;
+
+const Graph = ForceGraph3D()(container)
+  .backgroundColor('#0d1117')
+  .graphData(mapData)
+  // Nodes: built-in sphere rendering
+  .nodeVal(node => getV(node))
+  .nodeColor(node => node.id === 'login' ? '#3fb950' : (nodeColors[node.type] || '#58a6ff'))
+  .nodeOpacity(0.9)
+  .nodeResolution(20)
+  .nodeLabel('') // disable default tooltip
+  // Links
+  .linkColor(link => {
+    const sid = typeof link.source === 'object' ? link.source.id : link.source;
+    if (sid === 'login') return '#3fb950';
+    return linkColors[link.type] || '#30363d';
+  })
+  .linkOpacity(0.4)
+  .linkWidth(link => { const sid = typeof link.source === 'object' ? link.source.id : link.source; if (sid === 'login') return 0.3; return isPeripheral(link.type) ? 0.2 : link.wip ? 0.5 : 0.8; })
+  .linkDirectionalArrowLength(link => isPeripheral(link.type) ? 0 : 3.5)
+  .linkDirectionalArrowRelPos(1)
+  .linkDirectionalArrowColor(link => linkColors[link.type] || '#30363d')
+  .linkDirectionalParticles(link => !isPeripheral(link.type) ? 2 : 0)
+  .linkDirectionalParticleSpeed(0.006)
+  .linkDirectionalParticleWidth(1.2)
+  .linkDirectionalParticleColor(link => linkColors[link.type] || '#58a6ff')
+  .linkCurvature(link => link._curvature || 0)
+  // Interaction
+  .onNodeClick(node => {
+    showDetail(node);
+    const distance = 120;
+    const distRatio = 1 + distance / Math.hypot(node.x || 1, node.y || 1, node.z || 1);
+    Graph.cameraPosition(
+      { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
+      node, 1000
+    );
+  })
+  .onNodeHover(node => {
+    container.style.cursor = node ? 'pointer' : 'default';
+    hoveredNode = node;
+  })
+  .onLinkHover(link => {
+    container.style.cursor = link ? 'pointer' : 'default';
+  });
+
+// Forces
+Graph.d3Force('charge').strength(-280);
+Graph.d3Force('link').distance(link => {
+  if (link.type === 'tab-switch') return 80;
+  if (isPeripheral(link.type)) return 160;
+  return 130;
+});
+
+// Initial camera
+Graph.cameraPosition({ x: 0, y: 0, z: 350 });
+setTimeout(() => { Graph.zoomToFit(1200, 60); }, 2500);
+
+// ===== HTML OVERLAY LABELS =====
+// Create overlay AFTER graph init (ForceGraph3D replaces container children)
+const sceneContainer = container.querySelector('.scene-container') || container.querySelector('div > div') || container;
+const labelsOverlay = document.createElement('div');
+labelsOverlay.id = 'labels-overlay';
+sceneContainer.appendChild(labelsOverlay);
+
+const labelElements = {};
+mapData.nodes.forEach(node => {
+  const el = document.createElement('div');
+  el.className = 'node-label' + (node.type === 'page' ? ' page-label' : '') + (isPeripheral(node.type) ? ' excluded-label' : '');
+  el.textContent = node.id === 'login' ? '👤 ' + node.label : node.wip ? '⏳ ' + node.label : node.label;
+  el.style.borderLeft = `3px solid ${node.wip ? '#ffa657' : (nodeColors[node.type] || '#58a6ff')}`;
+  labelsOverlay.appendChild(el);
+  labelElements[node.id] = el;
+});
+
+function updateLabels() {
+  const gd = Graph.graphData();
+  const sceneRect = sceneContainer.getBoundingClientRect();
+  gd.nodes.forEach(node => {
+    const el = labelElements[node.id];
+    if (!el || !showLabels) { if (el) el.style.opacity = '0'; return; }
+    if (node.x === undefined) { el.style.opacity = '0'; return; }
+    const screen = Graph.graph2ScreenCoords(node.x, node.y, node.z);
+    // Offset label below the node sphere
+    const yOffset = getV(node) * 1.5 + 6;
+    const sx = screen.x;
+    const sy = screen.y + yOffset;
+    // Hide if out of viewport
+    if (sx < -60 || sx > sceneRect.width + 60 || sy < -30 || sy > sceneRect.height + 30) {
+      el.style.opacity = '0';
+    } else {
+      el.style.opacity = '1';
+      el.style.left = sx + 'px';
+      el.style.top = sy + 'px';
+    }
+  });
+  requestAnimationFrame(updateLabels);
+}
+requestAnimationFrame(updateLabels);
+
+// ===== DETAIL PANEL =====
+function showDetail(node) {
+  const panel = document.getElementById('detail-panel');
+  const coverageClass = node.coverage === 'partial' ? 'coverage-partial' : node.coverage === 'full' ? 'coverage-full' : 'coverage-none';
+  const coverageLabel = node.coverage || 'n/a';
+
+  let html = `<h3>${node.label}</h3>`;
+  if (node.wip) html += `<div style="background:#5e3a0a;color:#ffa657;border-radius:4px;padding:2px 8px;font-size:11px;display:inline-block;margin-bottom:8px;">⏳ Work in Progress</div>`;
+  html += `<div class="detail-label">Type</div><div class="detail-value"><span class="tag">${node.type}</span></div>`;
+
+  if (node.url) {
+    html += `<div class="detail-label">URL</div><div class="detail-value" style="font-size:11px;color:#484f58;word-break:break-all">${node.url}</div>`;
+  }
+  if (node.desc) {
+    html += `<div class="detail-label">Description</div><div class="detail-value">${node.desc}</div>`;
+  }
+  if (node.elements && node.elements.length > 0) {
+    html += `<div class="detail-label">UI Elements (${node.elements.length})</div><ul class="detail-list">`;
+    node.elements.forEach(el => { html += `<li>${el}</li>`; });
+    html += `</ul>`;
+  }
+  if (node.tests && node.tests.length > 0) {
+    html += `<div class="detail-label">Test Files</div><div class="detail-value">`;
+    node.tests.forEach(t => { html += `<span class="tag">${t}</span>`; });
+    html += `</div>`;
+  }
+
+  // Connected links
+  const connected = mapData.links.filter(l => {
+    const s = l.source.id !== undefined ? l.source.id : l.source;
+    const t = l.target.id !== undefined ? l.target.id : l.target;
+    return s === node.id || t === node.id;
+  });
+  if (connected.length > 0) {
+    html += `<div class="detail-label">Connections (${connected.length})</div><ul class="detail-list">`;
+    connected.forEach(l => {
+      const from = l.source.id !== undefined ? l.source.id : l.source;
+      const to = l.target.id !== undefined ? l.target.id : l.target;
+      const other = from === node.id ? to : from;
+      const dir = from === node.id ? '→' : '←';
+      html += `<li>${dir} ${other} <span class="tag">${l.label}</span></li>`;
+    });
+    html += `</ul>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+// ===== SEARCH =====
+const searchInput = document.getElementById('search-input');
+let highlightNodes = new Set();
+
+searchInput.addEventListener('input', () => {
+  const term = searchInput.value.toLowerCase().trim();
+  highlightNodes.clear();
+
+  if (term.length > 0) {
+    mapData.nodes.forEach(node => {
+      const searchable = [node.label, node.desc || '', node.url || '', ...(node.elements || []), ...(node.tests || [])].join(' ').toLowerCase();
+      if (searchable.includes(term)) highlightNodes.add(node.id);
+    });
+  }
+
+  // Update colors to dim non-matching nodes
+  Graph
+    .nodeColor(node => {
+      if (highlightNodes.size === 0) return node.id === 'login' ? '#3fb950' : (nodeColors[node.type] || '#58a6ff');
+      return highlightNodes.has(node.id) ? (node.id === 'login' ? '#3fb950' : (nodeColors[node.type] || '#58a6ff')) : '#1c2128';
+    })
+    .linkOpacity(link => {
+      if (highlightNodes.size === 0) return 0.4;
+      const s = link.source.id !== undefined ? link.source.id : link.source;
+      const t = link.target.id !== undefined ? link.target.id : link.target;
+      return (highlightNodes.has(s) || highlightNodes.has(t)) ? 0.6 : 0.03;
+    });
+});
+
+// ===== CONTROLS =====
+document.getElementById('particle-speed').addEventListener('input', e => {
+  Graph.linkDirectionalParticleSpeed(e.target.value / 1000);
+});
+
+document.getElementById('link-opacity').addEventListener('input', e => {
+  Graph.linkOpacity(e.target.value / 10);
+});
+
+document.getElementById('toggle-labels').addEventListener('change', e => {
+  showLabels = e.target.checked;
+  Object.values(labelElements).forEach(el => { el.style.opacity = showLabels ? '1' : '0'; });
+});
+
+document.getElementById('toggle-particles').addEventListener('change', e => {
+  showParticles = e.target.checked;
+  Graph.linkDirectionalParticles(link => (showParticles && !isPeripheral(link.type)) ? 2 : 0);
+});
+
+document.getElementById('toggle-dag').addEventListener('change', e => {
+  Graph.dagMode(e.target.checked ? 'td' : null);
+  setTimeout(() => Graph.zoomToFit(1200, 60), 2000);
+});
+
+document.getElementById('btn-reset-cam').addEventListener('click', () => {
+  Graph.cameraPosition({ x: 0, y: 0, z: 350 }, { x: 0, y: 0, z: 0 }, 1000);
+  setTimeout(() => Graph.zoomToFit(1200, 60), 1100);
+});
+
+let spinInterval = null;
+document.getElementById('btn-spin').addEventListener('click', () => {
+  autoRotate = !autoRotate;
+  const btn = document.getElementById('btn-spin');
+  btn.textContent = autoRotate ? 'Stop Rotate' : 'Auto-Rotate';
+  btn.style.borderColor = autoRotate ? '#58a6ff' : '#30363d';
+
+  if (autoRotate) {
+    let angle = 0;
+    spinInterval = setInterval(() => {
+      angle += 0.005;
+      const dist = 350;
+      Graph.cameraPosition({
+        x: dist * Math.sin(angle),
+        y: 0,
+        z: dist * Math.cos(angle)
+      });
+    }, 30);
+  } else {
+    clearInterval(spinInterval);
+  }
+});
+
+// Legend filter — toggle visibility by type
+let activeFilter = null;
+document.querySelectorAll('.legend-item[data-type]').forEach(item => {
+  item.addEventListener('click', () => {
+    const type = item.dataset.type;
+    activeFilter = activeFilter === type ? null : type;
+    // Update all legend items visually
+    document.querySelectorAll('.legend-item[data-type]').forEach(li => {
+      li.style.opacity = (!activeFilter || li.dataset.type === activeFilter) ? 1 : 0.3;
+    });
+    Graph
+      .nodeColor(node => {
+        if (!activeFilter) return node.id === 'login' ? '#3fb950' : (nodeColors[node.type] || '#58a6ff');
+        const matches = activeFilter === 'wip' ? node.wip : node.type === activeFilter;
+        return matches ? (node.id === 'login' ? '#3fb950' : nodeColors[node.type]) : '#1c2128';
+      })
+      .linkOpacity(link => {
+        if (!activeFilter) return 0.4;
+        const sNode = typeof link.source === 'object' ? link.source : mapData.nodes.find(n => n.id === link.source);
+        const tNode = typeof link.target === 'object' ? link.target : mapData.nodes.find(n => n.id === link.target);
+        const sMatch = activeFilter === 'wip' ? (sNode && sNode.wip) : (sNode && sNode.type === activeFilter);
+        const tMatch = activeFilter === 'wip' ? (tNode && tNode.wip) : (tNode && tNode.type === activeFilter);
+        return sMatch || tMatch ? 0.5 : 0.02;
+      });
+  });
+});
+
+// Resize
+window.addEventListener('resize', () => { Graph.width(container.clientWidth).height(container.clientHeight); });
+</script>
+</body>
+</html>

@@ -9,3 +9,6 @@ export type { NewProductLocators } from './new-product.locators';
 
 export { docDetailsLocators } from './doc-details.locators';
 export type { DocDetailsLocators } from './doc-details.locators';
+
+export { controlDetailLocators } from './control-detail.locators';
+export type { ControlDetailLocators } from './control-detail.locators';

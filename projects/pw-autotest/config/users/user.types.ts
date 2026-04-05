@@ -9,7 +9,9 @@ export type UserRole =
   | 'project_manager'
   | 'docl'
   | 'drl'
-  | 'dedicated_privacy_advisor';
+  | 'dedicated_privacy_advisor'
+  | 'invalid_user'
+  | 'super_user';
 
 export interface UserCredentials {
   role: UserRole;

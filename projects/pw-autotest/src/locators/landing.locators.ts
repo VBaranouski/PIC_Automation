@@ -6,6 +6,7 @@ export const landingLocators = (page: Page) => ({
   rolesDelegationLink: page.getByRole('link', { name: 'Roles Delegation' }),
   homePageMenuItem:    page.getByRole('menuitem', { name: 'Home Page' }),
   newProductButton:    page.getByRole('button', { name: 'New Product' }),
+  headerLogoLink:      page.locator('a[href*="PICASso/HomePage"], a[href*="PICASso/"]').first(),
   tabPanel:            page.getByRole('tabpanel'),
 
   // Tabs
@@ -17,10 +18,13 @@ export const landingLocators = (page: Page) => ({
   reportsDashboardsTab:  page.getByRole('tab', { name: 'Reports & Dashboards' }),
 
   // Common grid elements (scoped to active tabpanel)
-  grid:               page.getByRole('tabpanel').getByRole('grid'),
-  paginationStatus:   page.getByRole('tabpanel').getByRole('status'),
-  perPageCombobox:    page.getByRole('tabpanel').getByRole('status').getByRole('combobox'),
-  paginationNav:      page.getByRole('tabpanel').getByRole('navigation', { name: 'Pagination' }),
+  // Note: the per-page <select> uses numeric values (0-4) for options (10/20/30/50/100).
+  // Playwright's selectOption() matches by option label text, so passing '100' works.
+  // We scope to the non-hidden tabpanel to avoid hitting the previously-active panel.
+  grid:               page.locator('[role="tabpanel"]:not([aria-hidden="true"])').getByRole('grid'),
+  paginationStatus:   page.locator('[role="tabpanel"]:not([aria-hidden="true"])').getByRole('status'),
+  perPageCombobox:    page.locator('[role="tabpanel"]:not([aria-hidden="true"])').getByRole('status').locator('select'),
+  paginationNav:      page.locator('[role="tabpanel"]:not([aria-hidden="true"])').getByRole('navigation', { name: 'Pagination' }),
   nextPageButton:     page.getByRole('button', { name: 'go to next page' }),
   resetButton:        page.getByRole('button', { name: 'Reset' }),
   previousPageButton: page.getByRole('button', { name: 'go to previous page' }),

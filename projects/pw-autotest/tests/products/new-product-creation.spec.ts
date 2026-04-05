@@ -21,7 +21,7 @@ test.describe('Products - New Product Creation @regression', () => {
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.description(
-      'Verify that a Process Quality Leader can create a new product by filling product information, ' +
+      'PRODUCT-CREATION-001: Verify that a Process Quality Leader can create a new product by filling product information, ' +
       'organization details, and assigning team members for all four required roles.',
     );
 
@@ -73,7 +73,7 @@ test.describe('Products - New Product Creation @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'Verify that the form prevents saving when required fields are empty and shows appropriate indicators.',
+      'PRODUCT-CREATION-002: Verify that the form prevents saving when required fields are empty and shows appropriate indicators.',
     );
 
     await test.step('Attempt to save without filling required fields', async () => {
@@ -85,12 +85,12 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should cancel product creation and return to landing page', async ({ newProductPage }) => {
+  test('should cancel product creation and return to landing page', async ({ newProductPage, landingPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'Verify that clicking Cancel on the new product form returns to the landing page without saving.',
+      'PRODUCT-CREATION-003: Verify that clicking Cancel on the new product form returns to the landing page without saving.',
     );
 
     await test.step('Fill some product information', async () => {
@@ -101,6 +101,10 @@ test.describe('Products - New Product Creation @regression', () => {
       // POM handles both the Cancel click and the OutSystems "Leave Page" modal
       await newProductPage.clickCancelAndConfirmLeave();
     });
+
+    await test.step('Verify landing page loads after cancel', async () => {
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+    });
   });
 
   test('should show cascading org level dropdowns', async ({ newProductPage }) => {
@@ -108,7 +112,7 @@ test.describe('Products - New Product Creation @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'Verify that Org Level 2 and Org Level 3 dropdowns are disabled until their parent level is selected, ' +
+      'PRODUCT-CREATION-004: Verify that Org Level 2 and Org Level 3 dropdowns are disabled until their parent level is selected, ' +
       'and they become enabled with correct options after parent selection.',
     );
 

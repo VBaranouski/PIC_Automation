@@ -11,6 +11,11 @@ type TeamRole =
 export class NewProductPage extends BasePage {
   readonly url = '/GRC_PICASso/ProductDetail?ProductId=0';
 
+  private static readonly monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ] as const;
+
   private readonly l: NewProductLocators;
 
   constructor(page: Page) {
@@ -27,6 +32,9 @@ export class NewProductPage extends BasePage {
 
   get productDetailsTab(): Locator     { return this.l.productDetailsTab; }
   get releasesTab(): Locator           { return this.l.releasesTab; }
+  get noReleasesMessage(): Locator     { return this.l.noReleasesMessage; }
+  get createReleaseButton(): Locator   { return this.l.createReleaseButton; }
+  get releasesGrid(): Locator          { return this.l.releasesGrid; }
 
   get sectionTitle(): Locator          { return this.l.sectionTitle; }
   get productNameInput(): Locator      { return this.l.productNameInput; }
@@ -68,6 +76,15 @@ export class NewProductPage extends BasePage {
   get viewHistoryLink(): Locator      { return this.l.viewHistoryLink; }
   get actionsManagementLink(): Locator { return this.l.actionsManagementLink; }
 
+  get createReleaseDialog(): Locator                  { return this.l.createReleaseDialog; }
+  get newProductReleaseRadio(): Locator               { return this.l.newProductReleaseRadio; }
+  get existingProductReleaseRadio(): Locator          { return this.l.existingProductReleaseRadio; }
+  get releaseVersionInput(): Locator                  { return this.l.releaseVersionInput; }
+  get targetReleaseDateInput(): Locator               { return this.l.targetReleaseDateInput; }
+  get continuousPenetrationTestingCheckbox(): Locator { return this.l.continuousPenetrationTestingCheckbox; }
+  get changeSummaryInput(): Locator                   { return this.l.changeSummaryInput; }
+  get createAndScopeButton(): Locator                 { return this.l.createAndScopeButton; }
+
   // ==================== Product Information ====================
 
   async fillProductName(name: string): Promise<void> {
@@ -82,7 +99,6 @@ export class NewProductPage extends BasePage {
   private async waitForProductTypeRefresh(): Promise<void> {
     await this.l.productNameInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-    /* eslint-disable max-len */
     await this.page.waitForFunction(`
       (() => {
         const input = document.querySelector('input[placeholder="Product Name"]');
@@ -91,7 +107,6 @@ export class NewProductPage extends BasePage {
         return true;
       })()
     `, { timeout: 30_000, polling: 500 });
-    /* eslint-enable max-len */
 
     await this.l.productNameInput.evaluate('(el) => delete el.dataset.__pw_stable');
   }
@@ -131,6 +146,25 @@ export class NewProductPage extends BasePage {
   async selectProductType(label: string): Promise<void> {
     await expect(this.l.productTypeSelect).toBeEnabled({ timeout: 30_000 });
     await this.l.productTypeSelect.selectOption({ label });
+  }
+
+  private async getSelectedOptionLabel(select: Locator): Promise<string> {
+    return select.evaluate((element) => {
+      const selectedOption = element.querySelector('option:checked');
+      return selectedOption?.textContent?.trim() ?? '';
+    });
+  }
+
+  async getSelectedProductState(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.productStateSelect);
+  }
+
+  async getSelectedProductDefinition(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.productDefinitionSelect);
+  }
+
+  async getSelectedProductType(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.productTypeSelect);
   }
 
   async fillDescription(text: string): Promise<void> {
@@ -182,7 +216,18 @@ export class NewProductPage extends BasePage {
   }
 
   async toggleBrandLabel(): Promise<void> {
+    // Brand Label toggle triggers an OutSystems partial refresh that clears the Vendor field.
+    // Capture the vendor value before toggling and restore it if cleared.
+    const vendorValue = await this.l.vendorInput.inputValue().catch(() => '');
     await this.l.brandLabelCheckbox.click();
+    await this.waitForOSLoad();
+
+    if (vendorValue) {
+      const currentValue = await this.l.vendorInput.inputValue().catch(() => '');
+      if (!currentValue) {
+        await this.l.vendorInput.fill(vendorValue);
+      }
+    }
   }
 
   // ==================== Product Organization ====================
@@ -207,6 +252,18 @@ export class NewProductPage extends BasePage {
     // Org Level 3 becomes enabled after Org Level 2 is selected
     await expect(this.l.orgLevel3Select).toBeEnabled({ timeout: 30_000 });
     await this.l.orgLevel3Select.selectOption({ label });
+  }
+
+  async getSelectedOrgLevel1(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.orgLevel1Select);
+  }
+
+  async getSelectedOrgLevel2(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.orgLevel2Select);
+  }
+
+  async getSelectedOrgLevel3(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.orgLevel3Select);
   }
 
   async toggleCrossOrgDevelopment(): Promise<void> {
@@ -305,6 +362,110 @@ export class NewProductPage extends BasePage {
     await expect(this.l.editProductButton).toBeVisible();
   }
 
+  // ==================== Product Detail View-Mode Assertions ====================
+
+  async expectProductDetailHeaderVisible(productName: string): Promise<void> {
+    await expect(this.page.getByText(productName).first()).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.productId).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.editProductButton).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectProductStatusBadge(status: string): Promise<void> {
+    await expect(this.page.getByText(status, { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectViewHistoryLinkVisible(): Promise<void> {
+    await expect(this.l.viewHistoryLink).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectActionsManagementLinkVisible(): Promise<void> {
+    await expect(this.l.actionsManagementLink).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectProductDetailViewMode(data: {
+    name: string;
+    state: string;
+    definition: string;
+    type: string;
+  }): Promise<void> {
+    await expect(this.page.getByText(data.name).first()).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText(data.state).first()).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText(data.definition).first()).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText(data.type).first()).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectDigitalOfferValue(value: 'Yes' | 'No'): Promise<void> {
+    const digitalOfferSection = this.page.getByText('Digital Offer', { exact: true }).locator('..');
+    await expect(digitalOfferSection.locator('..').getByText(value)).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectDataProtectionValue(value: 'Yes' | 'No'): Promise<void> {
+    const section = this.page.getByText('Data Protection & Privacy').locator('..').locator('..');
+    await expect(section.getByText(value)).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectBrandLabelValue(value: 'Yes' | 'No'): Promise<void> {
+    const section = this.page.getByText('Brand Label').locator('..');
+    await expect(section.getByText(value)).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectProductDescriptionContains(text: string): Promise<void> {
+    // In view mode, description is inside PRODUCT DESCRIPTION accordion's tabpanel as a paragraph
+    // In edit mode, it's inside the Rich Text Editor
+    const viewPanel = this.page.getByRole('tab', { name: /PRODUCT DESCRIPTION/ })
+      .locator('..').locator('[role="tabpanel"]');
+    await expect(viewPanel).toContainText(text, { timeout: 30_000 });
+  }
+
+  async getDescriptionText(): Promise<string> {
+    // In edit mode the CKEditor textbox contains only the actual content;
+    // in view mode we fall back to the accordion tabpanel.
+    const editor = this.page.getByRole('textbox', { name: /Rich Text Editor/ });
+    if (await editor.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      return (await editor.textContent())?.trim() ?? '';
+    }
+    const viewPanel = this.page.getByRole('tab', { name: /PRODUCT DESCRIPTION/ })
+      .locator('..').locator('[role="tabpanel"]');
+    return (await viewPanel.textContent())?.trim() ?? '';
+  }
+
+  async expectOrgLevelValues(data: {
+    level1: string;
+    level2: string;
+    level3?: string;
+  }): Promise<void> {
+    await expect(this.page.getByText(data.level1).first()).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText(data.level2).first()).toBeVisible({ timeout: 30_000 });
+    if (data.level3) {
+      await expect(this.page.getByText(data.level3).first()).toBeVisible({ timeout: 30_000 });
+    }
+  }
+
+  async expectBottomTabsVisible(): Promise<void> {
+    await expect(this.l.productOrganizationTab).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.productTeamTab).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.securitySummaryTab).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.productConfigurationTab).toBeVisible({ timeout: 30_000 });
+  }
+
+  async isDataProtectionChecked(): Promise<boolean> {
+    return this.l.dataProtectionCheckbox.isChecked();
+  }
+
+  async isBrandLabelChecked(): Promise<boolean> {
+    return this.l.brandLabelCheckbox.isChecked();
+  }
+
+  async expectResetFormButtonVisible(): Promise<void> {
+    await expect(this.l.resetFormButton).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectEditModeVisible(): Promise<void> {
+    await expect(this.l.productNameInput).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.productNameInput).toBeEnabled({ timeout: 30_000 });
+    await expect(this.l.saveButton).toBeVisible({ timeout: 30_000 });
+  }
+
   async expectProductNameVisible(name: string): Promise<void> {
     await expect(this.page.getByText(name).first()).toBeVisible();
   }
@@ -313,10 +474,134 @@ export class NewProductPage extends BasePage {
     await expect(this.l.productId).toBeVisible();
   }
 
+  async expectProductNameValue(expected: string): Promise<void> {
+    await expect(this.l.productNameInput).toHaveValue(expected);
+  }
+
+  async expectCommercialRefNumberValue(expected: string): Promise<void> {
+    await expect(this.l.commercialRefInput).toHaveValue(expected);
+  }
+
+  async clickReleasesTab(): Promise<void> {
+    await this.l.releasesTab.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.releasesTab.click();
+    await this.l.createReleaseButton.waitFor({ state: 'visible', timeout: 30_000 });
+  }
+
+  async isNoReleasesMessageVisible(): Promise<boolean> {
+    return this.l.noReleasesMessage.isVisible().catch(() => false);
+  }
+
+  async expectNoReleasesStateVisible(): Promise<void> {
+    await expect(this.l.noReleasesMessage).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.createReleaseButton).toBeVisible();
+  }
+
+  async expectNoReleasesStateHidden(): Promise<void> {
+    await expect(this.l.noReleasesMessage).toBeHidden();
+  }
+
+  async clickCreateRelease(): Promise<void> {
+    await this.l.createReleaseButton.click();
+    await this.l.createReleaseDialog.waitFor({ state: 'visible', timeout: 30_000 });
+  }
+
+  async clickCreateAndScope(): Promise<void> {
+    await this.l.createAndScopeButton.click();
+  }
+
+  async expectCreateReleaseDialogVisible(): Promise<void> {
+    await expect(this.l.createReleaseDialog).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.releaseVersionInput).toBeVisible();
+    await expect(this.l.targetReleaseDateInput).toBeVisible();
+    await expect(this.l.changeSummaryInput).toBeVisible();
+  }
+
+  async expectCreateReleaseValidation(): Promise<void> {
+    await expect(this.l.releaseValidationAlert).toContainText('Please review the necessary fields');
+    await expect(this.l.requiredFieldError).toHaveCount(3);
+  }
+
+  async fillReleaseVersion(version: string): Promise<void> {
+    await this.l.releaseVersionInput.fill(version);
+  }
+
+  async fillReleaseChangeSummary(summary: string): Promise<void> {
+    await this.l.changeSummaryInput.fill(summary);
+  }
+
+  async toggleContinuousPenetrationTesting(): Promise<void> {
+    await this.l.continuousPenetrationTestingCheckbox.click();
+  }
+
+  async selectReleaseTargetDate(targetDate: Date): Promise<void> {
+    const monthName = NewProductPage.monthNames[targetDate.getMonth()];
+    const year = targetDate.getFullYear();
+    const day = targetDate.getDate();
+
+    await this.l.targetReleaseDateInput.click();
+    await this.l.releaseDateMonthSelect.selectOption({ label: monthName });
+    await this.l.releaseDateYearSpinbutton.fill(String(year));
+    await this.l.releaseDateYearSpinbutton.press('Enter');
+
+    const dateLabel = `${monthName} ${day}, ${year}`;
+    const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).first();
+    await dayCell.waitFor({ state: 'visible', timeout: 10_000 });
+    await dayCell.click();
+  }
+
+  async createFirstRelease(data: {
+    releaseVersion: string;
+    targetDate: Date;
+    changeSummary: string;
+    continuousPenetrationTesting?: boolean;
+  }): Promise<void> {
+    await this.fillReleaseVersion(data.releaseVersion);
+    await this.selectReleaseTargetDate(data.targetDate);
+    await this.fillReleaseChangeSummary(data.changeSummary);
+    if (data.continuousPenetrationTesting) {
+      await this.toggleContinuousPenetrationTesting();
+    }
+    await this.clickCreateAndScope();
+  }
+
+  async expectReleaseListed(releaseVersion: string, status: string): Promise<void> {
+    await this.l.releasesGrid.waitFor({ state: 'visible', timeout: 30_000 });
+    await expect(this.l.noReleasesMessage).toBeHidden();
+    await expect(this.page.getByRole('link', { name: releaseVersion })).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByRole('gridcell', { name: status })).toBeVisible({ timeout: 30_000 });
+  }
+
   // ==================== Form Actions ====================
 
   async clickSave(): Promise<void> {
     await this.l.saveButton.click();
+  }
+
+  /**
+   * Handles an OutSystems confirmation dialog if one is visible.
+   * Looks for a dialog with a "Save" or "OK" button and clicks it.
+   */
+  async handleConfirmDialogIfVisible(): Promise<void> {
+    const dialog = this.page.getByRole('dialog');
+    const dialogSaveBtn = dialog.getByRole('button', { name: 'Save' });
+    const dialogOkBtn = dialog.getByRole('button', { name: 'OK' });
+    if (await dialogSaveBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await dialogSaveBtn.click();
+    } else if (await dialogOkBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await dialogOkBtn.click();
+    }
+  }
+
+  /**
+   * Clicks Save and handles an optional OutSystems confirmation dialog.
+   * Some field toggles (Data Protection, Digital Offer) trigger a "Save Product"
+   * dialog requiring explicit confirmation before the form completes saving.
+   */
+  async clickSaveAndHandleConfirmDialog(): Promise<void> {
+    await this.l.saveButton.click();
+    await this.handleConfirmDialogIfVisible();
+    await this.waitForOSLoad();
   }
 
   async clickCancel(): Promise<void> {
@@ -340,6 +625,19 @@ export class NewProductPage extends BasePage {
 
   async clickEditProduct(): Promise<void> {
     await this.l.editProductButton.click();
+  }
+
+  async clickEditProductAndWaitForForm(): Promise<void> {
+    await this.clickEditProduct();
+    await this.expectEditModeVisible();
+  }
+
+  async getProductNameValue(): Promise<string> {
+    return this.l.productNameInput.inputValue();
+  }
+
+  async getCommercialRefNumberValue(): Promise<string> {
+    return this.l.commercialRefInput.inputValue();
   }
 
   // ==================== Composite Helpers ====================
@@ -389,6 +687,30 @@ export class NewProductPage extends BasePage {
     await this.selectOrgLevel2(data.level2);
     if (data.level3) {
       await this.selectOrgLevel3(data.level3);
+    }
+  }
+
+  async reapplyProductOrganization(data: {
+    level1: string;
+    level2: string;
+    level3?: string;
+  }): Promise<void> {
+    await this.clickProductOrganizationTab();
+
+    await expect(this.l.orgLevel1Select).toBeEnabled({ timeout: 30_000 });
+    await this.l.orgLevel1Select.selectOption({ index: 0 });
+    await expect(this.l.orgLevel2Select).toBeDisabled({ timeout: 60_000 });
+
+    await this.selectOrgLevel1(data.level1);
+    await expect(this.l.orgLevel2Select).toBeEnabled({ timeout: 60_000 });
+
+    if (data.level2 && data.level2 !== '- Select -') {
+      await this.l.orgLevel2Select.selectOption({ label: data.level2 });
+    }
+
+    if (data.level3 && data.level3 !== '- Select -') {
+      await expect(this.l.orgLevel3Select).toBeEnabled({ timeout: 60_000 });
+      await this.l.orgLevel3Select.selectOption({ label: data.level3 });
     }
   }
 

@@ -40,6 +40,10 @@ export class LoginPage extends BasePage {
     await this.l.loginSsoButton.click();
   }
 
+  async clickForgotPassword(): Promise<void> {
+    await this.l.forgotPasswordLink.click();
+  }
+
   async toggleRememberMe(): Promise<void> {
     await this.l.rememberMeCheckbox.click();
   }
@@ -52,7 +56,38 @@ export class LoginPage extends BasePage {
 
   override async waitForPageLoad(): Promise<void> {
     await super.waitForPageLoad();
-    await this.l.usernameField.waitFor({ state: 'visible', timeout: 30_000 });
+
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      const loginReady = await Promise.any([
+        this.l.usernameField.waitFor({ state: 'visible', timeout: 20_000 }),
+        this.l.loginButton.waitFor({ state: 'visible', timeout: 20_000 }),
+      ]).then(() => true).catch(() => false);
+
+      if (loginReady) {
+        return;
+      }
+
+      if (attempt === 4) {
+        break;
+      }
+
+      const accessDeniedVisible = await this.page.getByRole('heading', { name: /Access Denied/i }).isVisible().catch(() => false);
+      const timeoutAlertVisible = await this.page.getByRole('alert').filter({ hasText: /The connection has timed out/i }).isVisible().catch(() => false);
+      const currentUrl = this.page.url();
+
+      if (accessDeniedVisible || timeoutAlertVisible) {
+        const retryUrl = currentUrl.startsWith('http://')
+          ? currentUrl.replace(/^http:\/\//, 'https://')
+          : currentUrl;
+        await this.page.goto(retryUrl, { waitUntil: 'domcontentloaded' }).catch(() => undefined);
+      } else if (/GRC_Th\/Login/i.test(currentUrl)) {
+        await this.page.reload({ waitUntil: 'domcontentloaded' }).catch(() => undefined);
+      } else {
+        await this.page.goto(this.url, { waitUntil: 'domcontentloaded' }).catch(() => undefined);
+      }
+    }
+
+    await this.l.usernameField.waitFor({ state: 'visible', timeout: 60_000 });
   }
 
   async getHeading(): Promise<Locator> {
@@ -73,5 +108,23 @@ export class LoginPage extends BasePage {
 
   async expectOnLoginPage(): Promise<void> {
     await expect(this.page).toHaveURL(/.*Login/);
+  }
+
+  /**
+   * Asserts that clicking SSO redirected the browser to the Ping SSO identity provider.
+   * The expected URL pattern is the external Ping SSO endpoint.
+   */
+  async expectSsoRedirectToPingId(): Promise<void> {
+    await this.page.waitForURL(/ping-sso/, { timeout: 15_000 });
+    await expect(this.page).toHaveURL(/ping-sso/);
+  }
+
+  /**
+   * Asserts that the Forgot Password link navigated away from the login page
+   * to a password reset / recovery page.
+   * NOTE: Currently this is a KNOWN BUG — the link has href="#" and does not redirect.
+   */
+  async expectForgotPasswordRedirect(): Promise<void> {
+    await expect(this.page).not.toHaveURL(/.*Login/, { timeout: 10_000 });
   }
 }

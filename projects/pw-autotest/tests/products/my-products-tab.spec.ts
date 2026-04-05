@@ -20,7 +20,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.description(
-      'Verify that searching for a product by name via the combobox filter narrows the grid results.',
+      'LANDING-MY-PRODUCTS-001: Verify that searching for a product by name via the combobox filter narrows the grid results.',
     );
 
     let initialCount: string;
@@ -48,11 +48,19 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.description(
-      'Verify that searching by Product ID via the combobox filter shows the matching product.',
+      'LANDING-MY-PRODUCTS-002: Verify that searching by Product ID via the combobox filter shows the matching product.',
     );
 
+    let productId: string;
+
+    await test.step('Capture a product ID from the current grid data', async () => {
+      await landingPage.expectGridHasRows();
+      productId = await landingPage.getProductIdAtRow(1);
+      test.skip(!productId, 'No product ID was found in the first My Products row.');
+    });
+
     await test.step('Search and select matching product ID from dropdown', async () => {
-      await landingPage.searchAndSelectProductById('PIC-1081', /PIC-1081/);
+      await landingPage.searchAndSelectProductById(productId, new RegExp(productId));
     });
 
     await test.step('Verify grid shows filtered result', async () => {
@@ -66,7 +74,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'Verify that unchecking "Show active only" increases the record count by including inactive products, ' +
+      'LANDING-MY-PRODUCTS-003: Verify that unchecking "Show active only" increases the record count by including inactive products, ' +
       'and re-checking it restores the original count.',
     );
 
@@ -87,7 +95,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
 
     await test.step('Verify record count increased (inactive products now visible)', async () => {
-      await landingPage.expectRowCountAtLeast(Number(activeOnlyCount));
+      await landingPage.expectRecordCountAtLeast(Number(activeOnlyCount));
     });
 
     await test.step('Re-check "Show active only" to restore original filter', async () => {
@@ -101,7 +109,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'Verify that clicking Reset clears all applied filters and restores the default grid state.',
+      'LANDING-MY-PRODUCTS-004: Verify that clicking Reset clears all applied filters and restores the default grid state.',
     );
 
     await test.step('Apply a filter to change the grid state', async () => {
@@ -123,7 +131,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'Verify pagination controls work: navigate to page 2, then back to page 1, ' +
+      'LANDING-MY-PRODUCTS-005: Verify pagination controls work: navigate to page 2, then back to page 1, ' +
       'confirming different data loads on each page.',
     );
 
@@ -158,7 +166,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.description(
-      'Verify that clicking the first product name link in the grid navigates to the Product Detail page.',
+      'LANDING-MY-PRODUCTS-006: Verify that clicking the first product name link in the grid navigates to the Product Detail page.',
     );
 
     let productName: string;
@@ -169,7 +177,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
 
     await test.step('Click the first product link', async () => {
-      await landingPage.clickFirstProduct();
+      await landingPage.clickProductAtRow(1);
     });
 
     await test.step('Verify Product Detail page is displayed', async () => {

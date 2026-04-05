@@ -1,9 +1,12 @@
 import { defineConfig } from 'allure';
+import path from 'path';
+
+const projectRoot = path.resolve(__dirname, '..');
 
 export default defineConfig({
   name: 'PW-MCP AutoTest Report',
-  output: '../allure-report',
-  historyPath: '../allure-report/history.jsonl',
+  output: path.resolve(projectRoot, 'allure-report'),
+  historyPath: path.resolve(projectRoot, 'allure-report/history.jsonl'),
   plugins: {
     awesome: {
       options: {

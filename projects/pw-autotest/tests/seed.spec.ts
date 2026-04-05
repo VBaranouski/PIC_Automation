@@ -6,7 +6,7 @@ test.describe('Environment Validation', () => {
     await allure.suite('Environment');
     await allure.severity('critical');
     await allure.tag('smoke');
-    await allure.description('Verify that the base URL is reachable and returns a valid page');
+    await allure.description('SMOKE-SEED-001: Verify that the base URL is reachable and returns a valid page');
 
     await test.step('Navigate to base URL', async () => {
       await page.goto('/');

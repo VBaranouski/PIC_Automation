@@ -11,6 +11,27 @@ export const newProductLocators = (page: Page) => ({
   productDetailsTab: page.getByRole('tab', { name: 'Product Details' }),
   releasesTab:       page.getByRole('tab', { name: 'Releases' }),
 
+  // Releases tab
+  noReleasesMessage:      page.getByText('No releases were created yet!'),
+  createReleaseButton:    page.getByRole('button', { name: 'Create Release' }),
+  releasesGrid:           page.getByRole('tabpanel').getByRole('grid'),
+  releaseValidationAlert: page.getByRole('alert'),
+  requiredFieldError:     page.getByText('Required field!'),
+
+  // Create Release dialog
+  createReleaseDialog:                  page.getByRole('dialog'),
+  newProductReleaseRadio:               page.getByRole('radio', { name: 'New Product Release' }),
+  existingProductReleaseRadio:          page.getByRole('radio', { name: 'Existing Product Release' }),
+  releaseVersionInput:                  page.getByRole('dialog').getByRole('textbox', { name: 'Release Version*' }),
+  targetReleaseDateInput:               page.getByRole('dialog').getByRole('textbox', { name: 'Select a date.' }),
+  continuousPenetrationTestingCheckbox: page.getByRole('dialog').getByRole('checkbox', { name: 'Continuous Penetration Testing' }),
+  changeSummaryInput:                   page.getByRole('dialog').getByPlaceholder('Enter here a release change summary'),
+  resetReleaseFormButton:               page.getByRole('dialog').getByRole('button', { name: 'Reset Form' }),
+  cancelReleaseFormButton:              page.getByRole('dialog').getByRole('button', { name: 'Cancel' }),
+  createAndScopeButton:                 page.getByRole('dialog').getByRole('button', { name: 'Create & Scope' }),
+  releaseDateMonthSelect:               page.getByRole('combobox', { name: 'Month' }),
+  releaseDateYearSpinbutton:            page.getByRole('spinbutton', { name: 'Year' }),
+
   // Product Related Details section
   sectionTitle:            page.getByText('PRODUCT RELATED DETAILS'),
   productNameInput:        page.getByRole('textbox', { name: 'Product Name*' }),
@@ -62,6 +83,9 @@ export const newProductLocators = (page: Page) => ({
   editProductButton:    page.getByRole('button', { name: 'Edit Product' }),
   viewHistoryLink:      page.getByRole('link', { name: /View History/ }),
   actionsManagementLink: page.getByRole('link', { name: 'Actions Management' }),
+
+  // Vendor display (disabled in edit mode, text in view mode)
+  vendorInput:  page.getByRole('textbox', { name: 'Vendor' }),
 });
 
 export type NewProductLocators = ReturnType<typeof newProductLocators>;

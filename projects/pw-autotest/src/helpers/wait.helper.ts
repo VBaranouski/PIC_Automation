@@ -16,9 +16,12 @@ export async function waitForPageReady(page: Page, headingText: string | RegExp)
  * - `.feedback-message-loading` — Screen Aggregate loading overlay
  * - `.os-loading-overlay` — general loading overlay
  * - `.content-placeholder.loading` — section-level data placeholder
+ *
+ * Note: avoid broad `[class*="loading"]` — it matches OutSystems button
+ * spinners (`.osui-btn-loading-show-spinner`) that stay visible during save.
  */
 export async function waitForOSScreenLoad(page: Page): Promise<void> {
-  const overlay = page.locator('.feedback-message-loading, .os-loading-overlay, [class*="loading"]');
+  const overlay = page.locator('.feedback-message-loading, .os-loading-overlay');
   if (await overlay.first().isVisible().catch(() => false)) {
     await overlay.first().waitFor({ state: 'hidden', timeout: 30_000 });
   }

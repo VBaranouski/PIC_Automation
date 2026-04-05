@@ -57,9 +57,14 @@ npm test           # Runs all tests + generates Allure report
 | `npm run typecheck` | Type-check without emitting |
 | `npm run clean` | Remove all test artefacts |
 
-## AI Tooling (Claude Code)
+## AI Tooling
 
-The platform is deeply integrated with Claude Code. All data fetching from Jira and Confluence is done via MCP tools — Python is invoked only for rendering HTML/PPTX output.
+The platform includes two AI-oriented instruction surfaces:
+
+- Claude assets in `.claude/` for Claude Code workflows
+- GitHub Copilot assets in `.github/` for prompt-driven workflows in VS Code
+
+Both approaches are MCP-first. Jira and Confluence data should come from MCP tools when available; Python is reserved for rendering and document generation.
 
 ### MCP Servers
 
@@ -88,6 +93,24 @@ Invoke these in Claude Code with `/skill-name`:
 | `/push-stories-to-jira` | Push generated user stories to Jira as Story issues |
 | `/push` | Stage, commit, and push all changes |
 
+### GitHub Copilot workflow
+
+GitHub Copilot instructions and prompts live in `.github/`:
+
+- `.github/copilot-instructions.md` — entry router
+- `.github/instructions/` — split instruction files for intake, normalization, test cases, browser validation, and Playwright generation
+- `.github/prompts/` — task prompts for full-pipeline or stage-by-stage execution
+
+Recommended QA automation flow with Copilot:
+
+1. Normalize Jira, Confluence, or free-text requirements into `output/requirements/`
+2. Generate automation-ready test cases in `output/test_cases/`
+3. Validate locators and flows with Playwright MCP
+4. Generate or update tests in `projects/pw-autotest/`
+5. Save generation metadata in `output/automation_scripts/`
+
+See `docs/ai/pipeline.md` for the full split workflow.
+
 ### AI Agents
 
 Specialized subagents in [`.claude/agents/`](.claude/agents/):
@@ -115,8 +138,11 @@ PICASso/
 │   └── settings.json      # MCP server configuration
 ├── .github/
 │   ├── workflows/         # CI pipelines
+│   ├── instructions/      # GitHub Copilot split instruction files
 │   ├── prompts/           # GitHub Copilot prompt files
 │   └── copilot-instructions.md
+├── docs/
+│   └── ai/                # Workflow docs for Copilot / AI pipelines
 ├── .env.example           # Environment variable template
 ├── CLAUDE.md              # AI agent instructions
 └── README.md              # This file
@@ -124,7 +150,7 @@ PICASso/
 
 ## Shared I/O
 
-The `input/` and `output/` directories at the repo root are used by `docs-generator` for reading transcripts and writing generated artifacts. Path configuration is in `projects/docs-generator/config.yaml`.
+The `input/` and `output/` directories at the repo root are used for generated artifacts across both tracks. Notable QA automation folders include `output/requirements/`, `output/test_cases/`, and `output/automation_scripts/`. Path configuration for rendered document generation is in `projects/docs-generator/config.yaml`.
 
 ## CI/CD
 
