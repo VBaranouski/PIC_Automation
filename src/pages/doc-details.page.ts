@@ -599,6 +599,21 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.itsSecurityControlsTitle).toBeVisible({ timeout: 15_000 });
   }
 
+  async expectITSGridVisible(): Promise<void> {
+    await expect(this.l.itsGrid).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectITSGridColumnHeadersVisible(): Promise<void> {
+    await expect(this.l.itsGrid.locator('thead tr').first()).toBeVisible({ timeout: 15_000 });
+  }
+
+  async clickITSGridColumnHeader(headerText: string | RegExp): Promise<void> {
+    const header = this.l.itsGrid.locator('th').filter({ hasText: headerText });
+    await header.waitFor({ state: 'visible', timeout: 15_000 });
+    await header.click();
+    await this.waitForOSLoad();
+  }
+
   async expectAddControlButtonVisible(): Promise<void> {
     await expect(this.l.itsAddControlButton).toBeVisible({ timeout: 15_000 });
   }

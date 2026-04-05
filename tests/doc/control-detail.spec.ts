@@ -160,4 +160,93 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
       await controlDetailPage.expectDescopeControlButtonVisible();
     });
   });
+
+  test.describe('later-stage controls (DOC 538)', () => {
+    test.describe.configure({ mode: 'serial' });
+
+    let laterStageControlUrl: string;
+
+    // ── DOC-CONTROL-007 ─────────────────────────────────────────────────────────
+    test('should display an assessment status badge on a later-stage DOC Control Detail', async ({
+      page, docDetailsPage, controlDetailPage,
+    }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-007: On a later-stage DOC (Actions Closure), the Control Detail page ' +
+        'must display an assessment status badge in the header.',
+      );
+
+      await test.step('Navigate to DOC 538 and open ITS Checklist tab', async () => {
+        await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+        await docDetailsPage.waitForOSLoad();
+        await docDetailsPage.clickITSChecklistTab();
+      });
+
+      const hasControls = await docDetailsPage.hasITSControls();
+      if (!hasControls) {
+        test.skip(true, 'No ITS controls available in DOC 538 — cannot navigate to Control Detail.');
+        return;
+      }
+
+      await test.step('Click the first Control ID link', async () => {
+        await docDetailsPage.clickFirstControlIdLink();
+        laterStageControlUrl = page.url();
+      });
+
+      await test.step('Verify Control Detail page loaded', async () => {
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify assessment status badge is visible', async () => {
+        await controlDetailPage.expectAssessmentStatusBadgeVisible();
+      });
+    });
+
+    // ── DOC-CONTROL-008 ─────────────────────────────────────────────────────────
+    test('should display Category label with a non-empty value on Control Detail', async ({ page, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-008: Control Detail must display a Category label with a non-empty value.',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (!laterStageControlUrl) { test.skip(true, 'Control Detail URL not captured — run DOC-CONTROL-007 first.'); return; }
+        await page.goto(laterStageControlUrl);
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify Category label is visible', async () => {
+        await controlDetailPage.expectCategoryLabelVisible();
+      });
+
+      await test.step('Verify Category value is non-empty', async () => {
+        await controlDetailPage.expectCategoryValueNonEmpty();
+      });
+    });
+
+    // ── DOC-CONTROL-009 ─────────────────────────────────────────────────────────
+    test('should show findings rows or a "No findings" empty-state in the Findings section', async ({ page, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-009: Control Detail must display either findings rows or a ' +
+        '"No findings added yet" empty-state message in the Findings section.',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (!laterStageControlUrl) { test.skip(true, 'Control Detail URL not captured — run DOC-CONTROL-007 first.'); return; }
+        await page.goto(laterStageControlUrl);
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify findings section or empty-state message is visible', async () => {
+        await controlDetailPage.expectFindingsSectionOrEmptyState();
+      });
+    });
+  });
 });

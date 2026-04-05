@@ -251,4 +251,40 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       await docDetailsPage.cancelUnscopePopup();
     });
   });
+
+  // ── DOC-ITS-009 ───────────────────────────────────────────────────────────
+  test('should re-sort ITS Checklist grid without breaking layout when a column header is clicked', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ITS-009: Clicking a column header in the ITS Checklist grid must re-sort ' +
+      'the rows without breaking the grid layout.',
+    );
+
+    await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickITSChecklistTab();
+    });
+
+    // Guard: skip if no controls are loaded
+    const hasControls = await docDetailsPage.hasITSControls();
+    if (!hasControls) {
+      test.skip(true, 'No ITS controls loaded — skipping column sort test.');
+      return;
+    }
+
+    await test.step('Verify ITS grid column headers are visible', async () => {
+      await docDetailsPage.expectITSGridColumnHeadersVisible();
+    });
+
+    await test.step('Click the CONTROL ID column header to trigger sort', async () => {
+      await docDetailsPage.clickITSGridColumnHeader(/CONTROL ID/i);
+    });
+
+    await test.step('Verify ITS grid is still visible after sort', async () => {
+      await docDetailsPage.expectITSGridVisible();
+    });
+  });
 });

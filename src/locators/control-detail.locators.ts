@@ -44,6 +44,8 @@ export const controlDetailLocators = (page: Page) => ({
   // ─── Findings section ────────────────────────────────────────────────────
   // No heading tags — finding these by text in a label/span.
   noFindingsMessage:   page.getByText('No findings added yet'),
+  // Findings table rendered when at least one finding exists (last table on the page).
+  findingsTable:       page.locator('table').last(),
 
   // ─── Actions ─────────────────────────────────────────────────────────────
   // "Descope Control" is a proper <button> element with that exact text.

@@ -82,4 +82,27 @@ export class ControlDetailPage extends BasePage {
   async expectDescopeControlButtonHidden(): Promise<void> {
     await expect(this.l.descopeControlButton).toBeHidden({ timeout: 15_000 });
   }
+
+  async expectAssessmentStatusBadgeVisible(): Promise<void> {
+    await expect(this.l.assessmentStatusBadge).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectCategoryLabelVisible(): Promise<void> {
+    await expect(this.l.categoryLabel).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectCategoryValueNonEmpty(): Promise<void> {
+    const text = await this.l.categoryValue.innerText();
+    expect(text.trim().length).toBeGreaterThan(0);
+  }
+
+  /**
+   * Asserts either the "No findings added yet" empty-state message OR a findings
+   * table is visible — whichever is rendered by the current DOC stage.
+   */
+  async expectFindingsSectionOrEmptyState(): Promise<void> {
+    await expect(
+      this.l.noFindingsMessage.or(this.l.findingsTable),
+    ).toBeVisible({ timeout: 30_000 });
+  }
 }

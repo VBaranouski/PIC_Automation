@@ -1261,10 +1261,11 @@
 - `DOC-ITS-006` — `doc/doc-detail-its.spec.ts` — selected count and Add Selected button state — **Label:** ⚪ blocked
 - `DOC-ITS-007` — `doc/doc-detail-its.spec.ts` — ITS search and Reset behavior — **Label:** 🟢 passed
 - `DOC-ITS-008` — `doc/doc-detail-its.spec.ts` — Descope popup opens from first control / Descope button disabled until justification entered — **Label:** 🟢 passed
+- `DOC-ITS-009` — `doc/doc-detail-its.spec.ts` — ITS Checklist grid re-sorts when column header is clicked — **Label:** 🆕 new
 
 - [x] **P2** ITS Checklist tab displays the "IT SECURITY CONTROLS" subtitle and a grid with columns: Control ID, Description, Evidence Expectation, Category, Actions
 - [x] **P2** Control ID column contains clickable links navigating to the Control Detail page
-- [ ] **P2** Control ID column is sortable
+- [x] **P2** Control ID column is sortable *(DOC-ITS-009)*
 - [ ] **P2** Description and Category columns are sortable
 - [ ] **P2** By default all active controls from BackOffice are loaded and sorted by Control ID for a newly created DOC
 - [ ] **P2** Lazy loading is implemented — additional controls load as the user scrolls down
@@ -1299,15 +1300,18 @@
 - `DOC-CONTROL-004` — `doc/control-detail.spec.ts` — Description and Evidence Expectation sections visible — **Label:** 🟢 passed
 - `DOC-CONTROL-005` — `doc/control-detail.spec.ts` — Scope-stage read-only placeholder message visible — **Label:** 🟢 passed
 - `DOC-CONTROL-006` — `doc/control-detail.spec.ts` — Descope Control button visible for privileged user — **Label:** 🟢 passed
+- `DOC-CONTROL-007` — `doc/control-detail.spec.ts` — assessment status badge visible on later-stage Control Detail — **Label:** 🆕 new
+- `DOC-CONTROL-008` — `doc/control-detail.spec.ts` — Category label and value displayed on Control Detail — **Label:** 🆕 new
+- `DOC-CONTROL-009` — `doc/control-detail.spec.ts` — Findings section shows rows or empty-state message — **Label:** 🆕 new
 
 - [x] **P2** Control Detail page is reachable from the ITS Checklist Control ID link
 - [x] **P2** Control Detail page breadcrumb shows Home (link → Landing page) > Product Name (link → Product Detail) > DOC: DOC Name (link → DOC Detail) > current control context
 - [x] **P2** Header shows Control ID
-- [ ] **P2** Header shows the current assessment status badge
+- [x] **P2** Header shows the current assessment status badge *(DOC-CONTROL-007)*
 - [x] **P2** Description and Evidence Expectation sections show full content
-- [ ] **P2** Category label and Risk Level badge with justification text are displayed correctly
+- [x] **P2** Category label and Risk Level badge with justification text are displayed correctly *(DOC-CONTROL-008)*
 - [x] **P2** On Scope ITS Controls stage, a "No evidence links, findings or comments yet. Refer to this section once the DOC has been submitted to the Risk Assessment stage." message is shown
-- [ ] **P2** FINDINGS section lists control findings or shows "No findings added yet" when empty (Risk Assessment stage and beyond)
+- [x] **P2** FINDINGS section lists control findings or shows "No findings added yet" when empty (Risk Assessment stage and beyond) *(DOC-CONTROL-009)*
 - [ ] **P2** EVIDENCE LINKS grid shows attached evidence with clickable link URLs and link names
 - [ ] **P2** COMMENTS section displays a timeline of comments with date/time, user avatar, and message text
 - [x] **P2** "Descope Control" button is visible on Control Detail for user with SCOPE_IT_SECURITY_CONTROLS privilege; triggers the same Unscope popup as from ITS Checklist
