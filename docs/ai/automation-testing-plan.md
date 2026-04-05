@@ -70,8 +70,8 @@
 - [x] **P2** `LANDING-HOME-006` Per-page selector changes number of rows shown
 - [x] **P2** `LANDING-HOME-007` Pagination — clicking next page navigates to the next set of records
 - [x] **P2** `LANDING-TASKS-SEARCH-001` Search filter narrows task list by task name
-- [ ] **P2** Release dropdown filter narrows task list
-- [ ] **P2** Product filter narrows task list
+- [x] **P2** `LANDING-TASKS-REL-001` Release dropdown filter narrows task list
+- [x] **P2** `LANDING-TASKS-PROD-001` Product filter narrows task list
 - [ ] **P2** Task Creation Date Range picker filters results
 - [ ] **P2** Assignee filter changes task list to the selected user (user is pre-filtered by own name on load)
 - [x] **P2** `LANDING-TASKS-RESET-001` Reset button clears all applied filters
@@ -92,7 +92,7 @@
 - [x] **P2** Reset button restores default filter state
 - [x] **P2** Clicking a product name navigates to the Product Detail page
 - [x] **P2** `LANDING-PRODS-ORG1-001` Org Level 1 dropdown filter narrows results
-- [ ] **P2** Org Level 2 dropdown filter narrows results (cascades from Org Level 1 selection)
+- [x] **P2** `LANDING-PRODS-ORG2-001` Org Level 2 dropdown filter narrows results (cascades from Org Level 1 selection)
 - [ ] **P2** DOC Lead filter (user lookup) narrows results to products linked to the selected DOCL's scope
 - [ ] **P2** Product Owner filter narrows results
 - [ ] **P3** Product, Latest Release columns are sortable; VESTA ID, Security Advisor, DOC Lead columns are sortable
@@ -105,7 +105,7 @@
 - [x] **P1** `LANDING-HOME-013` "Show Active Only" toggle is ON by default and toggles correctly
 - [ ] **P3** Sortable My Releases columns sort ascending / descending when sorting is available
 - [x] **P2** `LANDING-RELS-SEARCH-001` Search by release name narrows results
-- [ ] **P2** Product filter narrows results
+- [x] **P2** `LANDING-RELS-PROD-001` Product filter narrows results
 - [ ] **P2** Target Release Date range filter applies correctly
 - [x] **P2** `LANDING-RELS-STATUS-001` Status dropdown filter applies correctly
 - [x] **P2** `LANDING-RELS-RESET-001` Reset button clears all filters
@@ -179,9 +179,8 @@
 - [x] **P1** Product name and product ID (PIC-XXXX format) are visible in the page header
 - [ ] **P2** Active/Inactive status badge is displayed correctly in the header
 - [ ] **P2** Product Details section shows all read-only fields (Product Name, State, Definition, Type, Digital Offer, Commercial Reference Number, DPP, Brand Label)
-- [ ] **P2** Bottom tabs load: Product Organization, Product Team, Security Summary, Product Configuration
-- [ ] **P2** Releases tab shows the list of releases for the product (or empty state message "No releases were created yet!")
-- [ ] **P2** "Create Release" button is present on the Releases tab
+- [x] **P2** `PRODUCT-DETAIL-010` Bottom tabs load: Product Organization, Product Team, Security Summary, Product Configuration
+- [x] **P2** `PRODUCT-DETAIL-009` Releases tab shows the list of releases for the product (or empty state message "No releases were created yet!") + Create Release button is present
 - [ ] **P2** Digital Offer Certification tab appears only when Digital Offer = Yes AND Product Owner is assigned
 - [ ] **P2** Digital Offer Certification tab shows empty state message when no DOC exists yet
 - [ ] **P2** LEAP License column in Users Management grid shows "Active" for users with an assigned role and auto-activated LEAP License

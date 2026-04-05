@@ -351,4 +351,60 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
       });
     });
   });
+
+  test('should show Releases tab with Create Release button and list or empty state', async ({ landingPage, newProductPage }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'PRODUCT-DETAIL-009: Verify that the Releases top tab is visible on Product Detail ' +
+      'page and shows either a releases list or the "No releases were created yet!" empty ' +
+      'state message together with a "Create Release" button.',
+    );
+
+    await test.step('Navigate to first product detail', async () => {
+      await landingPage.openMyProductsTab();
+      await landingPage.clickProductAtRow(1);
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Click the Releases tab', async () => {
+      await newProductPage.clickReleasesTab();
+    });
+
+    await test.step('Verify Create Release button is always present', async () => {
+      await newProductPage.expectCreateReleaseButtonVisible();
+    });
+
+    await test.step('Verify Releases tab shows list or empty-state message', async () => {
+      const hasNoReleases = await newProductPage.isNoReleasesMessageVisible();
+      if (hasNoReleases) {
+        await newProductPage.expectNoReleasesStateVisible();
+      } else {
+        // At least one release row is present — tab remains active
+        await newProductPage.expectReleasesTabActive();
+      }
+    });
+  });
+
+  test('should display all bottom tabs in view mode', async ({ landingPage, newProductPage }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'PRODUCT-DETAIL-010: Verify that the four bottom section tabs (Product Organization, ' +
+      'Product Team, Security Summary, Product Configuration) are all visible on the ' +
+      'Product Detail page in view mode.',
+    );
+
+    await test.step('Navigate to first product detail', async () => {
+      await landingPage.openMyProductsTab();
+      await landingPage.clickProductAtRow(1);
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Verify all four bottom tabs are visible', async () => {
+      await newProductPage.expectBottomTabsVisible();
+    });
+  });
 });

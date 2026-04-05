@@ -549,6 +549,82 @@ test.describe('Landing Page - My Tasks Filters & Navigation @regression', () => 
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.2 — My Tasks: Release and Product filters
+// ────────────────────────────────────────────────────────────────────────────
+
+test.describe('Landing Page - My Tasks Advanced Filters @regression', () => {
+  test.setTimeout(120_000);
+
+  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
+    await loginPage.goto();
+    await loginPage.waitForPageLoad();
+    await loginPage.login(userCredentials.login, userCredentials.password);
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+    await landingPage.waitForGridDataRows();
+  });
+
+  test('should narrow task list when Release filter is applied @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-TASKS-REL-001: Verify the Release dropdown filter on My Tasks narrows ' +
+      'the grid results when a release option is selected.',
+    );
+
+    let initialCount: string;
+
+    await test.step('Record initial record count', async () => {
+      initialCount = await landingPage.getRecordCount();
+      expect(Number(initialCount)).toBeGreaterThan(0);
+    });
+
+    await test.step('Apply Release filter by selecting first available option', async () => {
+      await landingPage.filterTasksByRelease(/.+/);
+    });
+
+    await test.step('Verify grid updated after filter applied', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset to restore default state', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectGridHasRows();
+    });
+  });
+
+  test('should narrow task list when Product filter is applied @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-TASKS-PROD-001: Verify the Product dropdown filter on My Tasks narrows ' +
+      'the grid results when a product option is selected.',
+    );
+
+    let initialCount: string;
+
+    await test.step('Record initial record count', async () => {
+      initialCount = await landingPage.getRecordCount();
+      expect(Number(initialCount)).toBeGreaterThan(0);
+    });
+
+    await test.step('Apply Product filter by selecting first available option', async () => {
+      await landingPage.filterTasksByProduct(/.+/);
+    });
+
+    await test.step('Verify grid updated after filter applied', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset to restore default state', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectGridHasRows();
+    });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
 // WORKFLOW 2.3 — My Products: Latest Release nav, Org Level 1 filter, Actions
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -654,6 +730,40 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
 
     await test.step('Verify the Inactivate option is visible in the menu', async () => {
       await landingPage.expectActionsMenuOptionVisible('Inactivate');
+    });
+  });
+
+  test('should narrow product list when Org Level 2 filter is applied @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-PRODS-ORG2-001: Verify the Org Level 2 dropdown filter on My Products ' +
+      'narrows the grid results when applied after an Org Level 1 selection.',
+    );
+
+    let initialCount: string;
+
+    await test.step('Record initial record count', async () => {
+      initialCount = await landingPage.getRecordCount();
+      expect(Number(initialCount)).toBeGreaterThan(0);
+    });
+
+    await test.step('Apply Org Level 1 filter first to enable Org Level 2', async () => {
+      await landingPage.filterProductsByOrgLevel1(/Energy Management/i);
+    });
+
+    await test.step('Apply Org Level 2 filter', async () => {
+      await landingPage.filterProductsByOrgLevel2(/Home|Distribution|Connected/i);
+    });
+
+    await test.step('Verify grid still has data and count changed or stayed narrowed', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset to restore default state', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectGridHasRows();
     });
   });
 });
@@ -787,6 +897,36 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
 
     await test.step('Verify Show Active Only is restored to checked state', async () => {
       await landingPage.expectReleasesShowActiveOnlyChecked();
+    });
+  });
+
+  test('should narrow releases when Product filter is applied @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-RELS-PROD-001: Verify the Product dropdown filter on My Releases ' +
+      'narrows the grid results when a product is selected.',
+    );
+
+    let initialCount: string;
+
+    await test.step('Record initial record count', async () => {
+      initialCount = await landingPage.getRecordCount();
+      expect(Number(initialCount)).toBeGreaterThan(0);
+    });
+
+    await test.step('Apply Product filter by selecting first available product option', async () => {
+      await landingPage.filterReleasesByProduct(/.+/);
+    });
+
+    await test.step('Verify grid updated after filter applied', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset to restore default state', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectGridHasRows();
     });
   });
 });

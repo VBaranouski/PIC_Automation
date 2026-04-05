@@ -331,6 +331,28 @@ export class LandingPage extends BasePage {
     await this.waitForGridDataRows();
   }
 
+  async filterProductsByOrgLevel2(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.productsOrgLevel2Dropdown, option);
+    await this.waitForGridDataRows();
+  }
+
+  async filterReleasesByProduct(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.releasesProductDropdown, option);
+    await this.waitForGridDataRows();
+  }
+
+  async filterTasksByRelease(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.tasksReleaseDropdown, option);
+    await waitForOSScreenLoad(this.page);
+    await expect(this.l.grid).toBeVisible({ timeout: 30_000 });
+  }
+
+  async filterTasksByProduct(option: string | RegExp): Promise<void> {
+    await this.selectVirtualComboboxOption(this.l.tasksProductDropdown, option);
+    await waitForOSScreenLoad(this.page);
+    await expect(this.l.grid).toBeVisible({ timeout: 30_000 });
+  }
+
   /**
    * Click the "Latest Release" link in the given My Products grid row.
    * Products grid: Link 0 = product name, Link 1 = latest release version.

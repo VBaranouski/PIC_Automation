@@ -492,6 +492,14 @@ export class NewProductPage extends BasePage {
     return this.l.noReleasesMessage.isVisible().catch(() => false);
   }
 
+  async expectCreateReleaseButtonVisible(): Promise<void> {
+    await expect(this.l.createReleaseButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectReleasesTabActive(): Promise<void> {
+    await expect(this.l.releasesTab).toHaveAttribute('aria-selected', 'true');
+  }
+
   async expectNoReleasesStateVisible(): Promise<void> {
     await expect(this.l.noReleasesMessage).toBeVisible({ timeout: 30_000 });
     await expect(this.l.createReleaseButton).toBeVisible();
