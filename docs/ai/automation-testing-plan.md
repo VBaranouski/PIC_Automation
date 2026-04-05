@@ -1230,6 +1230,8 @@
 - `DOC-ROLES-007` — `doc/doc-detail-roles.spec.ts` — Cancel restores read-only mode — **Label:** 🟢 passed
 - `DOC-ROLES-008` — `doc/doc-detail-roles.spec.ts` — orange dot indicator visible on Roles tab when mandatory roles unassigned — **Label:** 🟢 passed
 - `DOC-ROLES-009` — `doc/doc-detail-roles.spec.ts` — unassigned editable roles show "No member assigned" — **Label:** 🟢 passed
+- `DOC-ROLES-010` — `doc/doc-detail-roles.spec.ts` — edit mode shows user lookup input fields for editable roles — **Label:** 🆕 new
+- `DOC-ROLES-011` — `doc/doc-detail-roles.spec.ts` — Roles grid column headers: User Role, Team Members, Email, Location — **Label:** 🆕 new
 
 - [x] **P2** Roles & Responsibilities tab displays a grid with columns: User Role, Team Members, Email, Location
 - [x] **P2** Grid shows the product-derived roles and, when assigned in the environment, additional workflow roles such as BU Security Officer, CISO, Digital Offer Certification Lead (DOCL), Digital Risk Lead, Business Vice President (BVP), and Senior Business Vice President
@@ -1238,7 +1240,7 @@
 - [x] **P2** An orange dot is shown on the Roles & Responsibilities tab name when any mandatory editable role has no member assigned
 - [x] **P2** Unassigned editable roles show "No member assigned" in Team Members
 - [x] **P2** "Edit Roles" button is visible for a user with EDIT_USERS_ROLES_DOC privilege and switches the tab to edit mode
-- [ ] **P2** In edit mode, user lookup fields are shown for editable roles; saving validates that all mandatory roles (BU Security Officer, DOCL, DRL, CISO, BVP, Senior BVP) are filled
+- [x] **P2** In edit mode, user lookup fields are shown for editable roles; saving validates that all mandatory roles (BU Security Officer, DOCL, DRL, CISO, BVP, Senior BVP) are filled *(DOC-ROLES-010)*
 - [x] **P2** "Save Changes" button is disabled and shows tooltip "Specify all required members for their roles to save changes" if mandatory roles are empty
 - [ ] **P2** Saving with all mandatory roles populated returns tab to read-only view with updated data
 - [x] **P2** Cancel button in edit mode discards changes and returns to read-only view

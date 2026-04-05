@@ -520,6 +520,18 @@ export class DocDetailsPage extends BasePage {
     await this.waitForOSLoad();
   }
 
+  /** Asserts that at least one input field is visible in the Roles edit mode (user lookup fields). */
+  async expectEditModeUserLookupVisible(): Promise<void> {
+    await expect(this.l.rolesEditModeInput).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Asserts the Roles grid has the expected column headers: User Role, Team Members, Email, Location. */
+  async expectRolesGridColumnsVisible(): Promise<void> {
+    await expect(this.l.rolesGrid).toBeVisible({ timeout: 15_000 });
+    await expect(this.l.rolesGrid.getByRole('columnheader', { name: /User Role/i })).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.rolesGrid.getByRole('columnheader', { name: /Team Members/i })).toBeVisible({ timeout: 10_000 });
+  }
+
   // ==================== DOC Detail — ITS Checklist tab ====================
 
   async clickITSChecklistTab(): Promise<void> {

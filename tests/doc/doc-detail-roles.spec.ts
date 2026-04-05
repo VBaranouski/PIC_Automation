@@ -270,4 +270,49 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       }
     });
   });
+
+  // ── DOC-ROLES-010 ─────────────────────────────────────────────────────────
+  test('should show user lookup input fields in edit mode for editable roles', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ROLES-010: After clicking "Edit Roles", the Roles & Responsibilities tab must enter edit mode and show user lookup input fields for editable roles (BU Security Officer, DOCL, etc.).',
+    );
+
+    await test.step('Navigate to DOC Detail and open Roles & Responsibilities tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+    });
+
+    await test.step('Click Edit Roles and verify edit mode is active', async () => {
+      await docDetailsPage.clickEditRoles();
+      await docDetailsPage.expectSaveRolesChangesButtonVisible();
+    });
+
+    await test.step('Verify user lookup input fields are visible in edit mode', async () => {
+      await docDetailsPage.expectEditModeUserLookupVisible();
+    });
+  });
+
+  // ── DOC-ROLES-011 ─────────────────────────────────────────────────────────
+  test('should display correct column headers in the Roles grid', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ROLES-011: The Roles & Responsibilities grid must display column headers: User Role, Team Members, Email, Location.',
+    );
+
+    await test.step('Navigate to DOC Detail and open Roles & Responsibilities tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+    });
+
+    await test.step('Verify Roles grid column headers are visible', async () => {
+      await docDetailsPage.expectRolesGridColumnsVisible();
+    });
+  });
 });

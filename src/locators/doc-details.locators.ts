@@ -115,6 +115,8 @@ export const docDetailsLocators = (page: Page) => ({
   cancelRolesButton:     page.getByRole('tabpanel').filter({ has: page.getByText('USER ROLE') }).getByRole('button', { name: 'Cancel' }).first(),
   // Orange dot indicator on the tab label when a mandatory role has no member
   rolesTabWarningIndicator: page.getByRole('tab', { name: 'Roles & Responsibilities' }).locator('[class*="dot"], [class*="warning"], [class*="badge"]').first(),
+  // User lookup input fields in the Roles & Responsibilities tab edit mode
+  rolesEditModeInput: page.getByRole('tabpanel').locator('input').first(),
 
   // ─── DOC Detail — ITS Checklist tab ──────────────────────────────────────
   itsChecklistPanel:          page.getByRole('tabpanel').filter({ has: page.getByText('IT SECURITY CONTROLS') }).first(),
