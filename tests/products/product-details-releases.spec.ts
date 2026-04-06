@@ -1,21 +1,100 @@
-import { test } from '../../src/fixtures';
+import { test, expect } from '../../src/fixtures';
+import type { Page } from '@playwright/test';
+import type { LandingPage } from '../../src/pages';
+import type { NewProductPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
+import { readProductState } from '../../src/helpers/product-state.helper';
+import * as fs from 'fs';
 
 /**
- * Product Detail — Releases Tab (P1 Placeholders)
+ * Product Detail — Releases Tab
  *
  * Stories: PIC-108, PIC-110
  *
- * These scenarios cover Releases tab behavior on the Product Detail page:
+ * These scenarios cover Releases tab behaviour on the Product Detail page:
  * - Viewing existing releases in the grid
- * - Creating a new release with validation
- * - Release version format and date selection
- *
- * Status: placeholder — not yet implemented, marked with test.fixme.
+ * - Empty-state for a product without releases
+ * - Required-field validation when opening the Create Release dialog
+ * - (P2) Full release creation — covered by create-new-release.spec.ts
  */
 
-test.describe('Product Details - Releases Tab @regression @placeholder', () => {
-  test.setTimeout(240_000);
+/**
+ * Dynamically scans My Products to find the first product that HAS at least one
+ * release listed in its Releases tab (i.e. "No releases were created yet!" is absent).
+ * Used as a fallback when .product-state.json has not been written yet.
+ */
+/** Collect all product { href, name } pairs from the landing page grid (up to maxRows). */
+async function collectProductLinks(
+  landingPage: LandingPage,
+  maxRows = 100,
+): Promise<Array<{ href: string; name: string }>> {
+  await landingPage.goto();
+  await landingPage.expectPageLoaded({ timeout: 60_000 });
+  await landingPage.clickTab('My Products');
+  await landingPage.changePerPage('100').catch(() => undefined);
+
+  const grid = landingPage.grid;
+  await grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
+
+  const rows = grid.getByRole('row');
+  const totalRows = await rows.count(); // row[0] = header
+  const result: Array<{ href: string; name: string }> = [];
+
+  for (let i = 1; i < Math.min(maxRows + 1, totalRows); i++) {
+    const link = rows.nth(i).getByRole('link').first();
+    const href = await link.getAttribute('href').catch(() => null);
+    const name = (await link.textContent().catch(() => null))?.trim() ?? `product-${i}`;
+    if (href) result.push({ href, name });
+  }
+  return result;
+}
+
+async function findProductWithReleases(
+  page: Page,
+  landingPage: LandingPage,
+  newProductPage: NewProductPage,
+  maxProductsToCheck = 100,
+): Promise<string> {
+  const products = await collectProductLinks(landingPage, maxProductsToCheck);
+
+  for (const { href } of products) {
+    await page.goto(href);
+    await page.getByRole('button', { name: 'Edit Product' }).waitFor({ state: 'visible', timeout: 60_000 });
+    // exact:true prevents matching "My Releases" tab
+    await page.getByRole('tab', { name: 'Releases', exact: true }).click();
+    await page.getByRole('button', { name: 'Create Release' }).waitFor({ state: 'visible', timeout: 30_000 });
+
+    const hasNoReleases = await newProductPage.isNoReleasesMessageVisible();
+    if (!hasNoReleases) {
+      return page.url();
+    }
+  }
+  throw new Error(`No product with releases found in the first ${maxProductsToCheck} My Products rows.`);
+}
+
+async function findProductWithoutReleases(
+  page: Page,
+  landingPage: LandingPage,
+  newProductPage: NewProductPage,
+  maxProductsToCheck = 100,
+): Promise<{ productName: string; productUrl: string }> {
+  const products = await collectProductLinks(landingPage, maxProductsToCheck);
+
+  for (const { href, name } of products) {
+    await page.goto(href);
+    await page.getByRole('button', { name: 'Edit Product' }).waitFor({ state: 'visible', timeout: 60_000 });
+    await newProductPage.clickReleasesTab();
+
+    const hasNoReleases = await newProductPage.isNoReleasesMessageVisible();
+    if (hasNoReleases) {
+      return { productName: name, productUrl: page.url() };
+    }
+  }
+  throw new Error(`No product without releases found in the first ${maxProductsToCheck} My Products rows.`);
+}
+
+test.describe('Product Details - Releases Tab @regression', () => {
+  test.setTimeout(300_000);
 
   test.beforeEach(async ({ loginPage, userCredentials, page }) => {
     await loginPage.goto();
@@ -24,26 +103,50 @@ test.describe('Product Details - Releases Tab @regression @placeholder', () => {
     await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
   });
 
-  test.fixme('should display releases grid for a product with existing releases', async ({ landingPage, newProductPage }) => {
+  test('should display releases grid with at least one row for a product with existing releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.tag('PIC-110');
     await allure.description(
-      'PRODUCT-RELEASES-001: Navigate to a product that has releases, switch to the Releases tab, ' +
-      'and verify the releases grid shows at least one row with release version and status.',
+      'PRODUCT-RELEASES-001: Navigate to a product that has releases (URL persisted by ' +
+      'RELEASE-CREATE-002 in .product-state.json), switch to the Releases tab, and verify ' +
+      'the releases grid shows at least one row with a clickable release version link.',
     );
 
-    // TODO: Implement — navigate to product with existing releases
-    // await landingPage.openMyProductsTab();
-    // await landingPage.clickProductAtRow(N); // product with known releases
-    // await newProductPage.expectProductDetailLoaded();
-    // await newProductPage.clickReleasesTab();
-    // await newProductPage.expectNoReleasesStateHidden();
-    // await newProductPage.releasesGrid.waitFor({ state: 'visible' });
+    await test.step('Navigate to the product with known releases (from persisted state or dynamic scan)', async () => {
+      // Prefer the URL written by create-new-release.spec.ts (RELEASE-CREATE-002).
+      // Fall back to a dynamic scan of My Products when the state file does not exist.
+      const PRODUCT_STATE_FILE = require('path').resolve(__dirname, '../../.product-state.json');
+      const productUrl = fs.existsSync(PRODUCT_STATE_FILE)
+        ? readProductState().productWithReleasesUrl
+        : await findProductWithReleases(page, landingPage, newProductPage);
+      await page.goto(productUrl);
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Switch to Releases tab', async () => {
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesTabActive();
+    });
+
+    await test.step('Verify Releases tab shows grid (no empty-state message)', async () => {
+      await newProductPage.expectNoReleasesStateHidden();
+    });
+
+    await test.step('Verify releases grid has at least one data row', async () => {
+      await expect(newProductPage.releasesGrid).toBeVisible({ timeout: 30_000 });
+      const rows = newProductPage.releasesGrid.getByRole('row');
+      expect(await rows.count()).toBeGreaterThanOrEqual(2);
+    });
+
+    await test.step('Verify the first data row contains a clickable release version link', async () => {
+      const firstDataRow = newProductPage.releasesGrid.getByRole('row').nth(1);
+      await expect(firstDataRow.getByRole('link').first()).toBeVisible({ timeout: 15_000 });
+    });
   });
 
-  test.fixme('should show no-releases empty state for a product without releases', async ({ landingPage, newProductPage }) => {
+  test('should show no-releases empty state for a product without releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -53,32 +156,42 @@ test.describe('Product Details - Releases Tab @regression @placeholder', () => {
       'and verify the "No releases were created yet!" message and Create Release button are displayed.',
     );
 
-    // TODO: Implement
-    // await landingPage.openMyProductsTab();
-    // await landingPage.clickProductAtRow(N); // product without releases
-    // await newProductPage.expectProductDetailLoaded();
-    // await newProductPage.clickReleasesTab();
-    // await newProductPage.expectNoReleasesStateVisible();
+    await test.step('Find a product without releases from My Products', async () => {
+      await findProductWithoutReleases(page, landingPage, newProductPage);
+    });
+
+    await test.step('Verify the no-releases empty state and Create Release button are visible', async () => {
+      await newProductPage.expectNoReleasesStateVisible();
+    });
   });
 
-  test.fixme('should validate required fields when creating a release without filling them', async ({ landingPage, newProductPage }) => {
+  test('should show required-field validation when Create Release is submitted without mandatory fields', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.tag('PIC-108');
     await allure.description(
-      'PRODUCT-RELEASES-003: Open the Create Release dialog, click Create & Scope without filling fields, ' +
-      'and verify validation messages appear for Release Version, Target Date, and Change Summary.',
+      'PRODUCT-RELEASES-003: Open the Create Release dialog on a product without releases, ' +
+      'click Create & Scope without filling any fields, and verify validation feedback appears ' +
+      'for the three mandatory fields: Release Version, Target Date, and Change Summary.',
     );
 
-    // TODO: Implement
-    // await landingPage.openMyProductsTab();
-    // await landingPage.clickProductAtRow(1);
-    // await newProductPage.clickReleasesTab();
-    // await newProductPage.clickCreateRelease();
-    // await newProductPage.expectCreateReleaseDialogVisible();
-    // await newProductPage.clickCreateAndScope();
-    // await newProductPage.expectCreateReleaseValidation();
+    await test.step('Find a product without releases and open its Releases tab', async () => {
+      await findProductWithoutReleases(page, landingPage, newProductPage);
+    });
+
+    await test.step('Open the Create Release popup', async () => {
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Click Create & Scope without filling mandatory fields', async () => {
+      await newProductPage.clickCreateAndScope();
+    });
+
+    await test.step('Verify validation messages appear for all required fields', async () => {
+      await newProductPage.expectCreateReleaseValidation();
+    });
   });
 
   test.fixme('should create a new release and verify it appears in the grid', async ({ landingPage, newProductPage }) => {
@@ -88,20 +201,10 @@ test.describe('Product Details - Releases Tab @regression @placeholder', () => {
     await allure.tag('PIC-108');
     await allure.description(
       'PRODUCT-RELEASES-004: Create a new release with valid data and verify it appears in the releases grid ' +
-      'with the correct version and an appropriate initial status.',
+      'with the correct version and an appropriate initial status. ' +
+      'NOTE: Full end-to-end release creation is covered by create-new-release.spec.ts ' +
+      '(RELEASE-CREATE-002); this stub is retained as a cross-reference placeholder.',
     );
-
-    // TODO: Implement
-    // const releaseVersion = `1.0.${Date.now() % 10000}`;
-    // await landingPage.openMyProductsTab();
-    // await landingPage.clickProductAtRow(1);
-    // await newProductPage.clickReleasesTab();
-    // await newProductPage.clickCreateRelease();
-    // await newProductPage.createFirstRelease({
-    //   releaseVersion,
-    //   targetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    //   changeSummary: 'Automated release creation test',
-    // });
-    // await newProductPage.expectReleaseListed(releaseVersion, 'Active');
+    // End-to-end creation is covered by tests/releases/create-new-release.spec.ts
   });
 });

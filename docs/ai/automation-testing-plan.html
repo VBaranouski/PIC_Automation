@@ -556,7 +556,7 @@ code {
     <span class="badge grey"><span class="dot"></span> <span id="rem-count">0</span> remaining</span>
     <span style="color:var(--border)">|</span>
     <span>Phase 1 · UI Only</span>
-    <span>Updated: 2026-05-02</span>
+    <span>Updated: 2026-06-07</span>
   </div>
   <div class="progress-wrap">
     <div class="progress-label">
@@ -2886,6 +2886,9 @@ const DOC_SCENARIO_CASES = {
   "11.13.19": [["ATC-DOC-LIFECYCLE-010", "`doc/doc-lifecycle.spec.ts` — Certification Decision tab frozen on Completed DOC (skipped: tab not available on seed DOC)"]],
   "11.13.20": [["ATC-DOC-LIFECYCLE-011", "`doc/doc-lifecycle.spec.ts` — Risk Summary tab shows all 4 summary sections on Completed DOC"]],
   "11.13.21": [["ATC-DOC-LIFECYCLE-012", "`doc/doc-lifecycle.spec.ts` — ITS Checklist frozen on Completed DOC: no Descope action buttons"]],
+
+  // 11.3 My DOCs tab — empty state
+  "11.3.16": [["ATC-LANDING-DOCS-016", "`landing/my-docs-tab.spec.ts` — \"No Digital Offer Certifications to show\" empty state message appears when filters return no results"]],
 };
 
 // ─── Scenario→Test-ID wiring for Authentication (WF section 1) ───────────────
@@ -2951,6 +2954,48 @@ const LANDING_SCENARIO_CASES = {
   "2.6.1": [["LANDING-HEADER-001", "`landing/landing-page.spec.ts` — Verify New Product button is visible in page header"], ["LANDING-HEADER-002", "`landing/landing-page.spec.ts` — Verify clicking New Product button navigates to New Product form"]],
   "2.6.2": [["LANDING-HEADER-003", "`landing/landing-page.spec.ts` — Verify Roles Delegation link is visible in page header"], ["LANDING-HEADER-004", "`landing/landing-page.spec.ts` — Verify Roles Delegation link opens Roles Delegation page in a new tab"]],
   "2.6.3": [["LANDING-HEADER-005", "`landing/landing-page.spec.ts` — Verify clicking the PICASso header logo navigates back to the Landing Page"]],
+};
+
+// ─── Scenario→Test-ID wiring for Products (WF section 3) ─────────────────────
+const PRODUCT_SCENARIO_CASES = {
+  // 3.1 New Product Creation
+  "3.1.1": [["ATC-PRODUCT-CREATION-001", "`products/new-product-creation.spec.ts` — New Product form loads with all required sections (Product Information, Organization, Team, Configuration tabs)"]],
+  "3.1.2": [["ATC-PRODUCT-CREATION-002", "`products/new-product-creation.spec.ts` — Product is created successfully with all required fields filled (name, state, definition, type, org levels, team roles)"]],
+  "3.1.3": [["ATC-PRODUCT-CREATION-004", "`products/new-product-creation.spec.ts` — Org Level 1 → 2 → 3 dropdowns enable sequentially (cascading selection)"]],
+  "3.1.4": [["ATC-PRODUCT-CREATION-001", "`products/new-product-creation.spec.ts` — Product Owner and Security Manager lookup fields accept typed input and select from dropdown"]],
+  "3.1.5": [["ATC-PRODUCT-CREATION-005", "`products/new-product-creation.spec.ts` — Save creates product and returns to view mode showing Edit Product button"]],
+  "3.1.6": [["ATC-PRODUCT-CREATION-006", "`products/new-product-creation.spec.ts` — Cancel shows Leave Page confirmation dialog when form is dirty"]],
+  "3.1.7": [["ATC-PRODUCT-CREATION-007", "`products/new-product-creation.spec.ts` — Leave in dialog discards changes and navigates back"]],
+  "3.1.8": [["ATC-PRODUCT-CREATION-008", "`products/new-product-creation.spec.ts` — Cancel in dialog keeps the user on the New Product form"]],
+  // 3.2 Product Detail — View Mode
+  "3.2.1": [["ATC-PRODUCT-DETAIL-001", "`products/product-details.spec.ts` — Product Detail page header: name, PIC-ID, Active status badge, Edit Product button, View History and Actions Management links"]],
+  "3.2.2": [["ATC-PRODUCT-DETAIL-001", "`products/product-details.spec.ts` — Product name and product ID in PIC-XXXX format are visible in the page header"]],
+  // 3.3 Product Change History
+  "3.3.1": [["ATC-PRODUCT-HISTORY-001", "`products/product-details-history.spec.ts` — View History link opens Product Change History dialog"]],
+  "3.3.2": [["ATC-PRODUCT-HISTORY-002", "`products/product-details-history.spec.ts` — History popup shows Date, User, Activity, Description columns with at least one entry"]],
+  // 3.4 Product Edit
+  "3.4.1": [["ATC-PRODUCT-EDIT-001", "`products/edit-product.spec.ts` — Edit Product button switches product detail page to edit mode"]],
+  "3.4.2": [["ATC-PRODUCT-EDIT-002", "`products/edit-product.spec.ts` — Updating product name and commercial reference number — Save persists the new values"]],
+  "3.4.3": [["ATC-PRODUCT-EDIT-003", "`products/edit-product.spec.ts` — After saving, view mode is restored with Edit Product button reappearing"]],
+  "3.4.4": [["ATC-PRODUCT-EDIT-004", "`products/edit-product.spec.ts` — Making changes and clicking Cancel shows Leave Page confirmation dialog"]],
+  "3.4.5": [["ATC-PRODUCT-EDIT-005", "`products/edit-product.spec.ts` — Leave in dialog discards unsaved changes"]],
+  "3.4.6": [["ATC-PRODUCT-EDIT-006", "`products/edit-product.spec.ts` — Saved values are visible when reopening edit mode"]],
+  "3.4.7": [["ATC-PRODUCT-DETAIL-005", "`products/product-details.spec.ts` — Updating product description via CKEditor — Save persists the updated text (includes org-level rebind recovery)"]],
+  "3.4.8": [["ATC-PRODUCT-DETAIL-006", "`products/product-details.spec.ts` — Data Protection & Privacy checkbox toggle — toggling and saving persists the new state"]],
+  // 13.1 Actions Management Access & Link
+  "13.1.1": [["ATC-PRODUCT-ACTIONS-001", "`products/product-details-actions.spec.ts` — Actions Management link visible in Product Details header; clicking navigates to Actions Management page"]],
+  "13.1.2": [["ATC-PRODUCT-ACTIONS-001", "`products/product-details-actions.spec.ts` — Clicking Actions Management from Product Details opens the Actions Management page"]],
+  // 13.2 Actions Management Table & Columns
+  "13.2.1": [["ATC-PRODUCT-ACTIONS-002", "`products/product-details-actions.spec.ts` — Actions Management grid shows expected columns: Action Name, Description, Status, Assignee, Creation Date, Due Date, Release Number, Category, Origin, Actions"]],
+};
+
+// ─── Scenario→Test-ID wiring for Releases (WF section 4) ─────────────────────
+const RELEASE_SCENARIO_CASES = {
+  // 4.1 Create Release Dialog
+  "4.1.1": [["ATC-RELEASE-CREATE-001", "`releases/create-new-release.spec.ts` — Create Release button on Product Releases tab opens dialog; submitting without mandatory fields shows alert and Required field! validation errors (Release Version, Target Date, Change Summary)"]],
+  "4.1.3": [["ATC-RELEASE-CREATE-001", "`releases/create-new-release.spec.ts` — Release Version, Target Date, Change Summary are required — all three validated together by RELEASE-CREATE-001"]],
+  "4.1.6": [["ATC-RELEASE-CREATE-002", "`releases/create-new-release.spec.ts` — Create & Scope creates the release and redirects to Release Detail page"]],
+  "4.1.7": [["ATC-RELEASE-CREATE-002", "`releases/create-new-release.spec.ts` — Newly created release appears in the product Releases tab list with status \"Scoping\""]],
 };
 
 const AUTO_CASE_STATUS = {
@@ -3029,6 +3074,27 @@ const AUTO_CASE_STATUS = {
   'PRODUCT-EDIT-004': ['passed', 'passed'],
   'PRODUCT-EDIT-005': ['passed', 'passed'],
   'PRODUCT-EDIT-006': ['passed', 'passed'],
+  'PRODUCT-DETAIL-001': ['passed', 'passed'],
+  'PRODUCT-DETAIL-002': ['passed', 'passed'],
+  'PRODUCT-DETAIL-003': ['passed', 'passed'],
+  'PRODUCT-DETAIL-004': ['passed', 'passed'],
+  'PRODUCT-DETAIL-005': ['passed', 'passed'],
+  'PRODUCT-DETAIL-006': ['passed', 'passed'],
+  'PRODUCT-DETAIL-007': ['failed: known defect — Brand Label toggle locks L2 dropdown on some products via OS cascade AJAX; deferred', 'failed-defect'],
+  'PRODUCT-DETAIL-008': ['passed', 'passed'],
+  'PRODUCT-DETAIL-009': ['passed', 'passed'],
+  'PRODUCT-DETAIL-010': ['passed', 'passed'],
+  'PRODUCT-RELEASES-001': ['passed', 'passed'],
+  'PRODUCT-RELEASES-002': ['passed', 'passed'],
+  'PRODUCT-RELEASES-003': ['passed', 'passed'],
+  'PRODUCT-RELEASES-004': ['skipped: test.fixme — covered by RELEASE-CREATE-002', 'not-executed'],
+  'RELEASE-CREATE-001': ['passed', 'passed'],
+  'RELEASE-CREATE-002': ['passed', 'passed'],
+  'PRODUCT-HISTORY-001': ['passed', 'passed'],
+  'PRODUCT-HISTORY-002': ['passed', 'passed'],
+  'PRODUCT-ACTIONS-001': ['passed', 'passed'],
+  'PRODUCT-ACTIONS-002': ['passed', 'passed'],
+  'PRODUCT-ACTIONS-003': ['skipped: test.fixme — destructive/deferred', 'not-executed'],
   'DOC-INIT-001': ['passed', 'passed'],
   'DOC-INIT-006': ['passed', 'passed'],
   'DOC-INIT-007': ['passed', 'passed'],
@@ -3101,10 +3167,14 @@ const AUTO_CASE_STATUS = {
   'DOC-CONTROL-004': ['passed', 'passed'],
   'DOC-CONTROL-005': ['passed', 'passed'],
   'DOC-CONTROL-006': ['passed', 'passed'],
-  'DOC-HISTORY-001': ['blocked', 'blocked'],
-  'DOC-HISTORY-002': ['blocked', 'blocked'],
-  'DOC-HISTORY-004': ['blocked', 'blocked'],
-  'DOC-HISTORY-005': ['blocked', 'blocked'],
+  'DOC-HISTORY-001': ['passed', 'passed'],
+  'DOC-HISTORY-002': ['passed', 'passed'],
+  'DOC-HISTORY-003': ['passed', 'passed'],
+  'DOC-HISTORY-004': ['passed', 'passed'],
+  'DOC-HISTORY-005': ['passed', 'passed'],
+  'DOC-HISTORY-006': ['passed', 'passed'],
+  'DOC-HISTORY-007': ['passed', 'passed'],
+  'DOC-HISTORY-008': ['passed', 'passed'],
   'DOC-LIFECYCLE-001': ['passed', 'passed'],
   'DOC-LIFECYCLE-002': ['passed', 'passed'],
   'DOC-LIFECYCLE-003': ['passed', 'passed'],
@@ -3128,12 +3198,14 @@ const AUTO_CASE_STATUS = {
   'DOC-CERT-012': ['passed', 'passed'],
   'DOC-CERT-013': ['passed', 'passed'],
   'LANDING-DOCS-015': ['passed', 'passed'],
+  'LANDING-DOCS-016': ['passed', 'passed'],
+  'DOC-LIFECYCLE-013': ['skipped: graceful — user lacks REVOKE_DOC privilege', 'not-executed'],
   'DOC-DETAIL-010': ['skipped: graceful — Release link visible only when release assigned to DOC', 'not-executed'],
 };
 
 function getExplicitPlanRefs(explicitAutoCases) {
   if(!explicitAutoCases) return [];
-  const allCaseDicts = [DOC_SCENARIO_CASES, AUTH_SCENARIO_CASES, LANDING_SCENARIO_CASES];
+  const allCaseDicts = [DOC_SCENARIO_CASES, AUTH_SCENARIO_CASES, LANDING_SCENARIO_CASES, PRODUCT_SCENARIO_CASES, RELEASE_SCENARIO_CASES];
   for (const dict of allCaseDicts) {
     const found = Object.entries(dict)
       .filter(([, value]) => value === explicitAutoCases)
@@ -3223,17 +3295,19 @@ const WF = [
       ]},
       { title:"2.5 My DOCs Tab", items:[
         [true,  "My DOCs grid loads with correct columns (DOC Name, Product, VESTA ID, DOC Status, Certification Decision, Target Release Date, Created By, IT Owner, DOC Lead)", "P2", LANDING_SCENARIO_CASES["2.5.1"]],
-        [false, "Sortable My DOCs columns sort ascending / descending when sorting is available", "P3"],
+        [true,  "All My DOCs grid columns are sortable; clicking a column header re-sorts the grid", "P3", DOC_SCENARIO_CASES["11.3.11"]],
         [true,  "Search and filter controls are visible on My DOCs (search input, Product, VESTA ID, DOC Status, Certification Decision, DOC Lead)", "P2", LANDING_SCENARIO_CASES["2.5.2"]],
-        [false, "Search by DOC name narrows results", "P2"],
-        [false, "Product filter narrows results", "P2"],
-        [false, "VESTA ID filter applies correctly", "P2"],
+        [true,  "Search by DOC name narrows results", "P2", DOC_SCENARIO_CASES["11.3.10"]],
+        [true,  "Product filter narrows results (Product dropdown with Digital Offer = Yes)", "P2", DOC_SCENARIO_CASES["11.3.12"]],
+        [true,  "VESTA ID filter applies correctly", "P2", DOC_SCENARIO_CASES["11.3.14"]],
         [false, "DOC Status dropdown filter applies correctly", "P2"],
-        [false, "Certification Decision dropdown filter applies correctly", "P2"],
-        [false, "DOC Lead filter applies correctly", "P2"],
-        [false, "Reset button clears all filters", "P2"],
+        [true,  "Certification Decision dropdown filter applies correctly", "P2", DOC_SCENARIO_CASES["11.3.13"]],
+        [true,  "DOC Lead filter applies correctly", "P2", DOC_SCENARIO_CASES["11.3.15"]],
+        [true,  "Reset button clears all filters", "P2", DOC_SCENARIO_CASES["11.3.8"]],
         [true,  "My DOCs grid loads with data", "P2", LANDING_SCENARIO_CASES["2.5.3"]],
-        [false, "Clicking a DOC name navigates to DOC Detail page", "P2"],
+        [true,  "Clicking a DOC name navigates to DOC Detail page", "P2", DOC_SCENARIO_CASES["11.3.4"]],
+        [true,  "\"No Digital Offer Certifications to show\" empty state message appears when filter returns no results", "P2", DOC_SCENARIO_CASES["11.3.16"]],
+        [true,  "Per-page selector changes the number of rows displayed", "P3", DOC_SCENARIO_CASES["11.3.9"]],
       ]},
       { title:"2.7 Reports & Dashboards Tab", items:[
         [true,  "Reports & Dashboards grid displays expected column headers (Product, Release, Release Status, DPP Risk Level, CS Risk Level)", "P2", LANDING_SCENARIO_CASES["2.7.1"]],
@@ -3252,18 +3326,18 @@ const WF = [
   },
   {
     n:3, title:"Product Management", icon:"📦", color:"#d2a8ff",
-    spec:"products/new-product-creation.spec.ts · products/edit-product.spec.ts · products/my-products-tab.spec.ts",
+    spec:"products/new-product-creation.spec.ts · products/product-details.spec.ts · products/product-details-history.spec.ts · products/product-details-actions.spec.ts · products/edit-product.spec.ts · products/my-products-tab.spec.ts",
     po:"new-product.page.ts",
     sections:[
       { title:"3.1 New Product Creation", items:[
-        [true,  "New Product form loads with all required sections (Product Information area, Product Organization tab, Product Team tab, Security Summary tab, Product Configuration tab)", "P1"],
-        [true,  "Product is created successfully with all required fields filled (name, state, definition, type, org levels, team roles)", "P1"],
-        [true,  "Org Level 1 → Org Level 2 → Org Level 3 dropdowns enable sequentially (cascading)", "P2"],
-        [true,  "Product Owner and Security Manager lookup fields accept pressSequentially input and select from dropdown", "P2"],
-        [true,  "\"Save\" button creates product and returns to view mode showing \"Edit Product\" button", "P1"],
-        [true,  "\"Cancel\" button shows Leave Page confirmation dialog when form is dirty", "P2"],
-        [true,  "Leave Page dialog — \"Leave\" discards changes and navigates back", "P2"],
-        [true,  "Leave Page dialog — \"Cancel\" keeps the user on the form", "P2"],
+        [true,  "New Product form loads with all required sections (Product Information area, Product Organization tab, Product Team tab, Security Summary tab, Product Configuration tab)", "P1", PRODUCT_SCENARIO_CASES["3.1.1"]],
+        [true,  "Product is created successfully with all required fields filled (name, state, definition, type, org levels, team roles)", "P1", PRODUCT_SCENARIO_CASES["3.1.2"]],
+        [true,  "Org Level 1 → Org Level 2 → Org Level 3 dropdowns enable sequentially (cascading)", "P2", PRODUCT_SCENARIO_CASES["3.1.3"]],
+        [true,  "Product Owner and Security Manager lookup fields accept pressSequentially input and select from dropdown", "P2", PRODUCT_SCENARIO_CASES["3.1.4"]],
+        [true,  "\"Save\" button creates product and returns to view mode showing \"Edit Product\" button", "P1", PRODUCT_SCENARIO_CASES["3.1.5"]],
+        [true,  "\"Cancel\" button shows Leave Page confirmation dialog when form is dirty", "P2", PRODUCT_SCENARIO_CASES["3.1.6"]],
+        [true,  "Leave Page dialog — \"Leave\" discards changes and navigates back", "P2", PRODUCT_SCENARIO_CASES["3.1.7"]],
+        [true,  "Leave Page dialog — \"Cancel\" keeps the user on the form", "P2", PRODUCT_SCENARIO_CASES["3.1.8"]],
         [false, "Product State dropdown contains expected options (Under development, Continuous Development, Released no Dev, End of Life)", "P2"],
         [false, "Product Definition dropdown contains expected options and cascades Product Type options on change", "P2"],
         [false, "Product Type options change based on selected Product Definition (AJAX partial refresh)", "P2"],
@@ -3279,8 +3353,8 @@ const WF = [
         [false, "Saving with missing required fields shows inline validation errors", "P2"],
       ]},
       { title:"3.2 Product Detail — View Mode", items:[
-        [true,  "Product Detail page opens when clicking a product name in My Products grid", "P1"],
-        [true,  "Product name and product ID (PIC-XXXX format) are visible in the page header", "P1"],
+        [true,  "Product Detail page opens when clicking a product name in My Products grid", "P1", PRODUCT_SCENARIO_CASES["3.2.1"]],
+        [true,  "Product name and product ID (PIC-XXXX format) are visible in the page header", "P1", PRODUCT_SCENARIO_CASES["3.2.2"]],
         [false, "Active/Inactive status badge is displayed correctly in the header", "P2"],
         [false, "Product Details section shows all read-only fields (Product Name, State, Definition, Type, Digital Offer, Commercial Reference Number, DPP, Brand Label)", "P2"],
         [false, "Bottom tabs load: Product Organization, Product Team, Security Summary, Product Configuration", "P2"],
@@ -3292,8 +3366,8 @@ const WF = [
         [false, "Users without LEAP License show \"No License\" in the LEAP License column; role assignment triggers automatic activation", "P2"],
       ]},
       { title:"3.3 Product Change History", items:[
-        [false, "\"View History\" link on Product Detail page opens Product Change History popup", "P2"],
-        [false, "Popup shows columns: Date, User, Activity, Description", "P3"],
+        [true,  "\"View History\" link on Product Detail page opens Product Change History dialog", "P2", PRODUCT_SCENARIO_CASES["3.3.1"]],
+        [true,  "Popup shows columns: Date, User, Activity, Description with at least one history entry", "P3", PRODUCT_SCENARIO_CASES["3.3.2"]],
         [false, "Records are sorted in descending order by date (newest first)", "P3"],
         [false, "Search filter narrows history records by keyword", "P3"],
         [false, "Activity dropdown filter narrows records by activity type", "P2"],
@@ -3303,12 +3377,15 @@ const WF = [
         [false, "Product creation event appears in history after product is created", "P3"],
       ]},
       { title:"3.4 Product Edit", items:[
-        [true,  "\"Edit Product\" button switches product detail page to edit mode", "P1"],
-        [true,  "Updating product name and commercial reference number — Save persists the new values", "P2"],
-        [true,  "After saving, view mode is restored (\"Edit Product\" button reappears)", "P1"],
-        [true,  "Making changes and clicking Cancel shows Leave Page confirmation dialog", "P2"],
-        [true,  "\"Leave\" in dialog discards unsaved changes", "P2"],
-        [true,  "Saved values are visible when reopening edit mode", "P2"],
+        [true,  "\"Edit Product\" button switches product detail page to edit mode", "P1", PRODUCT_SCENARIO_CASES["3.4.1"]],
+        [true,  "Updating product name and commercial reference number — Save persists the new values", "P2", PRODUCT_SCENARIO_CASES["3.4.2"]],
+        [true,  "After saving, view mode is restored (\"Edit Product\" button reappears)", "P1", PRODUCT_SCENARIO_CASES["3.4.3"]],
+        [true,  "Making changes and clicking Cancel shows Leave Page confirmation dialog", "P2", PRODUCT_SCENARIO_CASES["3.4.4"]],
+        [true,  "\"Leave\" in dialog discards unsaved changes", "P2", PRODUCT_SCENARIO_CASES["3.4.5"]],
+        [true,  "Saved values are visible when reopening edit mode", "P2", PRODUCT_SCENARIO_CASES["3.4.6"]],
+        [true,  "PRODUCT-DETAIL-005: Updating product description via CKEditor — Save persists the updated text (includes org-level rebind recovery)", "P2", PRODUCT_SCENARIO_CASES["3.4.7"]],
+        [true,  "PRODUCT-DETAIL-006: Data Protection & Privacy checkbox toggle — toggling and saving persists the new state", "P2", PRODUCT_SCENARIO_CASES["3.4.8"]],
+        [false, "PRODUCT-DETAIL-007: Brand Label checkbox toggle — toggling and saving persists the new state [KNOWN DEFECT: Brand Label toggle causes OS L2 dropdown lock on some products — deferred]", "P2"],
         [false, "Changing Product Type during edit shows a warning if a release is in progress", "P2"],
         [false, "DPP toggle ON during edit → DPP confirmation dialog is shown", "P2"],
         [false, "\"Reset Form\" button in edit mode reverts to last saved values without leaving edit mode", "P2"],
@@ -3365,17 +3442,17 @@ const WF = [
   },
   {
     n:4, title:"Release — Stage 1: Creation & Scoping", icon:"✏️", color:"#e3b341",
-    spec:"releases/create-release.spec.ts · releases/clone-release.spec.ts · releases/release-detail-header.spec.ts · releases/release-details-tab.spec.ts · releases/questionnaire.spec.ts · releases/process-requirements.spec.ts · releases/product-requirements.spec.ts",
+    spec:"releases/create-new-release.spec.ts · releases/create-release.spec.ts · releases/clone-release.spec.ts · releases/release-detail-header.spec.ts · releases/release-details-tab.spec.ts · releases/questionnaire.spec.ts · releases/process-requirements.spec.ts · releases/product-requirements.spec.ts",
     po:"—",
     sections:[
       { title:"4.1 Create Release Dialog", items:[
-        [false, "\"Create Release\" button on Product Releases tab opens the Create Release dialog", "P1"],
+        [true,  "\"Create Release\" button on Product Releases tab opens the Create Release dialog", "P1", RELEASE_SCENARIO_CASES["4.1.1"]],
         [false, "Dialog shows Release Type radio buttons (New Product Release / Existing Product Release)", "P2"],
-        [false, "Release Version field is required — submitting empty shows a validation error", "P2"],
+        [true,  "Release Version field is required — submitting empty shows a validation error", "P2", RELEASE_SCENARIO_CASES["4.1.3"]],
         [false, "Target Release Date field is required — past date selection is prevented", "P2"],
         [false, "\"Continuous Penetration Testing\" checkbox reveals the Cont. Pen Test Contract Date field", "P2"],
-        [false, "\"Create & Scope\" button creates the release and redirects to Release Detail page", "P1"],
-        [false, "Newly created release appears in the product's Releases tab list", "P2"],
+        [true,  "\"Create & Scope\" button creates the release and redirects to Release Detail page", "P1", RELEASE_SCENARIO_CASES["4.1.6"]],
+        [true,  "Newly created release appears in the product's Releases tab list", "P2", RELEASE_SCENARIO_CASES["4.1.7"]],
         [false, "Cannot create a release with the same name as a cancelled release (error is shown)", "P2"],
         [false, "Creating a release with the same name as an inactivated release is allowed", "P2"],
         [false, "\"Existing Product Release\" radio shows extra field \"Was pen test performed? (Yes/No)\"", "P2"],
@@ -4037,21 +4114,21 @@ const WF = [
         [true,  "DOC header shows VESTA ID, DOC ID, target release date, and release presentation", "P1", DOC_SCENARIO_CASES["11.2.7"]],
       ]},
       { title:"11.3 Landing Page — My DOCs Tab", items:[
-        [false, "My DOCs tab is visible on the Landing Page only for users with VIEW_DOC (linked to a DOC role) or VIEW_ALL_DOCS privilege; not shown for other users", "P2", DOC_SCENARIO_CASES["11.3.1"]],
-        [false, "My DOCs tab is positioned after the My Releases tab", "P2", DOC_SCENARIO_CASES["11.3.2"]],
-        [false, "My DOCs grid displays all expected columns: DOC Name, Product, VESTA ID, DOC Status, Certification Decision, Target Release Date, Created By, IT Owner, DOC Lead", "P2", DOC_SCENARIO_CASES["11.3.3"]],
-        [false, "All grid columns are sortable; default sort is by DOC Name column", "P2"],
+        [true,  "My DOCs tab is visible on the Landing Page only for users with VIEW_DOC (linked to a DOC role) or VIEW_ALL_DOCS privilege; not shown for other users", "P2", DOC_SCENARIO_CASES["11.3.1"]],
+        [true,  "My DOCs tab is positioned after the My Releases tab", "P2", DOC_SCENARIO_CASES["11.3.2"]],
+        [true,  "My DOCs grid displays all expected columns: DOC Name, Product, VESTA ID, DOC Status, Certification Decision, Target Release Date, Created By, IT Owner, DOC Lead", "P2", DOC_SCENARIO_CASES["11.3.3"]],
+        [true,  "All grid columns are sortable; default sort is by DOC Name column", "P2", DOC_SCENARIO_CASES["11.3.11"]],
         [false, "Certification Decision column shows \"–\" until a decision is provided", "P2", DOC_SCENARIO_CASES["11.3.5"]],
-        [false, "DOC Name column contains clickable links that navigate to the DOC Detail page", "P2", DOC_SCENARIO_CASES["11.3.4"]],
+        [true,  "DOC Name column contains clickable links that navigate to the DOC Detail page", "P2", DOC_SCENARIO_CASES["11.3.4"]],
         [true,  "Search field filters grid by DOC name", "P2", DOC_SCENARIO_CASES["11.3.10"]],
         [true,  "Product dropdown filter lists products with Digital Offer = Yes and filters the grid", "P2", DOC_SCENARIO_CASES["11.3.12"]],
         [true,  "VESTA ID searchable dropdown supports type-to-search and filters the grid", "P2", DOC_SCENARIO_CASES["11.3.14"]],
         [false, "DOC Status dropdown filter applies correctly", "P2", DOC_SCENARIO_CASES["11.3.7"]],
         [true,  "Certification Decision dropdown filter filters DOCs by decision value", "P2", DOC_SCENARIO_CASES["11.3.13"]],
         [true,  "DOC Lead user lookup filter narrows results to DOCs linked to the selected DOCL", "P2", DOC_SCENARIO_CASES["11.3.15"]],
-        [false, "Reset button clears all active filters and restores the full DOC list", "P2", DOC_SCENARIO_CASES["11.3.8"]],
-        [false, "\"No Digital Offer Certifications to show\" empty state message appears when filter returns no results", "P2"],
-        [false, "Pagination per-page selector (10/20/30/50/100) changes the number of rows displayed", "P3", DOC_SCENARIO_CASES["11.3.9"]],
+        [true,  "Reset button clears all active filters and restores the full DOC list", "P2", DOC_SCENARIO_CASES["11.3.8"]],
+        [true,  "\"No Digital Offer Certifications to show\" empty state message appears when filter returns no results", "P2", DOC_SCENARIO_CASES["11.3.16"]],
+        [true,  "Pagination per-page selector (10/20/30/50/100) changes the number of rows displayed", "P3", DOC_SCENARIO_CASES["11.3.9"]],
         [true,  "All My DOCs grid columns are sortable; clicking a column header re-sorts the grid", "P3", DOC_SCENARIO_CASES["11.3.11"]],
       ]},
       { title:"11.4 DOC Detail — Header & Navigation", items:[
@@ -4308,15 +4385,15 @@ const WF = [
     spec:"actions/actions-management.spec.ts · actions/actions-history.spec.ts · actions/actions-release-integration.spec.ts", po:"—",
     sections:[
       { title:"13.1 Actions Management Access & Link", items:[
-        [false, "\"Actions Management\" link is visible in the Product Details page header", "P2"],
-        [false, "Clicking \"Actions Management\" from Product Details opens the Actions Management page in a new browser window", "P2"],
+        [true,  "\"Actions Management\" link is visible in the Product Details page header", "P2", PRODUCT_SCENARIO_CASES["13.1.1"]],
+        [true,  "Clicking \"Actions Management\" from Product Details opens the Actions Management page in a new browser window", "P2", PRODUCT_SCENARIO_CASES["13.1.2"]],
         [false, "\"Actions Management\" link is visible on Release Detail pages for the product", "P2"],
         [false, "Clicking \"Actions Management\" from a release opens the same Actions Management page in a new window", "P2"],
         [false, "Users with VIEW_PRODUCT_ACTIONS privilege see the page in view-only mode (Actions column is empty)", "P2"],
         [false, "Users with EDIT_PRODUCT_ACTIONS privilege see the full Actions column with Edit and Submit options", "P2"],
       ]},
       { title:"13.2 Actions Management Page — Table & Columns", items:[
-        [false, "Table columns: Action Name, Description, Status, Assignee, Creation Date, Due Date, Release Number, Category, Origin, Actions", "P2"],
+        [true,  "Table columns: Action Name, Description, Status, Assignee, Creation Date, Due Date, Release Number, Category, Origin, Actions", "P2", PRODUCT_SCENARIO_CASES["13.2.1"]],
         [false, "\"Jira Link\" column appears only when at least one action in the list was submitted to Jira", "P2"],
         [false, "Clicking an Action Name opens the View Action Details pop-up", "P2"],
         [false, "Due Date column shows a red exclamation mark when the due date has already passed", "P2"],

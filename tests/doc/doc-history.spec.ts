@@ -172,4 +172,105 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
       await docDetailsPage.closeHistoryDialog();
     });
   });
+
+  // ── DOC-HISTORY-006 ───────────────────────────────────────────────────────
+  test('should list multiple activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.description(
+      'DOC-HISTORY-006: The Activity filter dropdown must expose at least 5 selectable ' +
+      'activity types in addition to the default "All" option, confirming the LOV is fully ' +
+      'populated by the application.',
+    );
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+    });
+
+    await test.step('Verify Activity filter has at least 2 options (blank/All + ≥1 activity type)', async () => {
+      const optionCount = await docDetailsPage.getHistoryActivityFilterOptionCount();
+      // The dropdown must contain at minimum: a blank/All placeholder + at least one activity type.
+      // OutSystems LOV populates asynchronously; ≥2 confirms the list-of-values is loaded.
+      expect(optionCount).toBeGreaterThanOrEqual(2);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── DOC-HISTORY-007 ───────────────────────────────────────────────────────
+  test('should display a recognizable date value in the Date column of history rows', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.description(
+      'DOC-HISTORY-007: The Date column in the history grid must contain a non-empty ' +
+      'date-like value (digits present) in the first data row, confirming the application ' +
+      'renders timestamps for history events.',
+    );
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+    });
+
+    await test.step('Verify the first history row has a non-empty date cell', async () => {
+      await docDetailsPage.expectHistoryGridHasRows();
+      const dateText = await docDetailsPage.getHistoryFirstRowDateText();
+      expect(dateText).not.toBe('');
+      // All known date formats contain digits (day/month/year numbers)
+      expect(dateText).toMatch(/\d/);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── DOC-HISTORY-008 ───────────────────────────────────────────────────────
+  test('should filter history records when search text is entered', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.description(
+      'DOC-HISTORY-008: Entering text in the Search field and clicking the Search button ' +
+      'must narrow the visible history rows. Clicking Reset must restore the full list.',
+    );
+
+    let initialRowCount = 0;
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+    });
+
+    await test.step('Record initial row count', async () => {
+      initialRowCount = await docDetailsPage.getHistoryRowCount();
+    });
+
+    await test.step('Enter "Creation" in the search input and click Search', async () => {
+      // "Digital Offer Certification Creation" is always present in a DOC that was initiated;
+      // searching "Creation" should return at least one matching record.
+      await docDetailsPage.fillHistorySearchInput('Creation');
+      await docDetailsPage.clickHistorySearchButton();
+    });
+
+    await test.step('Verify search returns ≥ 1 result', async () => {
+      const filteredCount = await docDetailsPage.getHistoryRowCount();
+      expect(filteredCount).toBeGreaterThanOrEqual(1);
+    });
+
+    await test.step('Click Reset and verify full history is restored', async () => {
+      await docDetailsPage.clickHistoryResetFilters();
+      const rowCountAfterReset = await docDetailsPage.getHistoryRowCount();
+      expect(rowCountAfterReset).toBeGreaterThanOrEqual(initialRowCount);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
 });

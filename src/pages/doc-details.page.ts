@@ -881,7 +881,7 @@ export class DocDetailsPage extends BasePage {
   // ==================== DOC Detail — View History ====================
 
   async clickViewHistory(): Promise<void> {
-    await this.l.viewHistoryLink.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.viewHistoryLink.waitFor({ state: 'visible', timeout: 60_000 });
     await this.l.viewHistoryLink.click();
     await this.waitForOSLoad();
   }
@@ -944,6 +944,42 @@ export class DocDetailsPage extends BasePage {
     await this.l.historyCloseButton.waitFor({ state: 'visible', timeout: 15_000 });
     await this.l.historyCloseButton.click();
     await this.waitForOSLoad();
+  }
+
+  async fillHistorySearchInput(text: string): Promise<void> {
+    await this.l.historySearchInput.fill(text);
+  }
+
+  /** Returns the number of <option> elements in the Activity filter dropdown.
+   * Polls up to 8 s because OutSystems populates the LOV asynchronously after
+   * the dialog renders.
+   */
+  async getHistoryActivityFilterOptionCount(): Promise<number> {
+    let count = 0;
+    try {
+      // Wait until the select has more than the blank/placeholder option
+      await expect.poll(
+        async () => {
+          const h = await this.l.historyActivityFilter.elementHandle();
+          if (!h) return 0;
+          count = await h.evaluate((el) => (el as HTMLSelectElement).options.length);
+          return count;
+        },
+        { timeout: 8_000, intervals: [500, 500, 1_000, 2_000] },
+      ).toBeGreaterThan(1);
+    } catch {
+      // Timed out; return whatever was last read — test assertion will judge
+    }
+    return count;
+  }
+
+  /**
+   * Returns the trimmed text content of the Date cell (first td) in the first
+   * history data row.  Used to validate that a recognisable date value is shown.
+   */
+  async getHistoryFirstRowDateText(): Promise<string> {
+    const firstRow = this.l.historyGrid.locator('tbody tr').first();
+    return ((await firstRow.locator('td').first().textContent()) ?? '').trim();
   }
 
   // ==================== DOC Detail — Certification Decision tab ====================

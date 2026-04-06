@@ -2,32 +2,39 @@ import { test } from '../../src/fixtures';
 import type { Page } from '@playwright/test';
 import type { LandingPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
+import { writeProductState } from '../../src/helpers/product-state.helper';
 
 async function findProductReadyForReleaseCreation(
   page: Page,
   landingPage: LandingPage,
-  maxProductsToCheck = 10,
+  maxProductsToCheck = 100,
 ): Promise<{ productName: string; productUrl: string }> {
-  for (let index = 0; index < maxProductsToCheck; index++) {
-    await landingPage.goto();
-    await landingPage.expectPageLoaded({ timeout: 60_000 });
-    await landingPage.clickTab('My Products');
+  // Navigate once, expand to 100 rows, collect all hrefs to avoid stale-locator issues
+  await landingPage.goto();
+  await landingPage.expectPageLoaded({ timeout: 60_000 });
+  await landingPage.clickTab('My Products');
+  await landingPage.changePerPage('100').catch(() => undefined);
 
-    const grid = landingPage.grid;
-    const firstDataRow = grid.getByRole('row').nth(1);
-    await firstDataRow.waitFor({ state: 'visible', timeout: 30_000 });
+  const grid = landingPage.grid;
+  await grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
 
-    const rows = grid.getByRole('row');
-    if (index + 1 >= await rows.count()) {
-      break;
-    }
+  const rows = grid.getByRole('row');
+  const totalRows = await rows.count(); // row[0] = header
+  const products: Array<{ href: string; name: string }> = [];
 
-    const productLink = rows.nth(index + 1).getByRole('link').first();
-    const productName = (await productLink.textContent())?.trim() ?? `product-${index + 1}`;
-    await productLink.click();
+  for (let i = 1; i < Math.min(maxProductsToCheck + 1, totalRows); i++) {
+    const link = rows.nth(i).getByRole('link').first();
+    const href = await link.getAttribute('href').catch(() => null);
+    const name = (await link.textContent().catch(() => null))?.trim() ?? `product-${i}`;
+    if (href) products.push({ href, name });
+  }
+
+  for (const { href, name } of products) {
+    await page.goto(href);
 
     await page.getByRole('button', { name: 'Edit Product' }).waitFor({ state: 'visible', timeout: 60_000 });
-    await page.getByRole('tab', { name: 'Releases' }).click();
+    // exact:true prevents strict mode violation — avoids matching "My Releases" tab on landing page
+    await page.getByRole('tab', { name: 'Releases', exact: true }).click();
     await page.getByRole('button', { name: 'Create Release' }).waitFor({ state: 'visible', timeout: 30_000 });
 
     const hasNoReleasesMessage = await page.getByText('No releases were created yet!').isVisible().catch(() => false);
@@ -35,13 +42,10 @@ async function findProductReadyForReleaseCreation(
       continue;
     }
 
-    return {
-      productName,
-      productUrl: page.url(),
-    };
+    return { productName: name, productUrl: page.url() };
   }
 
-  throw new Error('No product without releases was found in the first 10 My Products rows.');
+  throw new Error(`No product without releases was found in the first ${maxProductsToCheck} My Products rows.`);
 }
 
 test.describe.serial('Releases - Create New Release (PIC-100) @regression', () => {
@@ -111,6 +115,19 @@ test.describe.serial('Releases - Create New Release (PIC-100) @regression', () =
       await page.goto(productUrl);
       await newProductPage.expectProductDetailLoaded();
       await newProductPage.clickReleasesTab();
+
+      // Guard: the product found by test 1 may have had releases created by a
+      // prior diagnostic or test run.  If so, scan for a fresh product.
+      const stillEmpty = await newProductPage.isNoReleasesMessageVisible();
+      if (!stillEmpty) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        productUrl = product.productUrl;
+        productName = product.productName;
+        await page.goto(productUrl);
+        await newProductPage.expectProductDetailLoaded();
+        await newProductPage.clickReleasesTab();
+      }
+
       await newProductPage.expectNoReleasesStateVisible();
     });
 
@@ -124,7 +141,16 @@ test.describe.serial('Releases - Create New Release (PIC-100) @regression', () =
     });
 
     await test.step('Verify the new release is listed in Releases grid with Scoping status', async () => {
+      // "Create & Scope" navigates to the Release Scoping page.
+      // Navigate back to the Product Detail Releases tab to confirm the release is listed.
+      await page.goto(productUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
       await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+
+    await test.step('Persist product URL so PRODUCT-RELEASES-001 can reuse it', async () => {
+      writeProductState({ productWithReleasesUrl: productUrl, productName });
     });
   });
 });

@@ -23,6 +23,11 @@ dist/
 
 # Persisted state (generated at runtime)
 .doc-state.json
+.product-state.json
+
+# Temporary debug / diagnostic scripts
+diagnose-*.mjs
+diagnose-*.ts
 
 # IDE & OS
 .DS_Store

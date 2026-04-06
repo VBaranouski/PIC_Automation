@@ -6,10 +6,16 @@ test.describe('Products - New Product Creation @regression', () => {
   // each with up to 240s wait for the edit link widget to appear.
   test.setTimeout(360_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, newProductPage, userCredentials }) => {
+  test.beforeEach(async ({ page, loginPage, landingPage, newProductPage, userCredentials }) => {
     await loginPage.goto();
     await loginPage.waitForPageLoad();
     await loginPage.login(userCredentials.login, userCredentials.password);
+
+    // Wait for the post-login redirect to the PICASso home page before any
+    // further navigation.  Without this wait, clickNewProduct() can cancel the
+    // in-flight login navigation, destroying the session cookie, causing the
+    // user to remain stuck on the login page for the full 120-second timeout.
+    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
 
     // OutSystems login redirect is slow — wait for New Product button as readiness signal
     await landingPage.clickNewProduct();

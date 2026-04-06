@@ -1,19 +1,162 @@
 import { test } from '../../src/fixtures';
+import type { Page } from '@playwright/test';
+import type { LandingPage, NewProductPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
 
 /**
- * Product Details Page — P0 Regression Suite
- *
- * Stories: PIC-108, PIC-109, PIC-110
- *
- * Covers view-mode detail assertions, edit-mode validation,
- * Reset Form behavior, description persistence, and checkbox toggles.
- *
- * All tests start from Home Page > My Products > open first product.
+ * Scans My Products rows until it finds a product where the DPP checkbox
+ * is editable in edit mode (i.e. the product has no active release)
+ * AND all required Org Levels (L1, L2, L3) are filled.
+ * Leaves the browser in edit mode on the found product.
+ * Uses changePerPage('100') so we can check up to 100 products per scan.
  */
+async function openProductWithEditableDPP(
+  page: Page,
+  landingPage: LandingPage,
+  newProductPage: NewProductPage,
+  maxRows = 100,
+): Promise<void> {
+  const isBlank = (v: string) => !v || v === '- Select -' || v.trim() === '-';
+
+  // Navigate once and collect all product hrefs so locators don't go stale
+  await landingPage.goto();
+  await landingPage.expectPageLoaded({ timeout: 60_000 });
+  await landingPage.clickTab('My Products');
+  await landingPage.changePerPage('100').catch(() => undefined);
+
+  const grid = landingPage.grid;
+  await grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
+  const rows = grid.getByRole('row');
+  const totalRows = await rows.count();
+  const productHrefs: string[] = [];
+  for (let i = 1; i < Math.min(maxRows + 1, totalRows); i++) {
+    const href = await rows.nth(i).getByRole('link').first().getAttribute('href').catch(() => null);
+    if (href) productHrefs.push(href);
+  }
+
+  for (const href of productHrefs) {
+    await page.goto(href);
+    await newProductPage.expectProductDetailLoaded();
+    // Use clickEditProduct (lighter, no networkidle) for scanner iteration speed
+    await newProductPage.clickEditProduct();
+    await newProductPage.expectEditModeVisible();
+    await newProductPage.waitForOSLoad();
+
+    // Check DPP is editable (not disabled by active release)
+    const isEditable = await newProductPage.dataProtectionCheckbox.isEnabled().catch(() => false);
+    if (!isEditable) {
+      await page.getByRole('button', { name: 'Cancel' }).click();
+      const leave = page.getByRole('button', { name: 'Leave' });
+      if (await leave.isVisible({ timeout: 3_000 }).catch(() => false)) await leave.click();
+      await newProductPage.expectProductDetailLoaded();
+      continue;
+    }
+
+    // Also verify org levels are all filled AND enabled (products with locked/disabled
+    // org levels or blank required L3 cannot be saved and should be skipped).
+    await newProductPage.clickProductOrganizationTab();
+    await newProductPage.orgLevel1Select.waitFor({ state: 'visible', timeout: 10_000 }).catch(() => undefined);
+    const l1 = await newProductPage.getSelectedOrgLevel1().catch(() => '');
+    const l2 = await newProductPage.getSelectedOrgLevel2().catch(() => '');
+    const l3 = await newProductPage.getSelectedOrgLevel3().catch(() => '');
+    const l1Enabled = await newProductPage.orgLevel1Select.isEnabled({ timeout: 3_000 }).catch(() => false);
+    const l2Enabled = await newProductPage.orgLevel2Select.isEnabled({ timeout: 3_000 }).catch(() => false);
+    if (isBlank(l1) || isBlank(l2) || isBlank(l3) || !l1Enabled || !l2Enabled) {
+      await page.getByRole('button', { name: 'Cancel' }).click();
+      const leave = page.getByRole('button', { name: 'Leave' });
+      if (await leave.isVisible({ timeout: 3_000 }).catch(() => false)) await leave.click();
+      await newProductPage.expectProductDetailLoaded();
+      continue;
+    }
+
+    return; // Stay on this product in edit mode — DPP is editable and org levels are complete + enabled
+  }
+  throw new Error(`Could not find a product with editable DPP checkbox and valid org levels in the first ${maxRows} rows.`);
+}
+
+/**
+ * Scans My Products rows until it finds a product where the Brand Label checkbox
+ * is editable in edit mode AND all required Org Levels are filled.
+ * Uses changePerPage('100') so we can check up to 100 products per scan.
+ */
+async function openProductWithEditableBrandLabel(
+  page: Page,
+  landingPage: LandingPage,
+  newProductPage: NewProductPage,
+  maxRows = 100,
+): Promise<void> {
+  const isBlank = (v: string) => !v || v === '- Select -' || v.trim() === '-';
+
+  // Navigate once and collect all product hrefs so locators don't go stale
+  await landingPage.goto();
+  await landingPage.expectPageLoaded({ timeout: 60_000 });
+  await landingPage.clickTab('My Products');
+  await landingPage.changePerPage('100').catch(() => undefined);
+
+  const grid = landingPage.grid;
+  await grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
+  const rows = grid.getByRole('row');
+  const totalRows = await rows.count();
+  const productHrefs: string[] = [];
+  for (let i = 1; i < Math.min(maxRows + 1, totalRows); i++) {
+    const href = await rows.nth(i).getByRole('link').first().getAttribute('href').catch(() => null);
+    if (href) productHrefs.push(href);
+  }
+
+  for (const href of productHrefs) {
+    await page.goto(href);
+    await newProductPage.expectProductDetailLoaded();
+    // Use clickEditProduct (lighter, no networkidle) for scanner iteration speed
+    await newProductPage.clickEditProduct();
+    await newProductPage.expectEditModeVisible();
+    await newProductPage.waitForOSLoad();
+
+    const isEditable = await newProductPage.brandLabelCheckbox.isEnabled().catch(() => false);
+    if (!isEditable) {
+      await page.getByRole('button', { name: 'Cancel' }).click();
+      const leave = page.getByRole('button', { name: 'Leave' });
+      if (await leave.isVisible({ timeout: 3_000 }).catch(() => false)) await leave.click();
+      await newProductPage.expectProductDetailLoaded();
+      continue;
+    }
+
+    // If Brand Label is currently OFF, toggling ON will make Vendor required.
+    // Skip products where Brand Label is OFF but Vendor is blank (save would fail).
+    const isBrandLabelChecked = await newProductPage.brandLabelCheckbox.isChecked().catch(() => false);
+    if (!isBrandLabelChecked) {
+      const vendorValue = await newProductPage.vendorInput.inputValue().catch(() => '');
+      if (!vendorValue) {
+        await page.getByRole('button', { name: 'Cancel' }).click();
+        const leave = page.getByRole('button', { name: 'Leave' });
+        if (await leave.isVisible({ timeout: 3_000 }).catch(() => false)) await leave.click();
+        await newProductPage.expectProductDetailLoaded();
+        continue;
+      }
+    }
+
+    // Also verify org levels are all filled AND enabled
+    await newProductPage.clickProductOrganizationTab();
+    await newProductPage.orgLevel1Select.waitFor({ state: 'visible', timeout: 10_000 }).catch(() => undefined);
+    const l1 = await newProductPage.getSelectedOrgLevel1().catch(() => '');
+    const l2 = await newProductPage.getSelectedOrgLevel2().catch(() => '');
+    const l3 = await newProductPage.getSelectedOrgLevel3().catch(() => '');
+    const l1Enabled = await newProductPage.orgLevel1Select.isEnabled({ timeout: 3_000 }).catch(() => false);
+    const l2Enabled = await newProductPage.orgLevel2Select.isEnabled({ timeout: 3_000 }).catch(() => false);
+    if (isBlank(l1) || isBlank(l2) || isBlank(l3) || !l1Enabled || !l2Enabled) {
+      await page.getByRole('button', { name: 'Cancel' }).click();
+      const leave = page.getByRole('button', { name: 'Leave' });
+      if (await leave.isVisible({ timeout: 3_000 }).catch(() => false)) await leave.click();
+      await newProductPage.expectProductDetailLoaded();
+      continue;
+    }
+
+    return; // Stay on this product in edit mode — Brand Label is editable and org levels are complete + enabled
+  }
+  throw new Error(`Could not find a product with editable Brand Label checkbox and valid org levels in the first ${maxRows} rows.`);
+}
 
 test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', () => {
-  test.setTimeout(240_000);
+  test.setTimeout(600_000);
 
   let productName: string;
   let productUrl: string;
@@ -200,9 +343,19 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
     });
 
     let originalDescription: string;
+    let orgLevels: { l1: string; l2: string; l3: string };
 
-    await test.step('Record original description', async () => {
+    await test.step('Record original description and org levels', async () => {
       originalDescription = await newProductPage.getDescriptionText();
+      // Record org levels BEFORE the CKEditor interaction — the CKEditor focus/input
+      // events trigger OS partial refreshes that reset the L1 DOM value to "- Select -".
+      // Passing the pre-refresh values to clickSaveWithOrgLevelRecovery allows it to
+      // correctly rebind the server-side variables if the save fails.
+      orgLevels = {
+        l1: await newProductPage.getSelectedOrgLevel1().catch(() => ''),
+        l2: await newProductPage.getSelectedOrgLevel2().catch(() => ''),
+        l3: await newProductPage.getSelectedOrgLevel3().catch(() => ''),
+      };
     });
 
     await test.step('Update product description', async () => {
@@ -214,7 +367,7 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
     });
 
     await test.step('Save product', async () => {
-      await newProductPage.clickSave();
+      await newProductPage.clickSaveWithOrgLevelRecovery(orgLevels);
       await newProductPage.expectProductSaved();
     });
 
@@ -224,16 +377,22 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
 
     await test.step('Restore original description', async () => {
       await newProductPage.clickEditProductAndWaitForForm();
+      // Re-record org levels after re-entering edit mode (fresh page load)
+      const restoreLevels = {
+        l1: await newProductPage.getSelectedOrgLevel1().catch(() => ''),
+        l2: await newProductPage.getSelectedOrgLevel2().catch(() => ''),
+        l3: await newProductPage.getSelectedOrgLevel3().catch(() => ''),
+      };
       const editor = newProductPage.productDescriptionEditor;
       await editor.click();
       await editor.press('Meta+a');
       await editor.pressSequentially(originalDescription, { delay: 20 });
-      await newProductPage.clickSave();
+      await newProductPage.clickSaveWithOrgLevelRecovery(restoreLevels);
       await newProductPage.expectProductSaved();
     });
   });
 
-  test('should toggle and persist Data Protection & Privacy checkbox', async ({ landingPage, newProductPage }) => {
+  test('should toggle and persist Data Protection & Privacy checkbox', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -243,11 +402,10 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
       'the change persists. Then restore the original value.',
     );
 
-    await test.step('Navigate to first product and enter edit mode', async () => {
-      await landingPage.openMyProductsTab();
-      await landingPage.clickProductAtRow(1);
-      await newProductPage.expectProductDetailLoaded();
-      await newProductPage.clickEditProductAndWaitForForm();
+    await test.step('Find a product with editable DPP checkbox and enter edit mode', async () => {
+      // Row 1 (PIC-1198) may have an active release which disables the DPP switch.
+      // Scan up to 15 rows to find a product where DPP is editable.
+      await openProductWithEditableDPP(page, landingPage, newProductPage);
     });
 
     let wasChecked: boolean;
@@ -261,7 +419,7 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
     });
 
     await test.step('Save product', async () => {
-      await newProductPage.clickSaveAndHandleConfirmDialog();
+      await newProductPage.clickSaveWithOrgLevelRecovery();
       await newProductPage.expectProductSaved();
     });
 
@@ -273,12 +431,12 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
     await test.step('Restore original Data Protection state', async () => {
       await newProductPage.clickEditProductAndWaitForForm();
       await newProductPage.toggleDataProtection();
-      await newProductPage.clickSaveAndHandleConfirmDialog();
+      await newProductPage.clickSaveWithOrgLevelRecovery();
       await newProductPage.expectProductSaved();
     });
   });
 
-  test('should toggle and persist Brand Label checkbox', async ({ landingPage, newProductPage }) => {
+  test('should toggle and persist Brand Label checkbox', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -288,11 +446,8 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
       'the change persists. Then restore the original value.',
     );
 
-    await test.step('Navigate to first product and enter edit mode', async () => {
-      await landingPage.openMyProductsTab();
-      await landingPage.clickProductAtRow(1);
-      await newProductPage.expectProductDetailLoaded();
-      await newProductPage.clickEditProductAndWaitForForm();
+    await test.step('Find a product with editable Brand Label checkbox and enter edit mode', async () => {
+      await openProductWithEditableBrandLabel(page, landingPage, newProductPage);
     });
 
     let wasChecked: boolean;

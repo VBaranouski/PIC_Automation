@@ -8,13 +8,15 @@ export const newProductLocators = (page: Page) => ({
   productStatus:  page.getByText('Draft'),
 
   // Top-level tabs
-  productDetailsTab: page.getByRole('tab', { name: 'Product Details' }),
-  releasesTab:       page.getByRole('tab', { name: 'Releases' }),
+  productDetailsTab: page.getByRole('tab', { name: 'Product Details', exact: true }),
+  releasesTab:       page.getByRole('tab', { name: 'Releases', exact: true }),
 
   // Releases tab
   noReleasesMessage:      page.getByText('No releases were created yet!'),
   createReleaseButton:    page.getByRole('button', { name: 'Create Release' }),
-  releasesGrid:           page.getByRole('tabpanel').getByRole('grid'),
+  // Match both ARIA grid (role="grid") and plain HTML tables — OutSystems renders
+  // the releases list as a standard <table> on products with existing releases.
+  releasesGrid:           page.getByRole('tabpanel').locator('[role="grid"], table').first(),
   releaseValidationAlert: page.getByRole('alert'),
   requiredFieldError:     page.getByText('Required field!'),
 
@@ -29,8 +31,8 @@ export const newProductLocators = (page: Page) => ({
   resetReleaseFormButton:               page.getByRole('dialog').getByRole('button', { name: 'Reset Form' }),
   cancelReleaseFormButton:              page.getByRole('dialog').getByRole('button', { name: 'Cancel' }),
   createAndScopeButton:                 page.getByRole('dialog').getByRole('button', { name: 'Create & Scope' }),
-  releaseDateMonthSelect:               page.getByRole('combobox', { name: 'Month' }),
-  releaseDateYearSpinbutton:            page.getByRole('spinbutton', { name: 'Year' }),
+  releaseDateMonthSelect:               page.getByRole('combobox', { name: 'Month' }).last(),
+  releaseDateYearSpinbutton:            page.getByRole('spinbutton', { name: 'Year' }).last(),
 
   // Product Related Details section
   sectionTitle:            page.getByText('PRODUCT RELATED DETAILS'),

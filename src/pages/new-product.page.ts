@@ -62,6 +62,7 @@ export class NewProductPage extends BasePage {
   get orgLevel2Select(): Locator   { return this.l.orgLevel2Select; }
   get orgLevel3Select(): Locator   { return this.l.orgLevel3Select; }
   get crossOrgCheckbox(): Locator  { return this.l.crossOrgCheckbox; }
+  get vendorInput(): Locator       { return this.l.vendorInput; }
 
   get productOwnerLabel(): Locator    { return this.l.productOwnerLabel; }
   get securityManagerLabel(): Locator { return this.l.securityManagerLabel; }
@@ -212,22 +213,114 @@ export class NewProductPage extends BasePage {
   }
 
   async toggleDataProtection(): Promise<void> {
+    // Ensure the Product Organization tab is active so the org-level dropdowns
+    // are fully loaded before we read their values.
+    await this.l.productOrganizationTab.click();
+    await expect(this.l.orgLevel1Select).toBeEnabled({ timeout: 30_000 });
+
+    // Capture current org level values before toggling — the DPP toggle triggers
+    // an OutSystems partial refresh that resets the server-side dropdown bindings.
+    // Even though the HTML <option selected> attribute remains visually intact,
+    // OutSystems' validation engine sees the variables as empty and raises
+    // "Required field!" for Org Level dropdowns on subsequent Save.
+    const level1 = await this.getSelectedOrgLevel1().catch(() => '');
+    const level2 = await this.getSelectedOrgLevel2().catch(() => '');
+    const level3 = await this.getSelectedOrgLevel3().catch(() => '');
+
     await this.l.dataProtectionCheckbox.click();
+    await this.waitForOSLoad();
+
+    // Re-bind org level dropdowns after the OutSystems partial refresh.
+    await this.forceRebindOrgLevels(level1, level2, level3);
+  }
+
+  /**
+   * Forces OutSystems to re-bind Org Level server-side variables after a partial refresh.
+   *
+   * After any OutSystems partial refresh (DPP toggle, CKEditor, etc.), the <select>
+   * elements may visually show the correct option but OS's internal variable is null.
+   * Simply calling selectOption() on an already-selected value does NOT fire the onChange
+   * handler if the DOM value appears unchanged. We must first select the blank option to
+   * force a genuine change event, then select the correct value again.
+   */
+  private async forceRebindOrgLevels(level1: string, level2: string, level3: string): Promise<void> {
+    // Treat "- Select -" / blank / "-" as empty (no real value to restore).
+    const isBlank = (v: string) => !v || v === '- Select -' || v.trim() === '-';
+
+    if (isBlank(level1)) return;
+
+    // Level 1: select blank, wait for OS to process, then select correct value
+    await expect(this.l.orgLevel1Select).toBeEnabled({ timeout: 30_000 });
+    await this.l.orgLevel1Select.selectOption({ index: 0 }); // "- Select -"
+    await this.waitForOSLoad();
+    await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    await this.l.orgLevel1Select.selectOption({ label: level1 });
+    await this.waitForOSLoad();
+    // networkidle ensures the cascaded AJAX for L2 options has completed before
+    // we check toBeEnabled — the OS loading overlay does NOT appear for this AJAX.
+    await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+
+    if (isBlank(level2)) return;
+    // Level 2 cascades from Level 1 — wait for it to become enabled.
+    // Some products have L2 auto-selected and OS-locked (disabled) — if it remains
+    // disabled after the L1 cascade AJAX, skip the blank-first re-bind for L2
+    // (the server-side value is auto-assigned by OS and doesn't need user re-selection).
+    const l2Enabled = await this.l.orgLevel2Select.isEnabled({ timeout: 30_000 }).catch(() => false);
+    if (l2Enabled) {
+      // NOTE: blank-first is REQUIRED here. OutSystems cascade may not clear
+      // the DOM selection if the previously-selected option still exists in the
+      // reloaded options list, so selectOption(same value) fires no change event.
+      await this.l.orgLevel2Select.selectOption({ index: 0 }); // "- Select -"
+      await this.waitForOSLoad();
+      await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+      await this.l.orgLevel2Select.selectOption({ label: level2 });
+      await this.waitForOSLoad();
+      await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    }
+
+    if (isBlank(level3)) return;
+    // Level 3: also blank-first if enabled.
+    // Wait for the target option to appear (cascade AJAX may still be loading).
+    const l3Enabled = await this.l.orgLevel3Select.isEnabled({ timeout: 10_000 }).catch(() => false);
+    if (l3Enabled) {
+      await this.l.orgLevel3Select.selectOption({ index: 0 }).catch(() => undefined); // "- Select -"
+      await this.waitForOSLoad();
+      await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+      // Wait for the exact option we want to appear before selecting
+      await this.l.orgLevel3Select.locator(`option`).filter({ hasText: level3 })
+        .waitFor({ state: 'attached', timeout: 15_000 }).catch(() => undefined);
+      await this.l.orgLevel3Select.selectOption({ label: level3 }).catch(() => undefined);
+      await this.waitForOSLoad();
+      await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    }
   }
 
   async toggleBrandLabel(): Promise<void> {
-    // Brand Label toggle triggers an OutSystems partial refresh that clears the Vendor field.
-    // Capture the vendor value before toggling and restore it if cleared.
+    // Brand Label toggle triggers an OutSystems partial refresh that clears the Vendor field
+    // AND resets the server-side org level variable bindings (same as DPP toggle).
+    // Ensure Product Organization tab is active so org-level dropdowns are populated.
+    await this.l.productOrganizationTab.click();
+    await expect(this.l.orgLevel1Select).toBeEnabled({ timeout: 30_000 });
+
+    // Capture org levels and vendor value BEFORE toggling.
+    const level1 = await this.getSelectedOrgLevel1().catch(() => '');
+    const level2 = await this.getSelectedOrgLevel2().catch(() => '');
+    const level3 = await this.getSelectedOrgLevel3().catch(() => '');
     const vendorValue = await this.l.vendorInput.inputValue().catch(() => '');
+
     await this.l.brandLabelCheckbox.click();
     await this.waitForOSLoad();
 
+    // Restore vendor if cleared by the partial refresh.
     if (vendorValue) {
       const currentValue = await this.l.vendorInput.inputValue().catch(() => '');
       if (!currentValue) {
         await this.l.vendorInput.fill(vendorValue);
       }
     }
+
+    // Re-bind org level dropdowns after the OutSystems partial refresh.
+    await this.forceRebindOrgLevels(level1, level2, level3);
   }
 
   // ==================== Product Organization ====================
@@ -330,7 +423,10 @@ export class NewProductPage extends BasePage {
     // Edit Product button is the save-completion readiness signal — wait for it first
     await expect(this.l.editProductButton).toBeVisible({ timeout: 60_000 });
     await expect(this.page.getByText(/ID:PIC-(?!0)\d+/)).toBeVisible({ timeout: 30_000 });
-    await expect(this.page.getByText('Active')).toBeVisible({ timeout: 30_000 });
+    // Use exact:true to avoid strict-mode violation when the page has other
+    // elements containing the word "active" (e.g. "Show active only" filter
+    // or "An active release exists..." message in the DPP section).
+    await expect(this.page.getByText('Active', { exact: true }).first()).toBeVisible({ timeout: 30_000 });
   }
 
   async expectFormVisible(): Promise<void> {
@@ -357,7 +453,7 @@ export class NewProductPage extends BasePage {
   }
 
   async expectProductDetailLoaded(): Promise<void> {
-    await this.l.editProductButton.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.editProductButton.waitFor({ state: 'visible', timeout: 60_000 });
     await expect(this.page).toHaveURL(/.*ProductDetail/);
     await expect(this.l.editProductButton).toBeVisible();
   }
@@ -400,13 +496,23 @@ export class NewProductPage extends BasePage {
   }
 
   async expectDataProtectionValue(value: 'Yes' | 'No'): Promise<void> {
-    const section = this.page.getByText('Data Protection & Privacy').locator('..').locator('..');
-    await expect(section.getByText(value)).toBeVisible({ timeout: 15_000 });
+    // Find the innermost element that contains both the DPP label AND the value.
+    // Using .filter() + .last() gives the deepest (most specific) matching container —
+    // typically the row div (e152) that holds both the label wrapper (e155) and the
+    // value cell (e160) as siblings.
+    const dppRow = this.page.locator('*')
+      .filter({ has: this.page.getByText('Data Protection & Privacy', { exact: true }) })
+      .filter({ has: this.page.getByText(value, { exact: true }) })
+      .last();
+    await expect(dppRow).toBeVisible({ timeout: 15_000 });
   }
 
   async expectBrandLabelValue(value: 'Yes' | 'No'): Promise<void> {
-    const section = this.page.getByText('Brand Label').locator('..');
-    await expect(section.getByText(value)).toBeVisible({ timeout: 15_000 });
+    const brandRow = this.page.locator('*')
+      .filter({ has: this.page.getByText('Brand Label', { exact: true }) })
+      .filter({ has: this.page.getByText(value, { exact: true }) })
+      .last();
+    await expect(brandRow).toBeVisible({ timeout: 15_000 });
   }
 
   async expectProductDescriptionContains(text: string): Promise<void> {
@@ -486,6 +592,10 @@ export class NewProductPage extends BasePage {
     await this.l.releasesTab.waitFor({ state: 'visible', timeout: 30_000 });
     await this.l.releasesTab.click();
     await this.l.createReleaseButton.waitFor({ state: 'visible', timeout: 30_000 });
+    // Wait for OS background data-actions (releases list query) to settle after
+    // tab switch — the button appears before they finish, so clicking too soon
+    // may result in the action being silently dropped.
+    await this.waitForOSLoad();
   }
 
   async isNoReleasesMessageVisible(): Promise<boolean> {
@@ -510,8 +620,22 @@ export class NewProductPage extends BasePage {
   }
 
   async clickCreateRelease(): Promise<void> {
+    // Wait for overlay-level load and then for all pending network data-actions;
+    // OutSystems releases-tab has a background aggregate that fires after the
+    // button becomes visible — clicking before it settles silently discards the action.
+    await this.waitForOSLoad();
+    await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    await expect(this.l.createReleaseButton).toBeEnabled({ timeout: 15_000 });
     await this.l.createReleaseButton.click();
-    await this.l.createReleaseDialog.waitFor({ state: 'visible', timeout: 30_000 });
+    // Retry once if the dialog doesn't appear quickly (parallel test runs or OS lag)
+    const appeared = await this.l.createReleaseDialog
+      .waitFor({ state: 'visible', timeout: 8_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!appeared) {
+      await this.l.createReleaseButton.click();
+      await this.l.createReleaseDialog.waitFor({ state: 'visible', timeout: 60_000 });
+    }
   }
 
   async clickCreateAndScope(): Promise<void> {
@@ -546,16 +670,69 @@ export class NewProductPage extends BasePage {
     const monthName = NewProductPage.monthNames[targetDate.getMonth()];
     const year = targetDate.getFullYear();
     const day = targetDate.getDate();
-
-    await this.l.targetReleaseDateInput.click();
-    await this.l.releaseDateMonthSelect.selectOption({ label: monthName });
-    await this.l.releaseDateYearSpinbutton.fill(String(year));
-    await this.l.releaseDateYearSpinbutton.press('Enter');
-
     const dateLabel = `${monthName} ${day}, ${year}`;
-    const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).first();
-    await dayCell.waitFor({ state: 'visible', timeout: 10_000 });
-    await dayCell.click();
+    const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).last();
+
+    // Open the flatpickr calendar
+    await this.l.targetReleaseDateInput.click();
+
+    // Wait for the calendar's month combobox to be fully visible (flatpickr uses
+    // a CSS opacity transition; the day-cell spans are in the DOM immediately but
+    // remain CSS-hidden until the transition completes).
+    await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 10_000 });
+
+    // Navigate to the correct month if necessary
+    const currentMonth = await this.l.releaseDateMonthSelect.inputValue().catch(() => '');
+    if (currentMonth !== String(targetDate.getMonth())) {
+      await this.l.releaseDateMonthSelect.selectOption({ label: monthName });
+      // Re-open calendar if it closed after selectOption
+      await this.l.releaseDateMonthSelect
+        .waitFor({ state: 'visible', timeout: 5_000 })
+        .catch(async () => {
+          await this.l.targetReleaseDateInput.click();
+          await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 5_000 });
+        });
+    }
+
+    // Navigate to the correct year if necessary
+    const currentYear = await this.l.releaseDateYearSpinbutton.inputValue().catch(() => '');
+    if (currentYear !== String(year)) {
+      await this.l.releaseDateYearSpinbutton.fill(String(year));
+      await this.l.releaseDateYearSpinbutton.press('Enter');
+      // Re-open calendar if Enter closed it
+      await dayCell.waitFor({ state: 'visible', timeout: 5_000 }).catch(async () => {
+        await this.l.targetReleaseDateInput.click();
+        await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 5_000 });
+      });
+    }
+
+    await dayCell.waitFor({ state: 'attached', timeout: 10_000 });
+    // flatpickr day-cell spans may have opacity:0 during the open animation.
+    // Use JS .click() to dispatch the event directly, bypassing CSS-visibility
+    // checks that Playwright and flatpickr event delegation both enforce.
+    // When multiple flatpickr calendars are open (e.g. the Releases-tab date-
+    // range filter renders a background calendar), querySelectorAll + last()
+    // ensures we click the day inside the MOST-RECENTLY opened calendar
+    // (i.e. the Create Release dialog's calendar).
+    await this.page.evaluate((label: string) => {
+      const spans = document.querySelectorAll<HTMLElement>(`[aria-label="${label}"]`);
+      const span = spans[spans.length - 1]; // last = dialog's calendar
+      if (span) span.click();
+    }, dateLabel);
+    // Verify the date input was actually updated — if it is still empty the
+    // calendar was closed prematurely or the wrong cell was clicked.
+    const inputValue = await this.l.targetReleaseDateInput.inputValue().catch(() => '');
+    if (!inputValue) {
+      // Re-open and try once more
+      await this.l.targetReleaseDateInput.click();
+      await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 10_000 });
+      await dayCell.waitFor({ state: 'attached', timeout: 10_000 });
+      await this.page.evaluate((label: string) => {
+        const spans = document.querySelectorAll<HTMLElement>(`[aria-label="${label}"]`);
+        const span = spans[spans.length - 1];
+        if (span) span.click();
+      }, dateLabel);
+    }
   }
 
   async createFirstRelease(data: {
@@ -570,14 +747,65 @@ export class NewProductPage extends BasePage {
     if (data.continuousPenetrationTesting) {
       await this.toggleContinuousPenetrationTesting();
     }
-    await this.clickCreateAndScope();
+    // Register the navigation listener BEFORE clicking so we don't miss a fast navigation.
+    // The app may navigate to ReleaseDetail (original behaviour) OR stay on the
+    // product Releases tab (current QA environment behaviour). Handle both:
+    const navigationPromise = this.page
+      .waitForURL(/ReleaseDetail/, { timeout: 120_000 })
+      .catch(() => null);
+
+    // Ensure any open flatpickr calendar is dismissed before clicking the button.
+    await this.l.createReleaseDialog.click({ position: { x: 10, y: 10 } }).catch(() => undefined);
+    await this.page.waitForTimeout(500);
+
+    await this.l.createAndScopeButton.click();
+    // Race between dialog closing (in-place creation) and navigation to ReleaseDetail.
+    await Promise.race([
+      this.l.createReleaseDialog.waitFor({ state: 'hidden', timeout: 120_000 }).catch(() => undefined),
+      navigationPromise,
+    ]);
+    await this.waitForOSLoad();
+    // If dialog is still open, check for a validation error message; if none visible
+    // (e.g. server timeout), retry once before failing.
+    let dialogStillOpen = await this.l.createReleaseDialog.isVisible().catch(() => false);
+    if (dialogStillOpen) {
+      // Check for visible validation error first — don't retry if there is one
+      const hasValidationError = await this.page.getByText('Required field').isVisible({ timeout: 2_000 }).catch(() => false);
+      if (!hasValidationError) {
+        // Server may have been slow — retry the click
+        await this.l.createAndScopeButton.click().catch(() => undefined);
+        await Promise.race([
+          this.l.createReleaseDialog.waitFor({ state: 'hidden', timeout: 90_000 }).catch(() => undefined),
+          this.page.waitForURL(/ReleaseDetail/, { timeout: 90_000 }).catch(() => null),
+        ]);
+        await this.waitForOSLoad();
+        dialogStillOpen = await this.l.createReleaseDialog.isVisible().catch(() => false);
+      }
+    }
+    // Hard assertion: if the dialog is still visible the form had a validation error
+    // (e.g. Target Date not filled).  Fail loudly here rather than silently proceeding
+    // and getting a confusing "no releases listed" error in a later step.
+    if (dialogStillOpen) {
+      throw new Error(
+        '"Create & Scope" did not close the Create Release dialog — ' +
+        'the form likely has a validation error (e.g. Target Date field is empty).',
+      );
+    }
   }
 
   async expectReleaseListed(releaseVersion: string, status: string): Promise<void> {
-    await this.l.releasesGrid.waitFor({ state: 'visible', timeout: 30_000 });
-    await expect(this.l.noReleasesMessage).toBeHidden();
+    // Wait for the empty-state message to disappear — confirms the release IS listed.
+    // (More reliable than waiting for a specific grid/table role which OutSystems may
+    // render as a plain <table> without an explicit ARIA role on some products.)
+    await expect(this.l.noReleasesMessage).toBeHidden({ timeout: 30_000 });
+    // Verify the release version link is present in the releases list
     await expect(this.page.getByRole('link', { name: releaseVersion })).toBeVisible({ timeout: 30_000 });
-    await expect(this.page.getByRole('gridcell', { name: status })).toBeVisible({ timeout: 30_000 });
+    // Verify the status column shows the expected value.
+    // Scope to the row that contains the release version link to avoid
+    // matching hidden <option> elements in Status filter dropdowns.
+    const releaseRow = this.page.getByRole('row').filter({ hasText: releaseVersion });
+    const statusCell = releaseRow.getByRole('gridcell', { name: status });
+    await expect(statusCell).toBeVisible({ timeout: 30_000 });
   }
 
   // ==================== Form Actions ====================
@@ -594,7 +822,7 @@ export class NewProductPage extends BasePage {
     const dialog = this.page.getByRole('dialog');
     const dialogSaveBtn = dialog.getByRole('button', { name: 'Save' });
     const dialogOkBtn = dialog.getByRole('button', { name: 'OK' });
-    if (await dialogSaveBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+    if (await dialogSaveBtn.isVisible({ timeout: 15_000 }).catch(() => false)) {
       await dialogSaveBtn.click();
     } else if (await dialogOkBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
       await dialogOkBtn.click();
@@ -606,6 +834,52 @@ export class NewProductPage extends BasePage {
    * Some field toggles (Data Protection, Digital Offer) trigger a "Save Product"
    * dialog requiring explicit confirmation before the form completes saving.
    */
+  /**
+   * Clicks Save, handles any OutSystems confirm dialog, and automatically recovers
+   * from "Required field!" errors caused by OutSystems partial refreshes (e.g. after
+   * CKEditor interaction or DPP/Brand Label checkbox toggles) resetting the Org Level
+   * server-side variables.
+   *
+   * Recovery logic: if "Required field!" appears after save, read the current DOM-selected
+   * values from the org level dropdowns (still visually intact), force genuine change events
+   * via forceRebindOrgLevels (blank → correct), and retry save once.
+   *
+   * @param preRecordedLevels - Optional org level values recorded BEFORE any partial
+   *   refresh (e.g. before CKEditor interaction). When provided these take precedence
+   *   over reading from the (potentially corrupt) DOM — essential for description saves
+   *   where CKEditor triggers a partial refresh that resets the L1 DOM value to blank.
+   */
+  async clickSaveWithOrgLevelRecovery(preRecordedLevels?: { l1: string; l2: string; l3: string }): Promise<void> {
+    await this.l.saveButton.click();
+    await this.handleConfirmDialogIfVisible();
+    await this.waitForOSLoad();
+
+    // Check whether OutSystems raised "Required field!" for org level dropdowns
+    const hasRequiredError = await this.l.requiredFieldError
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false);
+
+    if (hasRequiredError) {
+      // Prefer pre-recorded values (taken before partial refresh corrupted the DOM).
+      // Fall back to reading from DOM, but treat blank/sentinel values as empty.
+      const rawL1 = preRecordedLevels?.l1 ?? await this.getSelectedOrgLevel1().catch(() => '');
+      const rawL2 = preRecordedLevels?.l2 ?? await this.getSelectedOrgLevel2().catch(() => '');
+      const rawL3 = preRecordedLevels?.l3 ?? await this.getSelectedOrgLevel3().catch(() => '');
+
+      // Treat "- Select -" sentinel (OutSystems blank option) as empty
+      const blank = (v: string) => !v || v === '- Select -' || v.trim() === '-';
+      const level1 = blank(rawL1) ? '' : rawL1;
+      const level2 = blank(rawL2) ? '' : rawL2;
+      const level3 = blank(rawL3) ? '' : rawL3;
+
+      // Force OS to rebind the server variables and retry the save
+      await this.forceRebindOrgLevels(level1, level2, level3);
+      await this.l.saveButton.click();
+      await this.handleConfirmDialogIfVisible();
+      await this.waitForOSLoad();
+    }
+  }
+
   async clickSaveAndHandleConfirmDialog(): Promise<void> {
     await this.l.saveButton.click();
     await this.handleConfirmDialogIfVisible();
@@ -638,6 +912,11 @@ export class NewProductPage extends BasePage {
   async clickEditProductAndWaitForForm(): Promise<void> {
     await this.clickEditProduct();
     await this.expectEditModeVisible();
+    // Let all in-flight partial refreshes complete (org-level cascade AJAX calls)
+    // before tests start interacting — prevents CKEditor events from racing with
+    // a pending org-level load and clearing L1 on slower QA environments.
+    await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    await this.waitForOSLoad();
   }
 
   async getProductNameValue(): Promise<string> {
