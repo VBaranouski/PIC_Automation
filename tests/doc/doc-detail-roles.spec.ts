@@ -315,4 +315,48 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       await docDetailsPage.expectRolesGridColumnsVisible();
     });
   });
+
+  // ── DOC-ROLES-012 ─────────────────────────────────────────────────────────
+  test('should return to read-only view after editing Roles with all mandatory roles populated', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ROLES-012: When all mandatory roles are populated, clicking Save Changes (or Cancel) ' +
+      'from the Roles & Responsibilities edit mode must return the tab to read-only view ' +
+      'with the Roles grid and Edit Roles button visible.',
+    );
+
+    await test.step('Navigate to DOC Detail and open Roles & Responsibilities tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+    });
+
+    await test.step('Verify mandatory roles are already populated in the grid', async () => {
+      await docDetailsPage.expectRolesGridVisible();
+      await docDetailsPage.expectAllRoleRowsPresent();
+    });
+
+    await test.step('Enter edit mode via Edit Roles button', async () => {
+      await docDetailsPage.clickEditRoles();
+      await docDetailsPage.expectSaveRolesChangesButtonVisible();
+    });
+
+    await test.step('Save or cancel to return to read-only mode', async () => {
+      const isDisabled = await docDetailsPage.isSaveRolesChangesDisabled();
+      if (isDisabled) {
+        // Save Changes disabled when no modifications are made → cancel to return to read-only
+        await docDetailsPage.clickCancelRoles();
+      } else {
+        // Save Changes enabled → click it (no actual data changes were made)
+        await docDetailsPage.clickSaveRoles();
+      }
+    });
+
+    await test.step('Verify tab returned to read-only view with Edit Roles button and grid visible', async () => {
+      await docDetailsPage.expectEditRolesButtonVisible();
+      await docDetailsPage.expectRolesGridVisible();
+    });
+  });
 });

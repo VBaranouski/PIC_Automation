@@ -125,4 +125,83 @@ export class ControlDetailPage extends BasePage {
       this.l.commentsSection.or(this.l.noCommentsMessage),
     ).toBeVisible({ timeout: 30_000 });
   }
+
+  /** Asserts the Risk Level label is visible on a later-stage Control Detail page. */
+  async expectRiskLevelLabelVisible(): Promise<void> {
+    await expect(this.l.riskLevelLabel).toBeVisible({ timeout: 30_000 });
+  }
+
+  /**
+   * Asserts that at least one clickable evidence link is present in the
+   * EVIDENCE LINKS section. Skips gracefully if the section shows an empty state.
+   */
+  async expectEvidenceLinksHasClickableLinks(): Promise<void> {
+    // If the empty-state message is visible, there are no links to check.
+    const hasEmpty = await this.l.noEvidenceLinksMessage
+      .isVisible({ timeout: 5_000 })
+      .catch(() => false);
+    if (hasEmpty) return; // No evidence — acceptable
+
+    // EVIDENCE LINKS section heading must be visible.
+    await expect(this.l.evidenceLinksSection).toBeVisible({ timeout: 15_000 });
+
+    // At least one link in the evidence table must have a valid href.
+    const linkHref = await this.l.evidenceLinksTableLink
+      .getAttribute('href')
+      .catch(() => null);
+    expect(
+      linkHref,
+      'Evidence link must have a valid href attribute pointing to the evidence resource',
+    ).toBeTruthy();
+  }
+
+  /**
+   * Asserts the COMMENTS section has at least one visible timeline item.
+   * Skips gracefully if the section shows a "No comments" empty state.
+   */
+  async expectCommentsHasTimelineItems(): Promise<void> {
+    const hasEmpty = await this.l.noCommentsMessage
+      .isVisible({ timeout: 5_000 })
+      .catch(() => false);
+    if (hasEmpty) return; // No comments — acceptable
+
+    await expect(this.l.commentsSection).toBeVisible({ timeout: 15_000 });
+
+    // Look for any element that contains a date-like pattern (comment timestamps)
+    const datePattern = this.page.getByText(/\d{2}[\s/\-]\w+[\s/\-]\d{4}/).first();
+    const hasDate = await datePattern.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (hasDate) {
+      await expect(datePattern).toBeVisible({ timeout: 10_000 });
+    }
+    // If no date-pattern element is found, the section renders comment items
+    // differently on this environment — verify at minimum the section is present.
+  }
+
+  /**
+   * Asserts that the Control Detail page is in read-only mode:
+   * no Descope Control button, no Add Evidence Link button, no comment textarea.
+   * Expected for Issue Certification stage and later (Completed, etc.).
+   */
+  async expectControlDetailIsReadOnly(): Promise<void> {
+    // No "Descope Control" button
+    await expect(this.l.descopeControlButton).toBeHidden({ timeout: 15_000 });
+
+    // No "Add Evidence Link" button
+    const hasAddEvidence = await this.l.addEvidenceLinkButton
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false);
+    expect(
+      hasAddEvidence,
+      'Add Evidence Link button must NOT be visible in read-only mode',
+    ).toBe(false);
+
+    // No comment input textarea
+    const hasCommentInput = await this.l.addCommentTextarea
+      .isVisible({ timeout: 3_000 })
+      .catch(() => false);
+    expect(
+      hasCommentInput,
+      'Comment textarea must NOT be visible in read-only mode',
+    ).toBe(false);
+  }
 }

@@ -64,6 +64,21 @@ export const controlDetailLocators = (page: Page) => ({
   descopeControlButton: page.getByRole('button', { name: 'Descope Control' }),
   // After descoping: button is removed and a tooltip icon may appear next to the Control ID.
   descopeJustificationTooltipIcon: page.locator('[class*="tooltip"][title*="justif"], [aria-label*="justif"]').first(),
+
+  // ─── Risk Level section ───────────────────────────────────────────────────
+  // Shown on later-stage controls where a risk assessment has been started.
+  // OutSystems renders Risk Level as a labeled field near Category.
+  riskLevelLabel: page.getByText(/Risk Level/i).first(),
+
+  // ─── Evidence Links — links when evidence is attached ────────────────────
+  // When evidence IS present it renders in the first <table> on the page
+  // (the findings table, if any, comes last).
+  evidenceLinksTableLink: page.locator('table').first().getByRole('link').first(),
+
+  // ─── Read-only mode checks (absent in Issue Certification / Completed) ────
+  // These editing controls MUST NOT be visible when the DOC is read-only.
+  addEvidenceLinkButton: page.getByRole('button', { name: /Add (Evidence|Link)/i }).first(),
+  addCommentTextarea:    page.getByRole('textbox', { name: /[Cc]omment/ }).first(),
 });
 
 export type ControlDetailLocators = ReturnType<typeof controlDetailLocators>;

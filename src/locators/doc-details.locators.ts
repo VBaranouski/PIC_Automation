@@ -244,6 +244,11 @@ export const docDetailsLocators = (page: Page) => ({
   closedActionsLink: page.locator('table').filter({
     has: page.locator('th').filter({ hasText: 'CLOSED ACTIONS' }),
   }).first().locator('td').filter({ hasText: /\d+ of \d+/ }).first().getByRole('link').first(),
+
+  // ─── Certification Decision — Edit button (after a decision is saved) ────
+  // When a Proposed Decision is already saved the "Propose Decision" button is
+  // replaced by an "Edit" or "Edit Decision" button.
+  certEditDecisionButton: page.getByRole('button', { name: /^Edit( Decision)?$/i }).first(),
 });
 
 export type DocDetailsLocators = ReturnType<typeof docDetailsLocators>;

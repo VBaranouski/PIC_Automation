@@ -1121,5 +1121,153 @@ export class DocDetailsPage extends BasePage {
     }
     // If grid is not present, the section shows an inline empty message — acceptable
   }
+
+  // ==================== DOC Detail — Roles tab (save flow) ===================
+
+  /**
+   * Clicks the Save Changes button on the Roles & Responsibilities tab and waits
+   * for the page to settle back to read-only mode.
+   */
+  async clickSaveRoles(): Promise<void> {
+    await this.l.saveRolesChangesButton.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.saveRolesChangesButton.click();
+    await this.waitForOSLoad();
+  }
+
+  // ==================== DOC Detail — ITS Checklist (sort + popup) ============
+
+  /**
+   * Asserts that the ITS Checklist grid is sorted by Control ID ascending by default.
+   * Compares the text content of the first two data rows; skips gracefully if
+   * fewer than 2 controls are loaded.
+   */
+  async expectITSDefaultSortedByControlId(): Promise<void> {
+    const row0 = this.l.itsGridDataRow(0);
+    const row1 = this.l.itsGridDataRow(1);
+
+    const hasRow1 = await row1.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasRow1) return; // Fewer than 2 rows — skip gracefully
+
+    const id0 = ((await row0.locator('td').first().textContent()) ?? '').trim();
+    const id1 = ((await row1.locator('td').first().textContent()) ?? '').trim();
+    expect(
+      id0 <= id1,
+      `ITS grid row[0] Control ID "${id0}" should be ≤ row[1] "${id1}" (default ascending sort)`,
+    ).toBe(true);
+  }
+
+  /**
+   * Opens the Add Control popup, optionally selects the first control, then
+   * searches for a term that returns no results and verifies:
+   *  – "No results found" appears in the popup
+   *  – any existing selection count is still visible
+   *  – the Add Selected button remains enabled
+   * Closes the popup afterwards without adding any controls.
+   * Skips gracefully if the Add Control button is not visible.
+   */
+  async expectAddControlPopupNoResultsWithCountPreserved(): Promise<void> {
+    const addBtnVisible = await this.l.itsAddControlButton
+      .isVisible({ timeout: 10_000 })
+      .catch(() => false);
+    if (!addBtnVisible) return; // Add Control not visible — skip
+
+    await this.l.itsAddControlButton.click();
+    await this.waitForOSLoad();
+    await this.l.addControlPopup.waitFor({ state: 'visible', timeout: 15_000 });
+
+    const hasControls = await this.hasControlsInAddControlPopup();
+
+    if (hasControls) {
+      // Select the first control so we get a non-zero count
+      await this.selectFirstControlInPopup();
+      await this.expectSelectedCountVisible();
+    }
+
+    // Search for something that will never match
+    await this.l.addControlSearchInput.fill('ZZZNOMATCH_9999');
+    await this.waitForOSLoad();
+
+    // "No results found" must appear in the popup
+    await expect(this.l.addControlNoResultsMessage).toBeVisible({ timeout: 10_000 });
+
+    if (hasControls) {
+      // Selection count must still be displayed and Add Selected must be enabled
+      await this.expectSelectedCountVisible();
+      await this.expectAddSelectedButtonEnabled();
+    }
+
+    // Close the popup without adding anything
+    await this.l.addControlCloseButton.click();
+    await this.waitForOSLoad();
+  }
+
+  // ==================== DOC Detail — Certification Decision (additional) =====
+
+  /** Asserts the "Edit" button is visible on the Certification Decision tab
+   *  (shown when a Proposed Decision has already been saved). */
+  async expectCertEditDecisionButtonVisible(): Promise<void> {
+    await expect(this.l.certEditDecisionButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  /**
+   * Returns the number of data rows (tbody tr) in the DOC Approvals signatures
+   * table on the Certification Decision tab.
+   */
+  async getApproverDataRowCount(): Promise<number> {
+    return this.l.docApprovalsSignaturesTable.locator('tbody tr').count().catch(() => 0);
+  }
+
+  /** Asserts the Monitor Action Closure pipeline stage (tab 6) is NOT visible. */
+  async expectMonitorActionClosureStageHidden(): Promise<void> {
+    await expect(this.l.docPipelineTab6).toBeHidden({ timeout: 10_000 });
+  }
+
+  /**
+   * Clicks "Submit for Approval" and waits up to 10 s for a confirmation dialog
+   * to appear. Returns true if a dialog appeared; false if the button was
+   * disabled or no dialog appeared (direct submission or no-op).
+   * Does NOT submit — call dismissSubmitForApprovalPopup() to close the dialog.
+   */
+  async clickSubmitForApprovalAndExpectPopup(): Promise<boolean> {
+    await this.l.submitForApprovalButton.waitFor({ state: 'visible', timeout: 15_000 });
+    const isEnabled = await this.l.submitForApprovalButton.isEnabled().catch(() => false);
+    if (!isEnabled) return false;
+
+    await this.l.submitForApprovalButton.click();
+    await this.waitForOSLoad();
+
+    const popupVisible = await this.page
+      .getByRole('dialog')
+      .last()
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    return popupVisible;
+  }
+
+  /** Asserts a dialog (confirmation popup) is currently visible on the page. */
+  async expectSubmitForApprovalPopupVisible(): Promise<void> {
+    await expect(this.page.getByRole('dialog').last()).toBeVisible({ timeout: 15_000 });
+  }
+
+  /**
+   * Dismisses the Submit for Approval confirmation popup by clicking the
+   * Cancel / No button inside the currently visible dialog.
+   */
+  async dismissSubmitForApprovalPopup(): Promise<void> {
+    const cancelBtn = this.page
+      .getByRole('dialog')
+      .last()
+      .getByRole('button', { name: /Cancel|No/i })
+      .first();
+    await cancelBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await cancelBtn.click();
+    await this.waitForOSLoad();
+  }
+
+  /** Asserts that a "Provide Signature" button is visible for the current user. */
+  async expectProvideSignatureButtonVisible(): Promise<void> {
+    await expect(this.l.provideSignatureButton).toBeVisible({ timeout: 15_000 });
+  }
 }
 

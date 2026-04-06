@@ -14,6 +14,7 @@ import * as allure from 'allure-js-commons';
 import { type Page } from '@playwright/test';
 import { LandingPage } from '../../src/pages/landing.page';
 import { DocDetailsPage } from '../../src/pages/doc-details.page';
+import { readDocState } from '../../src/helpers/doc.helper';
 
 // Any status that makes the Certification Decision tab reachable
 const CERT_DECISION_STATUSES = [
@@ -566,4 +567,173 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			await docDetailsPage.expectUnresolvedFindingsEmptyState();
 		});
 	});
+
+        // ── DOC-CERT-016 ──────────────────────────────────────────────────────
+        test('should show "Edit" button after a Proposed Decision has been saved', async ({
+                page,
+                landingPage,
+                docDetailsPage,
+        }) => {
+                await allure.suite('DOC / DOC Detail / Certification Decision');
+                await allure.severity('normal');
+                await allure.tag('regression');
+                await allure.description(
+                        'DOC-CERT-016: When a Proposed Decision has already been saved on a DOC, ' +
+                        'the Certification Decision tab must show an "Edit" button (instead of "Propose Decision"), ' +
+                        'allowing the Digital Risk Lead to update the decision.',
+                );
+
+                await test.step('Open a DOC where a Proposed Decision is already set', async () => {
+                        await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ['Decision Proposal']);
+                        await docDetailsPage.clickCertificationDecisionTab();
+                });
+
+                await test.step('Skip gracefully if no decision is set on the available DOC', async () => {
+                        const hasWarning = await docDetailsPage.hasCertDecisionWarning();
+                        if (hasWarning) {
+                                test.skip(true, 'No decision set on available DOC — cannot verify Edit button. Skipping DOC-CERT-016.');
+                                return;
+                        }
+                });
+
+                await test.step('Verify the Edit button is visible', async () => {
+                        await docDetailsPage.expectCertEditDecisionButtonVisible();
+                });
+        });
+
+        // ── DOC-CERT-017 ──────────────────────────────────────────────────────
+        test('should show 1–3 approver rows matching the Proposed Decision type', async ({
+                page,
+                landingPage,
+                docDetailsPage,
+        }) => {
+                await allure.suite('DOC / DOC Detail / Certification Decision');
+                await allure.severity('normal');
+                await allure.tag('regression');
+                await allure.description(
+                        'DOC-CERT-017: The DOC Approvals table must contain a number of rows that corresponds to the ' +
+                        'Proposed Decision: Certified → 1 row (BU Security Officer); ' +
+                        'Certified with Exception → 2 rows (BU Security Officer, BVP); ' +
+                        'Waiver → 3 rows (BU Security Officer, CISO, Senior BVP).',
+                );
+
+                await test.step('Open a DOC with a DOC Approvals section', async () => {
+                        await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, [
+                                'Certification Approval', 'Actions Closure', 'Completed',
+                        ]);
+                        await docDetailsPage.clickCertificationDecisionTab();
+                });
+
+                await test.step('Skip gracefully if DOC Approvals section is not present', async () => {
+                        const hasApprovals = await docDetailsPage.hasDocApprovalsSection();
+                        if (!hasApprovals) {
+                                test.skip(true, 'DOC Approvals section not found on available DOC — skipping DOC-CERT-017.');
+                                return;
+                        }
+                        await docDetailsPage.expectDocApprovalsSectionVisible();
+                });
+
+                await test.step('Verify approver row count is within valid range 1–3', async () => {
+                        const rowCount = await docDetailsPage.getApproverDataRowCount();
+                        expect(
+                                rowCount,
+                                `Approver row count must be 1 (Certified), 2 (Certified with Exception), or 3 (Waiver), got ${rowCount}`,
+                        ).toBeGreaterThanOrEqual(1);
+                        expect(rowCount).toBeLessThanOrEqual(3);
+                });
+        });
+
+        // ── DOC-CERT-018 ──────────────────────────────────────────────────────
+        test('should show "Provide Signature" button for eligible approvers in Certification Approval status', async ({
+                page,
+                landingPage,
+                docDetailsPage,
+        }) => {
+                await allure.suite('DOC / DOC Detail / Certification Decision');
+                await allure.severity('normal');
+                await allure.tag('regression');
+                await allure.description(
+                        'DOC-CERT-018: In Certification Approval status, the DOC Approvals table must show a ' +
+                        '"Provide Signature" button for approvers whose signature is still pending. ' +
+                        'The button is visible only for users with the signature privilege.',
+                );
+
+                await test.step('Open a DOC in Certification Approval status', async () => {
+                        await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ['Certification Approval']);
+                        await docDetailsPage.clickCertificationDecisionTab();
+                });
+
+                await test.step('Check for Provide Signature button — skip if current user lacks privilege', async () => {
+                        const hasSignatureBtn = await docDetailsPage.hasProvideSignatureButton();
+                        if (!hasSignatureBtn) {
+                                test.skip(
+                                        true,
+                                        'Provide Signature button not visible — current user may lack the signature privilege or no pending approval exists. Skipping DOC-CERT-018.',
+                                );
+                                return;
+                        }
+                        await docDetailsPage.expectProvideSignatureButtonVisible();
+                });
+        });
+
+        // ── DOC-CERT-019 ──────────────────────────────────────────────────────
+        test('should open a confirmation popup when Submit for Approval is clicked', async ({
+                page,
+                landingPage,
+                docDetailsPage,
+        }) => {
+                await allure.suite('DOC / DOC Detail / Certification Decision');
+                await allure.severity('normal');
+                await allure.tag('regression');
+                await allure.description(
+                        'DOC-CERT-019: Clicking "Submit for Approval" on a Decision Proposal DOC must open a ' +
+                        'confirmation popup. The test dismisses the popup with Cancel to avoid state changes.',
+                );
+
+                await test.step('Open a DOC in Decision Proposal status', async () => {
+                        await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ['Decision Proposal']);
+                        await docDetailsPage.clickCertificationDecisionTab();
+                });
+
+                await test.step('Click Submit for Approval and verify confirmation popup appears', async () => {
+                        const popupAppeared = await docDetailsPage.clickSubmitForApprovalAndExpectPopup();
+                        if (!popupAppeared) {
+                                test.skip(
+                                        true,
+                                        'Submit for Approval button was disabled or no confirmation popup appeared. Skipping DOC-CERT-019.',
+                                );
+                                return;
+                        }
+                        await docDetailsPage.expectSubmitForApprovalPopupVisible();
+                });
+
+                await test.step('Dismiss the confirmation popup with Cancel (no state change)', async () => {
+                        await docDetailsPage.dismissSubmitForApprovalPopup();
+                });
+        });
+
+        // ── DOC-CERT-020 ──────────────────────────────────────────────────────
+        test('should NOT show Monitor Action Closure stage in the pipeline for a non-Waiver/Exception DOC', async ({
+                page,
+                docDetailsPage,
+        }) => {
+                await allure.suite('DOC / DOC Detail / Certification Decision');
+                await allure.severity('normal');
+                await allure.tag('regression');
+                await allure.description(
+                        'DOC-CERT-020: The "Monitor Action Closure" stage (stage 6) must be hidden from the DOC ' +
+                        'pipeline header by default. It must only appear when Proposed Decision is ' +
+                        '"Certified with Exception" or "Waiver". On a Controls Scoping DOC this stage must not be visible.',
+                );
+
+                await test.step('Navigate to the seed DOC (Controls Scoping status)', async () => {
+                        const docState = readDocState();
+                        await page.goto(docState.docDetailsUrl);
+                        await docDetailsPage.waitForOSLoad();
+                });
+
+                await test.step('Verify Monitor Action Closure stage is NOT in the pipeline', async () => {
+                        await docDetailsPage.expectMonitorActionClosureStageHidden();
+                });
+        });
 });

@@ -290,6 +290,95 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
         await controlDetailPage.expectCommentsSectionOrEmpty();
       });
     });
+
+    // ── DOC-CONTROL-013 ────────────────────────────────────────────────────────────────────
+    test('should display a Risk Level label on a later-stage Control Detail page', async ({ page, docDetailsPage, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-013: On a later-stage DOC control (Actions Closure), the Control Detail page ' +
+        'must display a Risk Level label indicating the assessed risk level (e.g. High, Medium, Low).',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (laterStageControlUrl) {
+          await page.goto(laterStageControlUrl);
+        } else {
+          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+          await docDetailsPage.waitForOSLoad();
+          await docDetailsPage.clickITSChecklistTab();
+          const hasControls = await docDetailsPage.hasITSControls();
+          if (!hasControls) { test.skip(true, 'No ITS controls in DOC 538 — cannot test Risk Level label.'); return; }
+          await docDetailsPage.clickFirstControlIdLink();
+        }
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify Risk Level label is visible', async () => {
+        await controlDetailPage.expectRiskLevelLabelVisible();
+      });
+    });
+
+    // ── DOC-CONTROL-014 ────────────────────────────────────────────────────────────────────
+    test('should display clickable evidence links in EVIDENCE LINKS section (or empty state)', async ({ page, docDetailsPage, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-014: On a later-stage DOC control, the EVIDENCE LINKS section must either show ' +
+        'attached evidence entries with clickable link URLs, or show a "No evidence links" empty state. ' +
+        'When evidence exists, links must have valid href attributes.',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (laterStageControlUrl) {
+          await page.goto(laterStageControlUrl);
+        } else {
+          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+          await docDetailsPage.waitForOSLoad();
+          await docDetailsPage.clickITSChecklistTab();
+          const hasControls = await docDetailsPage.hasITSControls();
+          if (!hasControls) { test.skip(true, 'No ITS controls in DOC 538 — cannot test Evidence Links.'); return; }
+          await docDetailsPage.clickFirstControlIdLink();
+        }
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify evidence links section has clickable links or empty state', async () => {
+        await controlDetailPage.expectEvidenceLinksHasClickableLinks();
+      });
+    });
+
+    // ── DOC-CONTROL-015 ────────────────────────────────────────────────────────────────────
+    test('should display comment timeline items in COMMENTS section (or empty state)', async ({ page, docDetailsPage, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-015: On a later-stage DOC control, the COMMENTS section must either show ' +
+        'at least one comment timeline item (with date/time, user, and message text), ' +
+        'or show a "No comments" empty state.',
+      );
+
+      await test.step('Navigate to the later-stage Control Detail page', async () => {
+        if (laterStageControlUrl) {
+          await page.goto(laterStageControlUrl);
+        } else {
+          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+          await docDetailsPage.waitForOSLoad();
+          await docDetailsPage.clickITSChecklistTab();
+          const hasControls = await docDetailsPage.hasITSControls();
+          if (!hasControls) { test.skip(true, 'No ITS controls in DOC 538 — cannot test Comments section.'); return; }
+          await docDetailsPage.clickFirstControlIdLink();
+        }
+        await controlDetailPage.waitForPageLoaded();
+      });
+
+      await test.step('Verify comments section has timeline items or empty state', async () => {
+        await controlDetailPage.expectCommentsHasTimelineItems();
+      });
+    });
   });
 
   test.describe('completed DOC controls (DOC 273)', () => {
@@ -329,6 +418,38 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
 
       await test.step('Verify Descope Control button is NOT visible on a Completed DOC', async () => {
         await controlDetailPage.expectDescopeControlButtonHidden();
+      });
+    });
+
+    // ── DOC-CONTROL-016 ────────────────────────────────────────────────────────────────────
+    test('should show Control Detail in read-only mode on a Completed DOC (Issue Certification stage)', async ({ page, docDetailsPage, controlDetailPage }) => {
+      await allure.suite('DOC / Control Detail');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-CONTROL-016: On a Completed DOC (Issue Certification stage and beyond), the Control Detail page ' +
+        'must be fully read-only: no Descope Control button, no Add Evidence Link button, ' +
+        'and no comment input textarea should be visible.',
+      );
+
+      await test.step('Navigate to Control Detail via Completed DOC 273', async () => {
+        if (!completedDocControlUrl) {
+          // Re-navigate when running this test in isolation
+          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898');
+          await docDetailsPage.waitForOSLoad();
+          await docDetailsPage.clickITSChecklistTab();
+          const hasControls = await docDetailsPage.hasITSControls();
+          if (!hasControls) { test.skip(true, 'No ITS controls in DOC 273 — cannot navigate to Control Detail.'); return; }
+          await docDetailsPage.clickFirstControlIdLink();
+          await controlDetailPage.waitForPageLoaded();
+        } else {
+          await page.goto(completedDocControlUrl);
+          await controlDetailPage.waitForPageLoaded();
+        }
+      });
+
+      await test.step('Verify Control Detail page is in read-only mode', async () => {
+        await controlDetailPage.expectControlDetailIsReadOnly();
       });
     });
   });

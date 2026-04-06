@@ -385,4 +385,103 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       await docDetailsPage.expectITSSecurityControlsTitleLoaded();
     });
   });
+
+  // ── DOC-ITS-013 ───────────────────────────────────────────────────────────
+  test('should display ITS Checklist controls sorted by Control ID ascending by default', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ITS-013: The ITS Checklist grid must load controls sorted by Control ID in ascending ' +
+      'order by default (as loaded from BackOffice) without any user interaction.',
+    );
+
+    await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickITSChecklistTab();
+    });
+
+    const hasControls = await docDetailsPage.hasITSControls();
+    if (!hasControls) {
+      test.skip(true, 'No ITS controls loaded — skipping default sort test.');
+      return;
+    }
+
+    await test.step('Verify ITS grid first row Control ID ≤ second row (ascending order)', async () => {
+      await docDetailsPage.expectITSDefaultSortedByControlId();
+    });
+  });
+
+  // ── DOC-ITS-014 ───────────────────────────────────────────────────────────
+  test('should show "No results found" in Add Control popup and preserve selection count when search matches nothing', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ITS-014: In the Add Control popup, entering a search term that matches no controls must ' +
+      'display "No results found". If controls were already selected before the search, ' +
+      'the selection count and enabled Add Selected button must remain visible.',
+    );
+
+    await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickITSChecklistTab();
+    });
+
+    await test.step('Verify Add Control popup no-results with preserved count', async () => {
+      await docDetailsPage.expectAddControlPopupNoResultsWithCountPreserved();
+    });
+  });
+
+  // ── DOC-ITS-015 (fixme: data-state) ────────────────────────────────────────
+  test.fixme('"No ITS Controls added yet" empty state appears with Add Control button when no controls are in scope', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.description(
+      'DOC-ITS-015: When a newly-initiated DOC has no controls in scope yet, the ITS Checklist tab ' +
+      'must show "No ITS Controls added yet" message with an Add Control button. ' +
+      'Blocked: requires a DOC with zero controls in scope — find or create such a DOC.',
+    );
+  });
+
+  // ── DOC-ITS-016 (fixme: hard to automate reliably) ─────────────────────────
+  test.fixme('lazy loading loads additional controls as the user scrolls down', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.description(
+      'DOC-ITS-016: Scrolling to the bottom of the ITS Checklist grid must trigger lazy loading ' +
+      'and append additional controls. ' +
+      'Blocked: requires a DOC with enough controls to exceed one page; scroll-based lazy loading is environment-dependent.',
+    );
+  });
+
+  // ── DOC-ITS-017 (fixme: destructive) ───────────────────────────────────────
+  test.fixme('adding selected controls from Add Control popup appends them to the ITS Checklist table', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.description(
+      'DOC-ITS-017: Selecting controls in the Add Control popup and clicking Add Selected must append ' +
+      'those controls to the ITS Checklist table. ' +
+      'Skipped: destructive action — changes DOC data permanently.',
+    );
+  });
+
+  // ── DOC-ITS-018 (fixme: data-state) ────────────────────────────────────────
+  test.fixme('previously descoped controls appear greyed in Add Control popup with tooltip showing justification', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.description(
+      'DOC-ITS-018: Controls that were previously descoped must appear greyed out in the Add Control ' +
+      'popup with a tooltip icon showing the descope justification. ' +
+      'Blocked: requires a DOC that has at least one descoped control — use test data with pre-descoped controls.',
+    );
+  });
+
+  // ── DOC-ITS-019 (fixme: destructive) ───────────────────────────────────────
+  test.fixme('confirming descope in Unscope popup removes the control from the ITS Checklist table', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / ITS Checklist');
+    await allure.description(
+      'DOC-ITS-019: Filling the Unscope ITS Control popup justification and clicking Descope must ' +
+      'remove the control from the ITS Checklist table. ' +
+      'Skipped: destructive action — permanently removes a control from the DOC.',
+    );
+  });
 });
