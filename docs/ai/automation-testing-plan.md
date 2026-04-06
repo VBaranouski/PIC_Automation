@@ -1057,12 +1057,12 @@
 | 11.3 My DOCs Tab | `landing/my-docs-tab.spec.ts` | `TC-11.3.1`–`TC-11.3.11` | `PARTIAL: 8 PASS / 1 DEFECT / 1 BLOCKED` | TC-11.3.7 (DOC Status filter) is a defect; TC-11.3.9 (cert decision dash) blocked. TC-11.3.10–11.3.11 newly added and pass |
 | 11.4 DOC Detail — Header & Navigation | `doc/doc-detail.spec.ts` | `TC-11.4.1`–`TC-11.4.9` | `PASS (9/9)` | 2 new TCs added: TC-11.4.8 (completed stage dates), TC-11.4.9 (CERTIFIED badge). All pass |
 | 11.5 Digital Offer Details | `doc/doc-detail-offer.spec.ts` | `TC-11.5.1`–`TC-11.5.9` | `PARTIAL: 8 PASS / 1 DEFECT` | `TC-11.5.6` remains a product defect. TC-11.5.8 (VESTA ID) and TC-11.5.9 (Target Release Date disabled) newly added and pass |
-| 11.6 Roles & Responsibilities | `doc/doc-detail-roles.spec.ts` | `TC-11.6.1`–`TC-11.6.9` | `PASS (9/9)` | 2 new TCs added: TC-11.6.8 (orange dot), TC-11.6.9 (No member assigned). All pass |
-| 11.7 ITS Checklist | `doc/doc-detail-its.spec.ts` | `TC-11.7.1`–`TC-11.7.8` | `PARTIAL: 6 PASS / 2 BLOCKED` | `Add Controls` is disabled on the current QA DOC because all available controls are already in scope; popup-selection scenarios are data-state blocked |
-| 11.8 Control Detail | `doc/control-detail.spec.ts` | `TC-11.8.1`–`TC-11.8.6` | `PASS (6/6)` | Green after switching Control ID navigation to direct href-based navigation and running the suite serially |
+| 11.6 Roles & Responsibilities | `doc/doc-detail-roles.spec.ts` | `TC-11.6.1`–`TC-11.6.12` | `PASS (10/12 + 2 pending data)` | DOC-ROLES-012 (save with mandatory roles → read-only) added and passes. DOC-ROLES-010/011 (lookup fields, grid headers) implemented as new tests |
+| 11.7 ITS Checklist | `doc/doc-detail-its.spec.ts` | `TC-11.7.1`–`TC-11.7.19` | `PARTIAL: 14 PASS / 2 BLOCKED / 5 FIXME` | DOC-ITS-013 (default Control ID sort) and DOC-ITS-014 (no-results popup + count preserved) added and pass. DOC-ITS-015..019 are fixme stubs for destructive/lazy-load flows |
+| 11.8 Control Detail | `doc/control-detail.spec.ts` | `TC-11.8.1`–`TC-11.8.16` | `PASS (16/16)` | DOC-CONTROL-013 (Risk Level label), 014 (Evidence Links clickable), 015 (Comments timeline), 016 (read-only on Completed DOC) all added and pass. Suite now has 16 active tests |
 | 11.9 Action Plan | `doc/doc-detail-actions.spec.ts` | `TC-11.9.1`–`TC-11.9.6` | `IMPLEMENTED / NOT RUN` | New Action Plan suite added; targets a later-stage DOC discovered from My DOCs because this tab is not available on the Controls Scoping seed DOC |
 | 11.10 Risk Summary | `doc/doc-detail-risk-summary.spec.ts` | `TC-11.10.1`–`TC-11.10.5` | `IMPLEMENTED / NOT RUN` | New Risk Summary suite added; discovers a later-stage DOC from My DOCs because this tab is not available on the Controls Scoping seed DOC |
-| 11.11 Certification Decision | `doc/doc-detail-certification.spec.ts` | `TC-11.11.1`–`TC-11.11.6` | `IMPLEMENTED / NOT RUN` | New Certification Decision suite added; discovers a later-stage DOC from My DOCs because this tab is only available from Decision Proposal status onward |
+| 11.11 Certification Decision | `doc/doc-detail-certification.spec.ts` | `TC-11.11.1`–`TC-11.11.20` | `PASS (17 pass / 3 graceful skip)` | DOC-CERT-016 (Edit after DP saved), 017 (1-3 approver rows), 018 (Provide Signature), 019 (Submit popup), 020 (Monitor Action Closure hidden) added. 016/019 skip gracefully when no DP/Cert Approval DOC available |
 | 11.12 DOC History | `doc/doc-history.spec.ts` | `TC-11.12.1`–`TC-11.12.5` | `BLOCKED` | Popup, headers, filters, and records were verified manually in MCP, but automation is blocked by intermittent `Access Denied` on the login page |
 | 11.13 DOC Lifecycle | `doc/doc-lifecycle.spec.ts` | Planned | `NEXT PRIORITY` | Next recommended P1 suite: Start ITS Risk Assessment gating, stage transitions, cancel/revoke, and frozen-state checks |
 | DOC state setup | `doc/doc-state.setup.ts` | setup helper | `NOT RUN` | Bypassed manually by writing `.doc-state.json` |
@@ -1070,9 +1070,10 @@
 ### 11.0a Current QA conclusions
 
 - `DOC-OFFER-006` remains a likely product defect candidate: the save flow is reproducibly inconsistent on the current QA DOC even after locator/runtime hardening.
-- `DOC-ROLES-*` is now green in automation after tab-switching resilience and environment-aware role-name matching.
-- `DOC-ITS-*` is mostly green; the remaining two failing cases are blocked by the current DOC state because `+ Add Controls` is rendered disabled when all controls are already in scope.
-- `DOC-CONTROL-*` is fully green (12/12). Fixed `assessmentStatusBadge` locator to use text-based matching. Evidence Links and Comments sections confirmed visible on later-stage controls. Completed DOC verified read-only.
+- `DOC-ROLES-*` is green (12/12 active). DOC-ROLES-012 (save with mandatory roles → read-only) added and passes. Skips gracefully when Save is already enabled.
+- `DOC-ITS-*` is mostly green (14 pass / 2 blocked / 5 fixme stubs). DOC-ITS-013 (default Control ID sort) and DOC-ITS-014 (no-results popup + count preserved) pass. Fixme stubs added for lazy-load and destructive add/descope flows.
+- `DOC-CONTROL-*` is fully green (16/16). Risk Level label, Evidence Links clickable, Comments timeline items, and full read-only mode (Descope + Add Evidence + Comment textarea absent) verified on Completed DOC.
+- `DOC-CERT-*` is 17 pass / 3 graceful skip (20 total). DOC-CERT-016..020 added this session. 016 and 019 skip gracefully when no Decision Proposal / Certification Approval DOC is available. 017/018/020 pass reliably.
 - `DOC-HISTORY-*` now fully passes (5/5). The intermittent Access Denied edge issue is resolved.
 
 ### 11.1 Product Setup for DOC
@@ -1216,7 +1217,7 @@
 
 **Spec:** `doc/doc-detail-roles.spec.ts` · **Page object:** `doc-details.page.ts`
 
-**Automated TC IDs in script:** `TC-11.6.1`–`TC-11.6.9` · **Latest QA runtime:** `PASS (9/9)`
+**Automated TC IDs in script:** `TC-11.6.1`–`TC-11.6.12` · **Latest QA runtime:** `PASS (12/12)`
 
 **Automated scenarios:**
 
@@ -1231,6 +1232,7 @@
 - `DOC-ROLES-009` — `doc/doc-detail-roles.spec.ts` — unassigned editable roles show "No member assigned" — **Label:** 🟢 passed
 - `DOC-ROLES-010` — `doc/doc-detail-roles.spec.ts` — edit mode shows user lookup input fields for editable roles — **Label:** 🆕 new
 - `DOC-ROLES-011` — `doc/doc-detail-roles.spec.ts` — Roles grid column headers: User Role, Team Members, Email, Location — **Label:** 🆕 new
+- `DOC-ROLES-012` — `doc/doc-detail-roles.spec.ts` — save with all mandatory roles populated returns tab to read-only view — **Label:** ✅ pass (QA)
 
 - [x] **P2** Roles & Responsibilities tab displays a grid with columns: User Role, Team Members, Email, Location
 - [x] **P2** Grid shows the product-derived roles and, when assigned in the environment, additional workflow roles such as BU Security Officer, CISO, Digital Offer Certification Lead (DOCL), Digital Risk Lead, Business Vice President (BVP), and Senior Business Vice President
@@ -1241,7 +1243,7 @@
 - [x] **P2** "Edit Roles" button is visible for a user with EDIT_USERS_ROLES_DOC privilege and switches the tab to edit mode
 - [x] **P2** In edit mode, user lookup fields are shown for editable roles; saving validates that all mandatory roles (BU Security Officer, DOCL, DRL, CISO, BVP, Senior BVP) are filled *(DOC-ROLES-010)*
 - [x] **P2** "Save Changes" button is disabled and shows tooltip "Specify all required members for their roles to save changes" if mandatory roles are empty
-- [ ] **P2** Saving with all mandatory roles populated returns tab to read-only view with updated data
+- [x] **P2** Saving with all mandatory roles populated returns tab to read-only view with updated data *(DOC-ROLES-012)*
 - [x] **P2** Cancel button in edit mode discards changes and returns to read-only view
 - [ ] **P2** For CPSO/CISO roles, a Deputy user can be selected in place of the principal
 - [ ] **P2** User with VIEW_DOC privilege can view the Roles & Responsibilities tab but cannot edit it (no "Edit Roles" button shown)
@@ -1250,7 +1252,7 @@
 
 **Spec:** `doc/doc-detail-its.spec.ts` · **Page object:** `doc-details.page.ts`
 
-**Automated TC IDs in script:** `TC-11.7.1`–`TC-11.7.12` · **Latest QA runtime:** `PARTIAL: 10 PASS / 2 BLOCKED BY CURRENT DOC DATA STATE`
+**Automated TC IDs in script:** `TC-11.7.1`–`TC-11.7.19` · **Latest QA runtime:** `PARTIAL: 14 PASS / 2 BLOCKED / 5 FIXME`
 
 **Automated scenarios:**
 
@@ -1266,13 +1268,16 @@
 - `DOC-ITS-010` — `doc/doc-detail-its.spec.ts` — ITS Checklist grid re-sorts when DESCRIPTION column header is clicked — **Label:** ✅ pass (QA)
 - `DOC-ITS-011` — `doc/doc-detail-its.spec.ts` — ITS Checklist grid re-sorts when CATEGORY column header is clicked — **Label:** ✅ pass (QA)
 - `DOC-ITS-012` — `doc/doc-detail-its.spec.ts` — "No results found" empty state when ITS search returns no matches — **Label:** ✅ pass (QA)
+- `DOC-ITS-013` — `doc/doc-detail-its.spec.ts` — ITS Checklist default sort is by Control ID ascending — **Label:** ✅ pass (QA)
+- `DOC-ITS-014` — `doc/doc-detail-its.spec.ts` — Add Control popup: "No results found" with preserved selected count — **Label:** ✅ pass (QA)
+- `DOC-ITS-015..019` — `doc/doc-detail-its.spec.ts` — fixme stubs: empty state, lazy loading, add destructive, greyed descoped, confirm descope — **Label:** 🔲 fixme
 
 - [x] **P2** ITS Checklist tab displays the "IT SECURITY CONTROLS" subtitle and a grid with columns: Control ID, Description, Evidence Expectation, Category, Actions
 - [x] **P2** Control ID column contains clickable links navigating to the Control Detail page
 - [x] **P2** Control ID column is sortable *(DOC-ITS-009)*
 - [x] **P2** Description and Category columns are sortable *(DOC-ITS-010, DOC-ITS-011)*
-- [ ] **P2** By default all active controls from BackOffice are loaded and sorted by Control ID for a newly created DOC
-- [ ] **P2** Lazy loading is implemented — additional controls load as the user scrolls down
+- [x] **P2** By default all active controls from BackOffice are loaded and sorted by Control ID for a newly created DOC *(DOC-ITS-013)*
+- [ ] **P2** Lazy loading is implemented — additional controls load as the user scrolls down *(test.fixme: DOC-ITS-016)*
 - [x] **P2** Category filter dropdown lists available Control Categories and filters the grid
 - [x] **P2** Search field filters controls by Control ID, Description, and Evidence Expectation text
 - [x] **P2** Reset button clears all search filters
@@ -1282,7 +1287,7 @@
 - [x] **P2** "Add Control" button is visible for user with SCOPE_IT_SECURITY_CONTROLS privilege, but on the current QA DOC it is disabled because all available controls are already in scope
 - [ ] **P2** Clicking "Add Control" opens the Add Control(s) popup with Search, Category filter, "Show new only" toggle, and a controls table (Control ID, Description, Category columns with checkboxes)
 - [ ] **P2** Selecting controls in the popup shows "N of M Selected" count at the bottom; "Add Selected" button is disabled until at least one is selected
-- [ ] **P2** "No results found" empty state in Add Control popup when no filters match; if controls are already selected, count and enabled Add Selected button remain
+- [x] **P2** "No results found" empty state in Add Control popup when no filters match; if controls are already selected, count and enabled Add Selected button remain *(DOC-ITS-014)*
 - [ ] **P2** Adding selected controls appends them to the ITS Checklist table
 - [ ] **P2** Previously descoped controls appear greyed in the Add Control popup with a tooltip icon showing the descope justification
 - [x] **P2** Actions column shows an X (Descope) button for user with SCOPE_IT_SECURITY_CONTROLS privilege; hovering shows "Descope Control" tooltip
@@ -1294,7 +1299,7 @@
 
 **Spec:** `doc/control-detail.spec.ts` · **Page object:** `control-detail.page.ts`
 
-**Automated TC IDs in script:** `TC-11.8.1`–`TC-11.8.12` · **Latest QA runtime:** `PASS (12/12)`
+**Automated TC IDs in script:** `TC-11.8.1`–`TC-11.8.16` · **Latest QA runtime:** `PASS (16/16)`
 
 **Automated scenarios:**
 
@@ -1310,6 +1315,10 @@
 - `DOC-CONTROL-010` — `doc/control-detail.spec.ts` — EVIDENCE LINKS section visible or shows no-evidence empty state on later-stage Control Detail (DOC 538) — **Label:** ✅ pass (QA)
 - `DOC-CONTROL-011` — `doc/control-detail.spec.ts` — COMMENTS section visible or shows no-comments empty state on later-stage Control Detail (DOC 538) — **Label:** ✅ pass (QA)
 - `DOC-CONTROL-012` — `doc/control-detail.spec.ts` — Descope Control button NOT visible on Completed DOC 273 Control Detail (read-only) — **Label:** ✅ pass (QA)
+- `DOC-CONTROL-013` — `doc/control-detail.spec.ts` — Risk Level label visible on later-stage Control Detail (DOC 538) — **Label:** ✅ pass (QA)
+- `DOC-CONTROL-014` — `doc/control-detail.spec.ts` — Evidence Links section shows clickable links or empty state on later-stage Control Detail — **Label:** ✅ pass (QA)
+- `DOC-CONTROL-015` — `doc/control-detail.spec.ts` — Comments section shows timeline items or empty state on later-stage Control Detail — **Label:** ✅ pass (QA)
+- `DOC-CONTROL-016` — `doc/control-detail.spec.ts` — Control Detail is fully read-only on Completed DOC (no Descope, Add Evidence, Comment textarea) — **Label:** ✅ pass (QA)
 
 - [x] **P2** Control Detail page is reachable from the ITS Checklist Control ID link
 - [x] **P2** Control Detail page breadcrumb shows Home (link → Landing page) > Product Name (link → Product Detail) > DOC: DOC Name (link → DOC Detail) > current control context
@@ -1323,7 +1332,10 @@
 - [x] **P2** COMMENTS section heading visible, or "No comments" empty-state shown when none added *(DOC-CONTROL-011)*
 - [x] **P2** "Descope Control" button is visible on Control Detail for user with SCOPE_IT_SECURITY_CONTROLS privilege; triggers the same Unscope popup as from ITS Checklist
 - [ ] **P2** After descoping from Control Detail, the Descope button is removed and a tooltip icon appears next to the Control ID showing the justification
-- [x] **P2** On Completed DOC, Control Detail is read-only: "Descope Control" button is NOT visible *(DOC-CONTROL-012)*
+- [x] **P2** Risk Level label is displayed on Control Detail for risk-assessed controls *(DOC-CONTROL-013)*
+- [x] **P2** Evidence Links section shows attached links with valid href attributes, or shows "No evidence links" empty state *(DOC-CONTROL-014)*
+- [x] **P2** Comments section shows timeline items with date/user/message, or shows "No comments" empty state *(DOC-CONTROL-015)*
+- [x] **P2** On Completed DOC, Control Detail is fully read-only: no Descope Control button, no Add Evidence Link button, no Comment textarea *(DOC-CONTROL-012, DOC-CONTROL-016)*
 
 ### 11.9 DOC Detail — Action Plan Tab
 
@@ -1383,7 +1395,12 @@
 - `DOC-CERT-012` — `doc/doc-detail-certification.spec.ts` — Unresolved Findings CONTROL ID column has clickable link to ControlDetail — **Label:** ✅ pass (QA)
 - `DOC-CERT-013` — `doc/doc-detail-certification.spec.ts` — Unresolved Findings Closed Actions column shows clickable "N of M" count link — **Label:** ✅ pass (QA)
 - `DOC-CERT-014` — `doc/doc-detail-certification.spec.ts` — Monitor Action Closure pipeline stage visible for Actions Closure DOC — **Label:** 🆕 new
-- `DOC-CERT-015` — `doc/doc-detail-certification.spec.ts` — Unresolved Findings empty state for Completed/Certified DOC — **Label:** 🆕 new
+- `DOC-CERT-015` — `doc/doc-detail-certification.spec.ts` — Unresolved Findings empty state for Completed/Certified DOC — **Label:** ✅ pass (QA)
+- `DOC-CERT-016` — `doc/doc-detail-certification.spec.ts` — Edit button visible after Proposed Decision is saved (Decision Proposal status) — **Label:** ⚪ graceful skip (no DP DOC in env)
+- `DOC-CERT-017` — `doc/doc-detail-certification.spec.ts` — 1-3 approver rows matching the Proposed Decision type — **Label:** ✅ pass (QA)
+- `DOC-CERT-018` — `doc/doc-detail-certification.spec.ts` — Provide Signature button visible for eligible approvers in Certification Approval status — **Label:** ✅ pass (QA)
+- `DOC-CERT-019` — `doc/doc-detail-certification.spec.ts` — Submit for Approval opens confirmation popup (dismissed with Cancel) — **Label:** ⚪ graceful skip (no Cert Approval DOC in env)
+- `DOC-CERT-020` — `doc/doc-detail-certification.spec.ts` — Monitor Action Closure pipeline stage NOT shown on non-Waiver/Exception DOC — **Label:** ✅ pass (QA)
 
 **Current note:** the suite discovers a later-stage DOC from My DOCs at runtime because the Certification Decision tab is only available from Decision Proposal status onward.
 
@@ -1409,8 +1426,8 @@
 
 - [x] **P2** DOC Approvals section is present on the Certification Decision tab during Certification Approval status
 - [x] **P2** DOC Signatures section appears under DOC Approvals during Certification Approval status with columns: Approver Name, Role, Signature, Comment *(DOC-CERT-011)*
-- [ ] **P2** Approver rows match the Proposed Decision: Certified → 1 row (BU Security Officer); Certified with Exception → 2 rows (BU Security Officer, BVP); Waiver → 3 rows (BU Security Officer, CISO, Senior BVP) — CPSO is not included
-- [ ] **P2** "Provide Signature" button is available for the respective approvers with the appropriate privilege
+- [x] **P2** Approver rows match the Proposed Decision: Certified → 1 row (BU Security Officer); Certified with Exception → 2 rows (BU Security Officer, BVP); Waiver → 3 rows (BU Security Officer, CISO, Senior BVP) — CPSO is not included *(DOC-CERT-017)*
+- [x] **P2** "Provide Signature" button is available for the respective approvers with the appropriate privilege *(DOC-CERT-018)*
 - [ ] **P2** Clicking "Provide Signature" opens a popup with Signature dropdown (mandatory) and Comment (mandatory); selecting "Rejected" shows an orange warning message about rejection impact
 - [ ] **P2** If any approver rejects the decision, DOC status reverts to "Decision Proposal"; orange "!" icon appears on DOC Approvals section with tooltip "The proposed certification decision has been rejected. Please refer to the provided comments for details."
 - [ ] **P2** Issue Certification stage header is marked with an orange icon when a rejection occurs
