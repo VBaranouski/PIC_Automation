@@ -34,6 +34,25 @@ export const newProductLocators = (page: Page) => ({
   releaseDateMonthSelect:               page.getByRole('combobox', { name: 'Month' }).last(),
   releaseDateYearSpinbutton:            page.getByRole('spinbutton', { name: 'Year' }).last(),
 
+  // Conditional fields revealed by Create Release dialog interactions.
+  // These only appear after specific radio/checkbox selections.
+  // NOTE: OutSystems flatpickr date inputs all share the aria-label "Select a date." so we
+  //       identify the revealed date field positionally (nth 1 = second date picker in dialog).
+  contPenTestContractDateLabel: page.getByRole('dialog').getByText(/Cont\.? Pen Test Contract Date/i).first(),
+  wasPenTestPerformedLabel:     page.getByRole('dialog').getByText(/Was pen test performed/i).first(),
+  wasPenTestPerformedYesRadio:  page.getByRole('dialog').getByRole('radio', { name: 'Yes' }),
+  wasPenTestPerformedNoRadio:   page.getByRole('dialog').getByRole('radio', { name: 'No' }),
+  lastPenTestTypeLabel:         page.getByRole('dialog').getByText(/Last Pen Test Type/i).first(),
+  lastPenTestDateLabel:         page.getByRole('dialog').getByText(/Last.*Pen Test Date/i).first(),
+  justificationLabel:           page.getByRole('dialog').getByText(/Justification/i).first(),
+  // Second-release dialog: "Clone from existing release" / "Create as new" radios
+  cloneFromExistingRadio:       page.getByRole('radio', { name: /Clone from existing release/i }),
+  createAsNewRadio:             page.getByRole('radio', { name: /Create as new/i }),
+
+  // Releases tab pagination — scoped to the active tabpanel.
+  // The OutSystems pagination widget wraps the per-page <select> inside [role="status"].
+  releasesTabPerPageSelect:     page.getByRole('tabpanel').getByRole('status').locator('select').first(),
+
   // Product Related Details section
   sectionTitle:            page.getByText('PRODUCT RELATED DETAILS'),
   productNameInput:        page.getByRole('textbox', { name: 'Product Name*' }),

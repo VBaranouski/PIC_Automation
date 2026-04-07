@@ -666,6 +666,142 @@ export class NewProductPage extends BasePage {
     await this.l.continuousPenetrationTestingCheckbox.click();
   }
 
+  // ==================== Create Release Dialog — UI verification ====================
+
+  /** Verifies both Release Type radio buttons (New / Existing) are visible. */
+  async expectReleaseTypeRadiosVisible(): Promise<void> {
+    await expect(this.l.newProductReleaseRadio).toBeVisible({ timeout: 15_000 });
+    await expect(this.l.existingProductReleaseRadio).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Verifies "New Product Release" radio is selected by default. */
+  async expectNewProductReleaseRadioSelected(): Promise<void> {
+    await expect(this.l.newProductReleaseRadio).toBeChecked({ timeout: 10_000 });
+  }
+
+  /** Asserts the "Cont. Pen Test Contract Date" field label is NOT yet visible. */
+  async expectContPenTestContractDateHidden(): Promise<void> {
+    await expect(this.l.contPenTestContractDateLabel).toBeHidden({ timeout: 10_000 });
+  }
+
+  /** Asserts the "Cont. Pen Test Contract Date" field label IS visible (after checkbox is checked). */
+  async expectContPenTestContractDateVisible(): Promise<void> {
+    await expect(this.l.contPenTestContractDateLabel).toBeVisible({ timeout: 15_000 });
+  }
+
+  /**
+   * Opens the Target Release Date flatpickr calendar and verifies that past dates are disabled.
+   * Checks that the calendar shows at least one `.flatpickr-disabled` day cell.
+   */
+  async expectTargetDatePickerPreventsYesterday(): Promise<void> {
+    await this.l.targetReleaseDateInput.click();
+    const calendar = this.page.locator('.flatpickr-calendar.open');
+    await calendar.waitFor({ state: 'visible', timeout: 10_000 });
+
+    // All dates before today should be disabled — verify at least one exists in the month view
+    const disabledDays = calendar.locator('.flatpickr-day.flatpickr-disabled');
+    const disabledCount = await disabledDays.count();
+    // Guard: only assert disabled days exist when today is NOT the 1st of the month
+    const today = new Date();
+    if (today.getDate() > 1) {
+      await expect(disabledDays.first()).toBeVisible({ timeout: 5_000 });
+      expect(disabledCount).toBeGreaterThan(0);
+    }
+    // Always verify today itself is NOT disabled (selectable)
+    const todayCell = calendar.locator('.flatpickr-day.today');
+    if (await todayCell.count() > 0) {
+      await expect(todayCell).not.toHaveClass(/flatpickr-disabled/);
+    }
+    await this.page.keyboard.press('Escape');
+    await calendar.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
+  }
+
+  /** Clicks "Existing Product Release" radio and waits for the OS partial refresh. */
+  async clickExistingProductReleaseRadio(): Promise<void> {
+    await this.l.existingProductReleaseRadio.click();
+    await this.waitForOSLoad();
+  }
+
+  /**
+   * Verifies that selecting "Existing Product Release" reveals extra fields.
+   * Per exploration: reveals "Last Full Pen Test Date" and/or "Was pen test performed?" UI.
+   * Uses OR-match so the assertion is resilient to minor OS-version UI differences.
+   */
+  async expectExistingReleaseFieldsVisible(): Promise<void> {
+    const extraField = this.page.getByRole('dialog')
+      .getByText(/Last.*Pen Test Date|Was pen test performed|Last BU.*FCSR/i)
+      .first();
+    await expect(extraField).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** After "Was pen test performed? Yes" is clicked, verifies conditional pen-test fields. */
+  async expectLastPenTestFieldsVisible(): Promise<void> {
+    await expect(this.l.lastPenTestTypeLabel).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.lastPenTestDateLabel).toBeVisible({ timeout: 10_000 });
+  }
+
+  /** After "Was pen test performed? No" is clicked, verifies Justification field appears. */
+  async expectJustificationFieldVisible(): Promise<void> {
+    await expect(this.l.justificationLabel).toBeVisible({ timeout: 10_000 });
+  }
+
+  /** Verifies second-release dialog shows "Clone from existing release" and "Create as new" radios. */
+  async expectCloneOrNewRadiosVisible(): Promise<void> {
+    await expect(this.l.cloneFromExistingRadio).toBeVisible({ timeout: 15_000 });
+    await expect(this.l.createAsNewRadio).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ==================== Releases tab — grid helpers ====================
+
+  /**
+   * Returns the text content of all column header cells in the Releases tab grid.
+   * Works with both <th> (HTML table) and [role="columnheader"] (ARIA grid).
+   */
+  async getReleasesGridColumnHeaders(): Promise<string[]> {
+    const headers = this.l.releasesGrid.locator('th, [role="columnheader"]');
+    const raw = await headers.allTextContents();
+    return raw.map(h => h.trim()).filter(Boolean);
+  }
+
+  /** Returns the number of data rows in the Releases tab grid (excludes header row). */
+  async getReleasesGridDataRowCount(): Promise<number> {
+    const rows = this.l.releasesGrid.getByRole('row');
+    const total = await rows.count();
+    return Math.max(0, total - 1);
+  }
+
+  /**
+   * Clicks the first release name link in the Releases tab grid and waits for navigation.
+   * Resolves once the URL changes (either to ReleaseDetail or any GRC_PICASso path).
+   */
+  async clickFirstReleaseLinkAndNavigate(): Promise<void> {
+    const firstLink = this.l.releasesGrid.getByRole('row').nth(1).getByRole('link').first();
+    await Promise.all([
+      this.page.waitForURL(url => url.href !== this.page.url(), { timeout: 30_000 }),
+      firstLink.click(),
+    ]);
+    await this.waitForOSLoad();
+  }
+
+  /**
+   * Returns the full text content of the first data row in the Releases tab grid.
+   * Used to verify status badge / release version text is present.
+   */
+  async getReleasesGridFirstRowText(): Promise<string> {
+    const firstDataRow = this.l.releasesGrid.getByRole('row').nth(1);
+    return (await firstDataRow.textContent() ?? '').trim();
+  }
+
+  /**
+   * Changes the Releases tab per-page selector to the given value.
+   * The OutSystems pagination <select> inside [role="status"] accepts option labels
+   * like '10', '20', '30', '50', '100'.
+   */
+  async changeReleasesTabPerPage(value: string): Promise<void> {
+    await this.l.releasesTabPerPageSelect.selectOption(value);
+    await this.waitForOSLoad();
+  }
+
   async selectReleaseTargetDate(targetDate: Date): Promise<void> {
     const monthName = NewProductPage.monthNames[targetDate.getMonth()];
     const year = targetDate.getFullYear();

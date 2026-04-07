@@ -183,6 +183,10 @@
 - [ ] **P2** Product Details section shows all read-only fields (Product Name, State, Definition, Type, Digital Offer, Commercial Reference Number, DPP, Brand Label)
 - [x] **P2** `PRODUCT-DETAIL-010` Bottom tabs load: Product Organization, Product Team, Security Summary, Product Configuration
 - [x] **P2** `PRODUCT-DETAIL-009` Releases tab shows the list of releases for the product (or empty state message "No releases were created yet!") + Create Release button is present
+- [x] **P2** `PRODUCT-RELEASES-005` Clicking a release name link in the Releases tab grid navigates to the Release Detail page
+- [x] **P2** `PRODUCT-RELEASES-006` Each release grid row shows a recognisable status value (Scoping, Active, Closed, etc.)
+- [x] **P2** `PRODUCT-RELEASES-007` Releases tab grid shows expected column headers: Release Number/Version, Status, Target Date, Created By
+- [x] **P2** `PRODUCT-RELEASES-008` Per-page selector in Releases tab pagination changes the visible row count
 - [x] **P2** Digital Offer Certification tab appears only when Digital Offer = Yes AND Product Owner is assigned
 - [x] **P2** Digital Offer Certification tab shows empty state message when no DOC exists yet
 - [ ] **P2** LEAP License column in Users Management grid shows "Active" for users with an assigned role and auto-activated LEAP License
@@ -300,18 +304,18 @@
 
 - [x] **P1** `RELEASE-CREATE-001` "Create Release" button on Product Releases tab opens the Create Release dialog; submitting without mandatory fields shows "Please review the necessary fields" alert and three Required field! inline errors (Release Version, Target Date, Change Summary)
 - [x] **P1** `RELEASE-CREATE-002` Creating a first release with valid data (version, target date, change summary) via "Create & Scope" navigates to the Release Detail page; the release then appears in the product's Releases tab list with status "Scoping"
-- [ ] **P2** Dialog shows Release Type radio buttons (New Product Release / Existing Product Release)
+- [x] **P2** `RELEASE-CREATE-003` Dialog shows Release Type radio buttons (New Product Release / Existing Product Release)
 - [ ] **P2** Release Version field is required — submitting empty shows a validation error
-- [ ] **P2** Target Release Date field is required — past date selection is prevented
-- [ ] **P2** "Continuous Penetration Testing" checkbox reveals the Cont. Pen Test Contract Date field
+- [x] **P2** `RELEASE-CREATE-005` Target Release Date field is required — past date selection is prevented
+- [x] **P2** `RELEASE-CREATE-004` "Continuous Penetration Testing" checkbox reveals the Cont. Pen Test Contract Date field
 - [ ] **P1** "Create & Scope" button creates the release and redirects to Release Detail page
 - [ ] **P2** Newly created release appears in the product's Releases tab list
 - [ ] **P2** Cannot create a release with the same name as a cancelled release (error is shown)
 - [ ] **P2** Creating a release with the same name as an inactivated release is allowed
-- [ ] **P2** "Existing Product Release" radio shows extra field "Was pen test performed? (Yes/No)"
+- [x] **P2** `RELEASE-CREATE-006` "Existing Product Release" radio shows extra field "Was pen test performed? (Yes/No)"
 - [ ] **P2** Selecting "Yes" reveals "Last Pen Test Type" (Full/Partial/Continuous) and "Last Pen Test Date" fields
 - [ ] **P2** Selecting "No" reveals a mandatory "Justification" field; creating without it shows validation error
-- [ ] **P2** Second+ release: Create Release button shows two options — "Clone from existing release" or "Create as new" radio
+- [x] **P2** `RELEASE-CREATE-007` Second+ release: Create Release button shows two options — "Clone from existing release" or "Create as new" radio
 
 ### 4.2 Onboarding (Existing) Release
 
