@@ -22,7 +22,13 @@
     "lint": "eslint --config config/.eslintrc.cjs 'src/**/*.ts' 'tests/**/*.ts'",
     "lint:fix": "eslint --config config/.eslintrc.cjs 'src/**/*.ts' 'tests/**/*.ts' --fix",
     "format": "prettier --config config/.prettierrc --write 'src/**/*.ts' 'tests/**/*.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "inspect": "node scripts/open-app.mjs",
+    "inspect:doc": "node scripts/open-app.mjs --url '/GRC_PICASso_DOC/DOCDetail?DOCId=77&ProductId=730'",
+    "inspect:save-auth": "node scripts/open-app.mjs --save-auth",
+    "codegen": "node scripts/codegen.mjs",
+    "codegen:doc": "node scripts/codegen.mjs --url '/GRC_PICASso_DOC/DOCDetail?DOCId=77&ProductId=730'",
+    "codegen:landing": "node scripts/codegen.mjs --url '/GRC_PICASso/'"
   },
   "keywords": ["playwright", "testing", "automation", "mcp"],
   "author": "",

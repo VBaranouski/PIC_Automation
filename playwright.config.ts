@@ -47,6 +47,12 @@ export default defineConfig({
 			testIgnore: [/doc-state\.setup\.ts/],
 		},
 		{
+			name: 'release-detail-header',
+			testMatch: /release-detail-header\.spec\.ts/,
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
+		},
+		{
 			name: 'doc-product-setup',
 			testMatch: /new-product-creation-digital-offer\.spec\.ts/,
 			use: { ...devices['Desktop Chrome'] },
@@ -147,6 +153,7 @@ export default defineConfig({
 				/doc-detail-risk-summary\.spec\.ts/,
 				/doc-detail-certification\.spec\.ts/,
 				/doc-lifecycle\.spec\.ts/,
+				/release-detail-header\.spec\.ts/,
 			],
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],

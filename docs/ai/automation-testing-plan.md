@@ -352,16 +352,17 @@
 
 **Spec:** `releases/release-detail-header.spec.ts`
 
-- [ ] **P1** Release Detail page loads from My Releases grid or from a product's Releases tab
-- [ ] **P1** Breadcrumb shows Home > Product Name > Release Version
-- [ ] **P1** Release status badge (Active, green) is visible in the header
-- [ ] **P1** Release pipeline bar shows all 7 stage names (Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, FCSR Review, Post FCSR Actions, Final Acceptance)
-- [ ] **P1** Current active stage is highlighted in the pipeline bar
-- [ ] **P1** "View Flow" button opens the workflow progress popup
+- [x] **P1** `RELEASE-HEADER-001` Release Detail page loads from a product's Releases tab; breadcrumb shows Home > Product Name > Release Version (at least 3 items)
+- [x] **P1** `RELEASE-HEADER-002` Release status badge is visible in the header with non-empty text
+- [x] **P1** `RELEASE-HEADER-003` Release pipeline bar shows exactly 7 stage tabs
+- [x] **P1** `RELEASE-HEADER-004` Exactly one stage is highlighted as active in the pipeline bar
+- [x] **P1** `RELEASE-HEADER-005` "View Flow" toggle expands and reveals the pipeline bar
+- [x] **P1** `RELEASE-HEADER-006` "Need Help" link is visible in the Release Detail header
+- [x] **P1** `RELEASE-HEADER-007` Home breadcrumb link navigates back to the Landing Page
+- [x] **P1** `RELEASE-HEADER-008` All 7 expected pipeline stage names are shown correctly: Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, FCSR Review, Post FCSR Actions, Final Acceptance
 - [ ] **P1** Workflow popup shows submission counts, responsible usernames, and completion dates for completed stages
 - [ ] **P1** At Creation & Scoping stage, responsible users are pre-calculated based on Minimum Oversight Level and Last BU SO FCSR Date
 - [ ] **P1** After questionnaire submission, workflow popup updates responsible users if Risk Classification changes
-- [ ] **P1** "Need Help" button opens the Stage Sidebar panel
 - [ ] **P1** Stage Sidebar shows: current stage name, responsible users table (User/Role/Approval Date columns), stage description text, and Close (X) button
 - [ ] **P3** When release is on Rework, orange dot indicator appears on "View Flow" link with tooltip "On Rework. Click here for more details"
 - [ ] **P1** Workflow popup shows submission counter (e.g., "1 from 2 submissions") for multi-approver stages
@@ -1063,9 +1064,10 @@
 ## WORKFLOW 11 — Digital Offer Certification (DOC)
 
 > **Runtime validation snapshot (QA, 2026-06-07):** `145` scripted DOC test cases across `15` spec files + `1` setup script. All suites implemented and executed.
-> Current observed status: **135 passing**, **2 blocked** (DOC-ITS-005/006 — data state), **3 known defects** (DOC-OFFER-006, LANDING-DOCS-007 — `test.fail()`; PRODUCT-DETAIL-007 Brand Label — deferred), **3 graceful skips** (LANDING-DOCS-005 — scan blocked; TC-LIFECYCLE-010 — Cert Decision tab not available on seed DOC; TC-LIFECYCLE-013 — user lacks REVOKE_DOC privilege), **5 fixme stubs** (DOC-ITS-015..019 — destructive/lazy-load flows, dedicated DOC needed).
+> Current observed status: **138 passing**, **2 blocked** (DOC-ITS-005/006 — data state), **3 known defects** (DOC-OFFER-006, LANDING-DOCS-007 — `test.fail()`; PRODUCT-DETAIL-007 Brand Label — deferred), **3 graceful skips** (LANDING-DOCS-005 — scan blocked; TC-LIFECYCLE-010 — Cert Decision tab not available on seed DOC; TC-LIFECYCLE-013 — user lacks REVOKE_DOC privilege), **2 fixme stubs** (DOC-ITS-017/019 — destructive flows, dedicated DOC needed).
 > **History:** DOC-HISTORY-001 to 008 all pass (8/8) — suite expanded with 3 new tests (activity types listing, date format, search filter) and intermittent Access Denied issue resolved.
 > **New suites (this sprint):** `doc/doc-lifecycle.spec.ts` (13 tests, 11 pass + 2 graceful skip); `doc/doc-detail-actions.spec.ts` (6/6 pass); `doc/doc-detail-risk-summary.spec.ts` (5/5 pass).
+> **Sprint 3:** DOC-ITS-015 (category filter grid), DOC-ITS-016 (Add Control popup filter), DOC-ITS-018 (Start ITS RA gating) implemented and passing. DOC-ITS-017/019 kept as fixme (destructive).
 
 ### 11.0 Runtime Status & TC ↔ Script Mapping
 
@@ -1079,7 +1081,7 @@
 | 11.4 DOC Detail — Header & Navigation | `doc/doc-detail.spec.ts` | `TC-11.4.1`–`TC-11.4.9` | `PASS (9/9)` | 2 new TCs added: TC-11.4.8 (completed stage dates), TC-11.4.9 (CERTIFIED badge). All pass |
 | 11.5 Digital Offer Details | `doc/doc-detail-offer.spec.ts` | `TC-11.5.1`–`TC-11.5.9` | `PARTIAL: 8 PASS / 1 DEFECT` | `TC-11.5.6` remains a product defect. TC-11.5.8 (VESTA ID) and TC-11.5.9 (Target Release Date disabled) newly added and pass |
 | 11.6 Roles & Responsibilities | `doc/doc-detail-roles.spec.ts` | `TC-11.6.1`–`TC-11.6.12` | `PASS (10/12 + 2 pending data)` | DOC-ROLES-012 (save with mandatory roles → read-only) added and passes. DOC-ROLES-010/011 (lookup fields, grid headers) implemented as new tests |
-| 11.7 ITS Checklist | `doc/doc-detail-its.spec.ts` | `TC-11.7.1`–`TC-11.7.19` | `PARTIAL: 14 PASS / 2 BLOCKED / 5 FIXME` | DOC-ITS-013 (default Control ID sort) and DOC-ITS-014 (no-results popup + count preserved) added and pass. DOC-ITS-015..019 are fixme stubs for destructive/lazy-load flows |
+| 11.7 ITS Checklist | `doc/doc-detail-its.spec.ts` | `TC-11.7.1`–`TC-11.7.19` | `PARTIAL: 17 PASS / 2 BLOCKED / 2 FIXME` | DOC-ITS-015 (category filter narrows grid), DOC-ITS-016 (Add Control popup category filter), DOC-ITS-018 (Start ITS Risk Assessment gating) now pass. DOC-ITS-017/019 remain fixme (destructive) |
 | 11.8 Control Detail | `doc/control-detail.spec.ts` | `TC-11.8.1`–`TC-11.8.16` | `PASS (16/16)` | DOC-CONTROL-013 (Risk Level label), 014 (Evidence Links clickable), 015 (Comments timeline), 016 (read-only on Completed DOC) all added and pass. Suite now has 16 active tests |
 | 11.9 Action Plan | `doc/doc-detail-actions.spec.ts` | `TC-11.9.1`–`TC-11.9.6` | `PASS (6/6)` | All 6 Action Plan tests pass. Suite discovers a later-stage DOC from My DOCs at runtime (Action Plan not available on Controls Scoping seed DOC) |
 | 11.10 Risk Summary | `doc/doc-detail-risk-summary.spec.ts` | `TC-11.10.1`–`TC-11.10.5` | `PASS (5/5)` | All 5 Risk Summary tests pass. Suite discovers a later-stage DOC from My DOCs at runtime (Risk Summary not available on Controls Scoping seed DOC) |
@@ -1092,7 +1094,7 @@
 
 - `DOC-OFFER-006` remains a likely product defect candidate: the save flow is reproducibly inconsistent on the current QA DOC even after locator/runtime hardening.
 - `DOC-ROLES-*` is green (12/12 active). DOC-ROLES-012 (save with mandatory roles → read-only) added and passes. Skips gracefully when Save is already enabled.
-- `DOC-ITS-*` is mostly green (14 pass / 2 blocked / 5 fixme stubs). DOC-ITS-013 (default Control ID sort) and DOC-ITS-014 (no-results popup + count preserved) pass. Fixme stubs added for lazy-load and destructive add/descope flows.
+- `DOC-ITS-*` is mostly green (17 pass / 2 blocked / 2 fixme). DOC-ITS-015 (category filter narrows grid), DOC-ITS-016 (Add Control popup category filter), and DOC-ITS-018 (Start ITS Risk Assessment gating) now pass. Fixme stubs retained only for destructive flows (DOC-ITS-017 add controls, DOC-ITS-019 confirm risk assessment).
 - `DOC-CONTROL-*` is fully green (16/16). Risk Level label, Evidence Links clickable, Comments timeline items, and full read-only mode (Descope + Add Evidence + Comment textarea absent) verified on Completed DOC.
 - `DOC-CERT-*` is 17 pass / 3 graceful skip (20 total). DOC-CERT-016..020 added this session. 016 and 019 skip gracefully when no Decision Proposal / Certification Approval DOC is available. 017/018/020 pass reliably.
 - `DOC-HISTORY-*` now fully passes (5/5). The intermittent Access Denied edge issue is resolved.
@@ -1291,29 +1293,35 @@
 - `DOC-ITS-012` — `doc/doc-detail-its.spec.ts` — "No results found" empty state when ITS search returns no matches — **Label:** ✅ pass (QA)
 - `DOC-ITS-013` — `doc/doc-detail-its.spec.ts` — ITS Checklist default sort is by Control ID ascending — **Label:** ✅ pass (QA)
 - `DOC-ITS-014` — `doc/doc-detail-its.spec.ts` — Add Control popup: "No results found" with preserved selected count — **Label:** ✅ pass (QA)
-- `DOC-ITS-015..019` — `doc/doc-detail-its.spec.ts` — fixme stubs: empty state, lazy loading, add destructive, greyed descoped, confirm descope — **Label:** 🔲 fixme
+- `DOC-ITS-015` — `doc/doc-detail-its.spec.ts` — Category filter dropdown narrows ITS grid; Reset restores full list — **Label:** 🟢 passed
+- `DOC-ITS-016` — `doc/doc-detail-its.spec.ts` — Category filter in Add Control popup narrows controls list — **Label:** 🟢 passed
+- `DOC-ITS-017` — `doc/doc-detail-its.spec.ts` — Add selected controls from popup to ITS Checklist (deferred) — **Label:** 🔲 fixme (destructive)
+- `DOC-ITS-018` — `doc/doc-detail-its.spec.ts` — Start ITS Risk Assessment button visible and gated by unassessed controls — **Label:** 🟢 passed
+- `DOC-ITS-019` — `doc/doc-detail-its.spec.ts` — Confirm Start ITS Risk Assessment advances DOC stage (deferred) — **Label:** 🔲 fixme (destructive)
 
 - [x] **P2** ITS Checklist tab displays the "IT SECURITY CONTROLS" subtitle and a grid with columns: Control ID, Description, Evidence Expectation, Category, Actions
 - [x] **P2** Control ID column contains clickable links navigating to the Control Detail page
 - [x] **P2** Control ID column is sortable *(DOC-ITS-009)*
 - [x] **P2** Description and Category columns are sortable *(DOC-ITS-010, DOC-ITS-011)*
 - [x] **P2** By default all active controls from BackOffice are loaded and sorted by Control ID for a newly created DOC *(DOC-ITS-013)*
-- [ ] **P2** Lazy loading is implemented — additional controls load as the user scrolls down *(test.fixme: DOC-ITS-016)*
-- [x] **P2** Category filter dropdown lists available Control Categories and filters the grid
+- [ ] **P2** Lazy loading is implemented — additional controls load as the user scrolls down
+- [x] **P2** `DOC-ITS-015` Category filter dropdown lists available Control Categories and narrows the ITS grid to the selected category; Reset restores the full list
 - [x] **P2** Search field filters controls by Control ID, Description, and Evidence Expectation text
 - [x] **P2** Reset button clears all search filters
 - [x] **P2** "No results found" empty state appears when filters return no matching controls *(DOC-ITS-012)*
 - [ ] **P2** "No ITS Controls added yet" empty state with Add Control button appears when no controls are in scope
 - [ ] **P2** "No active ITS Controls for this product — refer to the PICASso support team" message appears when BackOffice has no active controls
 - [x] **P2** "Add Control" button is visible for user with SCOPE_IT_SECURITY_CONTROLS privilege, but on the current QA DOC it is disabled because all available controls are already in scope
-- [ ] **P2** Clicking "Add Control" opens the Add Control(s) popup with Search, Category filter, "Show new only" toggle, and a controls table (Control ID, Description, Category columns with checkboxes)
-- [ ] **P2** Selecting controls in the popup shows "N of M Selected" count at the bottom; "Add Selected" button is disabled until at least one is selected
+- [x] **P2** `DOC-ITS-016` Clicking "Add Control" opens the Add Control(s) popup with Search, Category filter, "Show new only" toggle, and a controls table (Control ID, Description, Category columns with checkboxes)
+- [x] **P2** `DOC-ITS-016` Selecting controls in the popup shows "N of M Selected" count at the bottom; "Add Selected" button is disabled until at least one is selected
+- [x] **P2** `DOC-ITS-016` Category filter in the Add Control popup narrows the controls list to the selected category
 - [x] **P2** "No results found" empty state in Add Control popup when no filters match; if controls are already selected, count and enabled Add Selected button remain *(DOC-ITS-014)*
 - [ ] **P2** Adding selected controls appends them to the ITS Checklist table
 - [ ] **P2** Previously descoped controls appear greyed in the Add Control popup with a tooltip icon showing the descope justification
 - [x] **P2** Actions column shows an X (Descope) button for user with SCOPE_IT_SECURITY_CONTROLS privilege; hovering shows "Descope Control" tooltip
 - [x] **P2** Clicking Descope (X) opens the "Unscope ITS Control" popup with mandatory Justification field; Descope button is disabled until justification is provided
 - [ ] **P2** Confirming descope removes the control from the ITS Checklist table
+- [x] **P2** `DOC-ITS-018` "Start ITS Risk Assessment" button is visible on a Controls Scoping DOC; button is disabled when any control has 'Not Assessed' status
 - [ ] **P2** User with VIEW_DOC privilege can view the ITS Checklist tab in read-only mode (no Add Control or Descope buttons)
 
 ### 11.8 DOC Detail — Control Detail Page

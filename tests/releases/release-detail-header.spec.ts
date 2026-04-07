@@ -1,0 +1,370 @@
+/**
+ * Spec — Release Detail Page Header (Sprint 2)
+ *
+ * Tests the breadcrumb, release status badge, 7-stage pipeline bar,
+ * "View Flow" toggle, and "Need Help" link on the Release Detail page.
+ *
+ * Navigation strategy:
+ *   1. Land on Landing Page → My Releases tab
+ *   2. Click the first release name link (navigates to ReleaseDetail)
+ *   3. Persist that URL as `releaseDetailUrl` so all tests in this describe
+ *      block share the same release without re-navigating via the grid.
+ *
+ * All tests are non-destructive (read-only UI checks).
+ */
+
+import { test, expect } from '../../src/fixtures';
+import type { Page } from '@playwright/test';
+import type { LandingPage } from '../../src/pages';
+import * as allure from 'allure-js-commons';
+import { RELEASE_PIPELINE_STAGES } from '../../src/pages';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// ---------------------------------------------------------------------------
+// Helper — navigate via My Products → Product Detail → first release
+// Returns the Release Detail URL (includes ProductId for full 3-level breadcrumb)
+// ---------------------------------------------------------------------------
+
+async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promise<string> {
+  // Prefer the cached product URL written by create-new-release.spec.ts
+  const stateFile = path.resolve(__dirname, '../../.product-state.json');
+  let productUrl: string | null = null;
+  if (fs.existsSync(stateFile)) {
+    try {
+      const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+      productUrl = state.productWithReleasesUrl || null;
+    } catch { /* fall through */ }
+  }
+
+  if (!productUrl) {
+    // Fallback: scan My Products for a product with releases
+    await landingPage.goto();
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+    await landingPage.clickTab('My Products');
+    await landingPage.grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
+    const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
+    productUrl = await link.getAttribute('href') ?? null;
+    if (!productUrl) throw new Error('No product links found on My Products tab');
+    if (!productUrl.startsWith('http')) productUrl = `https://qa.leap.schneider-electric.com${productUrl}`;
+  }
+
+  // Navigate to Product Detail page
+  await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
+  // Wait for product detail to load
+  await page.waitForURL(/ProductDetail/, { timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  await page.waitForTimeout(2_000);
+
+  // Click the Releases tab on the Product Detail page
+  const releasesTab = page.getByRole('tab', { name: /^Releases$/i }).first();
+  const releasesTabCount = await releasesTab.count();
+  if (releasesTabCount > 0) {
+    await releasesTab.click();
+    await page.waitForTimeout(2_000);
+  }
+
+  // Click the first release-name link in the grid
+  const firstLink = page.getByRole('grid').getByRole('row').nth(1).getByRole('link').first()
+    .or(page.locator('table tbody tr').nth(0).getByRole('link').first());
+
+  await firstLink.waitFor({ state: 'visible', timeout: 30_000 });
+
+  await Promise.all([
+    page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+    firstLink.click(),
+  ]);
+
+  return page.url();
+}
+
+// ---------------------------------------------------------------------------
+// Suite
+// ---------------------------------------------------------------------------
+
+test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', () => {
+  test.setTimeout(300_000);
+
+  let releaseDetailUrl: string;
+
+  // Login before every test — same pattern as create-new-release.spec.ts
+  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
+    await loginPage.goto();
+    await loginPage.login(userCredentials.login, userCredentials.password);
+    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
+  });
+
+  // ── RELEASE-HEADER-001 ────────────────────────────────────────────────────
+  test('should load Release Detail page with breadcrumb showing Home > Product > Release', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-001: Navigating to a Release Detail page must load the page ' +
+      'and display a breadcrumb with at least 3 items: Home, Product Name, Release Version.',
+    );
+
+    await test.step('Navigate to release (discover URL from My Releases grid)', async () => {
+      // First run: discover the release URL via landing page; subsequent runs reuse it
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Verify breadcrumb is visible', async () => {
+      await releaseDetailPage.expectBreadcrumbVisible();
+    });
+
+    await test.step('Verify Home link is present in breadcrumb', async () => {
+      await releaseDetailPage.expectBreadcrumbHomeLinkVisible();
+    });
+
+    await test.step('Verify Product Detail link is present in breadcrumb', async () => {
+      // Must check product link BEFORE counting — it renders asynchronously
+      await releaseDetailPage.expectBreadcrumbProductLinkVisible();
+    });
+
+    await test.step('Verify breadcrumb has at least 3 items (Home, Product, Release)', async () => {
+      const texts = await releaseDetailPage.getBreadcrumbTexts();
+      expect(
+        texts.length,
+        `Breadcrumb should have at least 3 items; got: ${JSON.stringify(texts)}`,
+      ).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  // ── RELEASE-HEADER-002 ────────────────────────────────────────────────────
+  test('should show a release status badge with non-empty text in the header', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-002: The Release Detail page header must show a release status badge ' +
+      '(e.g. "Scoping", "Active", "Actions Closure"). The badge must be visible and have ' +
+      'non-empty text.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Verify release status badge is visible with text', async () => {
+      await releaseDetailPage.expectReleaseStatusBadgeVisible();
+      const statusText = await releaseDetailPage.getReleaseStatusText();
+      expect(
+        statusText,
+        'Release status badge must have a non-empty text value',
+      ).not.toBe('');
+    });
+  });
+
+  // ── RELEASE-HEADER-003 ────────────────────────────────────────────────────
+  test('should show exactly 7 pipeline stage tabs on the Release Detail page', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-003: The Release Detail pipeline bar must contain exactly 7 stage tabs: ' +
+      'Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, FCSR Review, ' +
+      'Post FCSR Actions, Final Acceptance.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Expand pipeline if collapsed', async () => {
+      // If the pipeline is collapsed the "View Flow" toggle text indicates expansion
+      const toggleVisible = await releaseDetailPage['l'].viewFlowToggle.isVisible().catch(() => false);
+      if (toggleVisible) {
+        await releaseDetailPage.clickViewFlowToggleAndExpand();
+      }
+    });
+
+    await test.step('Verify pipeline shows exactly 7 stage tabs', async () => {
+      await releaseDetailPage.expectPipelineStageCount(7);
+    });
+
+    await test.step('Verify all expected stage names are present in the pipeline', async () => {
+      const stageLabels = await releaseDetailPage.getPipelineStageLabels();
+      for (const expectedStage of RELEASE_PIPELINE_STAGES) {
+        const found = stageLabels.some((label) =>
+          label.toLowerCase().includes(expectedStage.toLowerCase()),
+        );
+        expect(
+          found,
+          `Stage "${expectedStage}" not found in pipeline labels: ${JSON.stringify(stageLabels)}`,
+        ).toBe(true);
+      }
+    });
+  });
+
+  // ── RELEASE-HEADER-004 ────────────────────────────────────────────────────
+  test('should highlight exactly one stage as active in the pipeline bar', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-004: The Release Detail pipeline bar must have exactly one stage with ' +
+      'the "active" CSS class, visually distinguishing the current stage from past and future ones.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Expand pipeline if collapsed', async () => {
+      const toggleVisible = await releaseDetailPage['l'].viewFlowToggle.isVisible().catch(() => false);
+      if (toggleVisible) {
+        await releaseDetailPage.clickViewFlowToggleAndExpand();
+      }
+    });
+
+    await test.step('Verify exactly one pipeline stage is active', async () => {
+      await releaseDetailPage.expectExactlyOneActiveStage();
+    });
+
+    await test.step('Log active stage name for visibility', async () => {
+      const activeStageName = await releaseDetailPage.getActiveStageName();
+      expect(activeStageName.length, `Active stage name must be non-empty`).toBeGreaterThan(0);
+    });
+  });
+
+  // ── RELEASE-HEADER-005 ────────────────────────────────────────────────────
+  test('should show the "View Flow" toggle that expands and reveals the pipeline bar', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-005: The "View Flow" toggle element must be visible in the Release Detail ' +
+      'header. Clicking it must reveal/expand the pipeline stages area.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Verify "View Flow" toggle is visible', async () => {
+      await releaseDetailPage.expectViewFlowToggleVisible();
+    });
+
+    await test.step('Click "View Flow" toggle and verify pipeline area is visible', async () => {
+      await releaseDetailPage.clickViewFlowToggleAndExpand();
+      await releaseDetailPage.expectPipelineAreaVisible();
+    });
+  });
+
+  // ── RELEASE-HEADER-006 ────────────────────────────────────────────────────
+  test('should show a "Need Help" link in the Release Detail header', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-006: The Release Detail page must have a "Need Help" link visible ' +
+      'in the top-right area of the header. It provides access to the stage sidebar ' +
+      'with responsible users and stage description.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Verify "Need Help" link is visible in the header', async () => {
+      await releaseDetailPage.expectNeedHelpLinkVisible();
+    });
+  });
+
+  // ── RELEASE-HEADER-007 ────────────────────────────────────────────────────
+  test('should navigate to Landing Page when Home breadcrumb link is clicked', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-007: Clicking the "Home" link in the Release Detail breadcrumb must ' +
+      'navigate the user to the Landing Page. Clicking the Product Name link must navigate ' +
+      'back to the Product Detail page.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Click Home breadcrumb link and verify Landing Page loads', async () => {
+      await releaseDetailPage.clickBreadcrumbHome();
+      await expect(page).toHaveURL(/HomePage|GRC_PICASso\/?(\?|$)/, { timeout: 30_000 });
+    });
+
+    await test.step('Navigate back to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Click Product breadcrumb link and verify Product Detail page loads', async () => {
+      await releaseDetailPage.clickBreadcrumbProduct();
+      await expect(page).toHaveURL(/ProductDetail/, { timeout: 30_000 });
+    });
+  });
+
+  // ── RELEASE-HEADER-008 ────────────────────────────────────────────────────
+  test('should show all 7 expected pipeline stage names in the workflow bar', async ({
+    page, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-008: Every stage in the 7-step Release workflow must be labelled with ' +
+      'its expected name: Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, ' +
+      'FCSR Review, Post FCSR Actions, Final Acceptance. Each name must appear in the pipeline.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      await page.goto(releaseDetailUrl);
+      await releaseDetailPage.waitForPageLoad();
+    });
+
+    await test.step('Expand pipeline if collapsed', async () => {
+      const toggleVisible = await releaseDetailPage['l'].viewFlowToggle.isVisible().catch(() => false);
+      if (toggleVisible) {
+        await releaseDetailPage.clickViewFlowToggleAndExpand();
+      }
+    });
+
+    await test.step('Verify all 7 stage names are present in the pipeline bar', async () => {
+      const stageLabels = await releaseDetailPage.getPipelineStageLabels();
+
+      for (const stage of RELEASE_PIPELINE_STAGES) {
+        const found = stageLabels.some((label) =>
+          label.toLowerCase().includes(stage.toLowerCase()),
+        );
+        expect(
+          found,
+          `Stage "${stage}" missing from pipeline. Found labels: ${JSON.stringify(stageLabels)}`,
+        ).toBe(true);
+      }
+    });
+  });
+});

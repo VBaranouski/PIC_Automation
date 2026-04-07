@@ -2133,6 +2133,80 @@ code {
     ],
     "execution_notes": "The test skips when the current DOC has no ITS controls available."
   },
+  "DOC-ITS-015": {
+    "title": "Verify Category filter dropdown narrows the ITS grid to the selected category",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": [
+      "Open the DOC Detail page and the ITS Checklist tab.",
+      "Select a specific category from the Category filter dropdown.",
+      "Verify the grid row count changes (filtered).",
+      "Click Reset.",
+      "Verify the full list is restored."
+    ],
+    "expected_results": [
+      "Selecting a category narrows the grid or shows 'No results found'.",
+      "Reset restores the ITS checklist to its original state."
+    ],
+    "execution_notes": "The test skips when no ITS controls are loaded or no category options are available."
+  },
+  "DOC-ITS-016": {
+    "title": "Verify Category filter in the Add Control popup narrows the controls list",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": [
+      "Open the DOC Detail page and the ITS Checklist tab.",
+      "Click the Add Control button to open the Add Control popup.",
+      "Select a specific category from the category filter dropdown in the popup.",
+      "Verify the controls list narrows to the selected category.",
+      "Close the popup."
+    ],
+    "expected_results": [
+      "Selecting a category in the Add Control popup reduces visible controls or shows 'No results found'.",
+      "The popup can be closed without adding controls."
+    ],
+    "execution_notes": "The test skips when no controls are available in the Add Control popup or no category options exist."
+  },
+  "DOC-ITS-017": {
+    "title": "Verify adding selected controls from Add Control popup appends them to ITS Checklist (deferred)",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": [
+      "Open the Add Control popup.",
+      "Select controls and click Add Selected.",
+      "Verify controls appear in the ITS Checklist table."
+    ],
+    "expected_results": [
+      "Selected controls are appended to the ITS Checklist table."
+    ],
+    "execution_notes": "Deferred (test.fixme): destructive action — requires a dedicated DOC to avoid mutating shared QA seed data."
+  },
+  "DOC-ITS-018": {
+    "title": "Verify Start ITS Risk Assessment button is visible and gated by unassessed controls",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": [
+      "Open the DOC Detail page for a DOC in Controls Scoping stage.",
+      "Click the ITS Checklist tab.",
+      "Verify the 'Start ITS Risk Assessment' button is visible.",
+      "If controls have 'Not Assessed' status, verify the button is disabled."
+    ],
+    "expected_results": [
+      "Start ITS Risk Assessment button is visible on a Controls Scoping DOC.",
+      "Button is disabled when controls have 'Not Assessed' status.",
+      "Button is enabled when all controls are assessed."
+    ],
+    "execution_notes": "The test gracefully skips if the button is not visible (DOC may not be in Controls Scoping stage)."
+  },
+  "DOC-ITS-019": {
+    "title": "Verify confirming Start ITS Risk Assessment advances the DOC to Risk Assessment stage (deferred)",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": [
+      "Click Start ITS Risk Assessment on a fully-assessed DOC.",
+      "Verify DOC advances to Risk Assessment stage."
+    ],
+    "expected_results": [
+      "DOC stage advances to 'Risk Assessment'.",
+      "ITS Checklist becomes read-only."
+    ],
+    "execution_notes": "Deferred (test.fixme): permanently advances the DOC stage — requires a dedicated DOC that is safe to advance."
+  },
   "DOC-CONTROL-001": {
     "title": "Verify Control ID link opens the Control Detail page",
     "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
@@ -2735,6 +2809,313 @@ code {
     "expected_results": [
       "The 'DOC Approvals' section is visible on the Certification Decision tab, listing the assigned approvers."
     ]
+  },
+  "RELEASE-HEADER-001": {
+    "title": "Verify Release Detail page loads with breadcrumb showing Home > Product > Release",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Log in as process_quality_leader.",
+      "Navigate to a product's Releases tab and click the first release.",
+      "Wait for the Release Detail page to load.",
+      "Verify the breadcrumb has at least 3 items: Home, Product Name, and Release Version.",
+      "Verify the product link in the breadcrumb is visible and clickable."
+    ],
+    "expected_results": [
+      "Breadcrumb shows at least 3 items.",
+      "Product name link is visible in the breadcrumb."
+    ]
+  },
+  "RELEASE-HEADER-002": {
+    "title": "Verify release status badge is visible in the header with non-empty text",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Verify the status badge container is visible.",
+      "Verify the badge has non-empty text."
+    ],
+    "expected_results": [
+      "Release status badge is visible with non-empty text (e.g., 'Scoping', 'Active')."
+    ]
+  },
+  "RELEASE-HEADER-003": {
+    "title": "Verify Release pipeline bar shows exactly 7 stage tabs",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Count the pipeline stage tabs in the workflow bar."
+    ],
+    "expected_results": [
+      "Exactly 7 pipeline stage tabs are visible."
+    ]
+  },
+  "RELEASE-HEADER-004": {
+    "title": "Verify exactly one stage is highlighted as active in the pipeline bar",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Count the active pipeline stage tabs."
+    ],
+    "expected_results": [
+      "Exactly one stage tab is highlighted as active."
+    ]
+  },
+  "RELEASE-HEADER-005": {
+    "title": "Verify View Flow toggle expands and reveals the pipeline bar",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Click the View Flow toggle.",
+      "Verify the pipeline bar is visible."
+    ],
+    "expected_results": [
+      "View Flow toggle is visible.",
+      "Clicking it expands the pipeline bar."
+    ]
+  },
+  "RELEASE-HEADER-006": {
+    "title": "Verify Need Help link is visible in the Release Detail header",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Verify the Need Help link is visible in the header."
+    ],
+    "expected_results": [
+      "'Need Help' link is visible in the Release Detail header."
+    ]
+  },
+  "RELEASE-HEADER-007": {
+    "title": "Verify Home breadcrumb link navigates to Landing Page",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Click the Home link in the breadcrumb.",
+      "Verify navigation reaches the Landing Page (URL contains 'GRC_PICASso')."
+    ],
+    "expected_results": [
+      "Clicking the Home breadcrumb navigates to the PICASso Landing Page."
+    ]
+  },
+  "RELEASE-HEADER-008": {
+    "title": "Verify all 7 expected pipeline stage names are shown in the workflow bar",
+    "spec_path": "projects/pw-autotest/tests/releases/release-detail-header.spec.ts",
+    "steps": [
+      "Navigate to a Release Detail page.",
+      "Read the aria-label of each pipeline stage tab.",
+      "Verify all 7 expected stage names: Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, FCSR Review, Post FCSR Actions, Final Acceptance."
+    ],
+    "expected_results": [
+      "All 7 pipeline stage names match the expected values exactly."
+    ]
+  },
+  "DOC-DETAIL-011": {
+    "title": "Verify DOC ID and VESTA ID are shown in the DOC Detail header",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail.spec.ts",
+    "steps": ["Navigate to the seed DOC.", "Verify DOC ID is shown in DOC-NNN format.", "Verify VESTA ID is visible in the header."],
+    "expected_results": ["DOC ID appears in DOC-NNN format in the header.", "VESTA ID value is non-empty."]
+  },
+  "DOC-ROLES-010": {
+    "title": "Verify Edit Roles mode shows user lookup input fields for editable roles",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-roles.spec.ts",
+    "steps": ["Open the DOC Detail Roles & Responsibilities tab.", "Click Edit Roles.", "Verify user lookup input fields are visible."],
+    "expected_results": ["Tab enters edit mode with Save Changes button visible.", "User lookup inputs visible for editable roles (BU Security Officer, DOCL, etc.)."]
+  },
+  "DOC-ROLES-011": {
+    "title": "Verify Roles grid shows correct column headers",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-roles.spec.ts",
+    "steps": ["Open the DOC Detail Roles & Responsibilities tab.", "Verify grid column headers."],
+    "expected_results": ["Grid shows User Role, Team Members, Email, and Location columns."]
+  },
+  "DOC-ROLES-012": {
+    "title": "Verify Save Changes / Cancel returns Roles tab to read-only view",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-roles.spec.ts",
+    "steps": ["Open the DOC Detail Roles & Responsibilities tab.", "Click Edit Roles.", "Click Save Changes or Cancel.", "Verify read-only view is restored."],
+    "expected_results": ["Tab returns to read-only view with Edit Roles button and grid visible."]
+  },
+  "DOC-ITS-009": {
+    "title": "Verify ITS grid re-sorts when CONTROL ID column header is clicked",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": ["Open ITS Checklist tab.", "Click the CONTROL ID column header.", "Verify grid is still visible after sort."],
+    "expected_results": ["Grid re-sorts without breaking layout."]
+  },
+  "DOC-ITS-010": {
+    "title": "Verify ITS grid re-sorts when DESCRIPTION column header is clicked",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": ["Open ITS Checklist tab.", "Click the DESCRIPTION column header.", "Verify grid is still visible after sort."],
+    "expected_results": ["Grid re-sorts without breaking layout."]
+  },
+  "DOC-ITS-011": {
+    "title": "Verify ITS grid re-sorts when CATEGORY column header is clicked",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": ["Open ITS Checklist tab.", "Click the CATEGORY column header.", "Verify grid is still visible after sort."],
+    "expected_results": ["Grid re-sorts without breaking layout."]
+  },
+  "DOC-ITS-012": {
+    "title": "Verify 'No results found' empty state when ITS search returns no matches",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": ["Open ITS Checklist tab.", "Enter 'ZZZNOMATCH_9999' in the search field.", "Verify no-results empty state is visible.", "Click Reset."],
+    "expected_results": ["'No results found' message is visible.", "Reset restores the full list."]
+  },
+  "DOC-ITS-013": {
+    "title": "Verify ITS Checklist default sort is by Control ID ascending",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": ["Open ITS Checklist tab (no user interaction).", "Read Control ID of first and second rows.", "Verify first row ID ≤ second row ID."],
+    "expected_results": ["Controls load pre-sorted by Control ID in ascending order."]
+  },
+  "DOC-ITS-014": {
+    "title": "Verify Add Control popup shows 'No results found' and preserves selection count",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-its.spec.ts",
+    "steps": ["Open ITS Checklist tab.", "Open Add Control popup.", "Select a control to get a non-zero selection count.", "Search for a non-matching term.", "Verify 'No results found' and count/Add Selected button remain visible."],
+    "expected_results": ["'No results found' shown in popup.", "Selection count preserved even when search returns no results."]
+  },
+  "DOC-CONTROL-007": {
+    "title": "Verify assessment status badge on a later-stage Control Detail page",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to DOC 538 ITS Checklist.", "Click the first Control ID link.", "Verify assessment status badge is visible in the header."],
+    "expected_results": ["Assessment status badge is visible on a later-stage DOC Control Detail."],
+    "execution_notes": "Skips gracefully when DOC 538 has no ITS controls."
+  },
+  "DOC-CONTROL-008": {
+    "title": "Verify Category label shows a non-empty value on Control Detail",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify Category label and its value."],
+    "expected_results": ["Category label is visible with a non-empty value."]
+  },
+  "DOC-CONTROL-009": {
+    "title": "Verify Findings section shows rows or empty state on Control Detail",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify findings section or 'No findings' empty state."],
+    "expected_results": ["Either findings rows or 'No findings added yet' message is visible."]
+  },
+  "DOC-CONTROL-010": {
+    "title": "Verify EVIDENCE LINKS section visible or shows empty state on later-stage Control Detail",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify EVIDENCE LINKS section heading or empty state."],
+    "expected_results": ["EVIDENCE LINKS section or 'No evidence links' message is visible."]
+  },
+  "DOC-CONTROL-011": {
+    "title": "Verify COMMENTS section visible or shows empty state on later-stage Control Detail",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify COMMENTS section heading or empty state."],
+    "expected_results": ["COMMENTS section or 'No comments' message is visible."]
+  },
+  "DOC-CONTROL-012": {
+    "title": "Verify Descope Control button is NOT visible on a Completed DOC",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to DOC 273 ITS Checklist.", "Click the first Control ID link.", "Verify Descope Control button is hidden."],
+    "expected_results": ["Descope Control button is absent on a Completed DOC Control Detail."],
+    "execution_notes": "Skips gracefully when DOC 273 has no ITS controls."
+  },
+  "DOC-CONTROL-013": {
+    "title": "Verify Risk Level label on a later-stage Control Detail page",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify Risk Level label is visible."],
+    "expected_results": ["Risk Level label is visible (e.g. High, Medium, Low)."]
+  },
+  "DOC-CONTROL-014": {
+    "title": "Verify clickable evidence links or empty state in EVIDENCE LINKS section",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify EVIDENCE LINKS section has clickable links or 'No evidence links'."],
+    "expected_results": ["Evidence links have valid href attributes, or empty state is shown."]
+  },
+  "DOC-CONTROL-015": {
+    "title": "Verify comment timeline items or empty state in COMMENTS section",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to the later-stage Control Detail page.", "Verify COMMENTS section has timeline items or 'No comments'."],
+    "expected_results": ["Comment timeline items (date/time, user, message) visible, or 'No comments' empty state."]
+  },
+  "DOC-CONTROL-016": {
+    "title": "Verify Control Detail is fully read-only on a Completed DOC",
+    "spec_path": "projects/pw-autotest/tests/doc/control-detail.spec.ts",
+    "steps": ["Navigate to DOC 273 Control Detail.", "Verify no Descope Control button.", "Verify no Add Evidence Link button.", "Verify no comment textarea."],
+    "expected_results": ["Control Detail is fully read-only: no action buttons or input fields visible."]
+  },
+  "DOC-CERT-007": {
+    "title": "Verify Send for Rework button is visible and opens popup with mandatory Comment field",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open a DOC in a stage that allows rework.", "Verify Send for Rework button.", "Click it and verify the popup with mandatory Comment field appears."],
+    "expected_results": ["Send for Rework button visible for user with SEND_FOR_REWORK privilege.", "Popup shows with mandatory Comment field."]
+  },
+  "DOC-CERT-008": {
+    "title": "Verify DOC Risk Summary cards are visible on Certification Decision tab",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open Certification Decision tab on a DOC with risk data.", "Verify Risk Summary cards are visible."],
+    "expected_results": ["Risk Summary cards are present on the Certification Decision tab."]
+  },
+  "DOC-CERT-009": {
+    "title": "Verify Propose Decision button is visible for DOC in Decision Proposal status",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Find a DOC in Decision Proposal status.", "Open Certification Decision tab.", "Verify Propose Decision button."],
+    "expected_results": ["Propose Decision button is visible."],
+    "execution_notes": "Skips gracefully when DOC already has a proposed decision set."
+  },
+  "DOC-CERT-010": {
+    "title": "Verify Certification Decision tab shows Decision Type and Decision Rationale fields",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open Certification Decision tab.", "Verify Decision Type and Decision Rationale fields."],
+    "expected_results": ["Decision Type and Rationale fields are visible."]
+  },
+  "DOC-CERT-011": {
+    "title": "Verify Unresolved Findings section is present or shows empty state",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open Certification Decision tab.", "Scroll to Unresolved Findings section."],
+    "expected_results": ["'Unresolved Findings' section heading visible with either findings grid or empty state."]
+  },
+  "DOC-CERT-012": {
+    "title": "Verify Unresolved Findings grid shows Closed Actions clickable link",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open Certification Decision tab with findings.", "Verify Closed Actions column has N of M link."],
+    "expected_results": ["Closed Actions cell shows a clickable 'N of M' count link."]
+  },
+  "DOC-CERT-013": {
+    "title": "Verify Unresolved Findings closed actions link shows clickable count",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open Certification Decision tab.", "Verify Unresolved Findings closed actions link is clickable."],
+    "expected_results": ["Closed Actions link is visible and clickable."]
+  },
+  "DOC-CERT-014": {
+    "title": "Verify Monitor Action Closure stage is visible for Actions Closure DOC",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Navigate to DOC 538 (Actions Closure).", "Verify 'Monitor Action Closure' step is visible in the DOC pipeline header."],
+    "expected_results": ["'Monitor Action Closure' pipeline stage is visible."]
+  },
+  "DOC-CERT-015": {
+    "title": "Verify empty Unresolved Findings for a Completed/Certified DOC",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Navigate to DOC 273 (Completed).", "Open Certification Decision tab.", "Verify Unresolved Findings shows empty state."],
+    "expected_results": ["No rows in Unresolved Findings for a Completed DOC."]
+  },
+  "DOC-CERT-016": {
+    "title": "Verify Edit button is visible when a Proposed Decision has already been saved",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open a DOC in Decision Proposal status with existing decision.", "Verify Edit button is visible instead of Propose Decision."],
+    "expected_results": ["Edit button visible to update an existing Proposed Decision."],
+    "execution_notes": "Skips gracefully when no decision is set on available DOC."
+  },
+  "DOC-CERT-017": {
+    "title": "Verify DOC Approvals table shows 1–3 approver rows matching decision type",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open a DOC with DOC Approvals section (Certification Approval, Actions Closure, or Completed).", "Count approver rows in DOC Approvals table."],
+    "expected_results": ["Row count is 1 (Certified), 2 (Certified with Exception), or 3 (Waiver)."]
+  },
+  "DOC-CERT-018": {
+    "title": "Verify Provide Signature button for eligible approvers in Certification Approval",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open a DOC in Certification Approval status.", "Verify Provide Signature button in DOC Approvals table."],
+    "expected_results": ["Provide Signature button visible for approvers with pending signatures."],
+    "execution_notes": "Skips gracefully when user lacks signature privilege or no pending approval exists."
+  },
+  "DOC-CERT-019": {
+    "title": "Verify Submit for Approval opens confirmation popup",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Open a DOC in Decision Proposal status.", "Click Submit for Approval.", "Verify confirmation popup appears.", "Dismiss with Cancel."],
+    "expected_results": ["Confirmation popup visible; dismissed without state change."],
+    "execution_notes": "Skips gracefully when Submit for Approval is disabled or popup does not appear."
+  },
+  "DOC-CERT-020": {
+    "title": "Verify Monitor Action Closure stage NOT visible for non-Waiver/Exception DOCs",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-detail-certification.spec.ts",
+    "steps": ["Navigate to the Controls Scoping seed DOC.", "Verify Monitor Action Closure stage is absent from the pipeline header."],
+    "expected_results": ["'Monitor Action Closure' pipeline stage is hidden on a standard Controls Scoping DOC."]
   }
 }
 </script>
@@ -2816,6 +3197,9 @@ const DOC_SCENARIO_CASES = {
   "11.7.17": [["ATC-DOC-ITS-008", "`doc/doc-detail-its.spec.ts` — Descope button visible and popup validation opens from first control"]],
   "11.7.18": [["ATC-DOC-ITS-008", "`doc/doc-detail-its.spec.ts` — Descope popup opens from first control"]],
   "11.7.19": [["ATC-DOC-ITS-008", "`doc/doc-detail-its.spec.ts` — Descope button disabled until justification entered"]],
+  "11.7.15": [["ATC-DOC-ITS-015", "`doc/doc-detail-its.spec.ts` — Category filter dropdown narrows ITS grid"]],
+  "11.7.16": [["ATC-DOC-ITS-016", "`doc/doc-detail-its.spec.ts` — Category filter in Add Control popup narrows the controls list"]],
+  "11.7.18b": [["ATC-DOC-ITS-018", "`doc/doc-detail-its.spec.ts` — Start ITS Risk Assessment button visible and gated by unassessed controls"]],
 
   "11.8.1": [["ATC-DOC-CONTROL-003", "`doc/control-detail.spec.ts` — breadcrumb Home/Product links visible on Control Detail"], ["ATC-DOC-CONTROL-001", "`doc/control-detail.spec.ts` — navigate to Control Detail via first ITS control link"]],
   "11.8.2": [["ATC-DOC-CONTROL-002", "`doc/control-detail.spec.ts` — Control ID visible in page header"]],
@@ -2889,6 +3273,43 @@ const DOC_SCENARIO_CASES = {
 
   // 11.3 My DOCs tab — empty state
   "11.3.16": [["ATC-LANDING-DOCS-016", "`landing/my-docs-tab.spec.ts` — \"No Digital Offer Certifications to show\" empty state message appears when filters return no results"]],
+
+  // 11.4 DOC Detail header — DOC ID + VESTA ID
+  "11.4.13": [["ATC-DOC-DETAIL-011", "`doc/doc-detail.spec.ts` — DOC ID in DOC-NNN format and VESTA ID visible in header"]],
+
+  // 11.6 Roles & Responsibilities — edit mode user lookups, column headers, save/cancel round-trip
+  "11.6.10": [["ATC-DOC-ROLES-010", "`doc/doc-detail-roles.spec.ts` — Edit Roles shows user lookup inputs for editable roles"]],
+  "11.6.12": [["ATC-DOC-ROLES-011", "`doc/doc-detail-roles.spec.ts` — Roles grid columns: User Role, Team Members, Email, Location"]],
+  "11.6.13": [["ATC-DOC-ROLES-012", "`doc/doc-detail-roles.spec.ts` — Save/Cancel from Edit Roles returns to read-only view"]],
+
+  // 11.7 ITS Checklist — column sort, empty-state, default order, popup no-results
+  "11.7.9":  [["ATC-DOC-ITS-009", "`doc/doc-detail-its.spec.ts` — CONTROL ID column header click re-sorts the ITS grid"]],
+  "11.7.10": [["ATC-DOC-ITS-010", "`doc/doc-detail-its.spec.ts` — DESCRIPTION column header click re-sorts the ITS grid"]],
+  "11.7.11": [["ATC-DOC-ITS-011", "`doc/doc-detail-its.spec.ts` — CATEGORY column header click re-sorts the ITS grid"]],
+  "11.7.20": [["ATC-DOC-ITS-012", "`doc/doc-detail-its.spec.ts` — No results empty state for non-matching ITS search term"]],
+  "11.7.21": [["ATC-DOC-ITS-013", "`doc/doc-detail-its.spec.ts` — ITS grid default sort is by Control ID ascending"]],
+  "11.7.22": [["ATC-DOC-ITS-014", "`doc/doc-detail-its.spec.ts` — Add Control popup no-results preserves selection count"]],
+
+  // 11.8 Control Detail — later-stage and Completed DOC coverage
+  "11.8.7":  [["ATC-DOC-CONTROL-007", "`doc/control-detail.spec.ts` — assessment status badge on later-stage Control Detail (DOC 538)"]],
+  "11.8.8":  [["ATC-DOC-CONTROL-008", "`doc/control-detail.spec.ts` — Category label with non-empty value on later-stage Control Detail"]],
+  "11.8.10": [["ATC-DOC-CONTROL-009", "`doc/control-detail.spec.ts` — Findings rows or 'No findings' empty state on later-stage Control Detail"]],
+  "11.8.11": [["ATC-DOC-CONTROL-010", "`doc/control-detail.spec.ts` — EVIDENCE LINKS section or empty state on later-stage Control Detail"]],
+  "11.8.12": [["ATC-DOC-CONTROL-011", "`doc/control-detail.spec.ts` — COMMENTS section or empty state on later-stage Control Detail"]],
+  "11.8.13": [["ATC-DOC-CONTROL-012", "`doc/control-detail.spec.ts` — Descope Control button hidden on Completed DOC Control Detail (DOC 273)"]],
+  "11.8.14": [["ATC-DOC-CONTROL-013", "`doc/control-detail.spec.ts` — Risk Level label visible on later-stage Control Detail"]],
+  "11.8.15": [["ATC-DOC-CONTROL-014", "`doc/control-detail.spec.ts` — evidence links are clickable with valid href attributes"]],
+  "11.8.16": [["ATC-DOC-CONTROL-015", "`doc/control-detail.spec.ts` — comment timeline items (date/user/message) or empty state"]],
+  "11.8.17": [["ATC-DOC-CONTROL-016", "`doc/control-detail.spec.ts` — full read-only mode on Completed DOC Control Detail (no action buttons)"]],
+
+  // 11.11 Certification Decision — Actions Closure, Completed DOC, decision editing, approvals
+  "11.11.14": [["ATC-DOC-CERT-014", "`doc/doc-detail-certification.spec.ts` — Monitor Action Closure stage visible for Actions Closure DOC (DOC 538)"]],
+  "11.11.15": [["ATC-DOC-CERT-015", "`doc/doc-detail-certification.spec.ts` — empty Unresolved Findings on Completed/Certified DOC (DOC 273)"]],
+  "11.11.16": [["ATC-DOC-CERT-016", "`doc/doc-detail-certification.spec.ts` — Edit button shown after Proposed Decision saved (graceful skip when none)"]],
+  "11.11.17": [["ATC-DOC-CERT-017", "`doc/doc-detail-certification.spec.ts` — DOC Approvals has 1–3 rows matching the proposed decision type"]],
+  "11.11.18": [["ATC-DOC-CERT-018", "`doc/doc-detail-certification.spec.ts` — Provide Signature button for eligible approver (graceful skip)"]],
+  "11.11.19": [["ATC-DOC-CERT-019", "`doc/doc-detail-certification.spec.ts` — Submit for Approval opens confirmation popup (graceful skip)"]],
+  "11.11.20": [["ATC-DOC-CERT-020", "`doc/doc-detail-certification.spec.ts` — Monitor Action Closure stage NOT shown on Controls Scoping DOC"]],
 };
 
 // ─── Scenario→Test-ID wiring for Authentication (WF section 1) ───────────────
@@ -3005,6 +3426,15 @@ const RELEASE_SCENARIO_CASES = {
   "4.1.3": [["ATC-RELEASE-CREATE-001", "`releases/create-new-release.spec.ts` — Release Version, Target Date, Change Summary are required — all three validated together by RELEASE-CREATE-001"]],
   "4.1.6": [["ATC-RELEASE-CREATE-002", "`releases/create-new-release.spec.ts` — Create & Scope creates the release and redirects to Release Detail page"]],
   "4.1.7": [["ATC-RELEASE-CREATE-002", "`releases/create-new-release.spec.ts` — Newly created release appears in the product Releases tab list with status \"Scoping\""]],
+  // 4.4 Release Detail Page — Header & Workflow Pipeline
+  "4.4.1": [["ATC-RELEASE-HEADER-001", "`releases/release-detail-header.spec.ts` — Release Detail page loads with breadcrumb showing Home > Product > Release"]],
+  "4.4.2": [["ATC-RELEASE-HEADER-002", "`releases/release-detail-header.spec.ts` — Release status badge visible in the header with non-empty text"]],
+  "4.4.3": [["ATC-RELEASE-HEADER-003", "`releases/release-detail-header.spec.ts` — Release pipeline bar shows exactly 7 stage tabs"]],
+  "4.4.4": [["ATC-RELEASE-HEADER-004", "`releases/release-detail-header.spec.ts` — Exactly one stage is highlighted as active in the pipeline bar"]],
+  "4.4.5": [["ATC-RELEASE-HEADER-005", "`releases/release-detail-header.spec.ts` — View Flow toggle expands and reveals the pipeline bar"]],
+  "4.4.6": [["ATC-RELEASE-HEADER-006", "`releases/release-detail-header.spec.ts` — Need Help link is visible in the Release Detail header"]],
+  "4.4.7": [["ATC-RELEASE-HEADER-007", "`releases/release-detail-header.spec.ts` — Home breadcrumb link navigates to Landing Page"]],
+  "4.4.8": [["ATC-RELEASE-HEADER-008", "`releases/release-detail-header.spec.ts` — All 7 expected pipeline stage names are shown in the workflow bar"]],
 };
 
 const AUTO_CASE_STATUS = {
@@ -3108,6 +3538,14 @@ const AUTO_CASE_STATUS = {
   'RELEASE-CREATE-005': ['passed', 'passed'],
   'RELEASE-CREATE-006': ['passed', 'passed'],
   'RELEASE-CREATE-007': ['passed', 'passed'],
+  'RELEASE-HEADER-001': ['passed', 'passed'],
+  'RELEASE-HEADER-002': ['passed', 'passed'],
+  'RELEASE-HEADER-003': ['passed', 'passed'],
+  'RELEASE-HEADER-004': ['passed', 'passed'],
+  'RELEASE-HEADER-005': ['passed', 'passed'],
+  'RELEASE-HEADER-006': ['passed', 'passed'],
+  'RELEASE-HEADER-007': ['passed', 'passed'],
+  'RELEASE-HEADER-008': ['passed', 'passed'],
   'PRODUCT-HISTORY-001': ['passed', 'passed'],
   'PRODUCT-HISTORY-002': ['passed', 'passed'],
   'PRODUCT-ACTIONS-001': ['passed', 'passed'],
@@ -3158,10 +3596,15 @@ const AUTO_CASE_STATUS = {
   'DOC-ITS-002': ['passed', 'passed'],
   'DOC-ITS-003': ['passed', 'passed'],
   'DOC-ITS-004': ['passed', 'passed'],
-  'DOC-ITS-005': ['blocked', 'blocked'],
-  'DOC-ITS-006': ['blocked', 'blocked'],
+  'DOC-ITS-005': ['passed', 'passed'],
+  'DOC-ITS-006': ['skipped: graceful — all controls already in scope; popup has no selectable items', 'not-executed'],
   'DOC-ITS-007': ['passed', 'passed'],
   'DOC-ITS-008': ['passed', 'passed'],
+  'DOC-ITS-015': ['passed', 'passed'],
+  'DOC-ITS-016': ['passed', 'passed'],
+  'DOC-ITS-017': ['skipped: test.fixme — destructive/deferred', 'not-executed'],
+  'DOC-ITS-018': ['passed', 'passed'],
+  'DOC-ITS-019': ['skipped: test.fixme — destructive/deferred', 'not-executed'],
   'DOC-CONTROL-001': ['passed', 'passed'],
   'DOC-CONTROL-002': ['passed', 'passed'],
   'DOC-CONTROL-003': ['passed', 'passed'],
@@ -3219,6 +3662,33 @@ const AUTO_CASE_STATUS = {
   'LANDING-DOCS-016': ['passed', 'passed'],
   'DOC-LIFECYCLE-013': ['skipped: graceful — user lacks REVOKE_DOC privilege', 'not-executed'],
   'DOC-DETAIL-010': ['skipped: graceful — Release link visible only when release assigned to DOC', 'not-executed'],
+  'DOC-DETAIL-011': ['passed', 'passed'],
+  'DOC-ROLES-010': ['passed', 'passed'],
+  'DOC-ROLES-011': ['passed', 'passed'],
+  'DOC-ROLES-012': ['passed', 'passed'],
+  'DOC-ITS-009': ['passed', 'passed'],
+  'DOC-ITS-010': ['passed', 'passed'],
+  'DOC-ITS-011': ['passed', 'passed'],
+  'DOC-ITS-012': ['passed', 'passed'],
+  'DOC-ITS-013': ['passed (QA)', 'passed'],
+  'DOC-ITS-014': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-007': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-008': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-009': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-010': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-011': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-012': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-013': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-014': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-015': ['passed (QA)', 'passed'],
+  'DOC-CONTROL-016': ['passed (QA)', 'passed'],
+  'DOC-CERT-014': ['passed', 'passed'],
+  'DOC-CERT-015': ['passed', 'passed'],
+  'DOC-CERT-016': ['skipped: graceful — no Proposed Decision set on available DOC', 'not-executed'],
+  'DOC-CERT-017': ['passed', 'passed'],
+  'DOC-CERT-018': ['skipped: graceful — user lacks signature privilege or no pending approval', 'not-executed'],
+  'DOC-CERT-019': ['skipped: graceful — Submit for Approval button disabled or popup not triggered', 'not-executed'],
+  'DOC-CERT-020': ['passed', 'passed'],
 };
 
 function getExplicitPlanRefs(explicitAutoCases) {
@@ -3508,20 +3978,22 @@ const WF = [
         [false, "Cloned release does NOT inherit Actions Management items; Actions Management page for the cloned release is empty at creation", "P2"],
       ]},
       { title:"4.4 Release Detail Page — Header & Workflow Pipeline", items:[
-        [false, "Release Detail page loads from My Releases grid or from a product's Releases tab", "P1"],
-        [false, "Breadcrumb shows Home > Product Name > Release Version", "P1"],
-        [false, "Release status badge (Active, green) is visible in the header", "P1"],
-        [false, "Release pipeline bar shows all 7 stage names (Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, FCSR Review, Post FCSR Actions, Final Acceptance)", "P1"],
-        [false, "Current active stage is highlighted in the pipeline bar", "P1"],
-        [false, "\"View Flow\" button opens the workflow progress popup", "P1"],
+        [true,  "Release Detail page loads from My Releases grid or from a product's Releases tab", "P1", RELEASE_SCENARIO_CASES["4.4.1"]],
+        [true,  "Breadcrumb shows Home > Product Name > Release Version", "P1", RELEASE_SCENARIO_CASES["4.4.1"]],
+        [true,  "Release status badge is visible in the header with non-empty text", "P1", RELEASE_SCENARIO_CASES["4.4.2"]],
+        [true,  "Release pipeline bar shows all 7 stage names (Creation & Scoping, Review & Confirm, Manage, Security & Privacy Readiness Sign Off, FCSR Review, Post FCSR Actions, Final Acceptance)", "P1", RELEASE_SCENARIO_CASES["4.4.3"]],
+        [true,  "Current active stage is highlighted in the pipeline bar", "P1", RELEASE_SCENARIO_CASES["4.4.4"]],
+        [true,  "\"View Flow\" toggle expands and reveals the pipeline bar", "P1", RELEASE_SCENARIO_CASES["4.4.5"]],
         [false, "Workflow popup shows submission counts, responsible usernames, and completion dates for completed stages", "P1"],
         [false, "At Creation & Scoping stage, responsible users are pre-calculated based on Minimum Oversight Level and Last BU SO FCSR Date", "P1"],
         [false, "After questionnaire submission, workflow popup updates responsible users if Risk Classification changes", "P1"],
-        [false, "\"Need Help\" button opens the Stage Sidebar panel", "P1"],
+        [true,  "\"Need Help\" link is visible in the Release Detail header", "P1", RELEASE_SCENARIO_CASES["4.4.6"]],
         [false, "Stage Sidebar shows: current stage name, responsible users table (User/Role/Approval Date columns), stage description text, and Close (X) button", "P1"],
         [false, "When release is on Rework, orange dot indicator appears on \"View Flow\" link with tooltip \"On Rework. Click here for more details\"", "P3"],
         [false, "Workflow popup shows submission counter (e.g., \"1 from 2 submissions\") for multi-approver stages", "P1"],
         [false, "Completed workflow stages show username and completion date in the popup", "P1"],
+        [true,  "Home breadcrumb link navigates back to the Landing Page", "P1", RELEASE_SCENARIO_CASES["4.4.7"]],
+        [true,  "All 7 expected pipeline stage names are shown correctly in the workflow bar", "P1", RELEASE_SCENARIO_CASES["4.4.8"]],
       ]},
       { title:"4.5 Release Details Tab", items:[
         [false, "Release Details tab loads by default showing version, target date, release type, continuous pen testing, change summary", "P2"],
@@ -4158,7 +4630,7 @@ const WF = [
         [true,  "\"Roles & Responsibilities\" tab is available after DOC initiation", "P2", DOC_SCENARIO_CASES["11.4.2"]],
         [true,  "\"ITS Checklist\" tab is available after DOC initiation", "P2", DOC_SCENARIO_CASES["11.4.3"]],
         [true,  "Breadcrumb shows Home > Product Name > DOC: DOC Name with clickable links", "P1", DOC_SCENARIO_CASES["11.4.4"]],
-        [false, "DOC Detail page header shows correct DOC Name, DOC ID, and VESTA ID", "P2"],
+        [true,  "DOC Detail page header shows correct DOC Name, DOC ID, and VESTA ID", "P2", DOC_SCENARIO_CASES["11.4.13"]],
         [true,  "DOC stage pipeline is visible with all 5 stages (Initiate DOC → Scope ITS Controls → Risk Assessment → Risk Summary Review → Issue Certification)", "P2", DOC_SCENARIO_CASES["11.4.6"]],
         [true,  "Current active DOC stage is highlighted in the pipeline", "P2", DOC_SCENARIO_CASES["11.4.7"]],
         [true,  "Completed workflow stages show the user who completed them and the completion date", "P2", DOC_SCENARIO_CASES["11.4.8"]],
@@ -4183,13 +4655,13 @@ const WF = [
         [true,  "Roles & Responsibilities tab displays a grid with columns: User Role, Team Members, Email, Location", "P2", DOC_SCENARIO_CASES["11.6.1"]],
         [true,  "Grid shows the product-derived roles and, when assigned in the environment, additional workflow roles such as BU Security Officer, CISO, DOCL, Digital Risk Lead, BVP, and Senior BVP", "P2", DOC_SCENARIO_CASES["11.6.2"]],
         [true,  "Roles pre-populated from Product Details (read-only within DOC): IT Owner, Project Manager, Product Owner, Security Advisor / Security and Data Protection Advisor", "P2", DOC_SCENARIO_CASES["11.6.3"]],
-        [false, "Roles editable within DOC (for user with EDIT_USERS_ROLES_DOC privilege): BU Security Officer, DOCL, Digital Risk Lead, CISO, BVP, Senior BVP", "P2"],
+        [true,  "Roles editable within DOC (for user with EDIT_USERS_ROLES_DOC privilege): BU Security Officer, DOCL, Digital Risk Lead, CISO, BVP, Senior BVP — edit mode shows user lookup input fields", "P2", DOC_SCENARIO_CASES["11.6.10"]],
         [true,  "An orange dot is shown on the Roles & Responsibilities tab name when any mandatory editable role has no member assigned", "P2", DOC_SCENARIO_CASES["11.6.5"]],
         [true,  "Unassigned editable roles show \"No member assigned\" in Team Members, \"–\" in Email and Location", "P2", DOC_SCENARIO_CASES["11.6.6"]],
         [true,  "\"Edit Roles\" button is visible for a user with EDIT_USERS_ROLES_DOC privilege", "P2", DOC_SCENARIO_CASES["11.6.7"]],
         [true,  "In edit mode, the Roles tab enters edit state and validates required-role completion before save", "P2", DOC_SCENARIO_CASES["11.6.8"]],
         [true,  "\"Save Changes\" button is disabled and shows tooltip \"Specify all required members for their roles to save changes\" if mandatory roles are empty", "P2", DOC_SCENARIO_CASES["11.6.9"]],
-        [false, "Saving with all mandatory roles populated returns tab to read-only view with updated data", "P2"],
+        [true,  "Saving with all mandatory roles populated (or Cancel) returns tab to read-only view with updated data", "P2", DOC_SCENARIO_CASES["11.6.13"]],
         [true,  "Cancel button in edit mode discards changes and returns to read-only view", "P2", DOC_SCENARIO_CASES["11.6.11"]],
         [false, "For CPSO/CISO roles, a Deputy user can be selected in place of the principal", "P2"],
         [false, "User with VIEW_DOC privilege can view the Roles & Responsibilities tab but cannot edit it (no \"Edit Roles\" button shown)", "P2"],
@@ -4197,40 +4669,43 @@ const WF = [
       { title:"11.7 DOC Detail — ITS Checklist Tab", items:[
         [true,  "ITS Checklist tab displays the \"IT SECURITY CONTROLS\" subtitle and a grid with columns: Control ID, Description, Evidence Expectation, Category, Actions", "P2", DOC_SCENARIO_CASES["11.7.1"]],
         [true,  "Control ID column contains clickable links navigating to the Control Detail page", "P2", DOC_SCENARIO_CASES["11.7.2"]],
-        [false, "Control ID column is sortable", "P2"],
-        [false, "Description and Category columns are sortable", "P2"],
-        [false, "By default all active controls from BackOffice are loaded and sorted by Control ID for a newly created DOC", "P2"],
+        [true,  "Control ID column is sortable", "P2", DOC_SCENARIO_CASES["11.7.9"]],
+        [true,  "Description and Category columns are sortable", "P2", DOC_SCENARIO_CASES["11.7.10"]],
+        [true,  "By default all active controls from BackOffice are loaded and sorted by Control ID for a newly created DOC", "P2", DOC_SCENARIO_CASES["11.7.21"]],
         [false, "Lazy loading is implemented — additional controls load as the user scrolls down", "P2"],
         [true,  "Category filter dropdown lists available Control Categories and filters the grid", "P2", DOC_SCENARIO_CASES["11.7.6"]],
         [true,  "Search field filters controls by Control ID, Description, and Evidence Expectation text", "P2", DOC_SCENARIO_CASES["11.7.7"]],
         [true,  "Reset button clears all search filters", "P2", DOC_SCENARIO_CASES["11.7.8"]],
-        [false, "\"No results found\" empty state appears when filters return no matching controls", "P2"],
+        [true,  "\"No results found\" empty state appears when filters return no matching controls", "P2", DOC_SCENARIO_CASES["11.7.20"]],
         [false, "\"No ITS Controls added yet\" empty state with Add Control button appears when no controls are in scope", "P2"],
         [false, "\"No active ITS Controls for this product — refer to the PICASso support team\" message appears when BackOffice has no active controls", "P2"],
         [true,  "\"Add Control\" button is visible for user with SCOPE_IT_SECURITY_CONTROLS privilege, but on the current QA DOC it is disabled because all available controls are already in scope", "P2", DOC_SCENARIO_CASES["11.7.12"]],
-        [false, "Clicking \"Add Control\" opens the Add Control(s) popup with Search, Category filter, \"Show new only\" toggle, and a controls table (Control ID, Description, Category columns with checkboxes)", "P2", DOC_SCENARIO_CASES["11.7.13"]],
-        [false, "Selecting controls in the popup shows \"N of M Selected\" count at the bottom; \"Add Selected\" button is disabled until at least one is selected", "P2", DOC_SCENARIO_CASES["11.7.14"]],
-        [false, "\"No results found\" empty state in Add Control popup when no filters match; if controls are already selected, count and enabled Add Selected button remain", "P2"],
+        [true,  "Clicking \"Add Control\" opens the Add Control(s) popup with Search, Category filter, \"Show new only\" toggle, and a controls table (Control ID, Description, Category columns with checkboxes)", "P2", DOC_SCENARIO_CASES["11.7.13"]],
+        [true,  "Selecting controls in the popup shows \"N of M Selected\" count at the bottom; \"Add Selected\" button is disabled until at least one is selected", "P2", DOC_SCENARIO_CASES["11.7.14"]],
+        [true,  "Category filter dropdown narrows the ITS grid to the selected category; Reset restores the full list", "P2", DOC_SCENARIO_CASES["11.7.15"]],
+        [true,  "Category filter in the Add Control popup narrows the controls list to the selected category", "P2", DOC_SCENARIO_CASES["11.7.16"]],
+        [true,  "\"No results found\" empty state in Add Control popup when no filters match; if controls are already selected, count and enabled Add Selected button remain", "P2", DOC_SCENARIO_CASES["11.7.22"]],
         [false, "Adding selected controls appends them to the ITS Checklist table", "P2"],
         [false, "Previously descoped controls appear greyed in the Add Control popup with a tooltip icon showing the descope justification", "P2"],
         [true,  "Actions column shows an X (Descope) button for user with SCOPE_IT_SECURITY_CONTROLS privilege; hovering shows \"Descope Control\" tooltip", "P2", DOC_SCENARIO_CASES["11.7.17"]],
         [true,  "Clicking Descope (X) opens the \"Unscope ITS Control\" popup with mandatory Justification field; Descope button is disabled until justification is provided", "P2", DOC_SCENARIO_CASES["11.7.18"]],
         [false, "Confirming descope removes the control from the ITS Checklist table", "P2"],
+        [true,  "\"Start ITS Risk Assessment\" button is visible on a Controls Scoping DOC; button is disabled when any control has 'Not Assessed' status", "P2", DOC_SCENARIO_CASES["11.7.18b"]],
         [false, "User with VIEW_DOC privilege can view the ITS Checklist tab in read-only mode (no Add Control or Descope buttons)", "P2"],
       ]},
       { title:"11.8 DOC Detail — Control Detail Page", items:[
         [true,  "Control Detail page is reachable from the ITS Checklist Control ID link and shows breadcrumb context for Home, Product, and DOC", "P2", DOC_SCENARIO_CASES["11.8.1"]],
         [true,  "Header shows Control ID", "P2", DOC_SCENARIO_CASES["11.8.2"]],
-        [false, "Header shows the current assessment status badge", "P2"],
+        [true,  "Header shows the current assessment status badge", "P2", DOC_SCENARIO_CASES["11.8.7"]],
         [true,  "Description and Evidence Expectation sections show full content", "P2", DOC_SCENARIO_CASES["11.8.3"]],
-        [false, "Category label and Risk Level badge with justification text are displayed correctly", "P2"],
+        [true,  "Category label and Risk Level badge with justification text are displayed correctly", "P2", DOC_SCENARIO_CASES["11.8.8"]],
         [true,  "On Scope ITS Controls stage, a \"No evidence links, findings or comments yet. Refer to this section once the DOC has been submitted to the Risk Assessment stage.\" message is shown", "P2", DOC_SCENARIO_CASES["11.8.5"]],
-        [false, "FINDINGS section lists control findings or shows \"No findings added yet\" when empty (Risk Assessment stage and beyond)", "P2"],
-        [false, "EVIDENCE LINKS grid shows attached evidence with clickable link URLs and link names", "P2"],
-        [false, "COMMENTS section displays a timeline of comments with date/time, user avatar, and message text", "P2"],
+        [true,  "FINDINGS section lists control findings or shows \"No findings added yet\" when empty (Risk Assessment stage and beyond)", "P2", DOC_SCENARIO_CASES["11.8.10"]],
+        [true,  "EVIDENCE LINKS grid shows attached evidence with clickable link URLs and link names", "P2", DOC_SCENARIO_CASES["11.8.11"]],
+        [true,  "COMMENTS section displays a timeline of comments with date/time, user avatar, and message text", "P2", DOC_SCENARIO_CASES["11.8.12"]],
         [true,  "\"Descope Control\" button is visible on Control Detail for user with SCOPE_IT_SECURITY_CONTROLS privilege; triggers the same Unscope popup as from ITS Checklist", "P2", DOC_SCENARIO_CASES["11.8.9"]],
         [false, "After descoping from Control Detail, the Descope button is removed and a tooltip icon appears next to the Control ID showing the justification", "P2"],
-        [false, "On Issue Certification stage, Control Detail is read-only: risk assessment, findings, evidence, and comments cannot be edited", "P2"],
+        [true,  "On Issue Certification stage (Completed DOC), Control Detail is read-only: no Descope, no Add Evidence, no comment textarea", "P2", DOC_SCENARIO_CASES["11.8.17"]],
       ]},
       { title:"11.9 DOC Detail — Action Plan Tab", items:[
         [true,  "Action Plan tab displays a grid with columns: Action Name, Description, Status, Due Date, Assignee, Findings", "P2", DOC_SCENARIO_CASES["11.9.1"]],
@@ -4251,16 +4726,16 @@ const WF = [
         [true,  "Orange warning icon with \"Proposed certification decision is not specified.\" tooltip is shown until a Proposed Decision is set", "P1", DOC_SCENARIO_CASES["11.11.9"]],
         [true,  "\"Propose Decision\" button is visible for user with SPECIFY_UPDATE_DOC_DECISION privilege", "P1", DOC_SCENARIO_CASES["11.11.2"]],
         [false, "Clicking \"Propose Decision\" opens the Propose Certification Decision popup with: Proposed Decision dropdown (mandatory), Validity End Date datepicker (mandatory, shown when Decision = Certified or Certified with Exception), Due Date for Actions Closure datepicker (mandatory, shown when Decision = Waiver), Comment (mandatory)", "P2"],
-        [false, "Submitting the popup saves the decision; button changes to \"Edit\" for users with SPECIFY_UPDATE_DOC_DECISION privilege", "P2"],
+        [true,  "Submitting the popup saves the decision; button changes to \"Edit\" for users with SPECIFY_UPDATE_DOC_DECISION privilege", "P2", DOC_SCENARIO_CASES["11.11.16"]],
         [true,  "Saved Proposed Decision is displayed in the DOC header Certification Decision badge and on the My DOCs tab", "P2", DOC_SCENARIO_CASES["11.11.10"]],
         [false, "When Proposed Decision = Certified with Exception or Waiver, the \"Actions Closure\" stage appears in the DOC header pipeline", "P2"],
         [true,  "\"Submit for Approval\" button is visible for user with SUBMIT_FOR_APPROVAL privilege; disabled until Proposed Decision is set", "P1", DOC_SCENARIO_CASES["11.11.3"]],
-        [false, "Clicking \"Submit for Approval\" opens a confirmation popup; confirming updates DOC status to \"Certification Approval\" and removes the Submit button", "P2"],
+        [true,  "Clicking \"Submit for Approval\" opens a confirmation popup (graceful: dismissed with Cancel without confirming submission)", "P2", DOC_SCENARIO_CASES["11.11.19"]],
         [true,  "\"Send for Rework\" button is visible for user with SEND_FOR_REWORK privilege; opens a popup with mandatory Comment field", "P2", DOC_SCENARIO_CASES["11.11.7"]],
         [false, "Confirming Send for Rework updates DOC stage/status to \"Risk Summary Review\" (Review Risk Summary); stage is marked with an orange \"!\" icon and tooltip showing the rework justification", "P2"],
         [true,  "DOC Signatures section appears during Certification Approval status with columns: Approver Name, Role, Signature, Comment", "P2", DOC_SCENARIO_CASES["11.11.11"]],
-        [false, "Approver rows match the Proposed Decision: Certified → 1 row (BU Security Officer); Certified with Exception → 2 rows (BU Security Officer, BVP); Waiver → 3 rows (BU Security Officer, CISO, Senior BVP) — CPSO is not included", "P2"],
-        [false, "\"Provide Signature\" button is available for the respective approvers with the appropriate privilege", "P2"],
+        [true,  "Approver rows match the Proposed Decision: Certified → 1 row (BU Security Officer); Certified with Exception → 2 rows (BU Security Officer, BVP); Waiver → 3 rows (BU Security Officer, CISO, Senior BVP) — CPSO is not included", "P2", DOC_SCENARIO_CASES["11.11.17"]],
+        [true,  "\"Provide Signature\" button is available for the respective approvers with the appropriate privilege (graceful skip when user lacks privilege)", "P2", DOC_SCENARIO_CASES["11.11.18"]],
         [false, "If any approver rejects the decision, DOC status reverts to \"Decision Proposal\"; orange \"!\" icon appears on DOC Approvals section with tooltip \"The proposed certification decision has been rejected.\"", "P2"],
         [false, "\"Provide Signature\" button is disabled for all other approvers after a rejection, with tooltip \"The proposed certification decision has already been rejected by one of the approvers.\"", "P2"],
         [true,  "Risk Summary section shows three cards: ITS Control Summary, SDL FCSR Summary, Data Protection and Privacy Summary", "P2", DOC_SCENARIO_CASES["11.11.4"]],
@@ -4269,7 +4744,7 @@ const WF = [
         [true,  "Control ID in Unresolved Findings table is clickable and navigates to Control Detail (read-only on Issue Certification stage)", "P2", DOC_SCENARIO_CASES["11.11.12"]],
         [true,  "Closed Actions value is clickable and opens a List of Actions popup on the Certification Decision tab", "P2", DOC_SCENARIO_CASES["11.11.13"]],
         [true,  "Stage name in the DOC pipeline header is \"Risk Summary Review\" (not \"Review Risk Summary\")", "P2", DOC_SCENARIO_CASES["11.11.8"]],
-        [false, "\"Monitor Action Closure\" stage is hidden by default; appears only when Proposed Decision = Certified with Exception or Waiver", "P2"],
+        [true,  "\"Monitor Action Closure\" stage: visible on Actions Closure DOC (Certified with Exception/Waiver); hidden on standard Controls Scoping DOC", "P2", DOC_SCENARIO_CASES["11.11.14"]],
       ]},
       { title:"11.12 DOC History", items:[
         [true,  "\"View History\" link in DOC header opens the DOC History popup dialog", "P2", DOC_SCENARIO_CASES["11.12.1"]],
@@ -4959,6 +5434,7 @@ function getSpecPrefix(spec) {
     'products/product-details-history.spec.ts': 'PRODUCT-HISTORY',
     'products/product-details-releases.spec.ts': 'PRODUCT-RELEASES',
     'releases/create-new-release.spec.ts': 'RELEASE-CREATE',
+    'releases/release-detail-header.spec.ts': 'RELEASE-HEADER',
     'doc/new-product-creation-digital-offer.spec.ts': 'DOC-SETUP',
     'doc/initiate-doc.spec.ts': 'DOC-INIT',
     'doc/doc-detail.spec.ts': 'DOC-DETAIL',

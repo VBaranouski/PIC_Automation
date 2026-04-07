@@ -12,3 +12,6 @@ export type { DocDetailsLocators } from './doc-details.locators';
 
 export { controlDetailLocators } from './control-detail.locators';
 export type { ControlDetailLocators } from './control-detail.locators';
+
+export { releaseDetailLocators } from './release-detail.locators';
+export type { ReleaseDetailLocators } from './release-detail.locators';
