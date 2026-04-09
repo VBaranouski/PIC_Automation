@@ -22,7 +22,7 @@
 - [ ] All public POM methods have explicit return types
 
 ### Test quality
-- [ ] Explored all target pages/tabs via MCP snapshots
+- [ ] Explored all target pages/tabs via Playwright CLI inspection snapshots
 - [ ] Used exact locator text from DOM (not guessed)
 - [ ] Scoped grid elements to `tabpanel`
 - [ ] No `networkidle`, no `waitForTimeout()`, no `selectOption()` on OSUI widgets
@@ -114,7 +114,7 @@ Each test must be fully independent. Use fixtures or setup projects for shared s
 
 ### 8. Guessing Locator Text
 
-Always take a DOM snapshot (MCP) before writing locators. Never assume label or button text.
+Always take a DOM snapshot in a Playwright CLI inspection session before writing locators. Never assume label or button text.
 
 ### 9. Not Scoping Grid Locators
 

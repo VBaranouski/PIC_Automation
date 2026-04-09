@@ -1,5 +1,5 @@
 import { test } from '../../src/fixtures';
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import type { LandingPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
 import { readProductState, writeProductState } from '../../src/helpers/product-state.helper';
@@ -263,7 +263,7 @@ test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression'
 
   // ── RELEASE-CREATE-004 ────────────────────────────────────────────────────
   test('should reveal "Cont. Pen Test Contract Date" field when Continuous Pen Testing is checked', async ({
-    page, newProductPage,
+    page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
     await allure.severity('normal');
@@ -274,6 +274,10 @@ test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression'
     );
 
     await test.step('Navigate to product Releases tab', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
       await page.goto(noReleaseProductUrl);
       await newProductPage.expectProductDetailLoaded();
       await newProductPage.clickReleasesTab();
@@ -405,6 +409,268 @@ test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression'
     await test.step('Close dialog', async () => {
       await newProductPage.cancelReleaseFormButton.click();
       await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  // ── RELEASE-CREATE-008 ────────────────────────────────────────────────────
+  test('should reveal Last Full Pen Test Date field for Existing Product Release', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-008: After selecting Existing Product Release, the Create Release dialog ' +
+      'must show the Last Full Pen Test Date field for migration of releases managed outside PICASso.',
+    );
+
+    await test.step('Navigate to product Releases tab', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+    });
+
+    await test.step('Open Create Release dialog and select Existing Product Release', async () => {
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+      await newProductPage.clickExistingProductReleaseRadio();
+      await newProductPage.expectExistingReleaseFieldsVisible();
+    });
+
+    await test.step('Verify Last Full Pen Test Date field appears', async () => {
+      await newProductPage.expectExistingReleaseLastPenTestDateVisible();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  // ── RELEASE-CREATE-009 ────────────────────────────────────────────────────
+  test('should reveal Last BU Security Officer FCSR Date field for Existing Product Release', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-009: After selecting Existing Product Release, the Create Release dialog ' +
+      'must show the required Last BU Security Officer FCSR Date field.',
+    );
+
+    await test.step('Navigate to product Releases tab', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+    });
+
+    await test.step('Open Create Release dialog and select Existing Product Release', async () => {
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+      await newProductPage.clickExistingProductReleaseRadio();
+      await newProductPage.expectExistingReleaseFieldsVisible();
+    });
+
+    await test.step('Verify Last BU Security Officer FCSR Date field appears', async () => {
+      await newProductPage.expectExistingReleaseLastBuSecurityOfficerFcsrDateVisible();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  // ── RELEASE-CREATE-010 ────────────────────────────────────────────────────
+  test('should offer Existing Product Release only for products that do not yet have releases', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-010: The Existing Product Release onboarding option must be available when a product has no releases yet, ' +
+      'and replaced by Clone/Create-as-new choices once the product already has releases.',
+    );
+
+    await test.step('Verify Existing Product Release option is present for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+      await expect(newProductPage.existingProductReleaseRadio).toBeVisible({ timeout: 15_000 });
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+
+    await test.step('Verify Existing Product Release option is not shown once a product already has a release', async () => {
+      const withReleaseUrl = await findProductWithAnyRelease(page, landingPage);
+      await page.goto(withReleaseUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+      await newProductPage.expectCloneOrNewRadiosVisible();
+      await expect(newProductPage.existingProductReleaseRadio).toBeHidden();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  // ── RELEASE-CREATE-011 ────────────────────────────────────────────────────
+  test('should require Release Version when other mandatory create fields are filled', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-011: Release Version remains mandatory in the Create Release dialog. ' +
+      'If Target Release Date and Change Summary are filled but Release Version is empty, the dialog must stay open and show a required-field validation error.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 10);
+
+    await test.step('Open Create Release for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Fill Target Release Date and Change Summary only', async () => {
+      await newProductPage.selectReleaseTargetDate(targetDate);
+      await newProductPage.fillReleaseChangeSummary(`Missing version validation ${Date.now()}`);
+    });
+
+    await test.step('Submit and verify required validation remains', async () => {
+      await newProductPage.clickCreateAndScope();
+      await expect(newProductPage.createReleaseDialog).toBeVisible({ timeout: 15_000 });
+      expect(await newProductPage.getRequiredFieldErrorCount()).toBeGreaterThanOrEqual(1);
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  // ── RELEASE-CREATE-012 ────────────────────────────────────────────────────
+  test('should require Last BU Security Officer FCSR Date for Existing Product Release', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    test.fail(true, 'QA currently does not enforce inline required validation for the mandatory FCSR date on Existing Product Release onboarding.');
+    await allure.description(
+      'RELEASE-CREATE-012: Existing Product Release onboarding requires Last BU Security Officer FCSR Date. ' +
+      'Submitting the dialog without that field must keep the popup open and show required-field validation.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 14);
+
+    await test.step('Open Existing Product Release dialog for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+      await newProductPage.clickExistingProductReleaseRadio();
+      await newProductPage.expectExistingReleaseFieldsVisible();
+    });
+
+    await test.step('Fill all other onboarding fields except Last BU Security Officer FCSR Date', async () => {
+      await newProductPage.fillReleaseVersion(`PIC100-EPR-REQ-${Date.now()}`);
+      await newProductPage.selectReleaseTargetDate(targetDate);
+      await newProductPage.fillReleaseChangeSummary('Existing Product Release missing FCSR validation');
+    });
+
+    await test.step('Submit and verify required validation remains', async () => {
+      await newProductPage.clickCreateAndScope();
+      await expect(newProductPage.createReleaseDialog).toBeVisible({ timeout: 15_000 });
+      expect(await newProductPage.getRequiredFieldErrorCount()).toBeGreaterThanOrEqual(1);
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  // ── RELEASE-CREATE-013 ────────────────────────────────────────────────────
+  test('should create Existing Product Release without Last Full Pen Test Date when FCSR Date is provided', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    test.fail(true, 'QA currently keeps the Existing Product Release onboarding dialog open even when all visible mandatory fields are filled.');
+    await allure.description(
+      'RELEASE-CREATE-013: Existing Product Release can be created without Last Full Pen Test Date as long as Last BU Security Officer FCSR Date is provided. ' +
+      'The onboarding flow must complete and the release must appear in the product Releases tab.',
+    );
+
+    const product = await findProductReadyForReleaseCreation(page, landingPage);
+    const onboardingProductUrl = product.productUrl;
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 21);
+    const fcsrDate = new Date();
+    fcsrDate.setDate(fcsrDate.getDate() - 14);
+    const releaseVersion = `PIC100-EPR-${Date.now()}`;
+
+    await test.step('Open Create Release on a fresh product with no releases', async () => {
+      await page.goto(onboardingProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectNoReleasesStateVisible();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Create Existing Product Release without Last Full Pen Test Date', async () => {
+      await newProductPage.createExistingProductRelease({
+        releaseVersion,
+        targetDate,
+        changeSummary: `Existing Product Release onboarding for ${product.productName}`,
+        lastBuSecurityOfficerFcsrDate: fcsrDate,
+      });
+    });
+
+    await test.step('Verify created release is listed in the product Releases tab', async () => {
+      await page.goto(onboardingProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
     });
   });
 });

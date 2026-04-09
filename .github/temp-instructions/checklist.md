@@ -40,12 +40,15 @@ await allure.description('What this test verifies');
 - [ ] Class member order: private fields → constructor → actions → assertions → helpers
 
 **TypeScript:**
+
 - [ ] Imports use path aliases (`@pages/`, `@fixtures/`, `@locators/`, `@helpers/`)
 - [ ] No `any` type
 - [ ] All public POM methods have explicit return types
 
+
 **Test quality:**
-- [ ] Explored all target pages/tabs via MCP snapshots
+
+- [ ] Explored all target pages/tabs via Playwright CLI inspection snapshots
 - [ ] Used exact locator text from DOM (not guessed)
 - [ ] Scoped grid elements to `tabpanel`
 - [ ] No `networkidle`, no `waitForTimeout()`, no `selectOption()` on OSUI widgets

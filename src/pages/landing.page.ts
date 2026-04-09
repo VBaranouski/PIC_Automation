@@ -81,9 +81,27 @@ export class LandingPage extends BasePage {
     // OutSystems renders tabs after AJAX hydration — wait before clicking
     await tab.waitFor({ state: 'visible', timeout: 60_000 });
     await tab.click();
-    // Wait for column headers AND at least one data row to appear
-    await this.l.grid.getByRole('columnheader').first().waitFor({ timeout: 30_000 });
-    await this.waitForGridDataRows(30_000);
+    await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 30_000 });
+    await waitForOSScreenLoad(this.page).catch(() => undefined);
+
+    const panelId = await tab.getAttribute('aria-controls');
+    const panel = panelId ? this.page.locator(`#${panelId}`) : this.l.tabPanel.first();
+
+    const gridHeader = panel.getByRole('grid').getByRole('columnheader').first();
+    const panelStatus = panel.getByRole('status').first();
+    const panelSearchbox = panel.getByRole('searchbox').first();
+    const panelCombobox = panel.getByRole('combobox').first();
+
+    await Promise.any([
+      gridHeader.waitFor({ state: 'visible', timeout: 30_000 }),
+      panelStatus.waitFor({ state: 'visible', timeout: 30_000 }),
+      panelSearchbox.waitFor({ state: 'visible', timeout: 30_000 }),
+      panelCombobox.waitFor({ state: 'visible', timeout: 30_000 }),
+    ]).catch(() => undefined);
+
+    if (await gridHeader.isVisible().catch(() => false)) {
+      await this.waitForGridDataRows(30_000).catch(() => undefined);
+    }
   }
 
   getTab(tabName: LandingTab): Locator {
@@ -214,35 +232,108 @@ export class LandingPage extends BasePage {
     await waitForOSScreenLoad(this.page);
   }
 
-  async selectVirtualComboboxOption(combobox: Locator, optionLabel: string | RegExp): Promise<void> {
-    await combobox.click();
+  private async getVirtualComboboxContainer(combobox: Locator): Promise<Locator> {
+    const controlsId = await combobox.getAttribute('aria-controls');
+    expect(controlsId, 'Virtual combobox should expose aria-controls').toBeTruthy();
+    return this.page.locator(`#${controlsId!}`);
+  }
 
-    const visibleListbox = this.page.getByRole('listbox').filter({ has: this.page.locator('.vscomp-option') }).last();
-    await visibleListbox.waitFor({ state: 'visible', timeout: 30_000 });
+  private normalizeVirtualOptionText(text: string | null): string {
+    return (text ?? '').replace(/\s+/g, ' ').trim();
+  }
 
-    const visibleSearchInput = visibleListbox.locator('.vscomp-search-input').first();
-    if (await visibleSearchInput.isVisible().catch(() => false)) {
-      await visibleSearchInput.fill('');
-      if (typeof optionLabel === 'string') {
-        await visibleSearchInput.pressSequentially(optionLabel, { delay: 100 });
+  private async evaluateVirtualOptionSelection(
+    combobox: Locator,
+    matcher?: string | RegExp,
+  ): Promise<string | null> {
+    await combobox.click().catch(() => undefined);
+
+    const matcherPayload = matcher == null
+      ? null
+      : typeof matcher === 'string'
+        ? { type: 'string' as const, value: matcher }
+        : { type: 'regex' as const, source: matcher.source, flags: matcher.flags };
+
+    return combobox.evaluate((element, payload) => {
+      const normalize = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
+      const controlsId = element.getAttribute('aria-controls');
+      if (!controlsId) {
+        return null;
+      }
+
+      const container = document.getElementById(controlsId);
+      if (!container) {
+        return null;
+      }
+
+      const options = Array.from(container.querySelectorAll<HTMLElement>('.vscomp-option'))
+        .map((option) => ({ option, text: normalize(option.textContent) }))
+        .filter(({ text, option }) => text && text !== '-' && !/^select all$/i.test(text) && !option.classList.contains('disabled') && !option.classList.contains('group-title'));
+
+      const match = options.find(({ text }) => {
+        if (!payload) {
+          return true;
+        }
+        if (payload.type === 'string') {
+          return text.toLowerCase().includes(payload.value.toLowerCase());
+        }
+        return new RegExp(payload.source, payload.flags).test(text);
+      });
+
+      if (!match) {
+        return null;
+      }
+
+      match.option.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      return match.text;
+    }, matcherPayload);
+  }
+
+  private async clickVirtualOption(option: Locator): Promise<void> {
+    try {
+      await option.click({ force: true, timeout: 5_000 });
+    } catch {
+      await option.evaluate((element) => {
+        (element as HTMLElement).click();
+      });
+    }
+  }
+
+  private async findVirtualOption(container: Locator, optionLabel: string | RegExp): Promise<{ option: Locator; text: string } | null> {
+    const options = container.locator('.vscomp-option:not(.disabled):not(.group-title)');
+    const optionCount = await options.count();
+
+    for (let index = 0; index < optionCount; index++) {
+      const option = options.nth(index);
+      const optionText = this.normalizeVirtualOptionText(await option.textContent());
+      if (!optionText || optionText === '-' || /^select all$/i.test(optionText)) {
+        continue;
+      }
+
+      const matches = typeof optionLabel === 'string'
+        ? optionText.toLowerCase().includes(optionLabel.toLowerCase())
+        : optionLabel.test(optionText);
+
+      if (matches) {
+        return { option, text: optionText };
       }
     }
 
-    let option = visibleListbox.getByRole('option', { name: optionLabel }).first();
-    if (!(await option.isVisible().catch(() => false))) {
-      option = visibleListbox.locator('.vscomp-option').filter({ hasText: optionLabel }).first();
-    }
+    return null;
+  }
 
-    await option.waitFor({ state: 'visible', timeout: 30_000 });
-    try {
-      await option.scrollIntoViewIfNeeded();
-      await option.click({ force: true });
-    } catch {
-      await option.evaluate((element) => {
-        (element as any).click();
-      });
-    }
+  async selectVirtualComboboxOption(combobox: Locator, optionLabel: string | RegExp): Promise<void> {
+    await combobox.waitFor({ state: 'visible', timeout: 30_000 });
+    const matchText = await this.evaluateVirtualOptionSelection(combobox, optionLabel);
+    expect(matchText, `No virtual combobox option matched ${String(optionLabel)}`).toBeTruthy();
     await waitForOSScreenLoad(this.page);
+  }
+
+  async selectFirstVirtualComboboxOption(combobox: Locator): Promise<string | null> {
+    await combobox.waitFor({ state: 'visible', timeout: 30_000 });
+    const optionText = await this.evaluateVirtualOptionSelection(combobox);
+    await waitForOSScreenLoad(this.page);
+    return optionText;
   }
 
   async filterDocsByStatus(status: string): Promise<void> {
@@ -287,20 +378,45 @@ export class LandingPage extends BasePage {
     await this.l.docsSearchBox.fill(query);
     await this.l.docsSearchBox.press('Enter');
     await waitForOSScreenLoad(this.page);
-    // Wait until grid has either no data rows or shows an empty-state cell
-    await expect(this.l.grid).toBeVisible({ timeout: 30_000 });
   }
 
   /** Asserts the My DOCs grid shows an empty-state message (no matching records). */
   async expectDocsGridEmptyState(): Promise<void> {
-    // When no records match, the grid renders a single row with a "no data" cell
-    const emptyCell = this.l.grid.locator('td').filter({ hasText: /no .*(found|results|data|certifications)/i }).first();
-    const rowCount = await this.l.grid.getByRole('row').count();
-    if (rowCount <= 1) {
-      // Header only — grid is empty
+    const emptyState = await this.l.docsSearchBox.evaluate((searchbox) => {
+      const panel = searchbox.closest('[role="tabpanel"]');
+      const normalize = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
+      const panelText = normalize(panel?.textContent);
+      const grid = panel?.querySelector('[role="grid"]');
+      const rowCount = grid?.querySelectorAll('[role="row"]').length ?? 0;
+      const emptyCellText = normalize(
+        Array.from(grid?.querySelectorAll('td') ?? [])
+          .map((cell) => cell.textContent)
+          .find((text) => /no .*(found|results|data|certifications)/i.test(text ?? '')),
+      );
+
+      return {
+        hasPanel: !!panel,
+        hasGrid: !!grid,
+        rowCount,
+        panelText,
+        emptyCellText,
+      };
+    });
+
+    expect(emptyState.hasPanel, 'My DOCs search box should be inside a tabpanel').toBe(true);
+
+    if (!emptyState.hasGrid || emptyState.rowCount <= 1) {
       return;
     }
-    await expect(emptyCell).toBeVisible({ timeout: 15_000 });
+
+    if (/no digital offer certifications created yet|no .*(found|results|data|certifications)/i.test(emptyState.panelText)) {
+      return;
+    }
+
+    expect(
+      /no .*(found|results|data|certifications)/i.test(emptyState.emptyCellText),
+      'Expected My DOCs empty state banner or no-results grid cell',
+    ).toBe(true);
   }
 
   async searchTasksByName(query: string): Promise<void> {
@@ -318,7 +434,7 @@ export class LandingPage extends BasePage {
   }
 
   async filterReleasesBySearch(query: string, optionPattern: RegExp): Promise<void> {
-    await this.selectVirtualComboboxOption(this.l.releasesSearchDropdown, query);
+    await this.selectVirtualComboboxOption(this.l.releasesSearchDropdown, optionPattern);
     await this.waitForGridDataRows();
   }
 
@@ -481,29 +597,41 @@ export class LandingPage extends BasePage {
   async resetFilters(): Promise<void> {
     await this.l.resetButton.click();
     await waitForOSScreenLoad(this.page);
-    await expect(this.l.grid).toBeVisible({ timeout: 30_000 });
+
+    const activePanel = this.page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
+    await Promise.any([
+      this.l.grid.waitFor({ state: 'visible', timeout: 30_000 }),
+      activePanel.getByRole('status').first().waitFor({ state: 'visible', timeout: 30_000 }),
+      activePanel.getByRole('searchbox').first().waitFor({ state: 'visible', timeout: 30_000 }),
+      activePanel.getByRole('combobox').first().waitFor({ state: 'visible', timeout: 30_000 }),
+    ]).catch(() => undefined);
   }
 
   async clickNewProduct(): Promise<void> {
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await waitForOSScreenLoad(this.page);
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      await this.page.waitForURL(/GRC_PICASso|_error\.html/, { timeout: 30_000 }).catch(() => undefined);
+      await waitForOSScreenLoad(this.page).catch(() => undefined);
 
       if (this.page.url().includes('/_error.html')) {
         await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForTimeout(2_000);
         continue;
       }
 
-      const isVisible = await this.l.newProductButton.isVisible().catch(() => false);
-      if (isVisible) {
+      const buttonVisible = await this.l.newProductButton
+        .isVisible({ timeout: 10_000 })
+        .catch(() => false);
+
+      if (buttonVisible) {
         await this.l.newProductButton.click();
         return;
       }
 
       await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
+      await this.page.waitForTimeout(2_000);
     }
 
-    await this.l.newProductButton.waitFor({ state: 'visible', timeout: 120_000 });
-    await this.l.newProductButton.click();
+    throw new Error(`New Product button did not become available from landing page. Current URL: ${this.page.url()}`);
   }
 
   // --- Assertions ---

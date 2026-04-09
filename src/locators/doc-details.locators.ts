@@ -202,6 +202,10 @@ export const docDetailsLocators = (page: Page) => ({
   historyResetButton:    page.getByRole('dialog').getByRole('button', { name: 'Reset' }),
   // History grid uses actual <table> element, not role="grid"
   historyGrid:           page.getByRole('dialog').locator('table').first(),
+  historyPaginationStatus: page.getByRole('dialog').getByRole('status').first(),
+  historyPaginationNav:    page.getByRole('dialog').getByRole('navigation', { name: 'Pagination' }).first(),
+  historyPerPageSelect:    page.getByRole('dialog').getByRole('status').locator('select').first(),
+  historyNoDataMessage:    page.getByRole('dialog').getByText(/No data matching selected filter/i).first(),
   // Close button is an <i class="fa fa-times"> icon, click its parent div
   historyCloseButton:    page.getByRole('dialog').locator('.popup-structure-header i.fa-times').first(),
 
@@ -211,6 +215,9 @@ export const docDetailsLocators = (page: Page) => ({
     has: page.getByRole('button', { name: 'Propose Decision' })
       .or(page.getByText('DOC Approvals'))
       .or(page.getByText('Proposed Decision')),
+  }).first(),
+  certDecisionDialog: page.getByRole('dialog').filter({
+    has: page.getByText(/Proposed Decision|Certification Decision/i).first(),
   }).first(),
   proposeDecisionButton:        page.getByRole('button', { name: 'Propose Decision' }),
   submitForApprovalButton:      page.getByRole('button', { name: 'Submit for Approval' }),

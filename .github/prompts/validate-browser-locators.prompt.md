@@ -1,10 +1,10 @@
 # Validate Browser Locators
 
-Use this prompt when you already have draft scenarios or draft Playwright code and need to verify or refine locators with Playwright MCP.
+Use this prompt when you already have draft scenarios or draft Playwright code and need to verify or refine locators with a headed Playwright CLI session.
 
 ## Read first
 
-- `.github/instructions/browser-mcp.instructions.md`
+- `.github/instructions/browser-cli.instructions.md`
 - `.github/instructions/pw-autotest.instructions.md`
 - `.github/instructions/validation.instructions.md`
 

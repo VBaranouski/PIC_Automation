@@ -76,7 +76,7 @@ If no such DOC is found, skip the test with a descriptive message rather than fa
 
 ## Pre-flight Checks (Before Writing Code)
 
-1. **MCP snapshot required:** Walk the Certification Decision tab in-browser for a DOC in Decision Proposal status. Record exact text of: tab label, warning icon tooltip, button labels, popup field labels, dropdown option labels.
+1. **Playwright CLI snapshot required:** Walk the Certification Decision tab in-browser for a DOC in Decision Proposal status. Record exact text of: tab label, warning icon tooltip, button labels, popup field labels, dropdown option labels.
 2. **Locate Decision Proposal DOCs:** Open My DOCs tab → identify DOC IDs currently at `Decision Proposal` or `Certification Approval` status. Update `.doc-state.json` with a `certDecisionDocId` key if not present.
 3. **Record locator decisions:** Note whether the Propose Decision popup is a `dialog` role or a custom OSUI popup that requires `locator('.osui-popup')` fallback.
 

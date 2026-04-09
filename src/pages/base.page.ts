@@ -9,10 +9,10 @@ export abstract class BasePage {
   async goto(): Promise<void> {
     // Use a generous timeout and retry once on network failure.
     // QA environment can be slow under load (multiple long test sessions).
-    await this.page.goto(this.url, { timeout: 90_000 })
+    await this.page.goto(this.url, { timeout: 90_000, waitUntil: 'domcontentloaded' })
       .catch(async () => {
         await this.page.waitForTimeout(3_000);
-        await this.page.goto(this.url, { timeout: 90_000 });
+        await this.page.goto(this.url, { timeout: 90_000, waitUntil: 'domcontentloaded' });
       });
   }
 

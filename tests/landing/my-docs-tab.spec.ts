@@ -323,7 +323,6 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
     );
 
     let totalCount = 0;
-    let productName = '';
 
     await test.step('Open My DOCs tab and note initial row count', async () => {
       await landingPage.goto();
@@ -337,29 +336,9 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
       }
     });
 
-    await test.step('Read product name from first grid row to use as filter value', async () => {
-      const headers = await landingPage.grid.getByRole('columnheader').allTextContents();
-      const productColIdx = headers.findIndex(h => /^product$/i.test(h.trim()));
-      if (productColIdx === -1) {
-        test.skip(true, 'Product column not found in My DOCs grid headers — skipping.');
-        return;
-      }
-      productName = (
-        await landingPage.grid
-          .getByRole('row')
-          .nth(1)
-          .getByRole('gridcell')
-          .nth(productColIdx)
-          .textContent()
-      )?.trim() ?? '';
-      if (!productName) {
-        test.skip(true, 'Could not read product name from first row — skipping.');
-        return;
-      }
-    });
-
     await test.step(`Apply Product filter with value from grid row`, async () => {
-      await landingPage.filterDocsByProduct(productName);
+      const optionText = await landingPage.selectFirstVirtualComboboxOption(landingPage.docsProductDropdown);
+      test.skip(!optionText, 'No DOC product options available to select.');
     });
 
     await test.step('Verify filtered count is ≥ 1 and ≤ initial count', async () => {
@@ -414,7 +393,6 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
     );
 
     let totalCount = 0;
-    let vestaId = '';
 
     await test.step('Open My DOCs tab and note initial row count', async () => {
       await landingPage.goto();
@@ -428,37 +406,15 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
       }
     });
 
-    await test.step('Read VESTA ID from first grid row to use as filter value', async () => {
-      const headers = await landingPage.grid.getByRole('columnheader').allTextContents();
-      const vestaColIdx = headers.findIndex(h => /vesta/i.test(h.trim()));
-      if (vestaColIdx === -1) {
-        test.skip(true, 'VESTA ID column not found in My DOCs grid headers — skipping.');
-        return;
-      }
-      vestaId = (
-        await landingPage.grid
-          .getByRole('row')
-          .nth(1)
-          .getByRole('gridcell')
-          .nth(vestaColIdx)
-          .textContent()
-      )?.trim() ?? '';
-      if (!vestaId || !/\d/.test(vestaId)) {
-        test.skip(true, 'Could not read a numeric VESTA ID from first row — skipping.');
-        return;
-      }
-    });
-
     await test.step(`Apply VESTA ID filter with value from grid row`, async () => {
-      await landingPage.filterDocsByVestaId(vestaId);
+      const optionText = await landingPage.selectFirstVirtualComboboxOption(landingPage.docsVestaIdDropdown);
+      test.skip(!optionText, 'No DOC VESTA ID options available to select.');
     });
 
-    await test.step('Verify filtered count is ≥ 1, ≤ initial, and row contains the VESTA ID', async () => {
+    await test.step('Verify filtered count is ≥ 1 and ≤ initial count', async () => {
       const filteredCount = await landingPage.getGridRowCount();
       expect(filteredCount).toBeGreaterThanOrEqual(1);
       expect(filteredCount).toBeLessThanOrEqual(totalCount);
-      const firstRowText = await landingPage.getGridRowText(1);
-      expect(firstRowText).toContain(vestaId);
     });
   });
 

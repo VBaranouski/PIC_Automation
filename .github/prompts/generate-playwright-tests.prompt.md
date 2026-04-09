@@ -5,7 +5,7 @@ Use this prompt when normalized requirements and automation-ready test cases alr
 ## Read first
 
 - `.github/instructions/pw-autotest.instructions.md`
-- `.github/instructions/browser-mcp.instructions.md`
+- `.github/instructions/browser-cli.instructions.md`
 - `.github/instructions/automation-scripts.instructions.md`
 - `.github/instructions/validation.instructions.md`
 

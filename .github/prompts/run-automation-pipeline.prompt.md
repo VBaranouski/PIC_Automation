@@ -9,7 +9,7 @@ Use this prompt when the user wants the full workflow from story/spec intake to 
 - `.github/instructions/naming.instructions.md`
 - `.github/instructions/artifacts.instructions.md`
 - `.github/instructions/pw-autotest.instructions.md`
-- `.github/instructions/browser-mcp.instructions.md`
+- `.github/instructions/browser-cli.instructions.md`
 - one relevant source intake instruction file
 - `.github/instructions/test-cases.instructions.md`
 - `.github/instructions/automation-scripts.instructions.md`
@@ -28,7 +28,7 @@ Take a Jira story, Confluence page, or free-text user story and produce:
 
 - Normalize first. Do not skip directly to test generation.
 - Treat Jira, Confluence, and free text equally after normalization.
-- Verify locators in the browser before finalizing code when MCP access is available.
+- Verify locators in the browser before finalizing code with a headed Playwright CLI session.
 - Keep JSON canonical and HTML review-only.
 - Make generated tests runnable manually from the terminal.
 

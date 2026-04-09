@@ -18,7 +18,7 @@ export const newProductLocators = (page: Page) => ({
   // the releases list as a standard <table> on products with existing releases.
   releasesGrid:           page.getByRole('tabpanel').locator('[role="grid"], table').first(),
   releaseValidationAlert: page.getByRole('alert'),
-  requiredFieldError:     page.getByText('Required field!'),
+  requiredFieldError:     page.getByText(/Required field!?|Field is required/i),
 
   // Create Release dialog
   createReleaseDialog:                  page.getByRole('dialog'),
@@ -31,6 +31,7 @@ export const newProductLocators = (page: Page) => ({
   resetReleaseFormButton:               page.getByRole('dialog').getByRole('button', { name: 'Reset Form' }),
   cancelReleaseFormButton:              page.getByRole('dialog').getByRole('button', { name: 'Cancel' }),
   createAndScopeButton:                 page.getByRole('dialog').getByRole('button', { name: 'Create & Scope' }),
+  createReleaseDateInputs:              page.getByRole('dialog').getByRole('textbox', { name: 'Select a date.' }),
   releaseDateMonthSelect:               page.getByRole('combobox', { name: 'Month' }).last(),
   releaseDateYearSpinbutton:            page.getByRole('spinbutton', { name: 'Year' }).last(),
 
@@ -44,14 +45,18 @@ export const newProductLocators = (page: Page) => ({
   wasPenTestPerformedNoRadio:   page.getByRole('dialog').getByRole('radio', { name: 'No' }),
   lastPenTestTypeLabel:         page.getByRole('dialog').getByText(/Last Pen Test Type/i).first(),
   lastPenTestDateLabel:         page.getByRole('dialog').getByText(/Last.*Pen Test Date/i).first(),
+  lastBuSecurityOfficerFcsrDateLabel: page.getByRole('dialog').getByText(/Last BU Security Officer FCSR Date/i).first(),
   justificationLabel:           page.getByRole('dialog').getByText(/Justification/i).first(),
   // Second-release dialog: "Clone from existing release" / "Create as new" radios
   cloneFromExistingRadio:       page.getByRole('radio', { name: /Clone from existing release/i }),
   createAsNewRadio:             page.getByRole('radio', { name: /Create as new/i }),
+  cloneSourceReleaseSelect:     page.getByRole('dialog').getByRole('combobox').first(),
+  duplicateReleaseVersionError: page.getByRole('dialog').getByText(/already exist|already exists|already been used|duplicate/i).first(),
 
   // Releases tab pagination — scoped to the active tabpanel.
   // The OutSystems pagination widget wraps the per-page <select> inside [role="status"].
   releasesTabPerPageSelect:     page.getByRole('tabpanel').getByRole('status').locator('select').first(),
+  releasesGridReleaseLinks:     page.getByRole('tabpanel').locator('[role="grid"], table').first().getByRole('link'),
 
   // Product Related Details section
   sectionTitle:            page.getByText('PRODUCT RELATED DETAILS'),
@@ -119,11 +124,50 @@ export const newProductLocators = (page: Page) => ({
   historySearchInput:    page.getByRole('dialog').getByRole('searchbox').first(),
   historyActivityFilter: page.getByRole('dialog').getByRole('combobox', { name: 'Activity' }).first(),
   historyDateFromInput:  page.getByRole('dialog').getByRole('textbox', { name: 'Select a date.' }).first(),
+  historyDateToInput:    page.getByRole('dialog').getByRole('textbox', { name: 'Select a date.' }).nth(1),
+  historySearchButton:   page.getByRole('dialog').getByRole('button', { name: 'Search' }).first(),
   historyResetButton:    page.getByRole('dialog').getByRole('button', { name: 'Reset' }),
+  historyPaginationStatus: page.getByRole('dialog').getByRole('status').first(),
+  historyPaginationNav:    page.getByRole('dialog').getByRole('navigation', { name: 'Pagination' }).first(),
+  historyPerPageSelect:    page.getByRole('dialog').getByRole('status').locator('select').first(),
+  historyNoDataMessage:  page.getByRole('dialog').getByText(/No data matching selected filter/i).first(),
   historyCloseButton:    page.getByRole('dialog').locator('.popup-structure-header i.fa-times').first(),
 
   // Vendor display (disabled in edit mode, text in view mode)
   vendorInput:  page.getByRole('textbox', { name: 'Vendor' }),
+
+  // ── Product Configuration tab — Tracking Tools (Section 3.8) ────────────────
+  // Toggle switches for Jira/Jama (IDs are stable OutSystems widget IDs)
+  jiraSwitch:              page.locator('#b19-Jira_Switch'),
+  jamaSwitch:              page.locator('#b19-Jama_Switch'),
+
+  // Fields that appear after Jira toggle is enabled
+  jiraSourceLinkInput:     page.locator('#b19-Input_JiraSourceLink'),
+  jiraProjectKeyInput:     page.locator('#b19-Input_JiraAuthenticationKey2'),
+
+  // Field that appears after Jama toggle is enabled
+  jamaProjectIdInput:      page.locator('#b19-Input_JamaProjectID'),
+
+  // "Test Connection" button — appears next to whichever toggle is active
+  testConnectionButton:    page.getByRole('button', { name: 'Test Connection' }),
+
+  // "Status Mapping Configuration" link — appears next to each active tracking tool
+  statusMappingConfigLinks: page.getByRole('link', { name: /Status Mapping Configuration/i }),
+
+  // Warning message shown when any tracking tool is enabled without mapping configured
+  trackingToolsWarning:    page.getByText(/Please update the mapping configuration/i),
+
+  // Assign Tracking Tools — radio groups (Product requirements)
+  productReqNotApplicableRadio: page.locator('#b19-NotApplicable-input'),
+  productReqJamaRadio:          page.locator('#b19-Jama-input'),
+  productReqJiraRadio:          page.locator('#b19-Jira-input'),
+
+  // Assign Tracking Tools — radio groups (Process requirements)
+  processReqNotApplicableRadio: page.locator('#b19-NotApplicable_Process-input'),
+  processReqJiraRadio:          page.locator('#b19-Jira_Process-input'),
+
+  // Show Process sub-requirements checkbox
+  showProcessSubReqsCheckbox:   page.locator('#b19-SwitchShowProcessReq3'),
 });
 
 export type NewProductLocators = ReturnType<typeof newProductLocators>;

@@ -4,6 +4,10 @@ import { releaseDetailLocators } from '../locators/release-detail.locators';
 import type { ReleaseDetailLocators } from '../locators/release-detail.locators';
 import { BasePage } from './base.page';
 
+function escapeCssIdentifier(value: string): string {
+  return value.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+}
+
 /**
  * Expected Release pipeline stage names.
  * Observed on qa.leap.schneider-electric.com (ReleaseId=3605, "One more product"):
@@ -35,9 +39,13 @@ export class ReleaseDetailPage extends BasePage {
   /** Wait for the Release Detail page to settle after navigation. */
   async waitForPageLoad(timeout = 60_000): Promise<void> {
     await this.page.waitForURL(/ReleaseDetail/, { timeout });
+    await this.page.waitForFunction(
+      "() => !document.body?.innerText?.includes('JavaScript is required')",
+      undefined,
+      { timeout },
+    ).catch(() => undefined);
     await this.waitForOSLoad();
-    // Wait for network to settle so AJAX-rendered widgets (status badge, pipeline) finish loading
-    await this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+    await expect(this.l.releaseDetailsTab).toBeVisible({ timeout: 20_000 });
   }
 
   // ── Breadcrumb ─────────────────────────────────────────────────────────────
@@ -176,10 +184,258 @@ export class ReleaseDetailPage extends BasePage {
     await expect(this.l.pipelineExpandableArea).toBeVisible({ timeout: 10_000 });
   }
 
+  async getWorkflowPanelLines(): Promise<string[]> {
+    await this.expectPipelineAreaVisible();
+    const text = await this.l.pipelineExpandableArea.innerText();
+    return text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
+  async getWorkflowSectionLines(stageName: string): Promise<string[]> {
+    const lines = await this.getWorkflowPanelLines();
+    const stages = RELEASE_PIPELINE_STAGES.map((stage) => stage.toLowerCase());
+    const startIndex = lines.findIndex((line) => line.toLowerCase().includes(stageName.toLowerCase()));
+
+    if (startIndex === -1) {
+      return [];
+    }
+
+    const sectionLines: string[] = [];
+    for (let index = startIndex; index < lines.length; index += 1) {
+      const line = lines[index];
+      if (index > startIndex && stages.some((stage) => line.toLowerCase().includes(stage))) {
+        break;
+      }
+      sectionLines.push(line);
+    }
+
+    return sectionLines;
+  }
+
+  async getWorkflowStageSubmissionSummary(stageName: string): Promise<string> {
+    const sectionLines = await this.getWorkflowSectionLines(stageName);
+    return sectionLines.find((line) => /submission/i.test(line)) ?? '';
+  }
+
+  async getWorkflowStageResponsibleEntries(stageName: string): Promise<string[]> {
+    const sectionLines = await this.getWorkflowSectionLines(stageName);
+    return sectionLines.filter((line) => {
+      const normalized = line.toLowerCase();
+      return normalized !== stageName.toLowerCase()
+        && !/submission/i.test(normalized)
+        && !RELEASE_PIPELINE_STAGES.some((stage) => normalized.includes(stage.toLowerCase()));
+    });
+  }
+
   // ── Need Help ──────────────────────────────────────────────────────────────
 
   /** Asserts the "Need Help" anchor link is visible in the header. */
   async expectNeedHelpLinkVisible(): Promise<void> {
     await expect(this.l.needHelpLink).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ── Release Details tab ─────────────────────────────────────────────────
+
+  async expectReleaseDetailsTabSelected(): Promise<void> {
+    await expect(this.l.releaseDetailsTab).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.releaseDetailsTab).toHaveAttribute('aria-selected', 'true');
+  }
+
+  getTopLevelTab(tabName: string) {
+    const escapedTabName = tabName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return this.page.getByRole('tab', { name: new RegExp(`^${escapedTabName}\\b`, 'i') }).first();
+  }
+
+  async clickTopLevelTab(tabName: string): Promise<void> {
+    const tab = this.getTopLevelTab(tabName);
+    await expect(tab).toBeVisible({ timeout: 20_000 });
+    await tab.click();
+    await this.waitForOSLoad();
+  }
+
+  async isTopLevelTabVisible(tabName: string): Promise<boolean> {
+    return this.getTopLevelTab(tabName).isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async isTopLevelTabDisabled(tabName: string): Promise<boolean> {
+    const tab = this.getTopLevelTab(tabName);
+    const isVisible = await tab.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!isVisible) {
+      return true;
+    }
+
+    return tab.evaluate((element) => {
+      const className = (element.getAttribute('class') ?? '').toLowerCase();
+      return element.getAttribute('aria-disabled') === 'true'
+        || (element as { disabled?: boolean }).disabled === true
+        || className.includes('disabled');
+    }).catch(() => true);
+  }
+
+  async getTopLevelTabPanelText(tabName: string): Promise<string> {
+    const tab = this.getTopLevelTab(tabName);
+    await expect(tab).toBeVisible({ timeout: 20_000 });
+
+    const disabled = await this.isTopLevelTabDisabled(tabName);
+    if (!disabled) {
+      await tab.click();
+      await this.waitForOSLoad();
+    }
+
+    const panelId = await tab.getAttribute('aria-controls');
+    if (panelId) {
+      const panel = this.page.locator(`#${escapeCssIdentifier(panelId)}`).first();
+      const visible = await panel.isVisible({ timeout: 5_000 }).catch(() => false);
+      if (visible) {
+        return (await panel.innerText().catch(() => '')).trim();
+      }
+    }
+
+    const genericPanel = this.page.getByRole('tabpanel').first();
+    const genericVisible = await genericPanel.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (genericVisible) {
+      return (await genericPanel.innerText().catch(() => '')).trim();
+    }
+
+    return (await this.page.locator('body').innerText().catch(() => '')).trim();
+  }
+
+  async expectTopLevelTabSelected(tabName: string): Promise<void> {
+    await expect(this.getTopLevelTab(tabName)).toHaveAttribute('aria-selected', 'true');
+  }
+
+  async expectTopLevelTabNotSelected(tabName: string): Promise<void> {
+    await expect(this.getTopLevelTab(tabName)).not.toHaveAttribute('aria-selected', 'true');
+  }
+
+  async expectStartQuestionnaireVisible(): Promise<void> {
+    await expect(this.l.startQuestionnaireButton).toBeVisible({ timeout: 20_000 });
+  }
+
+  async expectQuestionnaireEmptyStateVisible(): Promise<void> {
+    await expect(this.l.questionnaireEmptyState).toBeVisible({ timeout: 20_000 });
+  }
+
+  async expectQuestionnaireSubmitGuidanceVisible(): Promise<void> {
+    await expect(this.l.questionnaireSubmitGuidance).toBeVisible({ timeout: 20_000 });
+  }
+
+  async isStartQuestionnaireVisible(): Promise<boolean> {
+    return this.l.startQuestionnaireButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectTabDisabled(tabName: string): Promise<void> {
+    const tab = this.getTopLevelTab(tabName);
+    await expect(tab).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(
+        async () => tab.evaluate((element) => {
+          const className = (element.getAttribute('class') ?? '').toLowerCase();
+          return element.getAttribute('aria-disabled') === 'true'
+            || (element as { disabled?: boolean }).disabled === true
+            || className.includes('disabled');
+        }),
+        { timeout: 20_000, message: `Expected tab "${tabName}" to be disabled` },
+      )
+      .toBe(true);
+  }
+
+  async expectTabsDisabled(tabNames: string[]): Promise<void> {
+    for (const tabName of tabNames) {
+      await this.expectTabDisabled(tabName);
+    }
+  }
+
+  async expectReleaseDetailsCoreFieldsVisible(): Promise<void> {
+    for (const label of [
+      'Release Creation',
+      'Release Version',
+      'Target Release Date',
+      'Change Summary',
+    ]) {
+      await expect(this.page.getByText(label, { exact: true }).first()).toBeVisible({ timeout: 20_000 });
+    }
+  }
+
+  async expectSeProductSubTabsVisible(): Promise<void> {
+    await expect(this.l.includedSeComponentsTab).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.partOfSeProductsTab).toBeVisible({ timeout: 20_000 });
+  }
+
+  async openReleaseDetailsEditMode(): Promise<void> {
+    await expect(this.l.editReleaseDetailsButton).toBeVisible({ timeout: 20_000 });
+    await this.l.editReleaseDetailsButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async expectReleaseDetailsEditModeVisible(): Promise<void> {
+    await expect(this.l.saveReleaseDetailsButton).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.cancelReleaseDetailsButton).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.targetReleaseDateInput).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.changeSummaryTextarea).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.changeSummaryTextarea).toBeEditable({ timeout: 20_000 });
+  }
+
+  async fillReleaseDetailsChangeSummary(value: string): Promise<void> {
+    await this.l.changeSummaryTextarea.fill(value);
+  }
+
+  async getEditModeChangeSummaryValue(): Promise<string> {
+    await expect(this.l.changeSummaryTextarea).toBeVisible({ timeout: 20_000 });
+    return this.l.changeSummaryTextarea.inputValue();
+  }
+
+  async saveReleaseDetailsEditMode(): Promise<void> {
+    await this.l.saveReleaseDetailsButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async cancelReleaseDetailsEditMode(): Promise<void> {
+    await this.l.cancelReleaseDetailsButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async expectReleaseDetailsReadOnlyModeVisible(): Promise<void> {
+    await expect(this.l.editReleaseDetailsButton).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.saveReleaseDetailsButton).toBeHidden({ timeout: 20_000 });
+    await expect(this.l.cancelReleaseDetailsButton).toBeHidden({ timeout: 20_000 });
+  }
+
+  async expectEditModeChangeSummaryValue(value: string): Promise<void> {
+    await expect.poll(async () => this.getEditModeChangeSummaryValue(), { timeout: 20_000 }).toBe(value);
+  }
+
+  async clickPartOfSeProductsTab(): Promise<void> {
+    await this.l.partOfSeProductsTab.click();
+    await this.waitForOSLoad();
+  }
+
+  async expectPartOfSeProductsTabSelected(): Promise<void> {
+    await expect(this.l.partOfSeProductsTab).toHaveAttribute('aria-selected', 'true');
+  }
+
+  async expectAddSeProductButtonHidden(): Promise<void> {
+    await expect(this.l.addSeProductButton).toBeHidden({ timeout: 15_000 });
+  }
+
+  async openAddSeProductDialog(): Promise<void> {
+    await expect(this.l.addSeProductButton).toBeVisible({ timeout: 20_000 });
+    await this.l.addSeProductButton.click();
+  }
+
+  async expectAddSeProductDialogVisible(): Promise<void> {
+    await expect(this.l.addSeProductDialog).toBeVisible({ timeout: 20_000 });
+  }
+
+  async expectIncludedSeComponentsSectionLoaded(): Promise<void> {
+    const loaded = await Promise.any([
+      this.l.addSeProductButton.waitFor({ state: 'visible', timeout: 20_000 }),
+      this.l.includedSeComponentsEmptyState.waitFor({ state: 'visible', timeout: 20_000 }),
+      this.page.locator('table, [role="grid"]').first().waitFor({ state: 'visible', timeout: 20_000 }),
+    ]).then(() => true).catch(() => false);
+
+    expect(loaded, 'Included SE Components section should load with a button, empty state, or grid').toBe(true);
   }
 }

@@ -10,6 +10,50 @@ import { test, expect } from '../../src/fixtures';
 import { readDocState } from '../../src/helpers/doc.helper';
 import * as allure from 'allure-js-commons';
 
+function parseHistoryDate(value: string): number {
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  const direct = Date.parse(normalized);
+  if (!Number.isNaN(direct)) return direct;
+
+  const match = normalized.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i);
+  if (!match) {
+    throw new Error(`Unsupported DOC History date format: ${value}`);
+  }
+
+  const [, first, second, yearRaw, hourRaw, minuteRaw, secondRaw, meridiemRaw] = match;
+  const firstNumber = Number(first);
+  const secondNumber = Number(second);
+  const year = Number(yearRaw.length === 2 ? `20${yearRaw}` : yearRaw);
+
+  const month = firstNumber > 12 ? secondNumber : firstNumber;
+  const day = firstNumber > 12 ? firstNumber : secondNumber;
+
+  let hours = Number(hourRaw ?? '0');
+  const minutes = Number(minuteRaw ?? '0');
+  const seconds = Number(secondRaw ?? '0');
+  const meridiem = meridiemRaw?.toUpperCase();
+
+  if (meridiem === 'PM' && hours < 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+
+  return new Date(year, month - 1, day, hours, minutes, seconds).getTime();
+}
+
+function toDayBounds(timestamp: number): { start: Date; end: Date } {
+  const date = new Date(timestamp);
+  return {
+    start: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+    end: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+  };
+}
+
+function isSameCalendarDay(timestamp: number, target: Date): boolean {
+  const date = new Date(timestamp);
+  return date.getFullYear() === target.getFullYear()
+    && date.getMonth() === target.getMonth()
+    && date.getDate() === target.getDate();
+}
+
 test.describe('DOC - DOC History (11.12) @regression', () => {
   test.describe.configure({ mode: 'serial' });
   test.setTimeout(180_000);
@@ -267,6 +311,123 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
       await docDetailsPage.clickHistoryResetFilters();
       const rowCountAfterReset = await docDetailsPage.getHistoryRowCount();
       expect(rowCountAfterReset).toBeGreaterThanOrEqual(initialRowCount);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── DOC-HISTORY-009 ───────────────────────────────────────────────────────
+  test('should clear search text and activity selection when Reset is clicked', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.description(
+      'DOC-HISTORY-009: After applying search text and an Activity filter in the DOC History popup, ' +
+      'clicking Reset must clear the searchbox and restore the Activity dropdown to its default state.',
+    );
+
+    const selectedActivity = 'ITS Checklist Update';
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+    });
+
+    await test.step('Apply search text and a non-default Activity filter', async () => {
+      await docDetailsPage.fillHistorySearchInput('Creation');
+      const optionCount = await docDetailsPage.getHistoryActivityFilterOptionCount();
+      expect(optionCount).toBeGreaterThanOrEqual(2);
+
+      await docDetailsPage.selectHistoryActivityFilter(selectedActivity);
+      await docDetailsPage.clickHistorySearchButton();
+    });
+
+    await test.step('Click Reset and verify control state returns to default', async () => {
+      await docDetailsPage.clickHistoryResetFilters();
+
+      await expect.poll(() => docDetailsPage.getHistorySearchInputValue()).toBe('');
+      await expect.poll(() => docDetailsPage.getSelectedHistoryActivityFilterLabel()).not.toBe(selectedActivity);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── DOC-HISTORY-010 ───────────────────────────────────────────────────────
+  test('should filter history by selected date range', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.description(
+      'DOC-HISTORY-010: Applying a DOC History date range must narrow the grid to rows whose Date values fall within the selected day.',
+    );
+
+    let targetDay!: Date;
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+      await docDetailsPage.expectHistoryGridHasRows();
+    });
+
+    await test.step('Use the first history row date as the filter day', async () => {
+      const [firstDateText] = await docDetailsPage.getHistoryDateTexts(1);
+      expect(firstDateText, 'Expected at least one DOC History row').toBeTruthy();
+
+      const { start, end } = toDayBounds(parseHistoryDate(firstDateText));
+      targetDay = start;
+      await docDetailsPage.selectHistoryDateRange(start, end);
+      await docDetailsPage.clickHistorySearchButton();
+    });
+
+    await test.step('Verify filtered rows all belong to the selected day', async () => {
+      const filteredDates = await docDetailsPage.getHistoryDateTexts(20);
+      expect(filteredDates.length, 'Expected DOC History date range filter to keep at least one row').toBeGreaterThan(0);
+
+      for (const value of filteredDates) {
+        expect(isSameCalendarDay(parseHistoryDate(value), targetDay)).toBe(true);
+      }
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── DOC-HISTORY-011 ───────────────────────────────────────────────────────
+  test('should paginate history rows when more than one page of records exists', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.description(
+      'DOC-HISTORY-011: DOC History pagination must support per-page selection and moving to the next page when more than 10 records exist.',
+    );
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+      await docDetailsPage.expectHistoryGridHasRows();
+    });
+
+    await test.step('Require a DOC with more than one page of history', async () => {
+      const totalRecords = await docDetailsPage.getHistoryTotalRecordCount();
+      test.skip(totalRecords <= 10, `DOC History shows ${totalRecords} records; pagination validation requires more than 10.`);
+    });
+
+    await test.step('Set per-page to 10 and verify first-page row count', async () => {
+      await docDetailsPage.changeHistoryPerPage('10');
+      const visibleRows = await docDetailsPage.getHistoryRowCount();
+      expect(visibleRows).toBeLessThanOrEqual(10);
+      expect(await docDetailsPage.getCurrentHistoryPageNumber()).toBe(1);
+    });
+
+    await test.step('Navigate to page 2 and verify rows are displayed', async () => {
+      await docDetailsPage.goToHistoryPage(2);
+      await expect.poll(() => docDetailsPage.getCurrentHistoryPageNumber()).toBe(2);
+      await expect.poll(() => docDetailsPage.getHistoryRowCount()).toBeGreaterThan(0);
     });
 
     await test.step('Close the history dialog', async () => {

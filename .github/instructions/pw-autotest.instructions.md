@@ -36,7 +36,7 @@ Prefer the existing shape over idealized examples.
 
 For every new or materially changed scenario:
 
-1. Execute the flow in-browser with Playwright MCP first.
+1. Execute the flow in-browser with a headed Playwright CLI session first.
 2. Fix locators, controls, waits, and page-object methods until the browser run reflects the intended user path.
 3. Re-run the smallest relevant terminal command, typically `npx playwright test <target-spec> --project=<target-project>`.
 4. If terminal failures still point to locator/runtime issues, keep fixing the automation.
@@ -48,7 +48,7 @@ For every new or materially changed scenario:
 - Prefer `getByRole`, `getByLabel`, `getByText`, and `getByPlaceholder`.
 - Avoid XPath and brittle CSS selectors.
 - For OutSystems widgets, a scoped `locator()` fallback is allowed when accessibility locators are insufficient.
-- Never guess a locator if Playwright MCP can verify it in the real DOM.
+- Never guess a locator if Playwright CLI inspection can verify it in the real DOM.
 - For native `<select>` controls, use `selectOption()`.
 - For OSUI/vscomp dropdowns, use click → `pressSequentially()` → click option.
 

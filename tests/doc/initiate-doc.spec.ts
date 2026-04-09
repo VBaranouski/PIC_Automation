@@ -12,7 +12,7 @@ async function createProductReadyForDocInitiation(
 
   await landingPage.goto();
   await landingPage.expectPageLoaded({ timeout: 60_000 });
-  await landingPage.clickNewProduct();
+  await newProductPage.goto();
   await newProductPage.expectNewProductFormLoaded();
 
   await newProductPage.fillProductInformation({
@@ -74,44 +74,6 @@ async function findProductReadyForDocInitiation(
   newProductPage: NewProductPage,
   docDetailsPage: DocDetailsPage,
 ): Promise<void> {
-  const maxProductsToCheck = 30;
-
-  for (let index = 0; index < maxProductsToCheck; index++) {
-    await landingPage.openMyProductsTab();
-    await landingPage.changePerPage('100');
-
-    const rows = landingPage.grid.getByRole('row');
-    if (index + 1 >= await rows.count()) {
-      break;
-    }
-
-    await landingPage.clickProductAtRow(index + 1);
-    await page.getByRole('button', { name: 'Edit Product' })
-      .waitFor({ state: 'visible', timeout: 60_000 });
-
-    const hasDigitalOfferTab = await newProductPage.digitalOfferCertificationTab.isVisible();
-    if (!hasDigitalOfferTab) {
-      continue;
-    }
-
-    await newProductPage.digitalOfferCertificationTab.click();
-    await newProductPage.waitForOSLoad();
-
-    const isInitiateDocVisible = await docDetailsPage.initiateDOCButton.isVisible();
-    if (!isInitiateDocVisible) {
-      continue;
-    }
-
-    const isInitiateDocEnabled = await docDetailsPage.initiateDOCButton.isEnabled();
-    if (!isInitiateDocEnabled) {
-      continue;
-    }
-
-    if (isInitiateDocVisible && isInitiateDocEnabled) {
-      return;
-    }
-  }
-
   await createProductReadyForDocInitiation(landingPage, newProductPage);
 
   const isInitiateDocVisible = await docDetailsPage.initiateDOCButton.isVisible().catch(() => false);

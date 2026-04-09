@@ -1,14 +1,14 @@
-# Browser MCP Instructions
+# Browser CLI Instructions
 
-Use this file whenever automation test cases must be validated against the real application.
+Use this file whenever automation test cases must be validated against the real application with the stable Playwright CLI workflow.
 
 ## Core rule
 
-Never finalize locators by guesswork when browser MCP is available.
+Never finalize locators by guesswork when headed Playwright CLI inspection is available.
 
 ## Workflow
 
-1. Open the target environment.
+1. Open the target environment with `npm run inspect`, `npm run inspect:doc`, or `npm run codegen`.
 2. Log in using the configured test user or the credentials/fixture strategy already used by the repo.
 3. Navigate to the target page.
 4. Inspect the DOM or accessibility tree before selecting locators.

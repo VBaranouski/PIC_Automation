@@ -4,7 +4,7 @@
  */
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { chromium } = require('../node_modules/playwright');
+const { chromium } = require('@playwright/test');
 import { writeFileSync } from 'fs';
 
 const EXEC_PATH = '/Users/Uladzislau_Baranouski/Library/Caches/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-mac-arm64/chrome-headless-shell';
@@ -27,7 +27,7 @@ async function waitForOSLoad(page) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ headless: true, executablePath: EXEC_PATH });
+  const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ ignoreHTTPSErrors: true });
   const page    = await context.newPage();
 

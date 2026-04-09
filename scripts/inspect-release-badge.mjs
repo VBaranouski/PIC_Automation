@@ -1,12 +1,11 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { chromium } = require('../node_modules/playwright');
+const { chromium } = require('@playwright/test');
 
 const LOGIN    = 'PICEMDEPQL';
 const PASSWORD = 'outsystems';
 const LOGIN_URL    = 'https://qa.leap.schneider-electric.com/GRC_Th/Login';
 const PRODUCT_URL  = 'https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1200';
-const HEADLESS_SHELL = '/Users/Uladzislau_Baranouski/Library/Caches/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-mac-arm64/chrome-headless-shell';
 
 async function waitForOSLoad(page) {
   for (let i = 0; i < 30; i++) {
@@ -21,7 +20,7 @@ async function waitForOSLoad(page) {
 }
 
 (async () => {
-const browser = await chromium.launch({ executablePath: HEADLESS_SHELL, headless: true });
+const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ ignoreHTTPSErrors: true });
 const page = await context.newPage();
 

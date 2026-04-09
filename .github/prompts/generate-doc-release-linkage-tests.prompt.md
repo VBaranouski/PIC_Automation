@@ -77,7 +77,7 @@ Use the DOC discovered from My DOCs tab that has a release linked (standard init
 
 ## Pre-flight Checks (Before Writing Code)
 
-1. **MCP snapshot required:**
+1. **Playwright CLI snapshot required:**
    - Open DOC Detail header → identify the exact text of the release link (e.g., "Release: v1.2" or a standalone link).
    - Open Digital Offer Details in edit mode → snapshot the Release combobox and Target Release Date field.
    - Navigate to Product Detail → identify if "Digital Offer Certification" tab is labeled exactly that.

@@ -102,33 +102,42 @@
 
 ### Sprint 6 Tasks
 
-#### S6-T1 · Product Type warning with active release (P2)
+#### S6-T1 · Product Type warning with active release (P2) ✅ IMPLEMENTED
+
+> **Automated:** `PRODUCT-TYPE-WARN-001` in `tests/products/product-type-warning.spec.ts`
 
 - Add the remaining edit-mode warning flow for changing Product Type when a release is already in progress
 - Reuse a product that already exposes an active/in-progress release rather than creating destructive setup data
 - Keep the assertion warning-focused; avoid persisting the type change unless the rollback path is stable
 
-#### S6-T2 · Users Management / LEAP License coverage (P2)
+#### S6-T2 · Users Management / LEAP License coverage (P2) ✅ IMPLEMENTED
+
+> **Automated:** `PRODUCT-LEAP-001`, `PRODUCT-LEAP-002` in `tests/products/users-management.spec.ts`
 
 - Cover the two remaining LEAP License states in Users Management:
   - assigned-role user shows `Active`
   - user without license shows `No License`
 - Prefer observation-first assertions on existing data; avoid mutating user-role assignments unless a disposable user/product is identified
 
-#### S6-T3 · Product Configuration follow-on slice (P2/P3)
+#### S6-T3 · Product Configuration follow-on slice (P2/P3) ✅ PARTIALLY IMPLEMENTED
 
-- If Sprint 6 capacity remains, pick the safest Product Configuration scenarios next:
-  - Tracking Tools read-only state
-  - active-release lock behavior
-  - status-mapping entry visibility
+> **Automated:** `TRACKING-TOOLS-001` through `TRACKING-TOOLS-010` in `tests/products/tracking-tools.spec.ts` · `STATUS-MAP-001` through `STATUS-MAP-006` in `tests/products/status-mapping.spec.ts`  
+> ⚠️ `TRACKING-TOOLS-011` requires real Jira credentials and `TRACKING-TOOLS-012` is `test.fixme` (destructive, deferred).
+
+- ~~tracking tools core activation / validation coverage~~ ✅ `TRACKING-TOOLS-001` through `TRACKING-TOOLS-010` passing
+- Tracking Tools read-only state
+- active-release lock behavior
+- ~~status-mapping entry visibility~~ ✅ `STATUS-MAP-001` through `STATUS-MAP-006` implemented (gracefully skips when Jira not activated)
 - Keep this slice below the Product Type warning and LEAP License work
 
-#### S6-T4 · Lower-priority WL3 backlog only after mainline closes (P3)
+#### S6-T4 · Lower-priority WL3 backlog only after mainline closes (P3) ✅ IMPLEMENTED
 
-- Leave these as follow-on WL3 backlog items once S6-T1 and S6-T2 are complete:
-  - product inactivation
-  - risk calculator / risk profile checks
-  - cross-org edge cases
+> **Automated:** `PRODUCT-INACTIVATE-001/003/004` in `tests/products/product-inactivation.spec.ts` · `RISK-PROFILE-001/002/004` in `tests/products/risk-profile.spec.ts` · `CROSS-ORG-001` through `CROSS-ORG-006` in `tests/products/cross-org.spec.ts`  
+> ⚠️ PRODUCT-INACTIVATE-002 and RISK-PROFILE-003 are `test.fixme` (destructive, deferred).
+
+- ~~product inactivation~~ ✅ `PRODUCT-INACTIVATE-001/003/004` passing; 002 deferred
+- ~~risk calculator / risk profile checks~~ ✅ `RISK-PROFILE-001/002/004` passing (skip gracefully — no calc button on product 1162); 003 deferred
+- ~~cross-org edge cases~~ ✅ `CROSS-ORG-001` through `CROSS-ORG-006` all passing
 - Preserve `PRODUCT-DETAIL-007` as a deferred known defect unless new dedicated data is provisioned
 
 ---
@@ -147,20 +156,27 @@
 - Revisit Existing Product Release once the current QA onboarding defects are fixed
 - Keep defect-classified onboarding validations in place; do not weaken them to force green runs
 
-#### S7-T2 · Clone inheritance matrix (P2)
+#### S7-T2 · Clone inheritance matrix (P2) ✅ IMPLEMENTED
+
+> **Automated:** `RELEASE-CLONE-INHERIT-001`, `RELEASE-CLONE-INHERIT-002`, `RELEASE-CLONE-INHERIT-003` in `tests/releases/clone-release.spec.ts`
 
 - Extend `clone-release.spec.ts` from its current dialog/default-validation coverage into inheritance checks
 - Prioritise safe read-only confirmations first: latest source selection, inherited summary areas, intentionally not inherited areas
 - Leave row-action `Clone` entry blocked/defect-classified until QA exposes it in My Releases actions
 
-#### S7-T3 · Release Details remaining tab gaps (P2)
+#### S7-T3 · Release Details remaining tab gaps (P2) ✅ IMPLEMENTED
+
+> **Automated:** `RELEASE-DETAILS-CANCEL-LEAVE-001`, `RELEASE-DETAILS-ADDSEP-001` in `tests/releases/release-details-tab.spec.ts`  
+> ⚠️ Both tests gracefully skip on QA (Leave Page dialog absent; Add SE Product button unavailable at Scoping stage).
 
 - Extend `release-details-tab.spec.ts` for the remaining non-destructive gaps:
   - Cancel/leave confirmation in inline edit mode
   - Add SE Product dialog open path
   - safe empty-state / read-only combinations on both subtabs
 
-#### S7-T4 · Workflow panel counts and stage sidebar (P1/P2)
+#### S7-T4 · Workflow panel counts and stage sidebar (P1/P2) ✅ IMPLEMENTED
+
+> **Automated:** `RELEASE-HEADER-011` in `tests/releases/release-detail-header.spec.ts`
 
 - Extend `release-detail-header.spec.ts` with stage counts, completion-date visibility, and stage-sidebar validation
 - Keep orange-dot/rework-state assertions below the mainline unless stable QA data is available

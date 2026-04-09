@@ -30,12 +30,16 @@
     "codegen:doc": "node scripts/codegen.mjs --url '/GRC_PICASso_DOC/DOCDetail?DOCId=77&ProductId=730'",
     "codegen:landing": "node scripts/codegen.mjs --url '/GRC_PICASso/'"
   },
-  "keywords": ["playwright", "testing", "automation", "mcp"],
+  "keywords": [
+    "playwright",
+    "testing",
+    "automation",
+    "cli"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
-    "@playwright/mcp": "^0.0.68",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.5.0",
     "@typescript-eslint/eslint-plugin": "^8.57.1",
@@ -47,6 +51,7 @@
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-playwright": "^2.10.0",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3"
   }

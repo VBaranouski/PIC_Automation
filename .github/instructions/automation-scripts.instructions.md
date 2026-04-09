@@ -9,7 +9,7 @@ Before generating code, read in this order:
 1. normalized requirements JSON
 2. automation test cases JSON
 3. the repo root architecture instructions
-4. browser MCP instructions
+4. browser CLI instructions
 
 ## Output goal
 
@@ -24,7 +24,7 @@ Produce or update:
 
 ## Generation rules
 
-- Do not create Playwright code before checking the live UI with browser MCP unless the user explicitly asks for a draft.
+- Do not create Playwright code before checking the live UI with Playwright CLI inspection unless the user explicitly asks for a draft.
 - Prefer one page object per real page or major flow.
 - Prefer one locator factory per page or feature area.
 - Keep tests concise and behavior-focused.

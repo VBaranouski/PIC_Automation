@@ -24,7 +24,7 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 1. **PLAN** — Identify the next `[ ]` scenario from `docs/ai/automation-testing-plan.md`; record TC ID, WF, spec file, POM.
 2. **STEPS** — Write numbered test steps + expected results; update plan marker to `[~]`; apply role codes from `picasso-roles-and-access.md`.
 3. **CODE** — Draft TypeScript test using four-layer rule: locator factory → page object method → test with Allure metadata + `test.step()`.
-4. **MCP VALIDATE** — Open Playwright MCP Chrome; snapshot every page section; verify all locators against live DOM; walk the full user journey; fix locators and POM methods.
+4. **CLI VALIDATE** — Open a headed Playwright CLI browser or codegen session; inspect each page section; verify all locators against live DOM; walk the full user journey; fix locators and POM methods.
 5. **TERMINAL RUN** — `npx playwright test <spec> --project=pw-autotest`; fix all failures; run `npx tsc --noEmit`; use `test.fail()` for product defects — never weaken assertions.
 6. **UPDATE PLAN** — Change `[ ]` to `[x]`/`[~]`; update runtime status table; update coverage matrix; sync `.html` version.
 7. **PROPOSE NEXT** — Output a structured Next Scope Proposal with TC IDs, priorities, effort, and a parallel agent plan if batch ≥ 3.
@@ -36,7 +36,7 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 - `.github/instructions/automation-workflow.instructions.md` ← **MASTER WORKFLOW — read first for any test creation task**
 - `.github/instructions/pw-autotest.instructions.md`
 - `.github/instructions/automation-scripts.instructions.md`
-- `.github/instructions/browser-mcp.instructions.md`
+- `.github/instructions/browser-cli.instructions.md`
 - `.github/instructions/naming.instructions.md`
 - `.github/instructions/outsystems-picasso.instructions.md` ← PICASso/OutSystems-specific patterns (select vs OSUI, user lookup, partial refresh, timeouts)
 - `.github/instructions/typescript.instructions.md` ← TypeScript conventions, class order, type safety, import aliases
@@ -57,11 +57,11 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 
 ## Core rules
 
-- Prefer semantic locators and verify them in-browser when MCP is available.
+- Prefer semantic locators and verify them in-browser with Playwright CLI when available.
 - Never use `waitForTimeout()` or `networkidle` for the OutSystems app.
 - Use web-first assertions (`expect(locator)`) instead of snapshot reads.
-- For new or changed test scripts, validate the full UI path in Playwright MCP before treating the code as done.
-- After MCP validation, run the smallest relevant `npx playwright test ...` command.
+- For new or changed test scripts, validate the full UI path in a headed Playwright CLI session before treating the code as done.
+- After CLI validation, run the smallest relevant `npx playwright test ...` command.
 - Do not "fix" expectation-vs-actual product mismatches by weakening assertions; classify those as likely defects.
 - Keep Markdown and HTML application plans in sync with the latest validated automation coverage.
 - Keep tests isolated; avoid test-order dependencies unless explicitly implemented as a setup project.

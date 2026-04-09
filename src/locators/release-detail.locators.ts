@@ -62,6 +62,38 @@ export function releaseDetailLocators(page: Page) {
     needHelpLink: page
       .locator('[data-block="Release.ReleaseHelp"] a, a:has-text("Need Help")')
       .first(),
+
+    // ── Release Details tab ────────────────────────────────────────────────
+    /** Default content tab on Release Detail */
+    releaseDetailsTab: page.getByRole('tab', { name: /^Release Details\b/i }).first(),
+    questionnaireTab: page.getByRole('tab', { name: /^Questionnaire\b/i }).first(),
+    processRequirementsTab: page.getByRole('tab', { name: /^Process Requirements\b/i }).first(),
+    productRequirementsTab: page.getByRole('tab', { name: /^Product Requirements\b/i }).first(),
+    reviewAndConfirmTab: page.getByRole('tab', { name: /^Review\s*&\s*Confirm\b/i }).first(),
+    csrrTab: page.getByRole('tab', { name: /^(Cybersecurity Residual Risks\b|CSRR\b)/i }).first(),
+    fcsrDecisionTab: page.getByRole('tab', { name: /^FCSR Decision\b/i }).first(),
+    dppReviewTab: page.getByRole('tab', { name: /^(Data Protection and Privacy Review\b|DPP Review\b)/i }).first(),
+    startQuestionnaireButton: page.getByRole('button', { name: /Start Questionnaire/i }).first(),
+    questionnaireEmptyState: page.getByText(/No questionnaire started yet!?/i).first(),
+    questionnaireSubmitGuidance: page
+      .getByText(/The "Submit for Review" button will be enabled, once the Questionnaire has been submitted/i)
+      .first(),
+    /** Nested SE product subtabs inside Release Details */
+    includedSeComponentsTab: page.getByRole('tab', { name: /^Included SE Components$/i }).first(),
+    partOfSeProductsTab: page.getByRole('tab', { name: /^Part of SE Products$/i }).first(),
+    /** Action button shown in Included SE Components area */
+    addSeProductButton: page.getByRole('button', { name: /Add SE Product/i }).first(),
+    /** Modal opened from Included SE Components */
+    addSeProductDialog: page.getByRole('dialog').filter({ has: page.getByText(/Add SE Component/i) }).first(),
+    /** Inline edit trigger in Release Details */
+    editReleaseDetailsButton: page.getByRole('button', { name: /Edit Release Details/i }).first(),
+    /** Inline actions and fields rendered after entering edit mode */
+    saveReleaseDetailsButton: page.getByRole('button', { name: /^Save$/ }).first(),
+    cancelReleaseDetailsButton: page.getByRole('button', { name: /^Cancel$/ }).first(),
+    targetReleaseDateInput: page.getByRole('textbox', { name: 'Select a date.' }).first(),
+    changeSummaryTextarea: page.getByRole('textbox', { name: /Change Summary/i }).first(),
+    /** Empty state observed when no related SE products are associated */
+    includedSeComponentsEmptyState: page.getByText(/No Components Associated yet|There are no SE products included in this product/i).first(),
   };
 }
 

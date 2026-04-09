@@ -925,6 +925,19 @@ export class DocDetailsPage extends BasePage {
     return this.l.historyGrid.locator('tbody tr').count();
   }
 
+  async getHistoryDateTexts(limit = 5): Promise<string[]> {
+    const dateCells = this.l.historyGrid.locator('tbody tr td:first-child');
+    const count = Math.min(await dateCells.count(), limit);
+    const values: string[] = [];
+
+    for (let index = 0; index < count; index++) {
+      const value = (await dateCells.nth(index).textContent() ?? '').trim();
+      if (value) values.push(value);
+    }
+
+    return values;
+  }
+
   async clickHistorySearchButton(): Promise<void> {
     await this.l.historySearchButton.click();
     await this.waitForOSLoad();
@@ -940,6 +953,17 @@ export class DocDetailsPage extends BasePage {
     await this.waitForOSLoad();
   }
 
+  async getHistorySearchInputValue(): Promise<string> {
+    return this.l.historySearchInput.inputValue();
+  }
+
+  async getSelectedHistoryActivityFilterLabel(): Promise<string> {
+    return this.l.historyActivityFilter.evaluate((element) => {
+      const select = element as HTMLSelectElement;
+      return select.options[select.selectedIndex]?.textContent?.trim() ?? '';
+    });
+  }
+
   async closeHistoryDialog(): Promise<void> {
     await this.l.historyCloseButton.waitFor({ state: 'visible', timeout: 15_000 });
     await this.l.historyCloseButton.click();
@@ -948,6 +972,62 @@ export class DocDetailsPage extends BasePage {
 
   async fillHistorySearchInput(text: string): Promise<void> {
     await this.l.historySearchInput.fill(text);
+  }
+
+  private formatHistoryDateInputValue(targetDate: Date): string {
+    const day = targetDate.getDate();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[targetDate.getMonth()];
+    const year = targetDate.getFullYear();
+    return `${day} ${month} ${year}`;
+  }
+
+  private async setHistoryDateInput(input: Locator, targetDate: Date): Promise<void> {
+    const value = this.formatHistoryDateInputValue(targetDate);
+    const normalizedTarget = value.toLowerCase().replace(/\s+/g, ' ').trim();
+
+    const readValue = async (): Promise<string> => (
+      await input.inputValue().catch(() => '')
+    ).toLowerCase().replace(/\s+/g, ' ').trim();
+
+    await input.waitFor({ state: 'visible', timeout: 15_000 });
+    await input.scrollIntoViewIfNeeded().catch(() => undefined);
+    await input.focus().catch(() => undefined);
+    await input.click({ force: true }).catch(() => undefined);
+    await input.press(`${process.platform === 'darwin' ? 'Meta' : 'Control'}+A`).catch(() => undefined);
+    await input.fill(value).catch(() => undefined);
+    if ((await readValue()) !== normalizedTarget) {
+      await input.pressSequentially(value, { delay: 30 }).catch(() => undefined);
+    }
+    await input.press('Enter').catch(() => undefined);
+    await input.press('Tab').catch(() => undefined);
+
+    let currentValue = await readValue();
+    if (currentValue !== normalizedTarget) {
+      await input.evaluate((element, newValue) => {
+        const field = element as HTMLInputElement;
+        const prototype = Object.getPrototypeOf(field);
+        const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+        descriptor?.set?.call(field, newValue);
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+        field.blur();
+      }, value);
+      currentValue = await readValue();
+    }
+
+    if (currentValue !== normalizedTarget) {
+      throw new Error(`Failed to set DOC History date input to ${value}.`);
+    }
+  }
+
+  async selectHistoryDateRange(fromDate: Date, toDate: Date): Promise<void> {
+    await this.setHistoryDateInput(this.l.historyDateFromInput, fromDate);
+
+    const toInputVisible = await this.l.historyDateToInput.isVisible().catch(() => false);
+    if (toInputVisible) {
+      await this.setHistoryDateInput(this.l.historyDateToInput, toDate);
+    }
   }
 
   /** Returns the number of <option> elements in the Activity filter dropdown.
@@ -971,6 +1051,37 @@ export class DocDetailsPage extends BasePage {
       // Timed out; return whatever was last read — test assertion will judge
     }
     return count;
+  }
+
+  async getHistoryTotalRecordCount(): Promise<number> {
+    await this.l.historyPaginationStatus.waitFor({ state: 'visible', timeout: 15_000 });
+    const statusText = await this.l.historyPaginationStatus.textContent();
+    const match = statusText?.match(/(\d+)\s*record(?:s)?/i);
+    return match ? Number(match[1]) : 0;
+  }
+
+  async changeHistoryPerPage(value: '10' | '20' | '30' | '50' | '100'): Promise<void> {
+    await this.l.historyPerPageSelect.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.historyPerPageSelect.selectOption(value);
+    await this.waitForOSLoad();
+    await expect
+      .poll(() => this.getHistoryRowCount(), { timeout: 30_000, intervals: [500, 1_000, 2_000] })
+      .toBeGreaterThan(0);
+  }
+
+  async getCurrentHistoryPageNumber(): Promise<number> {
+    const currentPageButton = this.l.historyPaginationNav.getByRole('button', { name: /current page/i });
+    const text = await currentPageButton.textContent();
+    return Number(text?.trim() || '0');
+  }
+
+  async goToHistoryPage(pageNumber: number): Promise<void> {
+    await this.l.historyPaginationNav.getByRole('button', { name: `go to page ${pageNumber}` }).click();
+    await this.waitForOSLoad();
+  }
+
+  async expectHistoryNoDataMessageVisible(): Promise<void> {
+    await expect(this.l.historyNoDataMessage).toBeVisible({ timeout: 15_000 });
   }
 
   /**
@@ -1304,6 +1415,86 @@ export class DocDetailsPage extends BasePage {
   /** Asserts that a "Provide Signature" button is visible for the current user. */
   async expectProvideSignatureButtonVisible(): Promise<void> {
     await expect(this.l.provideSignatureButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async openProposeDecisionPopup(): Promise<boolean> {
+    const hasButton = await this.hasProposeDecisionButton();
+    if (!hasButton) return false;
+
+    await this.l.proposeDecisionButton.click();
+    await this.waitForOSLoad();
+
+    return this.l.certDecisionDialog
+      .waitFor({ state: 'visible', timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  async expectProposeDecisionPopupBaseFieldsVisible(): Promise<void> {
+    await expect(this.l.certDecisionDialog).toBeVisible({ timeout: 15_000 });
+    await expect(
+      this.l.certDecisionDialog.getByText(/Proposed Decision/i).first(),
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(
+      this.l.certDecisionDialog.getByRole('combobox').first(),
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(
+      this.l.certDecisionDialog.getByText(/Comment/i).first(),
+    ).toBeVisible({ timeout: 10_000 });
+  }
+
+  async getProposedDecisionOptions(): Promise<string[]> {
+    const optionTexts = await this.l.certDecisionDialog
+      .getByRole('combobox')
+      .first()
+      .locator('option')
+      .allTextContents()
+      .catch(() => []);
+
+    return optionTexts
+      .map((value) => value.trim())
+      .filter((value) => value && !/^(- select -|select)$/i.test(value));
+  }
+
+  async selectProposedDecisionOption(optionLabel: string): Promise<void> {
+    const select = this.l.certDecisionDialog.getByRole('combobox').first();
+    await select.waitFor({ state: 'visible', timeout: 10_000 });
+    await select.selectOption({ label: optionLabel });
+    await this.waitForOSLoad();
+  }
+
+  async hasValidityEndDateField(): Promise<boolean> {
+    return this.l.certDecisionDialog
+      .getByText(/Validity End Date/i)
+      .first()
+      .isVisible()
+      .catch(() => false);
+  }
+
+  async hasActionsClosureDueDateField(): Promise<boolean> {
+    return this.l.certDecisionDialog
+      .getByText(/Due Date for Actions Closure/i)
+      .first()
+      .isVisible()
+      .catch(() => false);
+  }
+
+  async closeProposeDecisionPopup(): Promise<void> {
+    const dialog = this.l.certDecisionDialog;
+    const cancelButton = dialog.getByRole('button', { name: /Cancel|Close/i }).first();
+    const cancelVisible = await cancelButton.isVisible().catch(() => false);
+
+    if (cancelVisible) {
+      await cancelButton.click();
+    } else {
+      const closeIcon = dialog.locator('.popup-structure-header i.fa-times').first();
+      const closeVisible = await closeIcon.isVisible().catch(() => false);
+      if (closeVisible) {
+        await closeIcon.click();
+      }
+    }
+
+    await this.waitForOSLoad();
   }
 }
 

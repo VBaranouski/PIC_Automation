@@ -64,6 +64,22 @@ export class NewProductPage extends BasePage {
   get crossOrgCheckbox(): Locator  { return this.l.crossOrgCheckbox; }
   get vendorInput(): Locator       { return this.l.vendorInput; }
 
+  // Tracking tools (Product Configuration tab)
+  get jiraSwitch(): Locator                    { return this.l.jiraSwitch; }
+  get jamaSwitch(): Locator                    { return this.l.jamaSwitch; }
+  get jiraSourceLinkInput(): Locator           { return this.l.jiraSourceLinkInput; }
+  get jiraProjectKeyInput(): Locator           { return this.l.jiraProjectKeyInput; }
+  get jamaProjectIdInput(): Locator            { return this.l.jamaProjectIdInput; }
+  get testConnectionButton(): Locator          { return this.l.testConnectionButton; }
+  get statusMappingConfigLinks(): Locator      { return this.l.statusMappingConfigLinks; }
+  get trackingToolsWarning(): Locator          { return this.l.trackingToolsWarning; }
+  get productReqNotApplicableRadio(): Locator  { return this.l.productReqNotApplicableRadio; }
+  get productReqJamaRadio(): Locator           { return this.l.productReqJamaRadio; }
+  get productReqJiraRadio(): Locator           { return this.l.productReqJiraRadio; }
+  get processReqNotApplicableRadio(): Locator  { return this.l.processReqNotApplicableRadio; }
+  get processReqJiraRadio(): Locator           { return this.l.processReqJiraRadio; }
+  get showProcessSubReqsCheckbox(): Locator    { return this.l.showProcessSubReqsCheckbox; }
+
   get productOwnerLabel(): Locator    { return this.l.productOwnerLabel; }
   get securityManagerLabel(): Locator { return this.l.securityManagerLabel; }
   get sdpaLabel(): Locator            { return this.l.sdpaLabel; }
@@ -80,10 +96,14 @@ export class NewProductPage extends BasePage {
   get createReleaseDialog(): Locator                  { return this.l.createReleaseDialog; }
   get newProductReleaseRadio(): Locator               { return this.l.newProductReleaseRadio; }
   get existingProductReleaseRadio(): Locator          { return this.l.existingProductReleaseRadio; }
+  get cloneFromExistingRadio(): Locator               { return this.l.cloneFromExistingRadio; }
+  get createAsNewRadio(): Locator                     { return this.l.createAsNewRadio; }
   get releaseVersionInput(): Locator                  { return this.l.releaseVersionInput; }
   get targetReleaseDateInput(): Locator               { return this.l.targetReleaseDateInput; }
   get continuousPenetrationTestingCheckbox(): Locator { return this.l.continuousPenetrationTestingCheckbox; }
   get changeSummaryInput(): Locator                   { return this.l.changeSummaryInput; }
+  get resetReleaseFormButton(): Locator               { return this.l.resetReleaseFormButton; }
+  get cancelReleaseFormButton(): Locator              { return this.l.cancelReleaseFormButton; }
   get createAndScopeButton(): Locator                 { return this.l.createAndScopeButton; }
 
   // ==================== Product Information ====================
@@ -156,6 +176,11 @@ export class NewProductPage extends BasePage {
     });
   }
 
+  private async getOptionLabels(select: Locator): Promise<string[]> {
+    const options = await select.locator('option').allTextContents();
+    return options.map((option) => option.trim()).filter(Boolean);
+  }
+
   async getSelectedProductState(): Promise<string> {
     return this.getSelectedOptionLabel(this.l.productStateSelect);
   }
@@ -166,6 +191,18 @@ export class NewProductPage extends BasePage {
 
   async getSelectedProductType(): Promise<string> {
     return this.getSelectedOptionLabel(this.l.productTypeSelect);
+  }
+
+  async getProductStateOptions(): Promise<string[]> {
+    return this.getOptionLabels(this.l.productStateSelect);
+  }
+
+  async getProductDefinitionOptions(): Promise<string[]> {
+    return this.getOptionLabels(this.l.productDefinitionSelect);
+  }
+
+  async getProductTypeOptions(): Promise<string[]> {
+    return this.getOptionLabels(this.l.productTypeSelect);
   }
 
   async fillDescription(text: string): Promise<void> {
@@ -361,6 +398,61 @@ export class NewProductPage extends BasePage {
 
   async toggleCrossOrgDevelopment(): Promise<void> {
     await this.l.crossOrgCheckbox.click();
+    await this.waitForOSLoad();
+  }
+
+  // ==================== Product Configuration tab (Tracking Tools) ====================
+
+  async clickProductConfigurationTab(): Promise<void> {
+    await this.l.productConfigurationTab.click();
+    await expect(this.page.getByText('TRACKING TOOLS CONFIGURATION', { exact: true })).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Enable the Jira tracking tool toggle and wait for the revealed fields to appear. */
+  async enableJiraToggle(): Promise<void> {
+    await expect(this.l.jiraSwitch).toBeEnabled({ timeout: 10_000 });
+    await this.l.jiraSwitch.check({ force: true });
+    await this.waitForOSLoad();
+    await this.l.jiraSourceLinkInput.waitFor({ state: 'visible', timeout: 10_000 });
+  }
+
+  /** Enable the Jama tracking tool toggle and wait for the revealed field to appear. */
+  async enableJamaToggle(): Promise<void> {
+    await expect(this.l.jamaSwitch).toBeEnabled({ timeout: 10_000 });
+    await this.l.jamaSwitch.check({ force: true });
+    await this.waitForOSLoad();
+    await this.l.jamaProjectIdInput.waitFor({ state: 'visible', timeout: 10_000 });
+  }
+
+  async disableJiraToggle(): Promise<void> {
+    await this.l.jiraSwitch.uncheck({ force: true });
+    await this.waitForOSLoad();
+  }
+
+  async disableJamaToggle(): Promise<void> {
+    await this.l.jamaSwitch.uncheck({ force: true });
+    await this.waitForOSLoad();
+  }
+
+  async expectJiraFieldsVisible(): Promise<void> {
+    await expect(this.l.jiraSourceLinkInput).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.jiraProjectKeyInput).toBeVisible({ timeout: 10_000 });
+  }
+
+  async expectJamaFieldsVisible(): Promise<void> {
+    await expect(this.l.jamaProjectIdInput).toBeVisible({ timeout: 10_000 });
+  }
+
+  async expectTrackingToolsWarningVisible(): Promise<void> {
+    await expect(this.l.trackingToolsWarning).toBeVisible({ timeout: 10_000 });
+  }
+
+  async isJiraSwitchEnabled(): Promise<boolean> {
+    return !(await this.l.jiraSwitch.isDisabled().catch(() => true));
+  }
+
+  async isJamaSwitchEnabled(): Promise<boolean> {
+    return !(await this.l.jamaSwitch.isDisabled().catch(() => true));
   }
 
   // ==================== Product Team ====================
@@ -452,9 +544,58 @@ export class NewProductPage extends BasePage {
     await expect(this.l.digitalOfferCertificationTab).toBeVisible({ timeout: 30_000 });
   }
 
+  async expectDigitalOfferDetailsVisible(): Promise<void> {
+    await expect(this.l.vestaIdInput).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.docItOwnerSearchBox).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.docProjectManagerSearchBox).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectDigitalOfferDetailsFunctional(fullName: string, expectedVestaId: string): Promise<void> {
+    await expect(this.page.getByRole('link', { name: '+ Add VESTA ID' })).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.vestaIdInput).toHaveValue(expectedVestaId, { timeout: 30_000 });
+
+    const itOwnerCell = this.page.getByRole('gridcell', { name: /IT Owner/i });
+    const pmCell = this.page.getByRole('gridcell', { name: /Project Manager/i });
+
+    await expect(itOwnerCell.getByText(fullName, { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+    await expect(pmCell.getByText(fullName, { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectCrossOrgDevelopmentFieldsVisible(): Promise<void> {
+    await expect(this.page.getByText('Development Org Level 1', { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText('Development Org Level 2', { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(this.page.getByText('Development Org Level 3', { exact: true })).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectVendorEnabled(): Promise<void> {
+    await expect(this.l.vendorInput).toBeEnabled({ timeout: 30_000 });
+  }
+
+  async expectVendorMarkedRequired(): Promise<void> {
+    await expect(this.l.vendorInput).toBeEnabled({ timeout: 30_000 });
+    await expect(this.l.vendorInput).toHaveJSProperty('required', true);
+    await expect(this.l.vendorInput).toHaveAttribute('aria-required', 'true');
+    await expect(
+      this.page.locator('.mandatory').filter({ has: this.page.getByText('Vendor', { exact: true }) }).first(),
+    ).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectVendorRequiredValidationVisible(): Promise<void> {
+    const vendorFieldContainer = this.page.locator('*')
+      .filter({ has: this.page.getByText('Vendor', { exact: true }) })
+      .filter({ has: this.page.getByText('Required field!', { exact: true }) })
+      .last();
+    await expect(vendorFieldContainer).toBeVisible({ timeout: 15_000 });
+  }
+
   async expectProductDetailLoaded(): Promise<void> {
+    await expect(this.page).toHaveURL(/.*ProductDetail/, { timeout: 60_000 });
+    await this.page.waitForFunction(
+      () => !document.body?.innerText?.includes('JavaScript is required'),
+      { timeout: 60_000 },
+    ).catch(() => undefined);
+    await this.waitForOSLoad();
     await this.l.editProductButton.waitFor({ state: 'visible', timeout: 60_000 });
-    await expect(this.page).toHaveURL(/.*ProductDetail/);
     await expect(this.l.editProductButton).toBeVisible();
   }
 
@@ -513,6 +654,14 @@ export class NewProductPage extends BasePage {
       .filter({ has: this.page.getByText(value, { exact: true }) })
       .last();
     await expect(brandRow).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectCommercialReferenceValue(value: string): Promise<void> {
+    const commercialRefRow = this.page.locator('*')
+      .filter({ has: this.page.getByText('Commercial Reference Number', { exact: true }) })
+      .filter({ has: this.page.getByText(value, { exact: true }) })
+      .last();
+    await expect(commercialRefRow).toBeVisible({ timeout: 15_000 });
   }
 
   async expectProductDescriptionContains(text: string): Promise<void> {
@@ -654,12 +803,25 @@ export class NewProductPage extends BasePage {
     await expect(this.l.requiredFieldError).toHaveCount(3);
   }
 
+  async expectValidationAlertVisible(expectedText = 'Please review the necessary fields'): Promise<void> {
+    await expect(this.l.releaseValidationAlert).toContainText(expectedText);
+  }
+
+  async expectRequiredFieldErrorsVisible(minCount = 1): Promise<void> {
+    await expect(this.l.requiredFieldError.first()).toBeVisible({ timeout: 15_000 });
+    expect(await this.getRequiredFieldErrorCount()).toBeGreaterThanOrEqual(minCount);
+  }
+
   async fillReleaseVersion(version: string): Promise<void> {
     await this.l.releaseVersionInput.fill(version);
   }
 
   async fillReleaseChangeSummary(summary: string): Promise<void> {
     await this.l.changeSummaryInput.fill(summary);
+  }
+
+  async getRequiredFieldErrorCount(): Promise<number> {
+    return this.l.requiredFieldError.count();
   }
 
   async toggleContinuousPenetrationTesting(): Promise<void> {
@@ -706,11 +868,14 @@ export class NewProductPage extends BasePage {
     if (today.getDate() > 1) {
       await expect(disabledDays.first()).toBeVisible({ timeout: 5_000 });
       expect(disabledCount).toBeGreaterThan(0);
-    }
-    // Always verify today itself is NOT disabled (selectable)
-    const todayCell = calendar.locator('.flatpickr-day.today');
-    if (await todayCell.count() > 0) {
-      await expect(todayCell).not.toHaveClass(/flatpickr-disabled/);
+
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const yesterdayLabel = `${NewProductPage.monthNames[yesterday.getMonth()]} ${yesterday.getDate()}, ${yesterday.getFullYear()}`;
+      const yesterdayCell = calendar.locator(`[aria-label="${yesterdayLabel}"]`).first();
+      if (await yesterdayCell.count()) {
+        await expect(yesterdayCell).toHaveClass(/flatpickr-disabled/);
+      }
     }
     await this.page.keyboard.press('Escape');
     await calendar.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
@@ -740,6 +905,24 @@ export class NewProductPage extends BasePage {
     await expect(this.l.lastPenTestDateLabel).toBeVisible({ timeout: 10_000 });
   }
 
+  async clickWasPenTestPerformedYes(): Promise<void> {
+    await this.l.wasPenTestPerformedYesRadio.click();
+    await this.waitForOSLoad();
+  }
+
+  async clickWasPenTestPerformedNo(): Promise<void> {
+    await this.l.wasPenTestPerformedNoRadio.click();
+    await this.waitForOSLoad();
+  }
+
+  async expectExistingReleaseLastPenTestDateVisible(): Promise<void> {
+    await expect(this.l.lastPenTestDateLabel).toBeVisible({ timeout: 10_000 });
+  }
+
+  async expectExistingReleaseLastBuSecurityOfficerFcsrDateVisible(): Promise<void> {
+    await expect(this.l.lastBuSecurityOfficerFcsrDateLabel).toBeVisible({ timeout: 10_000 });
+  }
+
   /** After "Was pen test performed? No" is clicked, verifies Justification field appears. */
   async expectJustificationFieldVisible(): Promise<void> {
     await expect(this.l.justificationLabel).toBeVisible({ timeout: 10_000 });
@@ -749,6 +932,40 @@ export class NewProductPage extends BasePage {
   async expectCloneOrNewRadiosVisible(): Promise<void> {
     await expect(this.l.cloneFromExistingRadio).toBeVisible({ timeout: 15_000 });
     await expect(this.l.createAsNewRadio).toBeVisible({ timeout: 15_000 });
+  }
+
+  async expectCloneFromExistingRadioChecked(): Promise<void> {
+    await expect(this.l.cloneFromExistingRadio).toBeChecked({ timeout: 10_000 });
+  }
+
+  async expectCloneSourceReleaseSelectVisible(): Promise<void> {
+    await expect(this.l.cloneSourceReleaseSelect).toBeVisible({ timeout: 10_000 });
+  }
+
+  async getSelectedCloneSourceReleaseLabel(): Promise<string> {
+    return this.l.cloneSourceReleaseSelect.evaluate((element) => {
+      const select = element as HTMLSelectElement;
+      return select.options[select.selectedIndex]?.textContent?.trim() ?? '';
+    });
+  }
+
+  async getCloneSourceReleaseOptionLabels(): Promise<string[]> {
+    return this.l.cloneSourceReleaseSelect.evaluate((element) => {
+      const select = element as HTMLSelectElement;
+      return Array.from(select.options)
+        .map((option) => option.textContent?.trim() ?? '')
+        .filter(Boolean);
+    });
+  }
+
+  async clickCreateAsNewRadio(): Promise<void> {
+    await this.l.createAsNewRadio.click();
+    await this.waitForOSLoad();
+  }
+
+  async clickResetReleaseForm(): Promise<void> {
+    await this.l.resetReleaseFormButton.click();
+    await this.waitForOSLoad();
   }
 
   // ==================== Releases tab — grid helpers ====================
@@ -776,8 +993,9 @@ export class NewProductPage extends BasePage {
    */
   async clickFirstReleaseLinkAndNavigate(): Promise<void> {
     const firstLink = this.l.releasesGrid.getByRole('row').nth(1).getByRole('link').first();
+    const currentUrl = this.page.url();
     await Promise.all([
-      this.page.waitForURL(url => url.href !== this.page.url(), { timeout: 30_000 }),
+      this.page.waitForURL(url => url.href !== currentUrl, { timeout: 30_000 }),
       firstLink.click(),
     ]);
     await this.waitForOSLoad();
@@ -792,6 +1010,12 @@ export class NewProductPage extends BasePage {
     return (await firstDataRow.textContent() ?? '').trim();
   }
 
+  async getFirstReleaseVersionLinkText(): Promise<string> {
+    const link = this.l.releasesGridReleaseLinks.first();
+    await link.waitFor({ state: 'visible', timeout: 15_000 });
+    return ((await link.textContent()) ?? '').trim();
+  }
+
   /**
    * Changes the Releases tab per-page selector to the given value.
    * The OutSystems pagination <select> inside [role="status"] accepts option labels
@@ -802,65 +1026,64 @@ export class NewProductPage extends BasePage {
     await this.waitForOSLoad();
   }
 
-  async selectReleaseTargetDate(targetDate: Date): Promise<void> {
+  private async selectCreateReleaseDateInputByIndex(index: number, targetDate: Date): Promise<void> {
     const monthName = NewProductPage.monthNames[targetDate.getMonth()];
     const year = targetDate.getFullYear();
     const day = targetDate.getDate();
     const dateLabel = `${monthName} ${day}, ${year}`;
+    const typedValue = `${day} ${monthName.slice(0, 3)} ${year}`;
+    const input = this.l.createReleaseDateInputs.nth(index);
     const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).last();
 
-    // Open the flatpickr calendar
-    await this.l.targetReleaseDateInput.click();
+    await input.evaluate((element, value) => {
+      const field = element as HTMLInputElement;
+      field.focus();
+      field.value = value;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+      field.blur();
+    }, typedValue).catch(() => undefined);
+    await this.waitForOSLoad();
 
-    // Wait for the calendar's month combobox to be fully visible (flatpickr uses
-    // a CSS opacity transition; the day-cell spans are in the DOM immediately but
-    // remain CSS-hidden until the transition completes).
-    await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 10_000 });
-
-    // Navigate to the correct month if necessary
-    const currentMonth = await this.l.releaseDateMonthSelect.inputValue().catch(() => '');
-    if (currentMonth !== String(targetDate.getMonth())) {
-      await this.l.releaseDateMonthSelect.selectOption({ label: monthName });
-      // Re-open calendar if it closed after selectOption
-      await this.l.releaseDateMonthSelect
-        .waitFor({ state: 'visible', timeout: 5_000 })
-        .catch(async () => {
-          await this.l.targetReleaseDateInput.click();
-          await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 5_000 });
-        });
+    let inputValue = await input.inputValue().catch(() => '');
+    if (inputValue) {
+      return;
     }
 
-    // Navigate to the correct year if necessary
+    await input.click();
+    await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 10_000 });
+
+    const currentMonth = await this.l.releaseDateMonthSelect.inputValue().catch(() => '');
+    if (currentMonth !== String(targetDate.getMonth())) {
+      await this.l.releaseDateMonthSelect.selectOption(String(targetDate.getMonth())).catch(async () => {
+        await this.l.releaseDateMonthSelect.selectOption({ label: monthName });
+      });
+      await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 5_000 }).catch(async () => {
+        await input.click();
+        await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 5_000 });
+      });
+    }
+
     const currentYear = await this.l.releaseDateYearSpinbutton.inputValue().catch(() => '');
     if (currentYear !== String(year)) {
       await this.l.releaseDateYearSpinbutton.fill(String(year));
       await this.l.releaseDateYearSpinbutton.press('Enter');
-      // Re-open calendar if Enter closed it
       await dayCell.waitFor({ state: 'visible', timeout: 5_000 }).catch(async () => {
-        await this.l.targetReleaseDateInput.click();
+        await input.click();
         await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 5_000 });
       });
     }
 
     await dayCell.waitFor({ state: 'attached', timeout: 10_000 });
-    // flatpickr day-cell spans may have opacity:0 during the open animation.
-    // Use JS .click() to dispatch the event directly, bypassing CSS-visibility
-    // checks that Playwright and flatpickr event delegation both enforce.
-    // When multiple flatpickr calendars are open (e.g. the Releases-tab date-
-    // range filter renders a background calendar), querySelectorAll + last()
-    // ensures we click the day inside the MOST-RECENTLY opened calendar
-    // (i.e. the Create Release dialog's calendar).
     await this.page.evaluate((label: string) => {
       const spans = document.querySelectorAll<HTMLElement>(`[aria-label="${label}"]`);
-      const span = spans[spans.length - 1]; // last = dialog's calendar
+      const span = spans[spans.length - 1];
       if (span) span.click();
     }, dateLabel);
-    // Verify the date input was actually updated — if it is still empty the
-    // calendar was closed prematurely or the wrong cell was clicked.
-    const inputValue = await this.l.targetReleaseDateInput.inputValue().catch(() => '');
+
+    inputValue = await input.inputValue().catch(() => '');
     if (!inputValue) {
-      // Re-open and try once more
-      await this.l.targetReleaseDateInput.click();
+      await input.click();
       await this.l.releaseDateMonthSelect.waitFor({ state: 'visible', timeout: 10_000 });
       await dayCell.waitFor({ state: 'attached', timeout: 10_000 });
       await this.page.evaluate((label: string) => {
@@ -868,7 +1091,36 @@ export class NewProductPage extends BasePage {
         const span = spans[spans.length - 1];
         if (span) span.click();
       }, dateLabel);
+      inputValue = await input.inputValue().catch(() => '');
     }
+
+    if (!inputValue) {
+      await input.evaluate((element, value) => {
+        const field = element as HTMLInputElement;
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+        field.blur();
+      }, typedValue);
+      await this.waitForOSLoad();
+      inputValue = await input.inputValue().catch(() => '');
+    }
+
+    if (!inputValue) {
+      throw new Error(`Failed to set create-release date input at index ${index}.`);
+    }
+  }
+
+  async selectReleaseTargetDate(targetDate: Date): Promise<void> {
+    await this.selectCreateReleaseDateInputByIndex(0, targetDate);
+  }
+
+  async selectExistingReleaseLastPenTestDate(targetDate: Date): Promise<void> {
+    await this.selectCreateReleaseDateInputByIndex(1, targetDate);
+  }
+
+  async selectExistingReleaseLastBuSecurityOfficerFcsrDate(targetDate: Date): Promise<void> {
+    await this.selectCreateReleaseDateInputByIndex(2, targetDate);
   }
 
   async createFirstRelease(data: {
@@ -929,6 +1181,44 @@ export class NewProductPage extends BasePage {
     }
   }
 
+  async createExistingProductRelease(data: {
+    releaseVersion: string;
+    targetDate: Date;
+    changeSummary: string;
+    lastBuSecurityOfficerFcsrDate: Date;
+    lastFullPenTestDate?: Date;
+  }): Promise<void> {
+    await this.clickExistingProductReleaseRadio();
+    await this.expectExistingReleaseFieldsVisible();
+    await this.fillReleaseVersion(data.releaseVersion);
+    await this.selectReleaseTargetDate(data.targetDate);
+    await this.fillReleaseChangeSummary(data.changeSummary);
+    if (data.lastFullPenTestDate) {
+      await this.selectExistingReleaseLastPenTestDate(data.lastFullPenTestDate);
+    }
+    await this.selectExistingReleaseLastBuSecurityOfficerFcsrDate(data.lastBuSecurityOfficerFcsrDate);
+
+    const navigationPromise = this.page.waitForURL(/ReleaseDetail/, { timeout: 120_000 }).catch(() => null);
+
+    await this.l.createReleaseDialog.click({ position: { x: 10, y: 10 } }).catch(() => undefined);
+    await this.page.waitForTimeout(500);
+    await this.l.createAndScopeButton.click();
+
+    await Promise.race([
+      this.l.createReleaseDialog.waitFor({ state: 'hidden', timeout: 120_000 }).catch(() => undefined),
+      navigationPromise,
+    ]);
+    await this.waitForOSLoad();
+
+    const dialogStillOpen = await this.l.createReleaseDialog.isVisible().catch(() => false);
+    if (dialogStillOpen) {
+      throw new Error(
+        'Existing Product Release creation did not close the dialog — ' +
+        'the onboarding form likely still has validation errors.',
+      );
+    }
+  }
+
   async expectReleaseListed(releaseVersion: string, status: string): Promise<void> {
     // Wait for the empty-state message to disappear — confirms the release IS listed.
     // (More reliable than waiting for a specific grid/table role which OutSystems may
@@ -942,6 +1232,20 @@ export class NewProductPage extends BasePage {
     const releaseRow = this.page.getByRole('row').filter({ hasText: releaseVersion });
     const statusCell = releaseRow.getByRole('gridcell', { name: status });
     await expect(statusCell).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectDuplicateReleaseVersionValidationVisible(): Promise<void> {
+    const duplicateMessageVisible = await this.l.duplicateReleaseVersionError
+      .isVisible({ timeout: 5_000 })
+      .catch(() => false);
+
+    if (duplicateMessageVisible) {
+      await expect(this.l.duplicateReleaseVersionError).toBeVisible({ timeout: 10_000 });
+      return;
+    }
+
+    await expect(this.l.releaseValidationAlert).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseValidationAlert).toContainText(/review|already|exist|duplicate/i);
   }
 
   // ==================== Form Actions ====================
@@ -1022,6 +1326,27 @@ export class NewProductPage extends BasePage {
     await this.waitForOSLoad();
   }
 
+  async expectSaveConfirmDialogVisible(): Promise<void> {
+    const dialog = this.page.getByRole('dialog');
+    await expect(dialog.getByRole('button', { name: 'Save' })).toBeVisible({ timeout: 15_000 });
+  }
+
+  async confirmSaveConfirmDialog(): Promise<void> {
+    const dialog = this.page.getByRole('dialog');
+    const saveButton = dialog.getByRole('button', { name: 'Save' });
+    await expect(saveButton).toBeVisible({ timeout: 10_000 });
+    await saveButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async cancelSaveConfirmDialog(): Promise<void> {
+    const dialog = this.page.getByRole('dialog');
+    const cancelButton = dialog.getByRole('button', { name: 'Cancel' });
+    await expect(cancelButton).toBeVisible({ timeout: 10_000 });
+    await cancelButton.click();
+    await this.waitForOSLoad();
+  }
+
   async clickCancel(): Promise<void> {
     await this.l.cancelButton.click();
   }
@@ -1037,6 +1362,15 @@ export class NewProductPage extends BasePage {
     await leaveButton.click();
   }
 
+  async clickCancelAndReturnToViewMode(): Promise<void> {
+    await this.l.cancelButton.click();
+    const leaveButton = this.page.getByRole('button', { name: 'Leave' });
+    if (await leaveButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await leaveButton.click();
+    }
+    await this.expectProductDetailLoaded();
+  }
+
   async clickResetForm(): Promise<void> {
     await this.l.resetFormButton.click();
   }
@@ -1048,10 +1382,8 @@ export class NewProductPage extends BasePage {
   async clickEditProductAndWaitForForm(): Promise<void> {
     await this.clickEditProduct();
     await this.expectEditModeVisible();
-    // Let all in-flight partial refreshes complete (org-level cascade AJAX calls)
-    // before tests start interacting — prevents CKEditor events from racing with
-    // a pending org-level load and clearing L1 on slower QA environments.
-    await this.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    // OutSystems keeps background network activity alive, so networkidle can
+    // hang here even after the edit form is ready.
     await this.waitForOSLoad();
   }
 
@@ -1171,6 +1503,176 @@ export class NewProductPage extends BasePage {
 
   async expectHistoryGridHasRows(): Promise<void> {
     await expect(this.l.historyGrid.locator('tbody tr').first()).toBeVisible({ timeout: 30_000 });
+  }
+
+  async getHistoryRowCount(): Promise<number> {
+    return this.l.historyGrid.locator('tbody tr').count();
+  }
+
+  async getHistoryDateTexts(limit = 5): Promise<string[]> {
+    const dateCells = this.l.historyGrid.locator('tbody tr td:first-child');
+    const count = Math.min(await dateCells.count(), limit);
+    const values: string[] = [];
+
+    for (let index = 0; index < count; index++) {
+      const value = (await dateCells.nth(index).textContent() ?? '').trim();
+      if (value) values.push(value);
+    }
+
+    return values;
+  }
+
+  async getHistoryRowTexts(limit = 5): Promise<string[]> {
+    const rows = this.l.historyGrid.locator('tbody tr');
+    const count = Math.min(await rows.count(), limit);
+    const values: string[] = [];
+
+    for (let index = 0; index < count; index++) {
+      const value = ((await rows.nth(index).textContent()) ?? '').replace(/\s+/g, ' ').trim();
+      if (value) values.push(value);
+    }
+
+    return values;
+  }
+
+  async getProductIdText(): Promise<string> {
+    const value = await this.l.productId.textContent();
+    return value?.replace(/\s+/g, ' ').trim() ?? '';
+  }
+
+  private formatHistoryDateInputValue(targetDate: Date): string {
+    const day = targetDate.getDate();
+    const month = NewProductPage.monthNames[targetDate.getMonth()].slice(0, 3);
+    const year = targetDate.getFullYear();
+    return `${day} ${month} ${year}`;
+  }
+
+  private async setHistoryDateInput(input: Locator, targetDate: Date): Promise<void> {
+    const value = this.formatHistoryDateInputValue(targetDate);
+    const normalizedTarget = value.toLowerCase().replace(/\s+/g, ' ').trim();
+
+    const readValue = async (): Promise<string> => (
+      await input.inputValue().catch(() => '')
+    ).toLowerCase().replace(/\s+/g, ' ').trim();
+
+    await input.waitFor({ state: 'visible', timeout: 15_000 });
+    await input.scrollIntoViewIfNeeded().catch(() => undefined);
+    await input.focus().catch(() => undefined);
+    await input.click({ force: true }).catch(() => undefined);
+    await input.press(`${process.platform === 'darwin' ? 'Meta' : 'Control'}+A`).catch(() => undefined);
+    await input.fill(value).catch(() => undefined);
+    if ((await readValue()) !== normalizedTarget) {
+      await input.pressSequentially(value, { delay: 30 }).catch(() => undefined);
+    }
+    await input.press('Enter').catch(() => undefined);
+    await input.press('Tab').catch(() => undefined);
+
+    let currentValue = await readValue();
+    if (currentValue !== normalizedTarget) {
+      await input.evaluate((element, newValue) => {
+        const field = element as HTMLInputElement;
+        const prototype = Object.getPrototypeOf(field);
+        const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+        descriptor?.set?.call(field, newValue);
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+        field.blur();
+      }, value);
+      currentValue = await readValue();
+    }
+
+    if (currentValue !== normalizedTarget) {
+      throw new Error(`Failed to set Product History date input to ${value}.`);
+    }
+  }
+
+  async selectHistoryDateRange(fromDate: Date, toDate: Date): Promise<void> {
+    await this.setHistoryDateInput(this.l.historyDateFromInput, fromDate);
+
+    const toInputVisible = await this.l.historyDateToInput.isVisible().catch(() => false);
+    if (toInputVisible) {
+      await this.setHistoryDateInput(this.l.historyDateToInput, toDate);
+    }
+  }
+
+  async fillHistorySearchInput(text: string): Promise<void> {
+    await this.l.historySearchInput.fill(text);
+  }
+
+  async clickHistorySearchButton(): Promise<void> {
+    await this.l.historySearchButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async getHistorySearchInputValue(): Promise<string> {
+    return this.l.historySearchInput.inputValue();
+  }
+
+  async selectHistoryActivityFilter(activityLabel: string): Promise<void> {
+    await this.l.historyActivityFilter.selectOption({ label: activityLabel });
+    await this.waitForOSLoad();
+  }
+
+  async getHistoryActivityFilterOptionLabels(): Promise<string[]> {
+    let labels: string[] = [];
+    try {
+      await expect.poll(
+        async () => {
+          labels = await this.l.historyActivityFilter.evaluate((element) => {
+            const select = element as HTMLSelectElement;
+            return Array.from(select.options)
+              .map((option) => option.textContent?.trim() ?? '')
+              .filter(Boolean);
+          });
+          return labels.length;
+        },
+        { timeout: 8_000, intervals: [500, 500, 1_000, 2_000] },
+      ).toBeGreaterThan(1);
+    } catch {
+      // Return whatever was available; caller decides whether that's sufficient.
+    }
+
+    return labels;
+  }
+
+  async getSelectedHistoryActivityFilterLabel(): Promise<string> {
+    return this.getSelectedOptionLabel(this.l.historyActivityFilter);
+  }
+
+  async clickHistoryResetFilters(): Promise<void> {
+    await this.l.historyResetButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async getHistoryTotalRecordCount(): Promise<number> {
+    await this.l.historyPaginationStatus.waitFor({ state: 'visible', timeout: 15_000 });
+    const statusText = await this.l.historyPaginationStatus.textContent();
+    const match = statusText?.match(/(\d+)\s*record(?:s)?/i);
+    return match ? Number(match[1]) : 0;
+  }
+
+  async changeHistoryPerPage(value: '10' | '20' | '30' | '50' | '100'): Promise<void> {
+    await this.l.historyPerPageSelect.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.historyPerPageSelect.selectOption(value);
+    await this.waitForOSLoad();
+    await expect
+      .poll(() => this.getHistoryRowCount(), { timeout: 30_000, intervals: [500, 1_000, 2_000] })
+      .toBeGreaterThan(0);
+  }
+
+  async getCurrentHistoryPageNumber(): Promise<number> {
+    const currentPageButton = this.l.historyPaginationNav.getByRole('button', { name: /current page/i });
+    const text = await currentPageButton.textContent();
+    return Number(text?.trim() || '0');
+  }
+
+  async goToHistoryPage(pageNumber: number): Promise<void> {
+    await this.l.historyPaginationNav.getByRole('button', { name: `go to page ${pageNumber}` }).click();
+    await this.waitForOSLoad();
+  }
+
+  async expectHistoryNoDataMessageVisible(): Promise<void> {
+    await expect(this.l.historyNoDataMessage).toBeVisible({ timeout: 15_000 });
   }
 
   async expectHistoryGridColumnHeaders(): Promise<void> {

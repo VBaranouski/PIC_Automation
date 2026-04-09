@@ -289,8 +289,8 @@ test.describe('Product Details - Releases Tab @regression', () => {
     await allure.tag('regression');
     await allure.tag('PIC-110');
     await allure.description(
-      'PRODUCT-RELEASES-007: The Releases tab grid must show column headers including ' +
-      'Release Number (or Version), Status, Target Date, and Created By.',
+      'PRODUCT-RELEASES-007: The Releases tab grid must show the current release-list columns, ' +
+      'including Release Status, Target Release Date, Created By, Release Creation, Validation Date, and Actions.',
     );
 
     await test.step('Navigate to a product with releases', async () => {
@@ -310,11 +310,12 @@ test.describe('Product Details - Releases Tab @regression', () => {
     await test.step('Verify expected column headers are present', async () => {
       const headers = await newProductPage.getReleasesGridColumnHeaders();
       const headersJoined = headers.join(' ');
-      // Accept either "Release Number" or "Release Version" — label may differ per OS version
-      expect(headersJoined).toMatch(/Release Number|Release Version/i);
-      expect(headersJoined).toMatch(/Status/i);
-      expect(headersJoined).toMatch(/Target.*Date|Date/i);
+      expect(headersJoined).toMatch(/Release Status/i);
+      expect(headersJoined).toMatch(/Target Release Date/i);
       expect(headersJoined).toMatch(/Created By|Created/i);
+      expect(headersJoined).toMatch(/Release Creation/i);
+      expect(headersJoined).toMatch(/Validation Date/i);
+      expect(headersJoined).toMatch(/Actions/i);
     });
   });
 

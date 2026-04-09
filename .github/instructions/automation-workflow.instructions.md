@@ -9,7 +9,7 @@ in this repository. Follow it in full for every scenario. Steps may be paralleli
 ## The 7-Step Workflow
 
 ```
-PLAN → STEPS → CODE → MCP VALIDATE → TERMINAL RUN → UPDATE PLAN → PROPOSE NEXT
+PLAN → STEPS → CODE → CLI VALIDATE → TERMINAL RUN → UPDATE PLAN → PROPOSE NEXT
 ```
 
 ---
@@ -75,39 +75,39 @@ Rules:
 - Add `test.setTimeout()` appropriate for the scenario (see `outsystems-picasso.instructions.md`).
 - Add all Allure metadata: `suite`, `severity`, `tag`, `description`.
 - Use `test.step()` for each meaningful action group.
-- **Do NOT run the test yet** — locators are drafts until MCP validates them in Step 4.
+- **Do NOT run the test yet** — locators are drafts until Playwright CLI validation confirms them in Step 4.
 - Mark the TC ID in a comment above each `test()` block: `// ATC-XX.YY.ZZ`
 
 **Draft locators** — use the best semantic guess; they will be verified in Step 4:
 ```typescript
-// DRAFT — verify in MCP Step 4
+// DRAFT — verify in Playwright CLI Step 4
 readonly certDecisionTab = this.page.getByRole('tab', { name: 'Certification Decision' });
 ```
 
 ---
 
-### STEP 4 — Execute in Browser via Playwright MCP (Chrome)
+### STEP 4 — Execute in Browser via Playwright CLI (headed Chromium)
 
 **This is mandatory for every new test before terminal execution.**
 
 For each test scenario:
 
-1. Open the target page in Playwright MCP Chrome browser.
-2. Take a **DOM snapshot** (`browser_snapshot`) of the relevant section.
+1. Open the target page in a headed Playwright CLI browser (`npm run inspect`, `npm run inspect:doc`, or `npm run codegen`).
+2. Take a DOM or accessibility snapshot of the relevant section using the Playwright browser tools or codegen inspector.
 3. Verify **every draft locator** from Step 3 against the actual DOM:
    - Confirm exact text, role, and uniqueness.
    - If the locator resolves to multiple elements, add scope (`.first()`, parent container).
    - If the element is an OSUI custom widget, switch to the correct interaction pattern (see `outsystems-picasso.instructions.md`).
-4. Perform the **full user journey** in MCP:
+4. Perform the **full user journey** in the headed Playwright CLI browser:
    - Navigate to the page, click through the UI, observe actual behaviour.
    - Note any unexpected states, missing elements, or app errors.
 5. Update all draft locators in `src/locators/` with the verified values.
 6. Update page object methods if the actual interaction pattern differs from the draft.
 
-> **Re-run MCP at any time** if a subsequent terminal run reveals an unexpected failure —
+> **Re-run the Playwright CLI inspection flow at any time** if a subsequent terminal run reveals an unexpected failure —
 > go back to the DOM and re-verify before changing code.
 
-**MCP findings to record:**
+**CLI validation findings to record:**
 - Which locators were confirmed, corrected, or required a fallback
 - Any product behaviour that differs from the spec (potential defects)
 - Data state required for the test to run (URL, DOC status, user role)
@@ -131,9 +131,9 @@ npx playwright test tests/<feature>/<spec>.spec.ts --project=pw-autotest --grep 
 
 | Failure type | Action |
 |-------------|--------|
-| Locator not found / strict mode violation | Re-run MCP snapshot → fix locator → rerun |
+| Locator not found / strict mode violation | Re-run Playwright CLI inspection → fix locator → rerun |
 | Element not visible / timeout | Check loading pattern → add/fix readiness signal → rerun |
-| Wrong assertion value | Re-check expected vs actual in MCP → update assertion or classify defect |
+| Wrong assertion value | Re-check expected vs actual in Playwright CLI → update assertion or classify defect |
 | Product behaviour contradicts spec | **Do NOT weaken assertion** — mark as `likely defect`, use `test.fail()` |
 | Data state missing | Update `.doc-state.json` or find eligible data in QA → document in plan |
 | TypeScript compile error | Run `npx tsc --noEmit` → fix type errors → rerun |
@@ -206,7 +206,7 @@ When the batch includes **3 or more independent scenarios**:
 | **One agent per spec file** | Agents never write to the same spec file simultaneously |
 | **Shared reads** | All agents read `automation-testing-plan.md`, `picasso-roles-and-access.md`, and instruction files |
 | **No shared write on plan** | Each agent records its own TC results; a coordinator agent merges at the end |
-| **Independent MCP sessions** | Each agent runs its own MCP browser session for its assigned scenarios |
+| **Independent CLI sessions** | Each agent runs its own headed Playwright CLI browser session for its assigned scenarios |
 | **Sequential terminal runs** | `npx playwright test` runs are sequential per agent; do not run two suites in parallel on the same machine |
 | **Merge order** | Locators first → page objects → tests → plan updates → coverage matrix |
 
@@ -234,7 +234,7 @@ When the batch includes **3 or more independent scenarios**:
 - ❌ Never use `selectOption()` on OSUI/vscomp custom dropdowns
 - ❌ Never weaken an assertion to match broken product behaviour — use `test.fail()` and record the defect
 - ❌ Never hardcode row counts, IDs, or environment-specific URLs
-- ❌ Never skip MCP validation for a new or significantly changed test
+- ❌ Never skip Playwright CLI validation for a new or significantly changed test
 - ✅ Always use `pressSequentially({ delay: 150 })` for search/autocomplete fields
 - ✅ Always scope grid locators to the active `tabpanel`
 - ✅ Always add Allure metadata in every test

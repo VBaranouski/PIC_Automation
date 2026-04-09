@@ -491,4 +491,43 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.expectRevokeDocButtonVisible();
       });
     });
+
+  // ── TC-LIFECYCLE-014 ──────────────────────────────────────────────────────
+  test('should keep VESTA ID read-only on a Completed DOC',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC / Lifecycle');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TC-LIFECYCLE-014: After a DOC is Completed, the VESTA ID must remain visible in read-only mode ' +
+        'and the Digital Offer Details tab must not expose any editable VESTA input control.',
+      );
+
+      await test.step('Navigate to Completed DOC (DOC 273)', async () => {
+        await page.goto(COMPLETED_DOC_URL);
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Verify the header still shows a VESTA ID value', async () => {
+        await docDetailsPage.expectVestaIdHeaderVisible();
+      });
+
+      await test.step('Open the Digital Offer Details tab', async () => {
+        await docDetailsPage.clickDigitalOfferDetailsTab();
+        await docDetailsPage.expectDigitalOfferDetailsTabPanelVisible();
+      });
+
+      await test.step('Verify Completed DOC exposes no editable VESTA field', async () => {
+        const editDetailsBtn = page.getByRole('button', { name: 'Edit Details' });
+        await expect(editDetailsBtn).toBeHidden({ timeout: 10_000 });
+
+        const detailsPanel = page.getByRole('tabpanel').filter({ has: page.getByText('DOC Reason') }).first();
+        const editableVestaInput = detailsPanel
+          .getByRole('textbox', { name: /VESTA/i })
+          .or(detailsPanel.getByRole('combobox', { name: /VESTA/i }))
+          .first();
+
+        await expect(editableVestaInput).toBeHidden({ timeout: 5_000 });
+      });
+    });
 });

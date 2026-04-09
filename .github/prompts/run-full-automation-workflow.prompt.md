@@ -41,7 +41,7 @@ Work through each step and check it off:
 - [ ] **Step 1** — Scenario identified from `automation-testing-plan.md`; TC ID, WF, spec file, POM recorded
 - [ ] **Step 2** — Test steps + expected results written; plan marker changed to `[~]`
 - [ ] **Step 3** — TypeScript code drafted (locators, page object methods, test file with Allure metadata)
-- [ ] **Step 4** — Playwright MCP Chrome session opened; all locators verified against live DOM; interaction patterns confirmed; page object methods updated
+- [ ] **Step 4** — Headed Playwright CLI browser or codegen session opened; all locators verified against live DOM; interaction patterns confirmed; page object methods updated
 - [ ] **Step 5** — `npx playwright test <spec> --project=pw-autotest` passes; `npx tsc --noEmit` clean; defects recorded with `test.fail()`
 - [ ] **Step 6** — `automation-testing-plan.md`, `current-automation-coverage-matrix.md`, and `.html` version updated with new TC status
 - [ ] **Step 7** — Next scope proposal output (table of recommended next scenarios + parallel agent plan if batch ≥ 3)
@@ -55,11 +55,11 @@ When automating 3+ scenarios in one session:
 ```
 Agent A → tests/<feature>/<spec-a>.spec.ts
   Scenarios: ATC-XX.Y.1, ATC-XX.Y.2
-  Steps: 1 → 2 → 3 → 4 (MCP) → 5 (terminal) → report results
+  Steps: 1 → 2 → 3 → 4 (CLI) → 5 (terminal) → report results
 
 Agent B → tests/<feature>/<spec-b>.spec.ts
   Scenarios: ATC-XX.Y.3, ATC-XX.Y.4
-  Steps: 1 → 2 → 3 → 4 (MCP) → 5 (terminal) → report results
+  Steps: 1 → 2 → 3 → 4 (CLI) → 5 (terminal) → report results
 
 Coordinator → merge TC status into automation-testing-plan.md → Step 6 → Step 7
 ```
@@ -103,5 +103,5 @@ At the end of the session, output:
 ## Re-validate Rule
 
 At **any point** during Steps 4–5, if a locator does not behave as expected in the terminal run,
-**immediately re-open Playwright MCP Chrome** and re-snapshot the relevant page section before
+**immediately re-open the headed Playwright CLI browser** and re-snapshot the relevant page section before
 changing any code. Never change a locator based on a guess — always confirm in the live DOM first.

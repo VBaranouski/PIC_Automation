@@ -10,7 +10,7 @@ This repository now supports a split GitHub Copilot workflow for QA automation i
    - free-text user story
 2. Normalize it into one canonical requirements bundle.
 3. Generate automation-ready test cases.
-4. Validate the target flow in the browser with Playwright MCP.
+4. Validate the target flow in the browser with a headed Playwright CLI session.
 5. Generate or update Playwright TypeScript code in `projects/pw-autotest`.
 6. Save JSON + HTML review artifacts for each stage.
 
@@ -50,7 +50,7 @@ Recommended reading order for end-to-end generation:
 5. relevant source intake instruction
 6. `test-cases.instructions.md`
 7. `pw-autotest.instructions.md`
-8. `browser-mcp.instructions.md`
+8. `browser-cli.instructions.md`
 9. `automation-scripts.instructions.md`
 10. `validation.instructions.md`
 
@@ -76,4 +76,4 @@ Generated tests are intended to be runnable from `projects/pw-autotest` with:
 
 ## Note on tool differences
 
-Claude assets in `.claude/` assume subagents such as `atlas`. GitHub Copilot instructions in `.github/` replace that with a prompt-driven pipeline and direct MCP usage where the environment supports it.
+Claude assets in `.claude/` assume subagents such as `atlas`. GitHub Copilot instructions in `.github/` replace that with a prompt-driven pipeline and direct Playwright CLI inspection where the environment supports it.

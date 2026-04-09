@@ -18,8 +18,8 @@
 | Login | `PICEMDEPQL` |
 | Password | `outsystems` |
 | Role | `process_quality_leader` (суперюзер, включает все роли) |
-| Browser | Chromium (Playwright MCP, headed, vision-capable) |
-| MCP Config | `config/playwright-mcp.config.json` |
+| Browser | Chromium (Playwright CLI, headed) |
+| Inspection Flow | `npm run inspect` / `npm run codegen` |
 
 ---
 
@@ -407,7 +407,7 @@
 ### Step M: v1.9.0 QA Feature Verification
 - **Status:** ✅ COMPLETED
 - **Date:** 2026-03-30
-- **Action:** Verify v1.9.0 features on QA environment via Playwright MCP browser automation, then correct automation-testing-plan.md for any discrepancies
+- **Action:** Verify v1.9.0 features on QA environment via headed Playwright CLI browser automation, then correct automation-testing-plan.md for any discrepancies
 - **Test Data Used:**
   - Product PIC-1133: `AutoTest Exploration Product 2026-03-28` (ProductId=1133) — for M1-M4
   - Release 3555: `v1.0-explore` (Status: Scoping) — tabs disabled, unsuitable for M5+
@@ -498,7 +498,7 @@
 |-----------|------|--------|-------|
 | 2026-03-28 | Plan created | ✅ | Initial plan with all steps 0, A–L |
 | 2025-06-25 | Step 0 | ✅ | User Guide converted via pandoc → input/user-guide.md (4099 lines) |
-| 2025-06-25 | Step A | ✅ | Login page + Landing header fully captured via Playwright MCP |
+| 2025-06-25 | Step A | ✅ | Login page + Landing header fully captured via Playwright CLI |
 | 2025-06-25 | Step B | ✅ | My Tasks tab: 51 records, 12 columns, all filters, task→ReleaseDetail links |
 | 2025-06-25 | Step C | ✅ | My Products tab: 1123 records, 12 columns, all filters, product→ProductDetail links |
 | 2025-06-25 | Step D | ✅ | Full CRUD completed: Created PIC-1133 with all fields, Digital Offer, DPP, Brand Label. All 4 sub-tabs explored. |
@@ -512,7 +512,7 @@
 | 2025-06-28 | Step J | ✅ | DOC Detail explored via browser: DOC-789 (auto-created), 5-stage workflow, Digital Offer Details tab, Cancel/Initiate/Edit buttons. Separate module GRC_PICASso_DOC. |
 | 2025-06-28 | Step K | ✅ | Roles Delegation fully explored: My Roles (120+ rows, no pagination), Org Level Users (532 records), Delegate dialog (4 fields), Delegation History modal (1134 records, 4 activity types). |
 | 2025-06-28 | Artifacts | ✅ | Updated exploration-plan.md, application-map.json, application-map.html with Steps G/H/J/K findings |
-| 2026-03-30 | Step M | ✅ | v1.9.0 QA feature verification: M1-M10 all verified via Playwright MCP. Corrections applied to automation-testing-plan.md (WF 3.9, 6.4, 8.2-8.4, 13.2, 13.6, 16.2, 17.3). 882 total test cases (was 887). |
+| 2026-03-30 | Step M | ✅ | v1.9.0 QA feature verification: M1-M10 all verified via Playwright CLI. Corrections applied to automation-testing-plan.md (WF 3.9, 6.4, 8.2-8.4, 13.2, 13.6, 16.2, 17.3). 882 total test cases (was 887). |
 | 2026-03-31 | Step N | ✅ | Confluence Spec Integration: Fetched 1.10 Report Generation, 1.11 Requirements Versioning, 4.1-4.8 Integration specs (10 pages total). Expanded WF 4.12 (8→31 cases), WF 6.2 (10→15), WF 6.3 (9→20), WF 8.6 (3→40). Added WF 18-22 (93 new cases). Updated app map to v1.10.0 (47 nodes, 72 links). Total: 975 test cases. |
 | 2026-03-31 | Step O | ✅ | Exploratory Navigation Verification: Confirmed 5 landing tabs (Reports & Dashboards is 5th tab with Tableau link, 4-level Org filters, 1121-record grid). Report Configurator on Release Detail page (not product Releases tab) — dialog with 3 checkboxes: Scope Review&Approval, FCSR [disabled until FCSR completed], Actions Management; DPP section absent when DPP Risk=Negligible. Product Configuration Tracking Tools: Jama (Project Id + Status Mapping) + Jira (Source Link + Project Key + Status Mapping); no Azure DevOps; Jama only for Product Reqs (not Process). All fields disabled with active release. BackOffice Product Requirements Library confirmed with immutable CODE column. Applied corrections to WF 2.1 (5 tabs), WF 8.6a (location), WF 6.3a (tracking tools details). Updated total: 979 test cases. |
 
@@ -571,7 +571,7 @@ Tests that already exist (from `projects/pw-autotest/tests/`):
 При добавлении нового функционала в PICASso:
 
 1. Добавить новый Step (N+1) в секцию "Exploration Steps" по шаблону существующих шагов
-2. Пройти новую фичу через Playwright MCP, заполнив все чекбоксы в Step
+2. Пройти новую фичу через headed Playwright CLI, заполнив все чекбоксы в Step
 3. Добавить новые nodes/links в `application-map.json`
 4. Перегенерировать `application-map.html` (HTML читает JSON inline — обновить data в HTML)
 5. Обновить `current-automation-coverage-matrix.md`
@@ -612,7 +612,7 @@ Tests that already exist (from `projects/pw-autotest/tests/`):
 
 ```
 1. Add Step N+1 to this plan file
-2. Open Playwright MCP browser to the feature
+2. Open headed Playwright CLI browser to the feature
 3. Take accessibility snapshot at each state
 4. Record all elements and transitions
 5. Update application-map.json

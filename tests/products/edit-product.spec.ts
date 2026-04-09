@@ -8,7 +8,6 @@ function escapeRegExp(value: string): string {
 }
 
 async function createEditableProduct(
-  landingPage: LandingPage,
   newProductPage: NewProductPage,
 ): Promise<{
   productName: string;
@@ -24,7 +23,7 @@ async function createEditableProduct(
   const productName = `Power Switch - Edit Flow ${Date.now()}`;
   const originalCommercialRef = `AUTO-BASE-${Date.now()}`;
 
-  await landingPage.clickNewProduct();
+  await newProductPage.goto();
   await newProductPage.expectNewProductFormLoaded();
 
   await newProductPage.fillProductInformation({
@@ -47,10 +46,12 @@ async function createEditableProduct(
     fullName: 'Uladzislau Baranouski',
   });
 
-  await newProductPage.selectProductDropdowns({
+  await newProductPage.fillProductInformation({
+    name: productName,
     state: productState,
     definition: productDefinition,
     type: productType,
+    description: 'Automation-created product for PIC-108 and PIC-109 edit coverage.',
   });
 
   await newProductPage.clickSave();
@@ -107,7 +108,7 @@ test.describe.serial('Products - Edit Existing Product (PIC-108, PIC-109) @regre
     );
 
     await test.step('Create a valid product that can be edited', async () => {
-      const editableProduct = await createEditableProduct(landingPage, newProductPage);
+      const editableProduct = await createEditableProduct(newProductPage);
       originalProductName = editableProduct.originalProductName;
       originalCommercialRef = editableProduct.originalCommercialRef;
       productState = editableProduct.productState;

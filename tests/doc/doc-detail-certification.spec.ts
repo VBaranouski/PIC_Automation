@@ -736,4 +736,88 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
                         await docDetailsPage.expectMonitorActionClosureStageHidden();
                 });
         });
+
+			// ── DOC-CERT-021 ──────────────────────────────────────────────────────
+			test('should open Propose Decision popup and show base decision fields', async ({
+				page,
+				landingPage,
+				docDetailsPage,
+			}) => {
+				await allure.suite('DOC / DOC Detail / Certification Decision');
+				await allure.severity('normal');
+				await allure.tag('regression');
+				await allure.description(
+					'DOC-CERT-021: Clicking "Propose Decision" on a Decision Proposal DOC must open the ' +
+					'popup with Proposed Decision and Comment fields. The test also checks for a decision-specific ' +
+					'date field when a supported option is available, then dismisses the popup without saving.',
+				);
+
+				await test.step('Open a DOC in Decision Proposal status', async () => {
+					await openDocWithCertDecisionTab(page, landingPage, docDetailsPage, ['Decision Proposal']);
+					await docDetailsPage.clickCertificationDecisionTab();
+				});
+
+				await test.step('Skip gracefully if Propose Decision is not available on the selected DOC', async () => {
+					const hasProposeButton = await docDetailsPage.hasProposeDecisionButton();
+					if (!hasProposeButton) {
+						test.skip(true, 'Selected Decision Proposal DOC already has a saved decision; popup-open path unavailable.');
+						return;
+					}
+				});
+
+				let selectedDynamicOption: string | null = null;
+
+				await test.step('Open popup and verify base fields', async () => {
+					const popupOpened = await docDetailsPage.openProposeDecisionPopup();
+					if (!popupOpened) {
+						test.skip(true, 'Propose Decision popup did not open in the current environment.');
+						return;
+					}
+
+					await docDetailsPage.expectProposeDecisionPopupBaseFieldsVisible();
+				});
+
+				await test.step('Select an available decision option and verify a conditional date field when supported', async () => {
+					const options = await docDetailsPage.getProposedDecisionOptions();
+					const dynamicOption =
+						options.find((option) => /Waiver/i.test(option))
+						?? options.find((option) => /Certified with Exception/i.test(option))
+						?? options.find((option) => /Conditionally Certified/i.test(option))
+						?? options.find((option) => /^Certified$/i.test(option));
+
+					if (!dynamicOption) {
+						test.info().annotations.push({
+							type: 'note',
+							description: `No dynamic decision option available in popup. Options seen: ${options.join(', ') || 'none'}`,
+						});
+						return;
+					}
+
+					selectedDynamicOption = dynamicOption;
+					await docDetailsPage.selectProposedDecisionOption(dynamicOption);
+
+					if (/Waiver/i.test(dynamicOption)) {
+						expect(
+							await docDetailsPage.hasActionsClosureDueDateField(),
+							'Due Date for Actions Closure field must appear when Waiver is selected',
+						).toBe(true);
+						return;
+					}
+
+					expect(
+						await docDetailsPage.hasValidityEndDateField(),
+						`Validity End Date field must appear when ${dynamicOption} is selected`,
+					).toBe(true);
+				});
+
+				await test.step('Dismiss popup without saving', async () => {
+					await docDetailsPage.closeProposeDecisionPopup();
+					if (!selectedDynamicOption) {
+						test.info().annotations.push({
+							type: 'note',
+							description: 'Popup base fields verified; no supported dynamic option was available for date-field assertion.',
+						});
+					}
+				});
+			});
 });

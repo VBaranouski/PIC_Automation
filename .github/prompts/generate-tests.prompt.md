@@ -17,7 +17,7 @@ Perform the full pipeline:
 1. Read the split instruction files in `.github/instructions/`.
 2. Normalize the source input into `docs/ai/` as JSON + HTML.
 3. Generate automation-ready test cases into `docs/ai/` as JSON + HTML.
-4. Validate the flow in the browser with Playwright MCP.
+4. Validate the flow in the browser with a headed Playwright CLI session.
 5. Generate or update Playwright TypeScript code in ``.
 6. Write automation manifest JSON + HTML to `docs/ai/`.
 
@@ -25,6 +25,6 @@ Perform the full pipeline:
 
 - Treat Jira, Confluence, and free-text stories equally after normalization.
 - Keep JSON canonical and HTML review-only.
-- Never rely on guessed locators when browser MCP is available.
+- Never rely on guessed locators when Playwright CLI inspection is available.
 - Never use `waitForTimeout()` or `networkidle` for the OutSystems app.
 - Generate tests that are runnable manually from the terminal.
