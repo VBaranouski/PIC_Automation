@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kinetic Observatory - System Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "inverse-surface": "#fcf9f8", "error-dim": "#d53d18", "on-error": "#450900",
+        "primary-dim": "#ff7520", "surface-variant": "#262626", "surface-bright": "#2c2c2c",
+        "on-secondary-fixed": "#3e3f40", "on-background": "#ffffff", "error-container": "#b92902",
+        "surface": "#0e0e0e", "primary-fixed": "#ff7a2c", "surface-container": "#1a1a1a",
+        "secondary": "#e3e2e2", "background": "#0e0e0e", "on-tertiary-container": "#004d57",
+        "on-surface": "#ffffff", "surface-dim": "#0e0e0e", "on-tertiary-fixed": "#003840",
+        "on-primary-container": "#401600", "secondary-fixed-dim": "#d5d4d4",
+        "on-secondary-fixed-variant": "#5b5c5c", "on-secondary-container": "#d1d0d0",
+        "tertiary-container": "#00e3fd", "error": "#ff7351", "tertiary-fixed-dim": "#00d4ec",
+        "surface-container-highest": "#262626", "outline": "#767575",
+        "surface-container-high": "#20201f", "outline-variant": "#484847",
+        "on-tertiary-fixed-variant": "#005762", "tertiary": "#81ecff",
+        "on-primary": "#531e00", "inverse-on-surface": "#565555",
+        "secondary-fixed": "#e3e2e2", "on-surface-variant": "#adaaaa",
+        "on-primary-fixed-variant": "#4f1d00", "tertiary-dim": "#00d4ec",
+        "inverse-primary": "#a04200", "tertiary-fixed": "#00e3fd",
+        "surface-container-low": "#131313", "on-secondary": "#515252",
+        "on-tertiary": "#005762", "primary-container": "#ff7a2c",
+        "surface-container-lowest": "#000000", "primary-fixed-dim": "#f46800",
+        "on-error-container": "#ffd2c8", "primary": "#ff9157",
+        "surface-tint": "#ff9157", "secondary-dim": "#d5d4d4",
+        "on-primary-fixed": "#000000", "secondary-container": "#464747"
+      },
+      borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem" },
+      fontFamily: { headline: ["Manrope"], body: ["Inter"], label: ["Inter"] }
+    },
+  },
+};
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .ghost-border { border: 1px solid rgba(72, 72, 71, 0.15); }
+  /* Accordion toggle states */
+  .wf-body, .sub-body, .sc-body { display: none; }
+  .wf-card.open .wf-body { display: block; }
+  .sub-card.open .sub-body { display: block; }
+  .sc-card.open .sc-body { display: block; }
+  .expand-icon { transition: transform 0.2s ease; }
+  .wf-card.open > .wf-header .expand-icon { transform: rotate(180deg); }
+  .sub-card.open > .sub-header .sub-expand { transform: rotate(90deg); }
+  .sc-card.open > .sc-header .sc-expand { transform: rotate(90deg); }
+  .wf-card.open::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px; background-color: var(--wf-color, #ff9157); z-index: 1;
+  }
+  /* Runner panel */
+  .runner-panel { position: fixed; bottom: 0; left: 16rem; right: 0; z-index: 90;
+    background: #131313; border-top: 1px solid rgba(72,72,71,0.3);
+    display: flex; flex-direction: column; transition: height 0.3s ease;
+    height: 0; overflow: hidden; }
+  .runner-panel.open { height: 340px; }
+  .runner-panel.minimized { height: 40px; }
+  .runner-output { flex: 1; overflow-y: auto; padding: 12px 20px;
+    font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'Cascadia Code', Menlo, monospace;
+    font-size: 0.78rem; line-height: 1.65; background: #000000; color: #c5c8c6;
+    white-space: pre-wrap; word-break: break-all; }
+  .runner-output::-webkit-scrollbar { width: 6px; }
+  .runner-output::-webkit-scrollbar-track { background: transparent; }
+  .runner-output::-webkit-scrollbar-thumb { background: #484847; border-radius: 3px; }
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+    z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  /* Animations */
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .animate-pulse-dot { animation: pulse-dot 1s infinite; }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .toast-anim { animation: toast-in 0.25s ease-out; }
+  .app-runner-open { padding-bottom: 360px; }
+</style>
+</head>
+
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+
+<!-- ═══════════════ SIDE NAVBAR ═══════════════ -->
+<aside class="bg-[#0e0e0e] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 z-50 border-r border-white/5">
+  <div class="px-6 mb-10">
+    <h1 class="text-xl font-bold tracking-tighter text-white font-headline">Kinetic Observatory</h1>
+    <p class="text-[10px] uppercase tracking-wider text-neutral-500 mt-1 font-body">Precision Testing v2.4</p>
+  </div>
+  <nav class="flex-1 space-y-1">
+    <a href="/ui/index.html" class="flex items-center gap-3 px-4 py-3 text-[#ff9157] bg-[#1a1a1a] border-l-2 border-[#ff9157]">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="uppercase tracking-wider text-xs font-body">Dashboard</span>
+    </a>
+    <a href="/ui/reports.html" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">folder_open</span>
+      <span class="uppercase tracking-wider text-xs font-body">Test Reports</span>
+    </a>
+    <a href="#workflowsAnchor" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">account_tree</span>
+      <span class="uppercase tracking-wider text-xs font-body">Scenarios</span>
+    </a>
+    <a href="#" onclick="event.preventDefault();toggleRunnerPanel()" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">history</span>
+      <span class="uppercase tracking-wider text-xs font-body">Execution Logs</span>
+    </a>
+    <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">insights</span>
+      <span class="uppercase tracking-wider text-xs font-body">Analytics</span>
+    </a>
+  </nav>
+  <div class="mt-auto px-4 space-y-1">
+    <button onclick="openAddModal()" class="w-full bg-primary-container text-on-primary py-2 rounded-lg font-bold mb-6 flex items-center justify-center gap-2 active:scale-90 duration-200 text-sm">
+      <span class="material-symbols-outlined text-sm">add</span> New Scenario
+    </button>
+    <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">settings</span>
+      <span class="uppercase tracking-wider text-xs font-body">Settings</span>
+    </a>
+    <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">help</span>
+      <span class="uppercase tracking-wider text-xs font-body">Support</span>
+    </a>
+  </div>
+</aside>
+
+<!-- ═══════════════ TOP APP BAR ═══════════════ -->
+<header class="bg-[#0e0e0e]/60 backdrop-blur-md flex justify-between items-center px-8 h-16 ml-64 fixed top-0 z-40 border-b border-white/5" style="width:calc(100% - 16rem)">
+  <div class="flex items-center gap-8">
+    <span class="text-lg font-semibold text-white font-headline">Test Coverage Explorer</span>
+    <nav id="headerNav" class="hidden md:flex gap-6"></nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm">search</span>
+      <input type="search" id="search" class="bg-surface-container-highest border-none text-xs rounded-full pl-10 pr-4 py-1.5 w-64 focus:ring-2 focus:ring-primary/30 outline-none text-on-surface placeholder:text-neutral-500" placeholder="Search test cases..." />
+    </div>
+    <div class="flex items-center gap-1 text-neutral-400">
+      <button onclick="toggleAllWorkflows()" id="toggleAllBtn" class="hover:text-white transition-colors p-2 rounded-lg hover:bg-surface-container" title="Expand/Collapse All">
+        <span class="material-symbols-outlined text-xl">unfold_more</span>
+      </button>
+      <button onclick="syncSpecs()" class="hover:text-white transition-colors p-2 rounded-lg hover:bg-surface-container" title="Sync Spec Files">
+        <span class="material-symbols-outlined text-xl">sync</span>
+      </button>
+      <button onclick="exportJson()" class="hover:text-white transition-colors p-2 rounded-lg hover:bg-surface-container" title="Export JSON">
+        <span class="material-symbols-outlined text-xl">download</span>
+      </button>
+    </div>
+    <button onclick="openRunDialog()" class="bg-primary hover:bg-primary-dim text-on-primary px-4 py-2 rounded-md text-xs font-bold transition-all active:opacity-80">
+      Run All Tests
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════ MAIN CONTENT CANVAS ═══════════════ -->
+<main id="mainApp" class="ml-64 pt-24 px-8 pb-12">
+
+  <!-- Dashboard Header & Stats -->
+  <section class="mb-12">
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="text-4xl font-extrabold font-headline tracking-tight text-white">System Overview</h2>
+        <p class="text-on-surface-variant mt-2 max-w-2xl">Real-time automation metrics for <span class="text-tertiary">PICASso GRC</span> test infrastructure.</p>
+      </div>
+      <div class="flex gap-3">
+        <select id="filterPriority" class="ghost-border bg-surface-container-high px-4 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-auto">
+          <option value="">All Priorities</option>
+        </select>
+        <select id="filterArea" class="ghost-border bg-surface-container-high px-4 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-auto">
+          <option value="">All Areas</option>
+        </select>
+        <select id="filterGroup" class="ghost-border bg-surface-container-high px-4 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-auto">
+          <option value="">All Groups</option>
+        </select>
+      </div>
+    </div>
+    <!-- Bento Stats Grid -->
+    <div id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-surface-container-low p-6 rounded-xl text-center py-16 text-on-surface-variant text-sm">Loading stats…</div>
+    </div>
+  </section>
+
+  <!-- Active Workflows Section -->
+  <section>
+    <div class="flex items-center justify-between mb-6" id="workflowsAnchor">
+      <h3 class="uppercase tracking-wider text-xs font-semibold text-on-surface-variant font-body">Active Workflows &amp; Integrity Mapping</h3>
+      <span id="refreshedTime" class="text-[10px] text-neutral-600"></span>
+    </div>
+    <div id="workflows" class="space-y-4">
+      <div class="text-center py-16 text-on-surface-variant text-sm">Loading workflows…</div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════ ADD / EDIT MODAL ═══════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="bg-surface-container-high border border-outline-variant/10 rounded-xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto p-6">
+    <h2 id="modalTitle" class="text-lg font-bold font-headline text-on-surface mb-6">Add Scenario</h2>
+    <form id="scenarioForm" onsubmit="return saveScenario(event)">
+      <input type="hidden" id="editMode" value="add" />
+      <div class="mb-4">
+        <label for="fId" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">ID *</label>
+        <input id="fId" required class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
+      </div>
+      <div class="mb-4">
+        <label for="fTitle" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Title *</label>
+        <input id="fTitle" required class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
+      </div>
+      <div class="mb-4">
+        <label for="fDescription" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Description</label>
+        <textarea id="fDescription" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all resize-vertical min-h-[60px]"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label for="fStatus" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Status</label>
+          <select id="fStatus" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent"></select>
+        </div>
+        <div>
+          <label for="fPriority" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Priority</label>
+          <select id="fPriority" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent"></select>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label for="fArea" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Feature Area</label>
+        <select id="fArea" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent"></select>
+      </div>
+      <div class="mb-4">
+        <label for="fSpecFile" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Spec File</label>
+        <input id="fSpecFile" placeholder="tests/releases/example.spec.ts" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all font-mono text-xs" />
+      </div>
+      <div class="mb-4">
+        <label for="fWorkflow" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Workflow</label>
+        <input id="fWorkflow" placeholder="WORKFLOW 1 — Authentication" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
+      </div>
+      <div class="mb-4">
+        <label for="fGroups" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Groups (comma-separated)</label>
+        <input id="fGroups" placeholder="smoke, critical, regression" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-outline-variant/10">
+        <button type="button" onclick="closeModal()" class="text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg hover:bg-surface-container transition-colors">Cancel</button>
+        <button type="submit" id="modalSubmitBtn" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform">Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════ RUN TESTS DIALOG ═══════════════ -->
+<div class="modal-overlay" id="runModalOverlay">
+  <div class="bg-surface-container-high border border-outline-variant/10 rounded-xl w-[560px] max-w-[95vw] max-h-[90vh] overflow-y-auto p-6">
+    <h2 class="text-lg font-bold font-headline text-on-surface mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-tertiary">rocket_launch</span> Run Tests
+    </h2>
+    <div class="mb-4">
+      <label for="runSpecFiles" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Spec File(s)</label>
+      <input id="runSpecFiles" placeholder="tests/releases/create-new-release.spec.ts"
+        class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all font-mono text-xs" />
+      <p class="text-[10px] text-on-surface-variant mt-1.5">Comma-separated for multiple files. Or select from list below.</p>
+    </div>
+    <div id="specFileListContainer" class="mb-4 max-h-[180px] overflow-y-auto bg-surface-container-lowest border border-outline-variant/10 rounded-lg p-3" style="display:none"></div>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label for="runProject" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Project</label>
+        <select id="runProject" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent">
+          <option value="chromium" selected>chromium</option>
+          <option value="setup">setup</option><option value="smoke">smoke</option>
+          <option value="release-detail-header">release-detail-header</option>
+          <option value="doc-product-setup">doc-product-setup</option>
+          <option value="doc-initiation">doc-initiation</option>
+          <option value="doc-state-setup">doc-state-setup</option>
+          <option value="doc-my-docs-tab">doc-my-docs-tab</option>
+          <option value="doc-detail-header">doc-detail-header</option>
+          <option value="doc-detail-offer">doc-detail-offer</option>
+          <option value="doc-detail-roles">doc-detail-roles</option>
+          <option value="doc-detail-its">doc-detail-its</option>
+          <option value="doc-control-detail">doc-control-detail</option>
+          <option value="doc-history">doc-history</option>
+          <option value="doc-detail-actions">doc-detail-actions</option>
+          <option value="doc-detail-risk-summary">doc-detail-risk-summary</option>
+          <option value="doc-detail-certification">doc-detail-certification</option>
+          <option value="doc-lifecycle">doc-lifecycle</option>
+        </select>
+      </div>
+      <div>
+        <label for="runGrep" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Grep Filter</label>
+        <input id="runGrep" placeholder="@smoke or test title" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
+      </div>
+    </div>
+    <div class="flex items-center gap-3 mb-4 px-1">
+      <input type="checkbox" id="runHeaded" class="rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary/30" />
+      <label for="runHeaded" class="text-xs text-on-surface-variant font-medium">Run headed (show browser window)</label>
+    </div>
+    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-outline-variant/10">
+      <button type="button" onclick="closeRunDialog()" class="text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg hover:bg-surface-container transition-colors">Cancel</button>
+      <button type="button" onclick="startRunFromDialog()" class="bg-tertiary text-on-tertiary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-base">play_arrow</span> Run
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TEST RUNNER PANEL ═══════════════ -->
+<div class="runner-panel" id="runnerPanel">
+  <div class="flex items-center gap-3 px-5 py-2 bg-surface-container border-b border-outline-variant/15 cursor-pointer select-none min-h-[40px] hover:bg-surface-container-high transition-colors" onclick="toggleRunnerPanel()">
+    <span id="runnerDot" class="w-2.5 h-2.5 rounded-full bg-outline shrink-0"></span>
+    <span id="runnerTitle" class="text-xs font-bold text-on-surface uppercase tracking-widest flex-1">Test Runner</span>
+    <span id="runnerElapsed" class="text-[10px] font-mono text-on-surface-variant"></span>
+    <span id="runnerSummary" class="text-[10px] text-on-surface-variant font-medium"></span>
+    <div class="flex items-center gap-2" onclick="event.stopPropagation()">
+      <button id="cancelRunBtn" onclick="cancelRun()" style="display:none"
+        class="text-error hover:bg-error/10 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">close</span> Cancel
+      </button>
+      <button id="clearRunBtn" onclick="clearRunner()"
+        class="text-on-surface-variant hover:text-on-surface text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded hover:bg-surface-container-highest transition-colors">
+        <span class="material-symbols-outlined text-sm">delete_sweep</span>
+      </button>
+      <button onclick="toggleRunnerPanel()"
+        class="text-on-surface-variant hover:text-on-surface px-1 py-1 rounded hover:bg-surface-container-highest transition-colors">
+        <span class="material-symbols-outlined text-base">expand_more</span>
+      </button>
+    </div>
+  </div>
+  <div class="runner-output" id="runnerOutput"></div>
+</div>
+
+<!-- ═══════════════ TOASTS ═══════════════ -->
+<div class="fixed top-20 right-6 z-[200] flex flex-col gap-2" id="toasts"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     JAVASCRIPT — All tracker SPA logic
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<script>
+const API = '/api';
+let meta = { statuses: [], priorities: [], featureAreas: [], defaultGroups: [] };
+let allGroups = [];
+let allExpanded = false;
+let activeStatusFilter = '';
+let runnerPollTimer = null;
+let runnerLineIndex = 0;
+let runnerOpen = false;
+let availableSpecFiles = [];
+
+const ST = {
+  'automated':   { color: '#81ecff', bg: 'rgba(129,236,255,0.15)', icon: 'verified' },
+  'pending':     { color: '#adaaaa', bg: 'rgba(173,170,170,0.10)', icon: 'schedule' },
+  'in-progress': { color: '#ff9157', bg: 'rgba(255,145,87,0.15)',  icon: 'autorenew' },
+  'failed':      { color: '#ff7351', bg: 'rgba(255,115,81,0.15)',  icon: 'error' },
+  'skipped':     { color: '#767575', bg: 'rgba(118,117,117,0.10)', icon: 'skip_next' },
+  'on-hold':     { color: '#d5d4d4', bg: 'rgba(213,212,212,0.10)', icon: 'pause_circle' },
+};
+
+const RUN_DOT = { idle:'#767575', running:'#ff9157', passed:'#81ecff', failed:'#ff7351', cancelled:'#d5d4d4' };
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  meta = await api('/meta');
+  allGroups = await api('/groups');
+  populateFilterDropdowns();
+  updateHeaderNav();
+  await refreshDashboard();
+  await refreshWorkflows();
+  let timer;
+  document.getElementById('search').addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => refreshWorkflows(), 300);
+  });
+  for (const sel of ['filterPriority', 'filterArea', 'filterGroup']) {
+    document.getElementById(sel).addEventListener('change', () => refreshWorkflows());
+  }
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// ── Header Nav Tabs ───────────────────────────────────────────────────────────
+function updateHeaderNav() {
+  const nav = document.getElementById('headerNav');
+  const items = [
+    { label: 'Global View', filter: '' },
+    { label: 'Automated', filter: 'automated' },
+    { label: 'Issues', filter: 'failed' },
+  ];
+  nav.innerHTML = items.map(item => {
+    const isActive = item.filter === activeStatusFilter;
+    return `<a class="cursor-pointer text-sm transition-colors ${isActive ? 'text-[#ff9157] border-b-2 border-[#ff9157] pb-1 font-medium' : 'text-neutral-400 font-normal hover:text-white'}" onclick="toggleStatusFilter('${item.filter}')">${item.label}</a>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  DASHBOARD — 3-column bento stats grid
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function refreshDashboard() {
+  const stats = await api('/stats');
+  const el = document.getElementById('dashboard');
+  const total = stats.total;
+  const automated = stats.byStatus.automated || 0;
+  const pending = stats.byStatus.pending || 0;
+  const failed = stats.byStatus.failed || 0;
+  const skipped = stats.byStatus.skipped || 0;
+  const inProgress = stats.byStatus['in-progress'] || 0;
+  const onHold = stats.byStatus['on-hold'] || 0;
+  const pct = total > 0 ? Math.round((automated / total) * 100) : 0;
+
+  el.innerHTML = `
+    <!-- Total Test Cases -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('')">
+      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <span class="material-symbols-outlined text-6xl">analytics</span>
+      </div>
+      <p class="uppercase tracking-wider text-xs text-on-surface-variant mb-4 font-body">Total Test Cases</p>
+      <div class="flex items-baseline gap-2">
+        <span class="text-5xl font-extrabold font-headline text-white">${total.toLocaleString()}</span>
+        <span class="text-tertiary text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">trending_up</span> ${pct}%</span>
+      </div>
+      <div class="mt-6 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-primary to-tertiary" style="width:${pct}%"></div>
+      </div>
+    </div>
+
+    <!-- Failed Sessions -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('failed')">
+      <p class="uppercase tracking-wider text-xs text-on-surface-variant mb-4 font-body">Failed Sessions</p>
+      <div class="flex items-baseline gap-2">
+        <span class="text-5xl font-extrabold font-headline text-error">${String(failed).padStart(2,'0')}</span>
+        ${failed > 0
+          ? '<span class="text-error-dim text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">warning</span> Critical</span>'
+          : '<span class="text-tertiary text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">check_circle</span> All Clear</span>'}
+      </div>
+      <div class="mt-6 flex gap-1">
+        ${Array(Math.min(failed, 5)).fill(0).map(() => '<div class="h-1.5 w-1.5 rounded-full bg-error"></div>').join('')}
+        ${Array(Math.max(0, 5 - Math.min(failed, 5))).fill(0).map(() => '<div class="h-1.5 w-1.5 rounded-full bg-surface-variant"></div>').join('')}
+      </div>
+    </div>
+
+    <!-- Environment Status -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+      <p class="uppercase tracking-wider text-xs text-on-surface-variant mb-4 font-body">Environment Status</p>
+      <div class="flex items-center gap-3">
+        <div class="h-4 w-4 rounded-full ${failed > 0 ? 'bg-error' : 'bg-tertiary'} animate-pulse" style="box-shadow:0 0 12px ${failed > 0 ? 'rgba(255,115,81,0.4)' : 'rgba(129,236,255,0.4)'}"></div>
+        <span class="text-3xl font-extrabold font-headline text-white">${failed > 0 ? 'Alert' : 'Stable'}</span>
+      </div>
+      <p class="text-xs text-on-surface-variant mt-4">${automated} automated, ${pending} pending, ${skipped} skipped</p>
+      <div class="mt-4 flex items-center gap-2 flex-wrap">
+        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'in-progress' ? 'text-primary border-primary/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-primary hover:border-primary/30'} transition-colors" onclick="toggleStatusFilter('in-progress')">IN-PROGRESS ${inProgress}</span>
+        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'on-hold' ? 'text-secondary border-secondary/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-secondary hover:border-secondary/30'} transition-colors" onclick="toggleStatusFilter('on-hold')">ON-HOLD ${onHold}</span>
+        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'skipped' ? 'text-outline border-outline/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-outline hover:border-outline/30'} transition-colors" onclick="toggleStatusFilter('skipped')">SKIPPED ${skipped}</span>
+      </div>
+    </div>`;
+}
+
+function toggleStatusFilter(status) {
+  activeStatusFilter = (activeStatusFilter === status) ? '' : status;
+  updateHeaderNav();
+  refreshDashboard();
+  refreshWorkflows();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  WORKFLOW RENDERING
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function refreshWorkflows() {
+  const params = new URLSearchParams();
+  const search = document.getElementById('search').value.trim();
+  if (search) params.set('search', search);
+  if (activeStatusFilter) params.set('status', activeStatusFilter);
+  const priority = document.getElementById('filterPriority').value;
+  if (priority) params.set('priority', priority);
+  const area = document.getElementById('filterArea').value;
+  if (area) params.set('feature_area', area);
+  const group = document.getElementById('filterGroup').value;
+  if (group) params.set('group', group);
+  const data = await api('/workflows?' + params.toString());
+  renderWorkflows(data.workflows, data.total);
+  document.getElementById('refreshedTime').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
+}
+
+function renderWorkflows(workflows, total) {
+  const container = document.getElementById('workflows');
+  window._cachedWorkflows = workflows;
+
+  if (!workflows.length) {
+    container.innerHTML = '<div class="text-center py-16 text-on-surface-variant text-sm">No scenarios match your filters</div>';
+    return;
+  }
+
+  container.innerHTML = workflows.map((wf, wfIdx) => {
+    const color = wf.color || '#ff9157';
+    const pct = wf.stats.total > 0 ? Math.round((wf.stats.automated / wf.stats.total) * 100) : 0;
+
+    let wfStatus, wfStatusColor;
+    if (wf.stats.failed > 0) { wfStatus = 'ALERTS'; wfStatusColor = '#ff7351'; }
+    else if (wf.stats.total === wf.stats.automated && wf.stats.total > 0) { wfStatus = 'PASS'; wfStatusColor = '#81ecff'; }
+    else if (wf.stats.inProgress > 0) { wfStatus = 'IN-PROGRESS'; wfStatusColor = '#ff9157'; }
+    else if (wf.stats.automated > 0) { wfStatus = 'ACTIVE'; wfStatusColor = '#ff9157'; }
+    else { wfStatus = 'PENDING'; wfStatusColor = '#adaaaa'; }
+
+    const coverageText = wf.stats.failed > 0
+      ? `Alert: ${wf.stats.failed} Failures`
+      : `${pct}% Coverage`;
+    const coverageColor = wf.stats.failed > 0 ? '#ff7351' : color;
+
+    return `
+    <div class="wf-card relative bg-surface-container rounded-xl overflow-hidden${allExpanded ? ' open' : ''}" style="--wf-color:${color}" id="wf-${wfIdx}">
+      <div class="wf-header p-5 cursor-pointer hover:bg-white/5 transition-colors flex justify-between items-start"
+           onclick="toggleWorkflow(${wfIdx})">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined expand-icon text-on-surface-variant text-xl">expand_more</span>
+            <div>
+              <h4 class="font-bold text-white">${esc(cleanWorkflowName(wf.name))}</h4>
+              <p class="text-xs text-on-surface-variant mt-0.5">${esc(coverageText)}</p>
+            </div>
+          </div>
+          <div class="mt-4 ml-9 space-y-2">
+            <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <span>Automation Progress</span>
+              <span>${wf.stats.automated} / ${wf.stats.total} Steps</span>
+            </div>
+            <div class="w-full h-1 bg-surface-variant rounded-full overflow-hidden">
+              <div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(to right,${color},${color}cc)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 ml-4">
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter"
+                style="background:${wfStatusColor}15;color:${wfStatusColor}">${wfStatus}</span>
+          <button onclick="event.stopPropagation();runWorkflow(${wfIdx})"
+                  class="text-on-surface-variant hover:text-tertiary p-1 rounded transition-colors hover:bg-surface-container" title="Run all tests in this workflow">
+            <span class="material-symbols-outlined text-lg">play_arrow</span>
+          </button>
+        </div>
+      </div>
+      <div class="wf-body px-5 pb-5 space-y-2 ml-4">
+        ${renderSubsections(wf, wfIdx, color)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSubsections(wf, wfIdx, color) {
+  if (wf.subsections.length === 1 && !wf.subsections[0].name) {
+    return wf.subsections[0].items.map((s, sIdx) => renderScenarioItem(s, wfIdx, 0, sIdx, color)).join('');
+  }
+
+  return wf.subsections.map((sub, subIdx) => {
+    if (!sub.name) {
+      return sub.items.map((s, sIdx) => renderScenarioItem(s, wfIdx, subIdx, sIdx, color)).join('');
+    }
+    const subPct = sub.stats.total > 0 ? Math.round((sub.stats.automated / sub.stats.total) * 100) : 0;
+
+    return `
+    <div class="sub-card${allExpanded ? ' open' : ''}" id="sub-${wfIdx}-${subIdx}">
+      <div class="sub-header flex items-center gap-3 py-2.5 px-3 cursor-pointer hover:bg-surface-container-highest rounded-lg transition-colors"
+           onclick="toggleSubsection(${wfIdx},${subIdx})">
+        <span class="material-symbols-outlined sub-expand text-on-surface-variant text-sm transition-transform duration-200">chevron_right</span>
+        <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex-1">${esc(sub.name)}</span>
+        <span class="text-[10px] font-bold" style="color:${color}">${sub.stats.automated}</span>
+        <span class="text-[10px] text-on-surface-variant font-medium">/ ${sub.stats.total}</span>
+        <div class="w-16 h-1 bg-surface-container rounded-full overflow-hidden">
+          <div class="h-full rounded-full" style="width:${subPct}%;background:${color}"></div>
+        </div>
+        <button onclick="event.stopPropagation();runSubsection(${wfIdx},${subIdx})"
+                class="text-on-surface-variant hover:text-tertiary p-0.5 rounded transition-colors" title="Run subsection tests">
+          <span class="material-symbols-outlined text-base">play_arrow</span>
+        </button>
+      </div>
+      <div class="sub-body pl-4 pt-1">
+        ${sub.items.map((s, sIdx) => renderScenarioItem(s, wfIdx, subIdx, sIdx, color)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
+  const hasSteps = s.steps && s.steps.length > 0;
+  const hasExpected = s.expected_results && s.expected_results.length > 0;
+  const hasDescription = s.description && s.description.trim();
+  const hasNotes = s.execution_notes && s.execution_notes.trim();
+  const st = ST[s.status] || ST.pending;
+  const uid = `sc-${wfIdx}-${subIdx}-${sIdx}`;
+  const idColor = s.status === 'failed' ? '#ff7351' : (s.status === 'automated' ? '#81ecff' : wfColor);
+
+  const stepsHtml = hasSteps
+    ? `<div class="space-y-3">${s.steps.map((step, i) => `
+          <div class="flex gap-3 text-xs">
+            <span class="text-neutral-600 font-mono">${String(i+1).padStart(2,'0')}</span>
+            <p class="text-secondary-fixed-dim">${esc(step)}</p>
+          </div>`).join('')}</div>`
+    : '<p class="text-xs text-on-surface-variant italic">No execution steps defined yet</p>';
+
+  const expectedHtml = hasExpected
+    ? `<div class="bg-surface-container-lowest p-4 rounded-md font-mono text-[11px] text-tertiary border border-white/5">
+        <div class="mb-2 text-neutral-500">// Expected Assertions</div>
+        ${s.expected_results.map(r => `<div><span class="text-on-surface-variant">ASSERT:</span> ${esc(r)}</div>`).join('')}
+       </div>`
+    : '<p class="text-xs text-on-surface-variant italic">No expected results defined yet</p>';
+
+  const descHtml = hasDescription
+    ? `<div class="mb-4 p-3 bg-surface-container border-l-2 border-primary/40 rounded-r-lg text-xs text-secondary">${esc(s.description)}</div>`
+    : '';
+
+  const notesHtml = hasNotes
+    ? `<div class="mt-4 p-3 bg-error/5 border border-error/20 rounded-lg text-xs text-on-surface-variant">
+        <span class="text-error font-bold text-[10px] uppercase tracking-widest">Execution Note:</span> ${esc(s.execution_notes)}</div>`
+    : '';
+
+  const groupTags = (s.groups || []).map(g =>
+    `<span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">${esc(g)}</span>`
+  ).join('');
+
+  return `
+  <div class="sc-card" id="${uid}">
+    <div class="sc-header flex items-center justify-between p-3 rounded-lg ghost-border hover:bg-white/5 cursor-pointer transition-all"
+         onclick="toggleScenario('${uid}')">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <span class="material-symbols-outlined sc-expand text-on-surface-variant text-lg transition-transform duration-200 shrink-0">chevron_right</span>
+        <span class="text-[10px] font-mono shrink-0 px-1.5 py-0.5 rounded" style="color:${idColor};background:${idColor}15">${esc(s.id)}</span>
+        <span class="text-sm text-neutral-300 truncate">${esc(s.title)}</span>
+      </div>
+      <div class="flex items-center gap-3 shrink-0 ml-3">
+        ${s.spec_file ? `<button onclick="event.stopPropagation();runScenario('${esc(s.spec_file)}','${esc(s.title)}')"
+          class="text-on-surface-variant hover:text-tertiary p-0.5 rounded transition-colors" title="Run test">
+          <span class="material-symbols-outlined text-base">play_arrow</span></button>` : ''}
+        <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter"
+              style="background:${st.bg};color:${st.color}">${s.status}</span>
+        <span class="text-[10px] text-on-surface-variant font-bold">${s.priority}</span>
+      </div>
+    </div>
+    <div class="sc-body">
+      <div class="bg-surface-container-low rounded-lg border-l-2 overflow-hidden mt-1 mb-3" style="border-left-color:${wfColor}60">
+        <div class="p-4 bg-white/5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded" style="color:${idColor};background:${idColor}10">${esc(s.id)}</span>
+            <span class="font-semibold text-sm text-white">${esc(s.title)}</span>
+          </div>
+          <span class="material-symbols-outlined text-sm text-neutral-500 cursor-pointer" onclick="toggleScenario('${uid}')">keyboard_arrow_up</span>
+        </div>
+        <div class="p-4">
+          ${descHtml}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h5 class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-3 font-bold">Execution Steps</h5>
+              ${stepsHtml}
+            </div>
+            <div>
+              <h5 class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-3 font-bold">Expected Results</h5>
+              ${expectedHtml}
+            </div>
+          </div>
+          ${notesHtml}
+          <!-- Meta info -->
+          <div class="flex items-center gap-4 flex-wrap mt-5 pt-4 border-t border-outline-variant/10 text-[10px] text-on-surface-variant font-medium">
+            <span><span class="font-bold uppercase tracking-widest">Area:</span> <span class="text-on-surface font-mono">${esc(s.feature_area)}</span></span>
+            ${s.spec_file ? `<span><span class="font-bold uppercase tracking-widest">Spec:</span> <span class="text-on-surface font-mono">${esc(s.spec_file)}</span></span>` : ''}
+            ${groupTags ? `<span class="flex items-center gap-1"><span class="font-bold uppercase tracking-widest mr-1">Groups:</span> ${groupTags}</span>` : ''}
+          </div>
+          <!-- Action buttons -->
+          <div class="flex items-center gap-2 mt-4 flex-wrap">
+            ${s.status !== 'on-hold'
+              ? `<button onclick="hold('${esc(s.id)}')" class="text-on-surface-variant hover:text-on-surface text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-surface-container transition-colors flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">pause</span> Hold</button>`
+              : `<button onclick="unhold('${esc(s.id)}')" class="text-on-surface-variant hover:text-on-surface text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-surface-container transition-colors flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">play_arrow</span> Unhold</button>`}
+            <button onclick="openEditModal('${esc(s.id)}')" class="text-on-surface-variant hover:text-on-surface text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-surface-container transition-colors flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">edit</span> Edit</button>
+            <button onclick="del('${esc(s.id)}')" class="text-error/70 hover:text-error text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-error/10 transition-colors flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">delete</span> Delete</button>
+            <div class="flex-1"></div>
+            <div class="flex items-center gap-1 flex-wrap">
+              ${meta.statuses.map(stName => {
+                const isActive = stName === s.status;
+                const stStyle = ST[stName] || ST.pending;
+                return `<button onclick="changeStatus('${esc(s.id)}','${stName}')"
+                  class="text-[10px] font-bold uppercase tracking-tighter px-2 py-1 rounded transition-colors"
+                  style="${isActive ? `background:${stStyle.bg};color:${stStyle.color}` : 'color:#767575'}">${stName}</button>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Toggle functions ──────────────────────────────────────────────────────────
+
+function toggleWorkflow(idx) {
+  document.getElementById('wf-' + idx).classList.toggle('open');
+}
+function toggleSubsection(wfIdx, subIdx) {
+  document.getElementById(`sub-${wfIdx}-${subIdx}`).classList.toggle('open');
+}
+function toggleScenario(uid) {
+  document.getElementById(uid).classList.toggle('open');
+}
+function toggleAllWorkflows() {
+  allExpanded = !allExpanded;
+  document.querySelectorAll('.wf-card').forEach(el => el.classList.toggle('open', allExpanded));
+  document.querySelectorAll('.sub-card').forEach(el => el.classList.toggle('open', allExpanded));
+  const btn = document.getElementById('toggleAllBtn');
+  btn.innerHTML = allExpanded
+    ? '<span class="material-symbols-outlined text-xl">unfold_less</span>'
+    : '<span class="material-symbols-outlined text-xl">unfold_more</span>';
+}
+
+// ── Filter dropdowns ──────────────────────────────────────────────────────────
+
+function populateFilterDropdowns() {
+  const prioEl = document.getElementById('filterPriority');
+  meta.priorities.forEach(p => { prioEl.innerHTML += `<option value="${p}">${p}</option>`; });
+  const areaEl = document.getElementById('filterArea');
+  meta.featureAreas.forEach(a => { areaEl.innerHTML += `<option value="${a}">${a}</option>`; });
+  const groupEl = document.getElementById('filterGroup');
+  allGroups.forEach(g => { groupEl.innerHTML += `<option value="${g.name}">${g.name} (${g.count})</option>`; });
+  document.getElementById('fStatus').innerHTML = meta.statuses.map(s => `<option value="${s}">${s}</option>`).join('');
+  document.getElementById('fPriority').innerHTML = meta.priorities.map(p => `<option value="${p}">${p}</option>`).join('');
+  document.getElementById('fArea').innerHTML = meta.featureAreas.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+// ── Add / Edit modal ──────────────────────────────────────────────────────────
+
+function openAddModal() {
+  document.getElementById('editMode').value = 'add';
+  document.getElementById('modalTitle').textContent = 'Add Scenario';
+  document.getElementById('modalSubmitBtn').textContent = 'Add';
+  document.getElementById('fId').value = '';
+  document.getElementById('fId').disabled = false;
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fDescription').value = '';
+  document.getElementById('fStatus').value = 'pending';
+  document.getElementById('fPriority').value = 'P2';
+  document.getElementById('fArea').value = 'other';
+  document.getElementById('fSpecFile').value = '';
+  document.getElementById('fWorkflow').value = '';
+  document.getElementById('fGroups').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function openEditModal(id) {
+  const s = await api(`/scenarios/${encodeURIComponent(id)}`);
+  document.getElementById('editMode').value = 'edit';
+  document.getElementById('modalTitle').textContent = `Edit ${s.id}`;
+  document.getElementById('modalSubmitBtn').textContent = 'Save';
+  document.getElementById('fId').value = s.id;
+  document.getElementById('fId').disabled = true;
+  document.getElementById('fTitle').value = s.title;
+  document.getElementById('fDescription').value = s.description;
+  document.getElementById('fStatus').value = s.status;
+  document.getElementById('fPriority').value = s.priority;
+  document.getElementById('fArea').value = s.feature_area;
+  document.getElementById('fSpecFile').value = s.spec_file;
+  document.getElementById('fWorkflow').value = s.workflow;
+  document.getElementById('fGroups').value = (s.groups || []).join(', ');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+async function saveScenario(e) {
+  e.preventDefault();
+  const mode = document.getElementById('editMode').value;
+  const body = {
+    id: document.getElementById('fId').value.trim(),
+    title: document.getElementById('fTitle').value.trim(),
+    description: document.getElementById('fDescription').value.trim(),
+    status: document.getElementById('fStatus').value,
+    priority: document.getElementById('fPriority').value,
+    feature_area: document.getElementById('fArea').value,
+    spec_file: document.getElementById('fSpecFile').value.trim(),
+    workflow: document.getElementById('fWorkflow').value.trim(),
+    groups: document.getElementById('fGroups').value.split(',').map(g => g.trim()).filter(Boolean),
+  };
+  try {
+    if (mode === 'add') {
+      await api('/scenarios', { method: 'POST', body: JSON.stringify(body) });
+      toast(`Scenario ${body.id} added`, 'success');
+    } else {
+      await api(`/scenarios/${encodeURIComponent(body.id)}`, { method: 'PUT', body: JSON.stringify(body) });
+      toast(`Scenario ${body.id} updated`, 'success');
+    }
+    closeModal();
+    refreshDashboard();
+    refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+  return false;
+}
+
+// ── Inline actions ────────────────────────────────────────────────────────────
+
+async function hold(id) {
+  try { await api(`/scenarios/${encodeURIComponent(id)}/hold`, { method: 'POST' });
+    toast(`${id} put on hold`); refreshDashboard(); refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function unhold(id) {
+  try { await api(`/scenarios/${encodeURIComponent(id)}/unhold`, { method: 'POST' });
+    toast(`${id} unholded`); refreshDashboard(); refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function del(id) {
+  if (!confirm(`Delete scenario ${id}? This cannot be undone.`)) return;
+  try { await api(`/scenarios/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    toast(`${id} deleted`); refreshDashboard(); refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function changeStatus(id, status) {
+  try { await api(`/scenarios/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    toast(`${id} → ${status}`); refreshDashboard(); refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ── Header actions ────────────────────────────────────────────────────────────
+
+async function syncSpecs() {
+  try {
+    const result = await api('/sync', { method: 'POST' });
+    toast(`Sync done — ${result.newIds.length} new, ${result.orphanedIds.length} orphaned, ${result.updatedSpecFiles.length} updated`);
+    refreshDashboard(); refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function exportJson() {
+  try {
+    const data = await api('/export');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'tracker-export.json'; a.click();
+    URL.revokeObjectURL(url);
+    toast('Export downloaded');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+// ── Toasts ────────────────────────────────────────────────────────────────────
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  const borderColor = type === 'error' ? 'border-error' : 'border-tertiary';
+  el.className = `toast-anim px-4 py-3 rounded-xl text-xs font-medium bg-surface-container border ${borderColor} text-on-surface shadow-lg`;
+  el.innerHTML = `<span class="material-symbols-outlined text-sm align-middle mr-1.5 ${type === 'error' ? 'text-error' : 'text-tertiary'}">${type === 'error' ? 'error' : 'check_circle'}</span>${esc(msg)}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function cleanWorkflowName(name) {
+  if (!name) return '';
+  return name.replace(/^WORKFLOW\s+\d+\s*[—–-]\s*/i, '').trim();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  TEST RUNNER
+// ══════════════════════════════════════════════════════════════════════════════
+
+function collectSpecFiles(items) {
+  const files = new Set();
+  for (const s of items) { if (s.spec_file) files.add(s.spec_file); }
+  return [...files];
+}
+
+async function startRun(specFiles, grep = '', project = 'chromium') {
+  if (!specFiles.length) { toast('No spec files found for this selection', 'error'); return; }
+  try {
+    await api('/run', { method: 'POST', body: JSON.stringify({ specFiles, grep, project }) });
+    toast(`Test run started: ${specFiles.length} file(s)`);
+    openRunnerPanel();
+    startPolling();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+function runScenario(specFile, title) { startRun([specFile], title); }
+
+function runWorkflow(wfIdx) {
+  const wf = window._cachedWorkflows?.[wfIdx];
+  if (!wf) return;
+  const files = collectSpecFiles(wf.subsections.flatMap(sub => sub.items));
+  if (!files.length) { toast('No spec files linked in this workflow', 'error'); return; }
+  startRun(files);
+}
+
+function runSubsection(wfIdx, subIdx) {
+  const wf = window._cachedWorkflows?.[wfIdx];
+  if (!wf) return;
+  const sub = wf.subsections[subIdx];
+  if (!sub) return;
+  const files = collectSpecFiles(sub.items);
+  if (!files.length) { toast('No spec files linked in this subsection', 'error'); return; }
+  startRun(files);
+}
+
+async function cancelRun() {
+  try { await api('/run/cancel', { method: 'POST' }); toast('Cancelling test run…'); }
+  catch (err) { toast(err.message, 'error'); }
+}
+
+// ── Runner panel controls ─────────────────────────────────────────────────────
+
+function openRunnerPanel() {
+  const panel = document.getElementById('runnerPanel');
+  panel.classList.remove('minimized');
+  panel.classList.add('open');
+  document.getElementById('mainApp').classList.add('app-runner-open');
+  runnerOpen = true;
+}
+
+function toggleRunnerPanel() {
+  const panel = document.getElementById('runnerPanel');
+  if (panel.classList.contains('open') && !panel.classList.contains('minimized')) {
+    panel.classList.add('minimized'); panel.classList.remove('open');
+    document.getElementById('mainApp').classList.remove('app-runner-open');
+    runnerOpen = false;
+  } else {
+    panel.classList.remove('minimized'); panel.classList.add('open');
+    document.getElementById('mainApp').classList.add('app-runner-open');
+    runnerOpen = true;
+  }
+}
+
+function clearRunner() {
+  document.getElementById('runnerOutput').innerHTML = '';
+  runnerLineIndex = 0;
+  document.getElementById('runnerTitle').textContent = 'Test Runner';
+  document.getElementById('runnerSummary').textContent = '';
+  document.getElementById('runnerElapsed').textContent = '';
+  document.getElementById('runnerDot').style.background = RUN_DOT.idle;
+}
+
+// ── Polling ───────────────────────────────────────────────────────────────────
+
+function startPolling() {
+  stopPolling();
+  runnerLineIndex = 0;
+  document.getElementById('runnerOutput').innerHTML = '';
+  pollRunStatus();
+  runnerPollTimer = setInterval(pollRunStatus, 500);
+}
+function stopPolling() { if (runnerPollTimer) { clearInterval(runnerPollTimer); runnerPollTimer = null; } }
+
+async function pollRunStatus() {
+  try {
+    const data = await api(`/run/status?since=${runnerLineIndex}`);
+    const dot = document.getElementById('runnerDot');
+    const title = document.getElementById('runnerTitle');
+    const summary = document.getElementById('runnerSummary');
+    const elapsed = document.getElementById('runnerElapsed');
+    const cancelBtn = document.getElementById('cancelRunBtn');
+    const output = document.getElementById('runnerOutput');
+
+    dot.style.background = RUN_DOT[data.status] || RUN_DOT.idle;
+    if (data.status === 'running') dot.classList.add('animate-pulse-dot');
+    else dot.classList.remove('animate-pulse-dot');
+
+    if (data.status === 'running') {
+      title.textContent = `Running: ${data.specFiles.join(', ')}`;
+      cancelBtn.style.display = '';
+    } else {
+      title.textContent = data.status === 'idle' ? 'Test Runner' : `Run ${data.status}`;
+      cancelBtn.style.display = 'none';
+    }
+
+    if (data.status === 'running' && data.elapsed > 0) {
+      const secs = Math.floor(data.elapsed / 1000);
+      const mins = Math.floor(secs / 60);
+      elapsed.textContent = mins > 0 ? `${mins}m ${secs % 60}s` : `${secs}s`;
+    }
+
+    if (data.summary) summary.textContent = data.summary;
+
+    if (data.lines && data.lines.length > 0) {
+      for (const line of data.lines) {
+        const lineEl = document.createElement('div');
+        lineEl.innerHTML = ansiToHtml(line);
+        output.appendChild(lineEl);
+      }
+      runnerLineIndex = data.totalLines;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    if (data.status !== 'running' && data.status !== 'idle') {
+      stopPolling();
+      refreshDashboard();
+    }
+  } catch (err) { console.error('Poll error:', err); }
+}
+
+function ansiToHtml(text) {
+  if (!text) return '';
+  const map = {
+    '0': '', '1': 'font-weight:bold', '2': 'opacity:.7',
+    '30': 'color:#484847', '31': 'color:#ff7351', '32': 'color:#81ecff',
+    '33': 'color:#ff9157', '34': 'color:#58a6ff', '35': 'color:#bc8cff',
+    '36': 'color:#00d4ec', '37': 'color:#ffffff',
+    '90': 'color:#767575', '91': 'color:#ff7351', '92': 'color:#81ecff',
+    '93': 'color:#ff9157', '94': 'color:#58a6ff', '95': 'color:#bc8cff',
+    '96': 'color:#00d4ec', '97': 'color:#ffffff',
+  };
+  let html = esc(text);
+  html = html.replace(/\x1b\[([0-9;]+)m/g, (_, codes) => {
+    const parts = codes.split(';');
+    const styles = parts.map(c => map[c]).filter(Boolean);
+    if (styles.length === 0 || parts.includes('0')) return '</span>';
+    return `<span style="${styles.join(';')}">`;
+  });
+  return html;
+}
+
+// ── Run Dialog ────────────────────────────────────────────────────────────────
+
+async function openRunDialog() {
+  document.getElementById('runModalOverlay').classList.add('open');
+  document.getElementById('runSpecFiles').value = '';
+  document.getElementById('runGrep').value = '';
+  document.getElementById('runHeaded').checked = false;
+  document.getElementById('runProject').value = 'chromium';
+  if (availableSpecFiles.length === 0) {
+    try { availableSpecFiles = await api('/spec-files'); } catch (e) { availableSpecFiles = []; }
+  }
+  const container = document.getElementById('specFileListContainer');
+  if (availableSpecFiles.length > 0) {
+    container.style.display = '';
+    container.innerHTML = '<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Select from available spec files:</div>'
+      + availableSpecFiles.map(f =>
+        `<label class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:text-on-surface transition-colors text-on-surface-variant">
+          <input type="checkbox" class="spec-file-cb rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary/30" value="${esc(f)}" />
+          <span class="font-mono text-[11px]">${esc(f)}</span>
+        </label>`
+      ).join('');
+  } else { container.style.display = 'none'; }
+}
+
+function closeRunDialog() { document.getElementById('runModalOverlay').classList.remove('open'); }
+
+function startRunFromDialog() {
+  let files = document.getElementById('runSpecFiles').value.trim();
+  const grep = document.getElementById('runGrep').value.trim();
+  const project = document.getElementById('runProject').value;
+  const headed = document.getElementById('runHeaded').checked;
+  let specFiles = files ? files.split(',').map(f => f.trim()).filter(Boolean) : [];
+  document.querySelectorAll('.spec-file-cb:checked').forEach(cb => {
+    if (!specFiles.includes(cb.value)) specFiles.push(cb.value);
+  });
+  if (specFiles.length === 0) { toast('Please specify at least one spec file', 'error'); return; }
+  closeRunDialog();
+  (async () => {
+    try {
+      await api('/run', { method: 'POST', body: JSON.stringify({ specFiles, grep: grep || undefined, project, headed }) });
+      toast(`Test run started: ${specFiles.length} file(s)`);
+      openRunnerPanel();
+      startPolling();
+    } catch (err) { toast(err.message, 'error'); }
+  })();
+}
+
+// ── Check runner state on page load ───────────────────────────────────────────
+
+async function checkRunnerState() {
+  try {
+    const data = await api('/run/status?since=0');
+    if (data.status === 'running') {
+      runnerLineIndex = 0;
+      openRunnerPanel();
+      startPolling();
+    } else if (data.status !== 'idle' && data.totalLines > 0) {
+      runnerLineIndex = 0;
+      const output = document.getElementById('runnerOutput');
+      for (const line of data.lines) {
+        const lineEl = document.createElement('div');
+        lineEl.innerHTML = ansiToHtml(line);
+        output.appendChild(lineEl);
+      }
+      runnerLineIndex = data.totalLines;
+      document.getElementById('runnerDot').style.background = RUN_DOT[data.status] || RUN_DOT.idle;
+      document.getElementById('runnerTitle').textContent = `Last run: ${data.status}`;
+      document.getElementById('runnerSummary').textContent = data.summary || '';
+      document.getElementById('runnerPanel').classList.add('minimized');
+    }
+  } catch (e) { /* ignore */ }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init().then(() => checkRunnerState()).catch(err => { console.error('Init failed:', err); toast('Failed to load tracker data', 'error'); });
+</script>
+</body></html>
