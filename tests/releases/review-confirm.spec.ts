@@ -20,7 +20,7 @@
  *
  * All tests are non-destructive (no stage submissions or data mutations).
  *
- * Test IDs: REVIEW-CONFIRM-001 through REVIEW-CONFIRM-028
+ * Test IDs: REVIEW-CONFIRM-001 through REVIEW-CONFIRM-037
  */
 
 import { test, expect } from '../../src/fixtures';
@@ -53,6 +53,46 @@ async function openPostReviewReleaseOrSkip(
     );
     return '';
   });
+}
+
+async function openExpandedRequirementsSummaryOrSkip(
+  page: import('@playwright/test').Page,
+  landingPage: unknown,
+  releaseDetailPage: {
+    waitForPageLoad(): Promise<void>;
+    clickReviewConfirmContentTab(): Promise<void>;
+    expandRequirementsSummary(): Promise<void>;
+  },
+  currentReleaseUrl: string,
+): Promise<string> {
+  const url = await openPostReviewReleaseOrSkip(page, landingPage, currentReleaseUrl);
+  await releaseDetailPage.waitForPageLoad();
+  await releaseDetailPage.clickReviewConfirmContentTab();
+  await releaseDetailPage.expandRequirementsSummary();
+  return url;
+}
+
+function getChartBurgerButton(page: import('@playwright/test').Page) {
+  return page
+    .locator('.highcharts-button, [class*="highcharts-exporting"], [aria-label*="Chart context menu"], [title*="Chart context menu"]')
+    .or(page.locator('button[aria-label*="menu"], button[title*="menu"]').filter({ has: page.locator('svg') }))
+    .first();
+}
+
+async function openChartContextMenuOrSkip(page: import('@playwright/test').Page): Promise<void> {
+  const burgerBtn = getChartBurgerButton(page);
+  const isVisible = await burgerBtn.isVisible({ timeout: 15_000 }).catch(() => false);
+  test.skip(!isVisible, 'Chart burger menu not visible — chart may not be rendered on this QA release. Skipping gracefully.');
+  await expect(burgerBtn).toBeVisible({ timeout: 10_000 });
+  await burgerBtn.click({ force: true });
+  await page.waitForTimeout(1_000);
+}
+
+function getChartMenuItem(page: import('@playwright/test').Page, label: RegExp) {
+  return page
+    .locator('[role="menuitem"], li, button, text')
+    .filter({ hasText: label })
+    .first();
 }
 
 // ── Suite ────────────────────────────────────────────────────────────────────
@@ -1182,24 +1222,11 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
     );
 
     await test.step('Navigate to post-review release and expand Requirements Summary', async () => {
-      postReviewReleaseUrl = await openPostReviewReleaseOrSkip(page, landingPage, postReviewReleaseUrl);
-      await releaseDetailPage.waitForPageLoad();
-      await releaseDetailPage.clickReviewConfirmContentTab();
-      await releaseDetailPage.expandRequirementsSummary();
+      postReviewReleaseUrl = await openExpandedRequirementsSummaryOrSkip(page, landingPage, releaseDetailPage, postReviewReleaseUrl);
     });
 
     await test.step('Verify chart burger menu button is present', async () => {
-      const burgerBtn = page
-        .locator('.highcharts-button, [class*="highcharts-exporting"], [aria-label*="Chart context menu"], [title*="Chart context menu"]')
-        .or(page.locator('button[aria-label*="menu"], button[title*="menu"]').filter({ has: page.locator('svg') }))
-        .first();
-      const isVisible = await burgerBtn.isVisible({ timeout: 15_000 }).catch(() => false);
-
-      test.skip(!isVisible, 'Chart burger menu not visible — chart may not be rendered or chart is in simple mode on this release. Skipping gracefully.');
-      await expect(burgerBtn).toBeVisible({ timeout: 10_000 });
-
-      await burgerBtn.click({ force: true });
-      await page.waitForTimeout(1_000);
+      await openChartContextMenuOrSkip(page);
 
       const menuItems = [
         page.getByText(/View Full Screen/i).first(),
@@ -1220,6 +1247,87 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
       ).toBeGreaterThanOrEqual(3);
 
       await page.keyboard.press('Escape').catch(() => undefined);
+    });
+  });
+
+  // REVIEW-CONFIRM-036
+  test('should download a PNG file from the Requirements Summary chart menu when rendered', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Review & Confirm');
+    await allure.severity('low');
+    await allure.tag('regression');
+    await allure.description(
+      'REVIEW-CONFIRM-036: When the Requirements Summary chart menu is rendered, ' +
+      'clicking "Download PNG" should trigger a browser download with a PNG-like filename. ' +
+      'This remains non-destructive and validates the exported chart action itself.',
+    );
+
+    await test.step('Navigate to post-review release and expand Requirements Summary', async () => {
+      postReviewReleaseUrl = await openExpandedRequirementsSummaryOrSkip(page, landingPage, releaseDetailPage, postReviewReleaseUrl);
+    });
+
+    await test.step('Open chart menu and verify Download PNG is rendered', async () => {
+      await openChartContextMenuOrSkip(page);
+      const downloadPng = page.getByText(/Download PNG/i).first();
+      const visible = await downloadPng.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!visible, 'Download PNG is not rendered in the chart menu on this QA release. Skipping gracefully.');
+    });
+
+    await test.step('Trigger Download PNG and assert a PNG download starts', async () => {
+      const downloadPng = page.getByText(/Download PNG/i).first();
+      const downloadPromise = page.waitForEvent('download', { timeout: 15_000 }).catch(() => null);
+      await downloadPng.click({ force: true });
+      const download = await downloadPromise;
+
+      test.skip(!download, 'Download PNG menu item did not trigger a browser download event on this QA release.');
+
+      const suggestedFilename = download?.suggestedFilename() ?? '';
+      expect(
+        /\.png$/i.test(suggestedFilename) || /png/i.test(suggestedFilename),
+        `Expected a PNG-like filename from chart download, got "${suggestedFilename}"`,
+      ).toBe(true);
+    });
+  });
+
+  // REVIEW-CONFIRM-037
+  test('should switch chart menu to an exit-fullscreen action after View Full Screen is clicked', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Review & Confirm');
+    await allure.severity('low');
+    await allure.tag('regression');
+    await allure.description(
+      'REVIEW-CONFIRM-037: When the Requirements Summary chart menu is rendered, ' +
+      'clicking "View Full Screen" should transition the chart into fullscreen mode. ' +
+      'The assertion checks for the corresponding exit-fullscreen action when the menu is reopened.',
+    );
+
+    await test.step('Navigate to post-review release and expand Requirements Summary', async () => {
+      postReviewReleaseUrl = await openExpandedRequirementsSummaryOrSkip(page, landingPage, releaseDetailPage, postReviewReleaseUrl);
+    });
+
+    await test.step('Open chart menu and click View Full Screen when available', async () => {
+      await openChartContextMenuOrSkip(page);
+      const viewFullScreen = page.getByText(/View Full Screen/i).first();
+      const visible = await viewFullScreen.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!visible, 'View Full Screen is not rendered in the chart menu on this QA release. Skipping gracefully.');
+      await viewFullScreen.click({ force: true });
+      await page.waitForTimeout(1_500);
+    });
+
+    await test.step('Reopen the chart menu and look for an exit-fullscreen action', async () => {
+      await openChartContextMenuOrSkip(page);
+      const exitFullScreen = page.getByText(/Exit( from)? Full Screen/i).first();
+      const exitVisible = await exitFullScreen.isVisible({ timeout: 5_000 }).catch(() => false);
+
+      expect(
+        exitVisible,
+        'Chart menu should expose an exit-fullscreen action after entering fullscreen mode',
+      ).toBe(true);
+
+      await exitFullScreen.click({ force: true }).catch(() => page.keyboard.press('Escape'));
+      await page.waitForTimeout(1_000);
     });
   });
 

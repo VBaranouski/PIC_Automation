@@ -639,11 +639,11 @@
 **Outstanding non-automated scenarios (2026-04-13):**
 
 - Review routing still needs end-to-end coverage: active-stage highlighting after submission, routing by oversight level / stale BU SO date, and reviewer risk-classification override behavior.
-- Requirements Summary chart behavior is the next highest-value WF5 expansion: filter presence and chart-menu actions are covered, but filter effects, fullscreen/download file assertions, and live-vs-frozen snapshot behavior across stage transitions and rework remain unverified.
+- Requirements Summary chart behavior is still the next highest-value WF5 expansion: filter presence plus chart-menu / fullscreen / PNG-download entrypoints are now automated, but filter effects, verified file contents, and live-vs-frozen snapshot behavior across stage transitions and rework remain unverified.
 - Previous FCSR Summary still needs richer coverage: switching prior releases, protocol-file link behavior, and section hiding rules when no eligible previous release exists.
 - Review & Confirm collaboration flows are mostly manual: participants CRUD, discussion-topic CRUD/lifecycle, scope review decision editing/validation, submit/rework transitions, and action-plan Jira integration.
 
-> **Execution note (2026-04-13):** `review-confirm.spec.ts` reran on Chromium as 35 controlled skips on the sampled QA data set. The runtime-qualified checks below stay implemented and become active when the environment exposes suitable pre-questionnaire, Review & Confirm, or post-Review & Confirm releases.
+> **Execution note (2026-04-13):** `review-confirm.spec.ts` reran on Chromium with **2 passed / 35 skipped**. The newly added chart-action checks (`Download PNG`, `View Full Screen`) are implemented but remained runtime-qualified on the sampled QA data set because no suitable post-Scoping chart release was exposed during the rerun.
 
 ### 5.1 Stage Transition & Routing
 
@@ -676,8 +676,12 @@
 - [~] **P3** `REVIEW-CONFIRM-031` Chart burger menu reveals fullscreen / print / download actions when the chart context menu is rendered
   > **Steps:** Expand Requirements Summary → click the chart context menu.
   > **Expected:** At least three expected actions are visible among View Full Screen, Print, Download PNG, Download JPEG, and Download SVG.
-- [ ] **P3** "View Full Screen" expands the donut chart to full screen mode
-- [ ] **P3** "Download PNG" downloads the chart as a PNG file
+- [~] **P3** `REVIEW-CONFIRM-037` "View Full Screen" expands the donut chart to full screen mode when the chart menu is rendered
+  > **Steps:** Expand Requirements Summary → open chart context menu → click View Full Screen.
+  > **Expected:** Reopening the chart context menu exposes an exit-fullscreen action, proving the chart entered fullscreen mode.
+- [~] **P3** `REVIEW-CONFIRM-036` "Download PNG" downloads the chart as a PNG file when the chart menu is rendered
+  > **Steps:** Expand Requirements Summary → open chart context menu → click Download PNG.
+  > **Expected:** The browser emits a download with a PNG-like filename.
 - [ ] **P2** While release is at Review & Confirm stage, charts reflect the live (current) requirement statuses
 - [ ] **P2** After release advances past Review & Confirm, charts are frozen (show snapshot from stage-advance time)
 - [ ] **P2** Returning to Review & Confirm stage via rework restores live chart data (un-freezes)
