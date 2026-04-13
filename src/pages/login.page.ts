@@ -49,6 +49,8 @@ export class LoginPage extends BasePage {
   }
 
   async login(username: string, password: string): Promise<void> {
+    // Explicitly wait for the form to render (the page may still be loading)
+    await this.l.usernameField.waitFor({ state: 'visible', timeout: 45_000 });
     await this.fillUsername(username);
     await this.fillPassword(password);
     await this.clickLogin();

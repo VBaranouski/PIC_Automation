@@ -1035,14 +1035,10 @@ export class NewProductPage extends BasePage {
     const input = this.l.createReleaseDateInputs.nth(index);
     const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).last();
 
-    await input.evaluate((element, value) => {
-      const field = element as HTMLInputElement;
-      field.focus();
-      field.value = value;
-      field.dispatchEvent(new Event('input', { bubbles: true }));
-      field.dispatchEvent(new Event('change', { bubbles: true }));
-      field.blur();
-    }, typedValue).catch(() => undefined);
+    await input.click().catch(() => undefined);
+    await input.fill(typedValue).catch(() => undefined);
+    await input.press('Enter').catch(() => undefined);
+    await input.press('Tab').catch(() => undefined);
     await this.waitForOSLoad();
 
     let inputValue = await input.inputValue().catch(() => '');
@@ -1080,6 +1076,10 @@ export class NewProductPage extends BasePage {
       const span = spans[spans.length - 1];
       if (span) span.click();
     }, dateLabel);
+    await input.press('Tab').catch(() => undefined);
+    await this.page.keyboard.press('Escape').catch(() => undefined);
+    await this.page.locator('.flatpickr-calendar.open').waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
+    await this.waitForOSLoad();
 
     inputValue = await input.inputValue().catch(() => '');
     if (!inputValue) {
@@ -1091,16 +1091,26 @@ export class NewProductPage extends BasePage {
         const span = spans[spans.length - 1];
         if (span) span.click();
       }, dateLabel);
+      await input.press('Tab').catch(() => undefined);
+      await this.page.keyboard.press('Escape').catch(() => undefined);
+      await this.page.locator('.flatpickr-calendar.open').waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
+      await this.waitForOSLoad();
       inputValue = await input.inputValue().catch(() => '');
     }
 
     if (!inputValue) {
       await input.evaluate((element, value) => {
         const field = element as HTMLInputElement;
-        field.value = value;
-        field.dispatchEvent(new Event('input', { bubbles: true }));
-        field.dispatchEvent(new Event('change', { bubbles: true }));
-        field.blur();
+        const container = field.parentElement ?? field;
+        const relatedInputs = Array.from(container.querySelectorAll<HTMLInputElement>('input'));
+        const targets = relatedInputs.length > 0 ? relatedInputs : [field];
+
+        for (const target of targets) {
+          target.value = value;
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+          target.blur();
+        }
       }, typedValue);
       await this.waitForOSLoad();
       inputValue = await input.inputValue().catch(() => '');
@@ -1131,6 +1141,8 @@ export class NewProductPage extends BasePage {
   }): Promise<void> {
     await this.fillReleaseVersion(data.releaseVersion);
     await this.selectReleaseTargetDate(data.targetDate);
+    await this.l.createReleaseDateInputs.nth(0).press('Tab').catch(() => undefined);
+    await this.waitForOSLoad();
     await this.fillReleaseChangeSummary(data.changeSummary);
     if (data.continuousPenetrationTesting) {
       await this.toggleContinuousPenetrationTesting();
@@ -1146,6 +1158,7 @@ export class NewProductPage extends BasePage {
     await this.l.createReleaseDialog.click({ position: { x: 10, y: 10 } }).catch(() => undefined);
     await this.page.waitForTimeout(500);
 
+    await expect(this.l.createAndScopeButton).toBeEnabled({ timeout: 15_000 });
     await this.l.createAndScopeButton.click();
     // Race between dialog closing (in-place creation) and navigation to ReleaseDetail.
     await Promise.race([
@@ -1157,26 +1170,52 @@ export class NewProductPage extends BasePage {
     // (e.g. server timeout), retry once before failing.
     let dialogStillOpen = await this.l.createReleaseDialog.isVisible().catch(() => false);
     if (dialogStillOpen) {
-      // Check for visible validation error first — don't retry if there is one
-      const hasValidationError = await this.page.getByText('Required field').isVisible({ timeout: 2_000 }).catch(() => false);
-      if (!hasValidationError) {
-        // Server may have been slow — retry the click
-        await this.l.createAndScopeButton.click().catch(() => undefined);
-        await Promise.race([
-          this.l.createReleaseDialog.waitFor({ state: 'hidden', timeout: 90_000 }).catch(() => undefined),
-          this.page.waitForURL(/ReleaseDetail/, { timeout: 90_000 }).catch(() => null),
-        ]);
-        await this.waitForOSLoad();
-        dialogStillOpen = await this.l.createReleaseDialog.isVisible().catch(() => false);
+      const releaseVersionValue = await this.l.releaseVersionInput.inputValue().catch(() => '');
+      const targetDateValue = await this.l.createReleaseDateInputs.nth(0).inputValue().catch(() => '');
+      const changeSummaryValue = await this.l.changeSummaryInput.inputValue().catch(() => '');
+      const dialogText = await this.l.createReleaseDialog.innerText().catch(() => '');
+      const hasValidationError = /Required field|Please review the necessary fields/i.test(dialogText);
+      const needsRefill = !releaseVersionValue || !targetDateValue || !changeSummaryValue || hasValidationError;
+
+      if (needsRefill) {
+        if (!releaseVersionValue) {
+          await this.fillReleaseVersion(data.releaseVersion);
+        }
+        if (!targetDateValue) {
+          await this.selectReleaseTargetDate(data.targetDate);
+          await this.l.createReleaseDateInputs.nth(0).press('Tab').catch(() => undefined);
+          await this.waitForOSLoad();
+        }
+        if (!changeSummaryValue) {
+          await this.fillReleaseChangeSummary(data.changeSummary);
+        }
       }
+
+      await this.l.createReleaseDialog.click({ position: { x: 10, y: 10 } }).catch(() => undefined);
+      await this.page.waitForTimeout(500);
+      await this.l.createAndScopeButton.click().catch(() => undefined);
+      await Promise.race([
+        this.l.createReleaseDialog.waitFor({ state: 'hidden', timeout: 90_000 }).catch(() => undefined),
+        this.page.waitForURL(/ReleaseDetail/, { timeout: 90_000 }).catch(() => null),
+      ]);
+      await this.waitForOSLoad();
+      dialogStillOpen = await this.l.createReleaseDialog.isVisible().catch(() => false);
     }
     // Hard assertion: if the dialog is still visible the form had a validation error
     // (e.g. Target Date not filled).  Fail loudly here rather than silently proceeding
     // and getting a confusing "no releases listed" error in a later step.
     if (dialogStillOpen) {
+      const releaseVersionValue = await this.l.releaseVersionInput.inputValue().catch(() => '');
+      const targetDateValue = await this.l.createReleaseDateInputs.nth(0).inputValue().catch(() => '');
+      const changeSummaryValue = await this.l.changeSummaryInput.inputValue().catch(() => '');
+      const dialogText = (await this.l.createReleaseDialog.innerText().catch(() => ''))
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 500);
       throw new Error(
         '"Create & Scope" did not close the Create Release dialog — ' +
-        'the form likely has a validation error (e.g. Target Date field is empty).',
+        `releaseVersion="${releaseVersionValue}", targetDate="${targetDateValue}", ` +
+        `changeSummaryLength=${changeSummaryValue.length}, dialogText="${dialogText}".`,
       );
     }
   }

@@ -237,3 +237,268 @@ export async function openPreQuestionnaireRelease(
 
   return findPreQuestionnaireRelease(page, landingPage);
 }
+
+// ── Helpers for Workflow 5 — Review & Confirm ─────────────────────────────────
+
+/**
+ * Returns true if the release is at or past the Review & Confirm stage.
+ * Detection: the Review & Confirm content tab does NOT have the 'disabled-tab' class.
+ */
+async function isReviewConfirmAccessible(page: Page): Promise<boolean> {
+  const reviewTab = page.locator('.osui-tabs__header-item[role="tab"]').filter({ hasText: /Review\s*&\s*Confirm/i }).first();
+  // Use waitFor so Playwright retries until the tab is in the DOM (React may still be rendering).
+  const appeared = await reviewTab
+    .waitFor({ state: 'visible', timeout: 15_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!appeared) {
+    return false;
+  }
+
+  const cls = await reviewTab.getAttribute('class').catch(() => '');
+  return !cls?.includes('disabled-tab');
+}
+
+/**
+ * Returns true if the release is specifically AT the Review & Confirm stage
+ * (pipeline stage 2 is active, with Add Participant/Add Topic buttons visible).
+ */
+async function isAtReviewConfirmStage(page: Page): Promise<boolean> {
+  const activeStage = page.locator('.wizard-wrapper-item.active[role="tab"]').first();
+  const stageName = await activeStage.getAttribute('aria-label').catch(() => '');
+  return /Review\s*&\s*Confirm/i.test(stageName ?? '');
+}
+
+/**
+ * Scans My Releases for a release at or past Review & Confirm stage.
+ * The Review & Confirm tab must be accessible (not disabled-tab).
+ * Returns the Release Detail URL.
+ * Throws if no matching release is found within maxCandidates rows.
+ */
+export async function findPostReviewConfirmRelease(
+  page: Page,
+  landingPage: LandingPage,
+  maxCandidates = 20,
+): Promise<string> {
+  // Always navigate explicitly so we're on the landing page regardless of current location.
+  // Retry twice if the server returns a transient error (OS error page / grid stays empty).
+  let gridLoaded = false;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      if (attempt > 0) {
+        // Short pause then reload before retrying
+        await page.waitForTimeout(3_000);
+        await page.goto(page.url(), { waitUntil: 'domcontentloaded' });
+      } else {
+        await landingPage.goto();
+      }
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+      await landingPage.clickTab('My Releases');
+      await landingPage.waitForGridDataRows(30_000);
+      gridLoaded = true;
+      break;
+    } catch {
+      if (attempt === 1) {
+        // Both attempts failed — surface a useful error
+        throw new Error('Landing page "My Releases" grid did not load after retry.');
+      }
+      // Transient OS error page — will retry
+    }
+  }
+  if (!gridLoaded) {
+    throw new Error('Landing page "My Releases" grid did not load.');
+  }
+
+  const rows = landingPage.grid.getByRole('row');
+  const rowCount = await rows.count();
+  const candidateUrls: string[] = [];
+
+  for (let index = 1; index < Math.min(rowCount, maxCandidates + 1); index += 1) {
+    const href = await rows
+      .nth(index)
+      .getByRole('link')
+      .first()
+      .getAttribute('href')
+      .catch(() => null);
+    if (!href) {
+      continue;
+    }
+
+    candidateUrls.push(href.startsWith('http') ? href : `${QA_BASE_URL}${href}`);
+  }
+
+  for (const candidateUrl of candidateUrls) {
+    try {
+      await openSpecificReleaseDetail(page, candidateUrl);
+      if (await isReviewConfirmAccessible(page)) {
+        return page.url();
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(
+    `No release at or past Review & Confirm stage found in the first ${Math.min(rowCount - 1, maxCandidates)} My Releases rows.`,
+  );
+}
+
+/**
+ * Opens a release that is at or past Review & Confirm stage.
+ * Re-uses the cached URL when provided; falls back to scanning My Releases.
+ */
+export async function openPostReviewConfirmRelease(
+  page: Page,
+  landingPage: LandingPage,
+  releaseDetailUrl?: string,
+): Promise<string> {
+  if (releaseDetailUrl) {
+    try {
+      await openSpecificReleaseDetail(page, releaseDetailUrl);
+      if (await isReviewConfirmAccessible(page)) {
+        return page.url();
+      }
+    } catch {
+      // navigation failed — will fall through to scan
+    }
+    // Tab is inaccessible or navigation failed.
+    // findPostReviewConfirmRelease navigates to the landing page itself.
+  }
+
+  return findPostReviewConfirmRelease(page, landingPage);
+}
+
+/**
+ * Navigates to the Review & Confirm content tab on the current release detail page.
+ * The tab locator targets the osui-tabs header item (content tab), not the pipeline wizard item.
+ */
+export async function clickReviewConfirmContentTab(page: Page): Promise<void> {
+  const reviewTab = page.locator('.osui-tabs__header-item[role="tab"]').filter({ hasText: /Review\s*&\s*Confirm/i }).first();
+  await expect(reviewTab).toBeVisible({ timeout: 20_000 });
+  await reviewTab.click();
+  await page.waitForTimeout(1_500);
+}
+
+// ── Helpers for Workflow 6 — Manage Stage ─────────────────────────────────────
+
+/**
+ * Returns true if the release is at or past the Manage stage.
+ * Detection: the active pipeline stage is "Manage" OR past stages include "Review & Confirm".
+ */
+async function isAtOrPastManageStage(page: Page): Promise<boolean> {
+  // Check active stage first
+  const activeStage = page.locator('.wizard-wrapper-item.active[role="tab"]').first();
+  const appeared = await activeStage
+    .waitFor({ state: 'visible', timeout: 15_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!appeared) {
+    return false;
+  }
+
+  const activeLabel = await activeStage.getAttribute('aria-label').catch(() => '');
+  if (/^Manage$/i.test(activeLabel ?? '')) {
+    return true;
+  }
+
+  // Also accept any stage AFTER Manage (SA & PQL Sign Off, FCSR Review, etc.)
+  const laterStages = [
+    /Security\s*&\s*Privacy\s*Readiness\s*Sign\s*Off/i,
+    /SDPA\s*&\s*PQL\s*Sign\s*Off/i,
+    /FCSR\s*Review/i,
+    /Post\s*FCSR\s*Actions/i,
+    /Final\s*Acceptance/i,
+  ];
+  return laterStages.some((pattern) => pattern.test(activeLabel ?? ''));
+}
+
+/**
+ * Scans My Releases for a release at or past the Manage stage.
+ * Returns the Release Detail URL.
+ * Throws if no matching release is found within maxCandidates rows.
+ */
+export async function findManageStageRelease(
+  page: Page,
+  landingPage: LandingPage,
+  maxCandidates = 20,
+): Promise<string> {
+  let gridLoaded = false;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      if (attempt > 0) {
+        await page.waitForTimeout(3_000);
+        await page.goto(page.url(), { waitUntil: 'domcontentloaded' });
+      } else {
+        await landingPage.goto();
+      }
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+      await landingPage.clickTab('My Releases');
+      await landingPage.waitForGridDataRows(30_000);
+      gridLoaded = true;
+      break;
+    } catch {
+      if (attempt === 1) {
+        throw new Error('Landing page "My Releases" grid did not load after retry.');
+      }
+    }
+  }
+  if (!gridLoaded) {
+    throw new Error('Landing page "My Releases" grid did not load.');
+  }
+
+  const rows = landingPage.grid.getByRole('row');
+  const rowCount = await rows.count();
+  const candidateUrls: string[] = [];
+
+  for (let index = 1; index < Math.min(rowCount, maxCandidates + 1); index += 1) {
+    const href = await rows
+      .nth(index)
+      .getByRole('link')
+      .first()
+      .getAttribute('href')
+      .catch(() => null);
+    if (!href) {
+      continue;
+    }
+
+    candidateUrls.push(href.startsWith('http') ? href : `${QA_BASE_URL}${href}`);
+  }
+
+  for (const candidateUrl of candidateUrls) {
+    try {
+      await openSpecificReleaseDetail(page, candidateUrl);
+      if (await isAtOrPastManageStage(page)) {
+        return page.url();
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(
+    `No release at or past Manage stage found in the first ${Math.min(rowCount - 1, maxCandidates)} My Releases rows.`,
+  );
+}
+
+/**
+ * Opens a release that is at or past the Manage stage.
+ * Re-uses the cached URL when provided; falls back to scanning My Releases.
+ */
+export async function openManageStageRelease(
+  page: Page,
+  landingPage: LandingPage,
+  releaseDetailUrl?: string,
+): Promise<string> {
+  if (releaseDetailUrl) {
+    try {
+      await openSpecificReleaseDetail(page, releaseDetailUrl);
+      if (await isAtOrPastManageStage(page)) {
+        return page.url();
+      }
+    } catch {
+      // navigation failed — fall through to scan
+    }
+  }
+
+  return findManageStageRelease(page, landingPage);
+}

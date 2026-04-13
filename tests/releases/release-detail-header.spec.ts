@@ -17,7 +17,18 @@ import { test, expect } from '../../src/fixtures';
 import type { Page } from '@playwright/test';
 import type { LandingPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
-import { RELEASE_PIPELINE_STAGES } from '../../src/pages';
+import { RELEASE_PIPELINE_STAGES, RELEASE_STAGE_4_ALIASES } from '../../src/pages';
+
+// Helper: accept either stage-4 variant when checking pipeline / workflow labels.
+function stageFoundIn(labels: string[], expectedStage: string): boolean {
+  const isStage4 = RELEASE_STAGE_4_ALIASES.some(
+    (a) => a.toLowerCase() === expectedStage.toLowerCase(),
+  );
+  const variants = isStage4 ? [...RELEASE_STAGE_4_ALIASES] : [expectedStage];
+  return labels.some((label) =>
+    variants.some((v) => label.toLowerCase().includes(v.toLowerCase())),
+  );
+}
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -199,11 +210,8 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
     await test.step('Verify all expected stage names are present in the pipeline', async () => {
       const stageLabels = await releaseDetailPage.getPipelineStageLabels();
       for (const expectedStage of RELEASE_PIPELINE_STAGES) {
-        const found = stageLabels.some((label) =>
-          label.toLowerCase().includes(expectedStage.toLowerCase()),
-        );
         expect(
-          found,
+          stageFoundIn(stageLabels, expectedStage),
           `Stage "${expectedStage}" not found in pipeline labels: ${JSON.stringify(stageLabels)}`,
         ).toBe(true);
       }
@@ -355,13 +363,9 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
 
     await test.step('Verify all 7 stage names are present in the pipeline bar', async () => {
       const stageLabels = await releaseDetailPage.getPipelineStageLabels();
-
       for (const stage of RELEASE_PIPELINE_STAGES) {
-        const found = stageLabels.some((label) =>
-          label.toLowerCase().includes(stage.toLowerCase()),
-        );
         expect(
-          found,
+          stageFoundIn(stageLabels, stage),
           `Stage "${stage}" missing from pipeline. Found labels: ${JSON.stringify(stageLabels)}`,
         ).toBe(true);
       }
@@ -393,7 +397,10 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
     await test.step('Verify each stage section shows a submission summary', async () => {
       for (const stage of RELEASE_PIPELINE_STAGES) {
         const summary = await releaseDetailPage.getWorkflowStageSubmissionSummary(stage);
-        expect(summary, `Expected workflow section for "${stage}" to show a submission summary`).toMatch(/submission/i);
+        expect(
+          summary,
+          `Workflow section for "${stage}" must show a submission summary`,
+        ).toMatch(/submission/i);
       }
     });
   });
@@ -532,6 +539,151 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
         await closeBtn.click();
       } else {
         await page.keyboard.press('Escape');
+      }
+    });
+  });
+
+  // ── RELEASE-HEADER-012 ────────────────────────────────────────────────────
+  test('should show submission counter format (N from M submissions) in workflow panel for active stage', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-012: The workflow panel (View Flow area) must display a submission ' +
+      'counter in the format "N from M submission(s)" or "M submission(s) required" for ' +
+      'the active stage. This validates the submission-count UI element is present and ' +
+      'has the expected numeric format.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Expand the workflow panel', async () => {
+      await releaseDetailPage.clickViewFlowToggleAndExpand();
+      await releaseDetailPage.expectPipelineAreaVisible();
+    });
+
+    await test.step('Verify active stage section shows a numeric submission counter', async () => {
+      const activeStage = await releaseDetailPage.getActiveStageName();
+      const sectionLines = await releaseDetailPage.getWorkflowSectionLines(activeStage);
+
+      // The counter line should match: "0 from 1 submission", "2 submissions required",
+      // "1 submission required", etc.
+      const counterLine = sectionLines.find((line) =>
+        /\d+\s*(from\s*\d+)?\s*submission/i.test(line),
+      );
+
+      expect(
+        counterLine,
+        `Expected workflow panel for active stage "${activeStage}" to show a numeric submission counter. ` +
+        `Section lines found: ${JSON.stringify(sectionLines)}`,
+      ).toBeTruthy();
+
+      // Verify the counter contains at least one digit
+      const digits = counterLine?.match(/\d+/g) ?? [];
+      expect(
+        digits.length,
+        `Submission counter line "${counterLine}" must contain at least one digit`,
+      ).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  // ── RELEASE-HEADER-013 ────────────────────────────────────────────────────
+  test('should show at least one responsible user for the active stage in the workflow panel', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-013: For the active stage in the View Flow workflow panel, ' +
+      'at least one responsible user entry must be visible below the submission counter. ' +
+      'This confirms that responsible users are pre-calculated based on the Minimum ' +
+      'Oversight Level and Last BU SO FCSR Date for the current stage.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Expand the workflow panel', async () => {
+      await releaseDetailPage.clickViewFlowToggleAndExpand();
+      await releaseDetailPage.expectPipelineAreaVisible();
+    });
+
+    await test.step('Verify active stage lists at least one responsible user', async () => {
+      const activeStage = await releaseDetailPage.getActiveStageName();
+      const responsibleEntries = await releaseDetailPage.getWorkflowStageResponsibleEntries(activeStage);
+
+      expect(
+        responsibleEntries.length,
+        `Active stage "${activeStage}" must list at least one responsible user in the workflow panel. ` +
+        `Got entries: ${JSON.stringify(responsibleEntries)}`,
+      ).toBeGreaterThan(0);
+
+      // Each responsible user entry must be non-empty (not a blank line)
+      for (const entry of responsibleEntries) {
+        expect(
+          entry.trim().length,
+          `Responsible user entry "${entry}" must be non-empty`,
+        ).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  // ── RELEASE-HEADER-014 ────────────────────────────────────────────────────
+  test('should show all required submission counts for every pipeline stage in workflow panel', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-014: Every pipeline stage section in the View Flow workflow panel ' +
+      'must display a submission count line. This validates that the workflow panel ' +
+      'communicates submission requirements to all 7 release stages consistently.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Expand the workflow panel', async () => {
+      await releaseDetailPage.clickViewFlowToggleAndExpand();
+      await releaseDetailPage.expectPipelineAreaVisible();
+    });
+
+    await test.step('Verify all 7 pipeline stages show a submission count line', async () => {
+      for (const stage of RELEASE_PIPELINE_STAGES) {
+        const summary = await releaseDetailPage.getWorkflowStageSubmissionSummary(stage);
+        expect(
+          summary,
+          `Stage "${stage}" must show a submission count in the workflow panel`,
+        ).toMatch(/submission/i);
+
+        // Additionally verify it contains a digit (e.g. "1 submission required")
+        expect(
+          /\d/.test(summary),
+          `Stage "${stage}" submission line "${summary}" must contain a digit`,
+        ).toBe(true);
       }
     });
   });

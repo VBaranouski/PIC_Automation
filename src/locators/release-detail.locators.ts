@@ -94,6 +94,236 @@ export function releaseDetailLocators(page: Page) {
     changeSummaryTextarea: page.getByRole('textbox', { name: /Change Summary/i }).first(),
     /** Empty state observed when no related SE products are associated */
     includedSeComponentsEmptyState: page.getByText(/No Components Associated yet|There are no SE products included in this product/i).first(),
+
+    // ── Review & Confirm tab ───────────────────────────────────────────────
+    /**
+     * Content tab "Review & Confirm" (osui-tabs__header-item) — NOT the pipeline wizard step.
+     * Has class `disabled-tab` when the release is at Scoping stage (not yet advanced).
+     */
+    reviewConfirmContentTab: page
+      .locator('.osui-tabs__header-item[role="tab"]')
+      .filter({ hasText: /Review\s*&\s*Confirm/i })
+      .first(),
+
+    /** "REQUIREMENTS SUMMARY" collapsible accordion item */
+    requirementsSummaryAccordion: page
+      .locator('.osui-accordion-item')
+      .filter({ has: page.getByText(/^REQUIREMENTS SUMMARY$/i) })
+      .first(),
+
+    /** Title/trigger inside the Requirements Summary accordion (role=button) */
+    requirementsSummaryAccordionTitle: page
+      .locator('.osui-accordion-item')
+      .filter({ has: page.getByText(/^REQUIREMENTS SUMMARY$/i) })
+      .locator('[role="button"]')
+      .first(),
+
+    /** "Previous FCSR Summary" collapsible accordion item */
+    previousFcsrAccordion: page
+      .locator('.osui-accordion-item')
+      .filter({ has: page.getByText(/Previous FCSR Summary/i) })
+      .first(),
+
+    /** Title/trigger inside Previous FCSR Summary accordion */
+    previousFcsrAccordionTitle: page
+      .locator('.osui-accordion-item')
+      .filter({ has: page.getByText(/Previous FCSR Summary/i) })
+      .locator('[role="button"]')
+      .first(),
+
+    /** "SCOPE REVIEW PARTICIPANTS" section header text (CSS text-transform: uppercase; DOM text is Title Case) */
+    scopeReviewParticipantsHeader: page.getByText(/scope review participants/i).first(),
+
+    /**
+     * Table/grid inside the Scope Review Participants section.
+     * Supports both standard <table><th> and ARIA grid implementations.
+     */
+    scopeReviewParticipantsTable: page
+      .locator('table, [role="grid"]')
+      .filter({ has: page.locator('[role="columnheader"], th').filter({ hasText: /scope review participant name/i }) })
+      .first(),
+
+    /** "Add Participant" button — visible only when release is at Review & Confirm stage */
+    addParticipantButton: page.getByRole('button', { name: /Add Participant/i }).first(),
+
+    /** "KEY DISCUSSION TOPICS" section header text (CSS text-transform: uppercase; DOM text is Title Case) */
+    keyDiscussionTopicsHeader: page.getByText(/key discussion topics/i).first(),
+
+    /**
+     * Table/grid inside the Key Discussion Topics section.
+     * Supports both standard <table><th> and ARIA grid implementations.
+     */
+    keyDiscussionTopicsTable: page
+      .locator('table, [role="grid"]')
+      .filter({ has: page.locator('[role="columnheader"], th').filter({ hasText: /topic name/i }) })
+      .first(),
+
+    /** "Add Topic" button — visible only when release is at Review & Confirm stage */
+    addTopicButton: page.getByRole('button', { name: /Add Topic/i }).first(),
+
+    /** "SCOPE REVIEW DECISION" section header (CSS text-transform: uppercase; DOM text is Title Case) */
+    scopeReviewDecisionHeader: page.getByText(/scope review decision/i).first(),
+
+    /** The Scope Review Decision dropdown (select element) */
+    scopeReviewDecisionDropdown: page.locator('select').filter({ has: page.locator('option').filter({ hasText: /Approved|Rework/i }) }).first(),
+
+    /** "ACTION PLAN FOR SCOPE REVIEW DECISIONS" section header text (CSS text-transform: uppercase; DOM text is Title Case) */
+    actionPlanHeader: page.getByText(/action plan for scope review decisions/i).first(),
+
+    /** Empty state shown inside Action Plan when no actions exist */
+    actionPlanEmptyState: page.getByText(/No Actions added yet/i).first(),
+
+    /** "Add Action" button in the Action Plan section */
+    addActionButton: page.getByRole('button', { name: /Add Action/i }).first(),
+
+    /** "Submit" button shown when release is at Review & Confirm stage (advances to Manage) */
+    reviewConfirmSubmitButton: page
+      .locator('.content-middle-actions')
+      .getByRole('button', { name: /^Submit$/i })
+      .first(),
+
+    /** "Rework" button shown when release is at Review & Confirm stage */
+    reviewConfirmReworkButton: page
+      .locator('.content-middle-actions')
+      .getByRole('button', { name: /Rework/i })
+      .first(),
+
+    // ── Manage Stage (WF6) ─────────────────────────────────────────────────
+
+    /**
+     * "Submit for SA & PQL Sign Off" action button — visible when release is at Manage stage.
+     * May also be labelled "Submit for Security & Privacy Readiness Sign Off" in some releases.
+     */
+    submitForSaPqlButton: page
+      .getByRole('button', { name: /Submit for (SDPA?\s*&\s*PQL|SA\s*&\s*PQL|Security\s*&\s*Privacy)/i })
+      .first(),
+
+    /** Generic "Submit for ..." button in the main content actions bar (Manage stage — fallback) */
+    manageStageSubmitButton: page
+      .getByRole('button', { name: /^Submit for\b/i })
+      .first(),
+
+    /** "Rework" button at Manage stage */
+    manageStageReworkButton: page
+      .locator('.content-middle-actions, [class*="action-buttons"]')
+      .getByRole('button', { name: /Rework/i })
+      .first(),
+
+    /**
+     * Sidebar link to "Actions Management" page.
+     * Typically rendered as an anchor below the release header sidebar.
+     */
+    actionsManagementLink: page
+      .locator('a')
+      .filter({ hasText: /Actions Management/i })
+      .first(),
+
+    /**
+     * Sidebar link to "View Release History".
+     */
+    viewReleaseHistoryLink: page
+      .locator('a')
+      .filter({ hasText: /View Release History/i })
+      .first(),
+
+    /**
+     * Sidebar link to "Generate Report".
+     */
+    generateReportLink: page
+      .locator('a')
+      .filter({ hasText: /Generate Report/i })
+      .first(),
+
+    // ── CSRR Tab (Cybersecurity Residual Risks) ────────────────────────────
+
+    /**
+     * The CSRR left-navigation or section list that lists the 10 CSRR sub-sections.
+     * Each sub-section link is a clickable anchor in the left panel.
+     */
+    csrrSubSectionLinks: page
+      .locator('.sidebar-nav a, [class*="csrr-nav"] a, [class*="side-nav"] a')
+      .filter({ hasText: /SDL Process|Product Requirement|System Design|Threat Model|3rd Party|Static Code|Software Composition|FOSS|Security Defect|External Vuln/i }),
+
+    /**
+     * "SDL Processes Summary" section heading visible after opening the CSRR tab.
+     */
+    csrrSdlProcessesSummaryHeading: page
+      .getByText(/SDL Processes Summary/i)
+      .first(),
+
+    /**
+     * SBOM Status dropdown in the CSRR → SDL Processes Summary section.
+     * id: SBOMStatusDropdown (observed in DOM)
+     */
+    sbomStatusDropdown: page
+      .locator('select#SBOMStatusDropdown, select[id*="SBOM"]')
+      .first(),
+
+    /**
+     * "SBOM Status" label — useful as a presence check.
+     */
+    sbomStatusLabel: page.getByText(/SBOM Status/i).first(),
+
+    /**
+     * SDL Details section within CSRR SDL Processes Summary.
+     */
+    sdlDetailsSection: page.getByText(/SDL Details|SDL DETAILS/i).first(),
+
+    /**
+     * Evaluation Status dropdown in CSRR sections (SDL Processes Summary, Product Requirements).
+     */
+    evaluationStatusDropdown: page
+      .locator('select')
+      .filter({ has: page.locator('option').filter({ hasText: /Not evaluated|Not met|Partially met|Fully met/i }) })
+      .first(),
+
+    /**
+     * Process Requirements progress percentage shown at Manage stage.
+     * Typically rendered as a span/div with a "%" sign.
+     */
+    processReqProgressIndicator: page
+      .locator('[class*="progress"], [class*="completion"], [class*="percentage"]')
+      .filter({ hasText: /%/ })
+      .first(),
+
+    // ── FCSR Decision Tab ──────────────────────────────────────────────────
+
+    /**
+     * FCSR Approval Decision dropdown on the FCSR Decision tab.
+     * Options: Select / Go / Go with Post-Conditions / Go with Pre-Conditions / No-Go
+     */
+    fcsrApprovalDecisionDropdown: page
+      .locator('select')
+      .filter({ has: page.locator('option').filter({ hasText: /Go|No-Go/i }) })
+      .first(),
+
+    /**
+     * "Exception Required" checkbox on the FCSR Decision tab.
+     */
+    exceptionRequiredCheckbox: page
+      .getByRole('checkbox', { name: /Exception Required/i })
+      .first(),
+
+    /**
+     * "+ Add Participant" button on the FCSR Decision tab.
+     * Similar to Review & Confirm but in the FCSR Decision context.
+     */
+    fcsrAddParticipantButton: page
+      .getByRole('button', { name: /Add\s*(FCSR\s*)?Participant/i })
+      .first(),
+
+    /**
+     * FCSR participants table.
+     */
+    fcsrParticipantsTable: page
+      .locator('table, [role="grid"]')
+      .filter({ has: page.locator('[role="columnheader"], th').filter({ hasText: /FCSR Participant|Recommendation/i }) })
+      .first(),
+
+    /**
+     * FCSR Decision section heading on the FCSR Decision tab.
+     */
+    fcsrDecisionSectionHeader: page.getByText(/FCSR Decisions?|FCSR Decision$/i).first(),
   };
 }
 

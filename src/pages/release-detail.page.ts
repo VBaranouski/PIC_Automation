@@ -10,15 +10,21 @@ function escapeCssIdentifier(value: string): string {
 
 /**
  * Expected Release pipeline stage names.
- * Observed on qa.leap.schneider-electric.com (ReleaseId=3605, "One more product"):
- *   Stage 4 aria-label is "Security & Privacy Readiness Sign Off"
- *   (Some older releases may show "SDPA & PQL Sign Off" for stage 4)
+ * Stage 4 was renamed between release versions:
+ *   - Newer releases: "Security & Privacy Readiness Sign Off"
+ *   - Older releases: "SDPA & PQL Sign Off"
+ * Both names are listed in RELEASE_STAGE_4_ALIASES; tests should accept either.
  */
+export const RELEASE_STAGE_4_ALIASES = [
+  'Security & Privacy Readiness Sign Off',
+  'SDPA & PQL Sign Off',
+] as const;
+
 export const RELEASE_PIPELINE_STAGES = [
   'Creation & Scoping',
   'Review & Confirm',
   'Manage',
-  'Security & Privacy Readiness Sign Off',
+  RELEASE_STAGE_4_ALIASES[0], // primary name; RELEASE_STAGE_4_ALIASES covers the alternate
   'FCSR Review',
   'Post FCSR Actions',
   'Final Acceptance',
@@ -45,7 +51,7 @@ export class ReleaseDetailPage extends BasePage {
       { timeout },
     ).catch(() => undefined);
     await this.waitForOSLoad();
-    await expect(this.l.releaseDetailsTab).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.releaseDetailsTab).toBeVisible({ timeout });
   }
 
   // ── Breadcrumb ─────────────────────────────────────────────────────────────
@@ -195,8 +201,22 @@ export class ReleaseDetailPage extends BasePage {
 
   async getWorkflowSectionLines(stageName: string): Promise<string[]> {
     const lines = await this.getWorkflowPanelLines();
-    const stages = RELEASE_PIPELINE_STAGES.map((stage) => stage.toLowerCase());
-    const startIndex = lines.findIndex((line) => line.toLowerCase().includes(stageName.toLowerCase()));
+    // All known stage name variants (including both stage-4 aliases)
+    const allStages = [
+      ...RELEASE_PIPELINE_STAGES.map((s) => s.toLowerCase()),
+      ...RELEASE_STAGE_4_ALIASES.map((s) => s.toLowerCase()),
+    ];
+    // Resolve stage 4 aliases: if stageName is any alias, try all aliases
+    const isStage4Alias = RELEASE_STAGE_4_ALIASES.some(
+      (alias) => stageName.toLowerCase() === alias.toLowerCase(),
+    );
+    const searchTerms = isStage4Alias
+      ? RELEASE_STAGE_4_ALIASES.map((a) => a.toLowerCase())
+      : [stageName.toLowerCase()];
+
+    const startIndex = lines.findIndex((line) =>
+      searchTerms.some((term) => line.toLowerCase().includes(term)),
+    );
 
     if (startIndex === -1) {
       return [];
@@ -205,7 +225,7 @@ export class ReleaseDetailPage extends BasePage {
     const sectionLines: string[] = [];
     for (let index = startIndex; index < lines.length; index += 1) {
       const line = lines[index];
-      if (index > startIndex && stages.some((stage) => line.toLowerCase().includes(stage))) {
+      if (index > startIndex && allStages.some((stage) => line.toLowerCase().includes(stage))) {
         break;
       }
       sectionLines.push(line);
@@ -221,11 +241,15 @@ export class ReleaseDetailPage extends BasePage {
 
   async getWorkflowStageResponsibleEntries(stageName: string): Promise<string[]> {
     const sectionLines = await this.getWorkflowSectionLines(stageName);
+    const allStages = [
+      ...RELEASE_PIPELINE_STAGES.map((s) => s.toLowerCase()),
+      ...RELEASE_STAGE_4_ALIASES.map((s) => s.toLowerCase()),
+    ];
     return sectionLines.filter((line) => {
       const normalized = line.toLowerCase();
       return normalized !== stageName.toLowerCase()
         && !/submission/i.test(normalized)
-        && !RELEASE_PIPELINE_STAGES.some((stage) => normalized.includes(stage.toLowerCase()));
+        && !allStages.some((stage) => normalized.includes(stage));
     });
   }
 
@@ -437,5 +461,217 @@ export class ReleaseDetailPage extends BasePage {
     ]).then(() => true).catch(() => false);
 
     expect(loaded, 'Included SE Components section should load with a button, empty state, or grid').toBe(true);
+  }
+
+  // ── Review & Confirm tab ──────────────────────────────────────────────────
+
+  /** Returns true if the Review & Confirm content tab is accessible (not disabled-tab). */
+  async isReviewConfirmTabAccessible(): Promise<boolean> {
+    const tab = this.l.reviewConfirmContentTab;
+    const isVisible = await tab.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!isVisible) {
+      return false;
+    }
+
+    const cls = await tab.getAttribute('class').catch(() => '');
+    return !cls?.includes('disabled-tab');
+  }
+
+  /** Asserts the Review & Confirm content tab is accessible (not disabled-tab). */
+  async expectReviewConfirmTabAccessible(): Promise<void> {
+    await expect(this.l.reviewConfirmContentTab).toBeVisible({ timeout: 20_000 });
+    const cls = await this.l.reviewConfirmContentTab.getAttribute('class');
+    expect(
+      cls?.includes('disabled-tab'),
+      'Review & Confirm tab should NOT have disabled-tab class when past Scoping stage',
+    ).toBe(false);
+  }
+
+  /** Asserts the Review & Confirm tab is disabled (has disabled-tab class). */
+  async expectReviewConfirmTabDisabled(): Promise<void> {
+    await expect(this.l.reviewConfirmContentTab).toBeVisible({ timeout: 20_000 });
+    const cls = await this.l.reviewConfirmContentTab.getAttribute('class');
+    expect(
+      cls?.includes('disabled-tab'),
+      'Review & Confirm tab should have disabled-tab class at Scoping stage',
+    ).toBe(true);
+  }
+
+  /** Clicks the Review & Confirm content tab (osui-tabs__header-item version). */
+  async clickReviewConfirmContentTab(): Promise<void> {
+    await expect(this.l.reviewConfirmContentTab).toBeVisible({ timeout: 20_000 });
+    await this.l.reviewConfirmContentTab.click();
+    await this.waitForOSLoad();
+  }
+
+  /** Asserts the Requirements Summary accordion is visible. */
+  async expectRequirementsSummaryAccordionVisible(): Promise<void> {
+    await expect(this.l.requirementsSummaryAccordion).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Returns true if the Requirements Summary accordion is collapsed (has is-closed class). */
+  async isRequirementsSummaryCollapsed(): Promise<boolean> {
+    const cls = await this.l.requirementsSummaryAccordion.getAttribute('class').catch(() => '');
+    return (cls ?? '').includes('is-closed');
+  }
+
+  /** Expands the Requirements Summary accordion by clicking its title. */
+  async expandRequirementsSummary(): Promise<void> {
+    const isClosed = await this.isRequirementsSummaryCollapsed();
+    if (isClosed) {
+      await this.l.requirementsSummaryAccordionTitle.click();
+      await this.waitForOSLoad();
+    }
+  }
+
+  /** Returns true if the Previous FCSR Summary accordion is collapsed. */
+  async isPreviousFcsrCollapsed(): Promise<boolean> {
+    const cls = await this.l.previousFcsrAccordion.getAttribute('class').catch(() => '');
+    return (cls ?? '').includes('is-closed');
+  }
+
+  /** Expands the Previous FCSR Summary accordion by clicking its title. */
+  async expandPreviousFcsrSummary(): Promise<void> {
+    const isClosed = await this.isPreviousFcsrCollapsed();
+    if (isClosed) {
+      await this.l.previousFcsrAccordionTitle.click();
+      await this.waitForOSLoad();
+    }
+  }
+
+  /** Asserts the Scope Review Participants section header is visible. */
+  async expectScopeReviewParticipantsVisible(): Promise<void> {
+    await expect(this.l.scopeReviewParticipantsHeader).toBeVisible({ timeout: 20_000 });
+  }
+
+  /**
+   * Asserts the Scope Review Participants table contains the expected column headers.
+   * DOM column text uses Title Case; CSS text-transform makes them appear UPPERCASE visually.
+   * Expected: Scope Review Participant Name, Role, Recommendation, Participant's Comments
+   */
+  async expectScopeReviewParticipantsColumnsVisible(): Promise<void> {
+    const expectedHeaders = [
+      /scope review participant name/i,
+      /^role$/i,
+      /^recommendation$/i,
+      /participant.s comments/i,
+    ];
+    for (const header of expectedHeaders) {
+      await expect(
+        this.page.locator('[role="columnheader"], th').filter({ hasText: header }).first(),
+        `Column header matching /${header.source}/i should be visible in the Scope Review Participants table`,
+      ).toBeVisible({ timeout: 15_000 });
+    }
+  }
+
+  /** Asserts the Key Discussion Topics section header is visible. */
+  async expectKeyDiscussionTopicsVisible(): Promise<void> {
+    await expect(this.l.keyDiscussionTopicsHeader).toBeVisible({ timeout: 20_000 });
+  }
+
+  /**
+   * Asserts the Key Discussion Topics table has the expected column headers.
+   * DOM column text may be mixed case; case-insensitive matching used.
+   * Expected: Topic Name, Discussion Details, Date, Added By
+   */
+  async expectKeyDiscussionTopicsColumnsVisible(): Promise<void> {
+    const expectedHeaders = [
+      /topic name/i,
+      /discussion details/i,
+      /^date$/i,
+      /added by/i,
+    ];
+    for (const header of expectedHeaders) {
+      await expect(
+        this.page.locator('[role="columnheader"], th').filter({ hasText: header }).first(),
+        `Column header matching /${header.source}/i should be visible in the Key Discussion Topics table`,
+      ).toBeVisible({ timeout: 15_000 });
+    }
+  }
+
+  /** Asserts the Scope Review Decision section header is visible. */
+  async expectScopeReviewDecisionVisible(): Promise<void> {
+    await expect(this.l.scopeReviewDecisionHeader).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Asserts the Action Plan header reads "ACTION PLAN FOR SCOPE REVIEW DECISIONS". */
+  async expectActionPlanHeaderVisible(): Promise<void> {
+    await expect(this.l.actionPlanHeader).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Asserts the Action Plan section shows "No Actions added yet" empty state. */
+  async expectActionPlanEmptyState(): Promise<void> {
+    await expect(this.l.actionPlanEmptyState).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ── Manage Stage (WF6) ────────────────────────────────────────────────────
+
+  /** Returns true if the release is at the Manage stage (pipeline active stage = "Manage"). */
+  async isAtManageStage(): Promise<boolean> {
+    const label = await this.getActiveStageName();
+    return /^Manage$/i.test(label);
+  }
+
+  /**
+   * Returns true if the release is at or past the Manage stage.
+   * Accepts: Manage, SA & PQL Sign Off (any alias), FCSR Review, Post FCSR Actions, Final Acceptance.
+   */
+  async isAtOrPastManageStage(): Promise<boolean> {
+    const label = await this.getActiveStageName();
+    return /^Manage$|Security\s*&\s*Privacy|SDPA\s*&\s*PQL|FCSR\s*Review|Post\s*FCSR|Final\s*Acceptance/i.test(label);
+  }
+
+  /** Asserts the "Submit for SA & PQL Sign Off" action button is visible. */
+  async expectSubmitForSaPqlButtonVisible(): Promise<void> {
+    // The button label may be "Submit for SA & PQL Sign Off" OR "Submit for Security & Privacy..."
+    const btn = this.l.submitForSaPqlButton;
+    const isVisible = await btn.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!isVisible) {
+      // Fall back to the generic Submit button in the actions bar
+      await expect(this.l.manageStageSubmitButton).toBeVisible({ timeout: 15_000 });
+    }
+  }
+
+  /** Asserts the Actions Management sidebar link is visible. */
+  async expectActionsManagementLinkVisible(): Promise<void> {
+    await expect(this.l.actionsManagementLink).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Asserts the View Release History sidebar link is visible. */
+  async expectViewReleaseHistoryLinkVisible(): Promise<void> {
+    await expect(this.l.viewReleaseHistoryLink).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Clicks the CSRR tab and waits for content to load. */
+  async clickCsrrTab(): Promise<void> {
+    await expect(this.l.csrrTab).toBeVisible({ timeout: 20_000 });
+    await this.l.csrrTab.click();
+    await this.waitForOSLoad();
+  }
+
+  /** Asserts the CSRR tab is accessible (not disabled). */
+  async expectCsrrTabAccessible(): Promise<void> {
+    await expect(this.l.csrrTab).toBeVisible({ timeout: 20_000 });
+    const isDisabled = await this.isTopLevelTabDisabled('Cybersecurity Residual Risks');
+    expect(isDisabled, 'CSRR tab should not be disabled at Manage stage or later').toBe(false);
+  }
+
+  /** Asserts the FCSR Decision tab is accessible. */
+  async expectFcsrDecisionTabAccessible(): Promise<void> {
+    await expect(this.l.fcsrDecisionTab).toBeVisible({ timeout: 20_000 });
+    const isDisabled = await this.isTopLevelTabDisabled('FCSR Decision');
+    expect(isDisabled, 'FCSR Decision tab should not be disabled at Manage stage or later').toBe(false);
+  }
+
+  /** Asserts the SBOM Status label is visible on the CSRR SDL Processes Summary. */
+  async expectSbomStatusLabelVisible(): Promise<void> {
+    await expect(this.l.sbomStatusLabel).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Clicks the FCSR Decision tab and waits for content to load. */
+  async clickFcsrDecisionTab(): Promise<void> {
+    await expect(this.l.fcsrDecisionTab).toBeVisible({ timeout: 20_000 });
+    await this.l.fcsrDecisionTab.click();
+    await this.waitForOSLoad();
   }
 }
