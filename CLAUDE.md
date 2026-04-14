@@ -414,7 +414,7 @@ The tracker (SQLite database + Express UI) manages test planning and automation 
 ```bash
 # List scenarios with filters
 npm run tracker:list
-npm run tracker:list -- --status=pending
+npm run tracker:list -- --auto-state=pending
 npm run tracker:list -- --feature-area=doc
 
 # View detailed report
@@ -446,7 +446,7 @@ Scenarios track:
 
 ```bash
 # Set scenario to automated
-npm run tracker -- status AUTH-LOGIN-001 automated
+npm run tracker -- auto-state AUTH-LOGIN-001 automated
 
 # Hold a scenario (skips during test runs)
 npm run tracker -- hold AUTH-LOGIN-001

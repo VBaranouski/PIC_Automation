@@ -276,8 +276,13 @@ program
       process.exit(1);
     }
     const updated = setAutomationState(id.toUpperCase(), newState as AutomationState);
-    if (updated) console.log(chalk.green(`✓ ${updated.id} auto-state → ${colorAuto(updated.automation_state)}`));
-    else         console.log(chalk.red(`Scenario "${id}" not found.`));
+    if (updated) {
+      console.log(chalk.green(`✓ ${updated.id} auto-state → ${colorAuto(updated.automation_state)}`));
+    } else {
+      console.log(chalk.red(`Scenario "${id}" not found.`));
+      closeDb();
+      process.exit(1);
+    }
     closeDb();
   });
 
@@ -294,8 +299,13 @@ program
       process.exit(1);
     }
     const updated = setExecutionStatus(id.toUpperCase(), newStatus as ExecutionStatus);
-    if (updated) console.log(chalk.green(`✓ ${updated.id} exec-status → ${colorExec(updated.execution_status)}`));
-    else         console.log(chalk.red(`Scenario "${id}" not found.`));
+    if (updated) {
+      console.log(chalk.green(`✓ ${updated.id} exec-status → ${colorExec(updated.execution_status)}`));
+    } else {
+      console.log(chalk.red(`Scenario "${id}" not found.`));
+      closeDb();
+      process.exit(1);
+    }
     closeDb();
   });
 
@@ -306,13 +316,13 @@ program
   .command('status <id> <newStatus>')
   .description('[deprecated] Alias for auto-state')
   .action((id: string, newStatus: string) => {
+    getDb();
     console.log(chalk.yellow('⚠  `status` is deprecated — use `auto-state` or `exec-status` instead.'));
     if (!isValidAutomationState(newStatus)) {
       console.log(chalk.red(`Invalid automation state: ${newStatus}. Valid: ${AUTOMATION_STATES.join(', ')}`));
       closeDb();
       process.exit(1);
     }
-    getDb();
     const updated = setAutomationState(id.toUpperCase(), newStatus as AutomationState);
     if (updated) console.log(chalk.green(`✓ ${updated.id} auto-state → ${colorAuto(updated.automation_state)}`));
     else         console.log(chalk.red(`Scenario "${id}" not found.`));
@@ -452,16 +462,33 @@ program
     console.log(`Total scenarios: ${stats.total}`);
 
     console.log(chalk.bold('\nBy Automation State:'));
-    for (const [k, v] of Object.entries(stats.byAutomationState)) console.log(`  ${colorAuto(k as AutomationState)}: ${v}`);
+    for (const [k, v] of Object.entries(stats.byAutomationState)) {
+      if (v > 0) {
+        const pct = stats.total > 0 ? ((v / stats.total) * 100).toFixed(1) : '0.0';
+        console.log(`  ${colorAuto(k as AutomationState)}: ${v} (${pct}%)`);
+      }
+    }
 
     console.log(chalk.bold('\nBy Execution Status:'));
-    for (const [k, v] of Object.entries(stats.byExecutionStatus)) console.log(`  ${colorExec(k as ExecutionStatus)}: ${v}`);
+    for (const [k, v] of Object.entries(stats.byExecutionStatus)) {
+      if (v > 0) {
+        const pct = stats.total > 0 ? ((v / stats.total) * 100).toFixed(1) : '0.0';
+        console.log(`  ${colorExec(k as ExecutionStatus)}: ${v} (${pct}%)`);
+      }
+    }
 
     console.log(chalk.bold('\nBy Priority:'));
-    for (const [k, v] of Object.entries(stats.byPriority)) console.log(`  ${colorPriority(k as Priority)}: ${v}`);
+    for (const [k, v] of Object.entries(stats.byPriority)) {
+      if (v > 0) {
+        const pct = stats.total > 0 ? ((v / stats.total) * 100).toFixed(1) : '0.0';
+        console.log(`  ${colorPriority(k as Priority)}: ${v} (${pct}%)`);
+      }
+    }
 
     console.log(chalk.bold('\nBy Feature Area:'));
-    for (const [k, v] of Object.entries(stats.byFeatureArea)) console.log(`  ${k}: ${v}`);
+    for (const [k, v] of Object.entries(stats.byFeatureArea)) {
+      if (v > 0) console.log(`  ${k}: ${v}`);
+    }
     closeDb();
   });
 
