@@ -53,4 +53,41 @@ test.describe('parseHtmlPlan', () => {
     expect(scenarios.find((s) => s.id === 'AUTH-LOGIN-001')!.feature_area).toBe('auth');
     expect(scenarios.find((s) => s.id === 'DOC-CREATE-001')!.feature_area).toBe('doc');
   });
+
+  test('defaults automation_state to pending when no spec_path', () => {
+    const htmlWithPending = `<!DOCTYPE html><html><body>
+<script id="doc-auto-case-details" type="application/json">
+{"NO-SPEC-001":{"title":"Manual only test"}}
+</script>
+<script>
+const SUBSECTION_INDEX = {"9.1":[["NO-SPEC-001","desc"]]};
+const AUTO_CASE_STATUS = {'NO-SPEC-001':['Not Executed','not-executed']};
+</script>
+</body></html>`;
+    const { scenarios } = parseHtmlPlan(htmlWithPending);
+    const s = scenarios.find((x) => x.id === 'NO-SPEC-001')!;
+    expect(s.automation_state).toBe('pending');
+    expect(s.execution_status).toBe('not-executed');
+  });
+
+  test('emits warning for scenario missing from details block', () => {
+    const htmlMissingDetails = `<!DOCTYPE html><html><body>
+<script id="doc-auto-case-details" type="application/json">
+{}
+</script>
+<script>
+const SUBSECTION_INDEX = {"1.1":[["AUTH-GHOST-001","desc"]]};
+const AUTO_CASE_STATUS = {'AUTH-GHOST-001':['Passed','passed']};
+</script>
+</body></html>`;
+    const { scenarios, warnings } = parseHtmlPlan(htmlMissingDetails);
+    expect(scenarios.length).toBe(1);
+    expect(scenarios[0].id).toBe('AUTH-GHOST-001');
+    expect(warnings.some((w) => w.includes('AUTH-GHOST-001') && w.includes('missing details'))).toBe(true);
+  });
+
+  test('throws when doc-auto-case-details blob is missing', () => {
+    const htmlNoBlobHtml = `<!DOCTYPE html><html><body><script>const X=1;</script></body></html>`;
+    expect(() => parseHtmlPlan(htmlNoBlobHtml)).toThrow('Missing <script id="doc-auto-case-details">');
+  });
 });

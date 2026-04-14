@@ -52,6 +52,15 @@ function extractObjectLiteral(html: string, varName: string): string | null {
   return null;
 }
 
+/**
+ * Converts simple JS object literals (as used in AUTO_CASE_STATUS and SUBSECTION_INDEX)
+ * into parseable JSON.
+ *
+ * Limitations (acceptable for this controlled HTML file):
+ * - String values must not contain apostrophes (the global ' → " replace is naive)
+ * - Brace counter does not track string content (nested { } inside strings would misfire)
+ * If the production HTML starts failing, these are the first places to look.
+ */
 function parseLooseObject<T = unknown>(text: string): T {
   // Converts single-quoted JS object literals into JSON by replacing
   // keys and string values. Used for AUTO_CASE_STATUS and SUBSECTION_INDEX.
@@ -101,6 +110,8 @@ function inferWorkflow(subsection: string, area: FeatureArea): string {
 }
 
 function inferPriority(id: string): Priority {
+  // P3 is not inferred from the HTML plan — scenarios can be set to P3 manually if needed.
+  // Heuristics: IDs ending in -001 or matching known smoke/auth patterns get P1, rest get P2.
   const idUp = id.toUpperCase();
   if (idUp.includes('SMOKE') || idUp.startsWith('AUTH-LOGIN-') || idUp.startsWith('DOC-CREATE-')) return 'P1';
   if (idUp.endsWith('-001')) return 'P1';
