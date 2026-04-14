@@ -1,11 +1,25 @@
-// src/tracker/models.ts (full file)
+/**
+ * Test Scenario Tracker — Type Definitions
+ *
+ * Central type system for the SQLite-backed test scenario tracker.
+ * All CLI commands, DB operations, and Playwright integration share these types.
+ */
 
 // ── Automation state (lifecycle of the test itself) ──────────────────────────
-export const AUTOMATION_STATES = ['pending', 'automated', 'on-hold'] as const;
+export const AUTOMATION_STATES = [
+  'pending',   // Not yet automated — needs implementation
+  'automated', // Automated test exists
+  'on-hold',   // Paused — will be auto-skipped during test runs
+] as const;
 export type AutomationState = (typeof AUTOMATION_STATES)[number];
 
 // ── Execution status (result of the last run) ────────────────────────────────
-export const EXECUTION_STATUSES = ['passed', 'not-executed', 'skipped', 'failed-defect'] as const;
+export const EXECUTION_STATUSES = [
+  'passed',        // Automated test was executed successfully
+  'not-executed',  // Test has not been run yet
+  'skipped',       // Intentionally skipped during execution
+  'failed-defect', // Test ran but found a known defect
+] as const;
 export type ExecutionStatus = (typeof EXECUTION_STATUSES)[number];
 
 // ── Priority levels ──────────────────────────────────────────────────────────
@@ -84,5 +98,5 @@ export interface TrackerExport {
 export const SCENARIO_STATUSES = [
   'pending', 'automated', 'passed', 'failed', 'skipped', 'on-hold',
 ] as const;
-/** @deprecated */
+/** @deprecated use AutomationState + ExecutionStatus */
 export type ScenarioStatus = (typeof SCENARIO_STATUSES)[number];
