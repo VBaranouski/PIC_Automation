@@ -20,6 +20,7 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { parseHtmlPlan } from '../src/tracker/html-parser';
+import { SCHEMA_SQL } from '../src/tracker/db';
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -51,13 +52,6 @@ function parseArgs(argv: string[]): Args {
   return args;
 }
 
-// Extract SCHEMA_SQL from db.ts source to avoid re-defining it here.
-function loadSchemaSql(): string {
-  const dbSrc = fs.readFileSync(path.join(ROOT, 'src', 'tracker', 'db.ts'), 'utf-8');
-  const match = dbSrc.match(/const SCHEMA_SQL = `([\s\S]*?)`;/);
-  if (!match) throw new Error('Failed to load SCHEMA_SQL from src/tracker/db.ts');
-  return match[1];
-}
 
 function backupDb(dbPath: string): string | null {
   if (!fs.existsSync(dbPath)) return null;
@@ -106,18 +100,20 @@ function main(): void {
       const row = probe.prepare("SELECT value FROM meta WHERE key = 'schema_version'").get() as { value?: string } | undefined;
       if (row?.value === '2' && !args.force) {
         console.error(`✗ DB already at schema v2 (${args.dbPath}). Use --force to overwrite existing data.`);
-        probe.close();
         process.exit(2);
       }
     } catch {
       // Not a v2 DB — safe to proceed.
+    } finally {
+      probe.close();
     }
-    probe.close();
   }
 
   const backup = backupDb(args.dbPath);
   if (backup) console.log(`Backed up existing DB → ${path.relative(ROOT, backup)}`);
 
+  // The backup (created above) is the recovery path if something fails after this point.
+  // To restore: copy the .bak file back to the original DB path.
   // Remove old DB files so SQLite creates a fresh database.
   if (fs.existsSync(args.dbPath)) fs.unlinkSync(args.dbPath);
   for (const sfx of ['-shm', '-wal']) {
@@ -130,8 +126,7 @@ function main(): void {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
-  const schemaSql = loadSchemaSql();
-  db.exec(schemaSql);
+  db.exec(SCHEMA_SQL);
   db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run('schema_version', '2');
 
   const insertScenario = db.prepare(`

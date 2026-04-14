@@ -48,7 +48,8 @@ test.describe('migrate-from-html', () => {
 
   test('refuses to run twice without --force', () => {
     const args = ['tsx', 'scripts/migrate-from-html.ts', '--html', FIXTURE, '--db', SCRATCH_DB];
-    spawnSync('npx', args, { cwd: ROOT, encoding: 'utf-8' });
+    const first = spawnSync('npx', args, { cwd: ROOT, encoding: 'utf-8' });
+    expect(first.status).toBe(0);
     const second = spawnSync('npx', args, { cwd: ROOT, encoding: 'utf-8' });
     expect(second.status).not.toBe(0);
     expect(second.stderr + second.stdout).toMatch(/already at schema v2|existing data|--force/i);

@@ -15,7 +15,7 @@ const DB_PATH = path.join(DB_DIR, 'scenarios.db');
 
 export const SCHEMA_VERSION = 2;
 
-const SCHEMA_SQL = `
+export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS meta (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL
