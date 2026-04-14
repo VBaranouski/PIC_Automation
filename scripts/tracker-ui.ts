@@ -62,7 +62,7 @@ app.use('/ui', express.static(UI_DIR));
 // Serve allure-report static files (so the embedded Allure report works)
 const ALLURE_REPORT_DIR = path.resolve(__dirname, '..', 'allure-report');
 const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
-const ALLURE_GENERATE_ARGS = ['allure', 'generate', 'allure-results', '-o', 'allure-report', '--clean', '--config', 'config/allure.config.ts'];
+const ALLURE_GENERATE_ARGS = ['allure', 'generate', 'allure-results', '-o', 'allure-report', '--config', 'config/allure.config.ts'];
 const JSON_REPORT_PATH = path.resolve(__dirname, '..', 'test-results', 'results.json');
 app.use('/allure-report', express.static(ALLURE_REPORT_DIR));
 
