@@ -17,7 +17,8 @@ import {
   getScenario,
   updateScenario,
   removeScenario,
-  setStatus,
+  setAutomationState,
+  setExecutionStatus,
   holdScenario,
   unholdScenario,
   addGroupToScenario,
@@ -29,20 +30,21 @@ import {
   getStats,
   exportToJson,
   importFromJson,
-  isValidStatus,
+  isValidAutomationState,
+  isValidExecutionStatus,
   isValidPriority,
   isValidFeatureArea,
   getScenarioDetails,
-  getAllScenarioDetails,
   getDistinctWorkflows,
 } from '../src/tracker/operations';
 import {
-  SCENARIO_STATUSES,
+  AUTOMATION_STATES,
+  EXECUTION_STATUSES,
   PRIORITIES,
   FEATURE_AREAS,
   DEFAULT_GROUPS,
 } from '../src/tracker/models';
-import type { ListFilters, TrackerExport, ScenarioStatus } from '../src/tracker/models';
+import type { ListFilters, TrackerExport, AutomationState, ExecutionStatus } from '../src/tracker/models';
 import { getDbPath, closeDb } from '../src/tracker/db';
 
 // ── App setup ─────────────────────────────────────────────────────────────────
@@ -108,7 +110,6 @@ function wrap(fn: (req: Request, res: Response) => Promise<void> | void) {
   };
 }
 
-const COVERED_SCENARIO_STATUSES = new Set<ScenarioStatus>(['automated', 'passed', 'failed', 'skipped', 'on-hold']);
 
 function hasExistingSpecFile(specFile: string): boolean {
   return Boolean(specFile) && existsSync(path.join(PROJECT_ROOT, specFile));
@@ -182,14 +183,14 @@ function syncScenarioStatusesFromRun(specFiles: string[], _fallbackStatus: 'pass
   const scenarios = listScenarios().filter((scenario) => specFiles.includes(scenario.spec_file));
 
   for (const scenario of scenarios) {
-    // Never auto-update: on-hold, already-skipped, or pending (not yet automated)
-    if (scenario.status === 'on-hold' || scenario.status === 'skipped' || scenario.status === 'pending') continue;
+    // Never auto-update: on-hold or pending (not yet automated)
+    if (scenario.automation_state === 'on-hold' || scenario.automation_state === 'pending') continue;
     const specResult = statusBySpec.get(scenario.spec_file);
     if (specResult === undefined) {
       // Spec file was in the run but produced no results → test didn't execute
-      updateScenario(scenario.id, { status: 'skipped' });
+      setExecutionStatus(scenario.id, 'not-executed');
     } else {
-      updateScenario(scenario.id, { status: specResult === 'passed' ? 'passed' : 'failed' });
+      setExecutionStatus(scenario.id, specResult === 'passed' ? 'passed' : 'failed-defect');
     }
   }
 }
@@ -201,13 +202,16 @@ app.get(
   '/api/scenarios',
   wrap((req, res) => {
     const filters: ListFilters = {};
-    if (req.query.status && typeof req.query.status === 'string') filters.status = req.query.status as any;
-    if (req.query.priority && typeof req.query.priority === 'string') filters.priority = req.query.priority as any;
-    if (req.query.feature_area && typeof req.query.feature_area === 'string') filters.feature_area = req.query.feature_area as any;
-    if (req.query.group && typeof req.query.group === 'string') filters.group = req.query.group;
-    if (req.query.workflow && typeof req.query.workflow === 'string') filters.workflow = req.query.workflow;
-    if (req.query.search && typeof req.query.search === 'string') filters.search = req.query.search;
-    if (req.query.spec_file && typeof req.query.spec_file === 'string') filters.spec_file = req.query.spec_file;
+    const q = req.query;
+
+    if (q.automation_state) filters.automation_state = param(q.automation_state as any) as AutomationState;
+    if (q.execution_status) filters.execution_status = param(q.execution_status as any) as ExecutionStatus;
+    if (q.priority)         filters.priority         = param(q.priority as any) as any;
+    if (q.feature_area)     filters.feature_area     = param(q.feature_area as any) as any;
+    if (q.group)            filters.group            = param(q.group as any);
+    if (q.workflow)         filters.workflow         = param(q.workflow as any);
+    if (q.search)           filters.search           = param(q.search as any);
+    if (q.spec_file)        filters.spec_file        = param(q.spec_file as any);
 
     const scenarios = listScenarios(Object.keys(filters).length ? filters : undefined);
 
@@ -240,13 +244,17 @@ app.get(
 app.post(
   '/api/scenarios',
   wrap((req, res) => {
-    const { id, title, description, status, priority, feature_area, spec_file, workflow, groups } = req.body;
+    const { id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups } = req.body;
     if (!id || !title) {
       res.status(400).json({ error: 'id and title are required' });
       return;
     }
-    if (status && !isValidStatus(status)) {
-      res.status(400).json({ error: `Invalid status: ${status}` });
+    if (automation_state && !isValidAutomationState(automation_state)) {
+      res.status(400).json({ error: `Invalid automation_state: ${automation_state}` });
+      return;
+    }
+    if (execution_status && !isValidExecutionStatus(execution_status)) {
+      res.status(400).json({ error: `Invalid execution_status: ${execution_status}` });
       return;
     }
     if (priority && !isValidPriority(priority)) {
@@ -258,7 +266,7 @@ app.post(
       return;
     }
     try {
-      const scenario = addScenario({ id, title, description, status, priority, feature_area, spec_file, workflow, groups });
+      const scenario = addScenario({ id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups });
       res.status(201).json(scenario);
     } catch (err: any) {
       if (err.message?.includes('UNIQUE constraint')) {
@@ -274,9 +282,13 @@ app.post(
 app.put(
   '/api/scenarios/:id',
   wrap((req, res) => {
-    const { title, description, status, priority, feature_area, spec_file, workflow, groups } = req.body;
-    if (status && !isValidStatus(status)) {
-      res.status(400).json({ error: `Invalid status: ${status}` });
+    const { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups } = req.body;
+    if (automation_state && !isValidAutomationState(automation_state)) {
+      res.status(400).json({ error: `Invalid automation_state: ${automation_state}` });
+      return;
+    }
+    if (execution_status && !isValidExecutionStatus(execution_status)) {
+      res.status(400).json({ error: `Invalid execution_status: ${execution_status}` });
       return;
     }
     if (priority && !isValidPriority(priority)) {
@@ -288,7 +300,7 @@ app.put(
       return;
     }
     const id = param(req.params.id);
-    const updated = updateScenario(id, { title, description, status, priority, feature_area, spec_file, workflow, groups });
+    const updated = updateScenario(id, { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups });
     if (!updated) {
       res.status(404).json({ error: `Scenario ${id} not found` });
       return;
@@ -313,24 +325,23 @@ app.delete(
 
 // ── API: Status shortcuts ─────────────────────────────────────────────────────
 
-/** PATCH /api/scenarios/:id/status — change status */
-app.patch(
-  '/api/scenarios/:id/status',
-  wrap((req, res) => {
-    const { status } = req.body;
-    if (!status || !isValidStatus(status)) {
-      res.status(400).json({ error: `Invalid status: ${status}` });
-      return;
-    }
-    const id = param(req.params.id);
-    const updated = setStatus(id, status);
-    if (!updated) {
-      res.status(404).json({ error: `Scenario ${id} not found` });
-      return;
-    }
-    res.json(updated);
-  }),
-);
+// POST /api/scenarios/:id/auto-state  { state: AutomationState }
+app.post('/api/scenarios/:id/auto-state', (req: Request, res: Response) => {
+  const state = req.body?.state;
+  if (!isValidAutomationState(state)) return res.status(400).json({ error: 'invalid automation state' });
+  const updated = setAutomationState(param(req.params.id).toUpperCase(), state);
+  if (!updated) return res.status(404).json({ error: 'not found' });
+  res.json(updated);
+});
+
+// POST /api/scenarios/:id/exec-status  { status: ExecutionStatus }
+app.post('/api/scenarios/:id/exec-status', (req: Request, res: Response) => {
+  const status = req.body?.status;
+  if (!isValidExecutionStatus(status)) return res.status(400).json({ error: 'invalid execution status' });
+  const updated = setExecutionStatus(param(req.params.id).toUpperCase(), status);
+  if (!updated) return res.status(404).json({ error: 'not found' });
+  res.json(updated);
+});
 
 /** POST /api/scenarios/:id/hold — put on hold */
 app.post(
@@ -422,115 +433,11 @@ app.delete(
 
 // ── API: Stats & tools ────────────────────────────────────────────────────────
 
-// ── Workflow metadata (colors + icons from automation-testing-plan.html) ───────
-const WORKFLOW_META: Record<number, { color: string; icon: string }> = {
-  1:  { color: '#58a6ff', icon: '🔐' },
-  2:  { color: '#56d364', icon: '🏠' },
-  3:  { color: '#d2a8ff', icon: '📦' },
-  4:  { color: '#e3b341', icon: '✏️' },
-  5:  { color: '#ffa657', icon: '🔍' },
-  6:  { color: '#ff7b72', icon: '⚙️' },
-  7:  { color: '#bc8cff', icon: '✍️' },
-  8:  { color: '#f0883e', icon: '⚖️' },
-  9:  { color: '#ff9966', icon: '📋' },
-  10: { color: '#3fb950', icon: '🏁' },
-  11: { color: '#79c0ff', icon: '📜' },
-  12: { color: '#d29922', icon: '🤝' },
-  13: { color: '#8b949e', icon: '⚡' },
-  14: { color: '#6e7681', icon: '📅' },
-  15: { color: '#6e7681', icon: '🗂️' },
-  16: { color: '#79c0ff', icon: '🔐' },
-  17: { color: '#8b949e', icon: '🔧' },
-  18: { color: '#e3b341', icon: '🏗️' },
-  19: { color: '#56d364', icon: '📊' },
-  20: { color: '#ffa657', icon: '📥' },
-  21: { color: '#bc8cff', icon: '📤' },
-  22: { color: '#ff7b72', icon: '🎓' },
-};
-
-/** GET /api/workflows — all scenarios grouped by workflow (with details) */
+/** GET /api/workflows — distinct workflow names for UI dropdowns */
 app.get(
   '/api/workflows',
-  wrap((req, res) => {
-    const filters: ListFilters = {};
-    if (req.query.status && typeof req.query.status === 'string') filters.status = req.query.status as any;
-    if (req.query.priority && typeof req.query.priority === 'string') filters.priority = req.query.priority as any;
-    if (req.query.feature_area && typeof req.query.feature_area === 'string') filters.feature_area = req.query.feature_area as any;
-    if (req.query.group && typeof req.query.group === 'string') filters.group = req.query.group;
-    if (req.query.search && typeof req.query.search === 'string') filters.search = req.query.search;
-
-    const scenarios = listScenarios(Object.keys(filters).length ? filters : undefined);
-    const allDetails = getAllScenarioDetails();
-
-    // Group by workflow → subsection
-    const workflowMap = new Map<string, Map<string, any[]>>();
-    for (const s of scenarios) {
-      const wf = s.workflow || 'Uncategorized';
-      if (!workflowMap.has(wf)) workflowMap.set(wf, new Map());
-      const subsMap = workflowMap.get(wf)!;
-      const sub = (s as any).subsection || '';
-      if (!subsMap.has(sub)) subsMap.set(sub, []);
-      const details = allDetails.get(s.id);
-      subsMap.get(sub)!.push({
-        ...enrichScenario(s),
-        steps: details?.steps || [],
-        expected_results: details?.expected_results || [],
-        execution_notes: details?.execution_notes || '',
-      });
-    }
-
-    // Helper to compute stats for a list of scenarios
-    const computeStats = (items: any[]) => ({
-      total: items.length,
-      automated: items.filter((s: any) => s.status === 'automated').length,
-      passed: items.filter((s: any) => s.status === 'passed').length,
-      covered: items.filter((s: any) => COVERED_SCENARIO_STATUSES.has(s.status)).length,
-      pending: items.filter((s: any) => s.status === 'pending').length,
-      failed: items.filter((s: any) => s.status === 'failed').length,
-      skipped: items.filter((s: any) => s.status === 'skipped').length,
-      onHold: items.filter((s: any) => s.status === 'on-hold').length,
-    });
-
-    // Sort workflows by number
-    const workflows = [...workflowMap.entries()]
-      .sort(([a], [b]) => {
-        const na = parseInt(a.match(/\d+/)?.[0] || '999');
-        const nb = parseInt(b.match(/\d+/)?.[0] || '999');
-        return na - nb;
-      })
-      .map(([name, subsMap]) => {
-        const allItems: any[] = [];
-        const subsections = [...subsMap.entries()]
-          .sort(([a], [b]) => {
-            // Sort subsections by their numeric prefix (e.g. "2.1" < "2.2" < "2.10")
-            const parseSub = (s: string) => {
-              const m = s.match(/^(\d+)\.(\d+)/);
-              return m ? parseFloat(m[1]) * 1000 + parseFloat(m[2]) : 9999;
-            };
-            return parseSub(a) - parseSub(b);
-          })
-          .map(([subName, items]) => {
-            allItems.push(...items);
-            return {
-              name: subName || null,
-              items,
-              stats: computeStats(items),
-            };
-          });
-
-        const wfNum = parseInt(name.match(/\d+/)?.[0] || '0');
-        const meta = WORKFLOW_META[wfNum] || { color: '#58a6ff', icon: '📋' };
-
-        return {
-          name,
-          color: meta.color,
-          icon: meta.icon,
-          subsections,
-          stats: computeStats(allItems),
-        };
-      });
-
-    res.json({ workflows, total: scenarios.length });
+  wrap((_req, res) => {
+    res.json(getDistinctWorkflows());
   }),
 );
 
@@ -594,10 +501,11 @@ app.get(
   '/api/meta',
   wrap((_req, res) => {
     res.json({
-      statuses: [...SCENARIO_STATUSES],
-      priorities: [...PRIORITIES],
-      featureAreas: [...FEATURE_AREAS],
-      defaultGroups: [...DEFAULT_GROUPS],
+      automation_states: AUTOMATION_STATES,
+      execution_statuses: EXECUTION_STATUSES,
+      priorities: PRIORITIES,
+      feature_areas: FEATURE_AREAS,
+      default_groups: DEFAULT_GROUPS,
     });
   }),
 );
