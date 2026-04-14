@@ -5,8 +5,6 @@
  * Used by the CLI tool and the Playwright integration helper.
  */
 
-// src/tracker/operations.ts — imports + helpers replacement
-
 import { getDb, getProjectRoot } from './db';
 import type {
   Scenario,
@@ -456,6 +454,8 @@ export function importFromJson(data: TrackerExport): { imported: number; skipped
 
 export function upsertScenario(input: AddScenarioInput): { action: 'created' | 'updated' } {
   if (scenarioExists(input.id)) {
+    // Note: sidecar fields (steps/expected_results/execution_notes) are not updated
+    // via upsert — they are only written during addScenario (initial import).
     updateScenario(input.id, {
       title: input.title,
       description: input.description,
@@ -512,8 +512,8 @@ export function getScenarioDetails(id: string): ScenarioDetails | null {
   if (!row) return null;
   return {
     scenario_id: row.scenario_id,
-    steps: JSON.parse(row.steps),
-    expected_results: JSON.parse(row.expected_results),
+    steps: parseJsonArray(row.steps),
+    expected_results: parseJsonArray(row.expected_results),
     execution_notes: row.execution_notes,
   };
 }
@@ -535,8 +535,8 @@ export function getAllScenarioDetails(): Map<string, ScenarioDetails> {
   for (const row of rows) {
     map.set(row.scenario_id, {
       scenario_id: row.scenario_id,
-      steps: JSON.parse(row.steps),
-      expected_results: JSON.parse(row.expected_results),
+      steps: parseJsonArray(row.steps),
+      expected_results: parseJsonArray(row.expected_results),
       execution_notes: row.execution_notes,
     });
   }
