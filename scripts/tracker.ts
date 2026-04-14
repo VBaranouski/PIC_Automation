@@ -7,20 +7,22 @@
  *   npm run tracker -- <command> [options]
  *
  * Commands:
- *   list       List scenarios with optional filters
- *   add        Add a new test scenario
- *   remove     Remove a test scenario
- *   status     Change the status of a scenario
- *   hold       Put a scenario on hold (auto-skipped in test runs)
- *   unhold     Remove hold from a scenario (set back to pending)
- *   group      Add or remove groups from a scenario
- *   groups     List all available groups
- *   sync       Reconcile DB with actual spec files
- *   report     Print summary statistics
- *   export     Export all scenarios to JSON
- *   import     Import scenarios from a JSON file
- *   seed       Seed DB from the automation-testing-plan.md
- *   show       Show details of a single scenario
+ *   list        List scenarios with optional filters
+ *   add         Add a new test scenario
+ *   remove      Remove a test scenario
+ *   auto-state  Change the automation state of a scenario
+ *   exec-status Change the execution status of a scenario
+ *   status      [deprecated] Alias for auto-state
+ *   hold        Put a scenario on hold (auto-skipped in test runs)
+ *   unhold      Remove hold from a scenario (set back to pending)
+ *   group       Add or remove groups from a scenario
+ *   groups      List all available groups
+ *   sync        Reconcile DB with actual spec files
+ *   report      Print summary statistics
+ *   export      Export all scenarios to JSON
+ *   import      Import scenarios from a JSON file
+ *   seed        Seed DB from the automation-testing-plan.md
+ *   show        Show details of a single scenario
  */
 
 import { Command } from 'commander';
@@ -34,7 +36,8 @@ import {
   addScenario,
   getScenario,
   removeScenario,
-  setStatus,
+  setAutomationState,
+  setExecutionStatus,
   holdScenario,
   unholdScenario,
   updateScenario,
@@ -47,37 +50,45 @@ import {
   getStats,
   exportToJson,
   importFromJson,
-  isValidStatus,
+  isValidAutomationState,
+  isValidExecutionStatus,
   isValidPriority,
   isValidFeatureArea,
 } from '../src/tracker/operations';
-import { SCENARIO_STATUSES, PRIORITIES, FEATURE_AREAS } from '../src/tracker/models';
-import type { ScenarioStatus, Priority, FeatureArea, Scenario } from '../src/tracker/models';
+import {
+  AUTOMATION_STATES,
+  EXECUTION_STATUSES,
+  PRIORITIES,
+  FEATURE_AREAS,
+} from '../src/tracker/models';
+import type {
+  AutomationState,
+  ExecutionStatus,
+  Priority,
+  FeatureArea,
+  Scenario,
+} from '../src/tracker/models';
 
-// ── Status color helpers ──────────────────────────────────────────────────────
-
-const statusColor: Record<ScenarioStatus, (s: string) => string> = {
-  pending: chalk.yellow,
+const autoStateColor: Record<AutomationState, (s: string) => string> = {
+  pending:   chalk.yellow,
   automated: chalk.green,
-  passed: chalk.cyan,
-  failed: chalk.red,
-  skipped: chalk.gray,
   'on-hold': chalk.magenta,
 };
-
+const execStatusColor: Record<ExecutionStatus, (s: string) => string> = {
+  passed:          chalk.cyan,
+  'not-executed':  chalk.gray,
+  skipped:         chalk.gray,
+  'failed-defect': chalk.red,
+};
 const priorityColor: Record<Priority, (s: string) => string> = {
   P1: chalk.red.bold,
   P2: chalk.yellow,
   P3: chalk.gray,
 };
 
-function colorStatus(s: ScenarioStatus): string {
-  return (statusColor[s] || chalk.white)(s);
-}
-
-function colorPriority(p: Priority): string {
-  return (priorityColor[p] || chalk.white)(p);
-}
+function colorAuto(s: AutomationState): string { return (autoStateColor[s] || chalk.white)(s); }
+function colorExec(s: ExecutionStatus): string  { return (execStatusColor[s] || chalk.white)(s); }
+function colorPriority(p: Priority): string     { return (priorityColor[p]  || chalk.white)(p); }
 
 // ── Program ───────────────────────────────────────────────────────────────────
 
@@ -93,20 +104,19 @@ program
 program
   .command('list')
   .description('List test scenarios with optional filters')
-  .option('-s, --status <status>', `Filter by status (${SCENARIO_STATUSES.join(', ')})`)
-  .option('-p, --priority <priority>', `Filter by priority (${PRIORITIES.join(', ')})`)
-  .option('-a, --area <area>', `Filter by feature area (${FEATURE_AREAS.join(', ')})`)
-  .option('-g, --group <group>', 'Filter by group/tag name')
-  .option('-w, --workflow <workflow>', 'Filter by workflow name (partial match)')
-  .option('-q, --search <query>', 'Search in ID, title, and description')
-  .option('-f, --spec <path>', 'Filter by spec file path (partial match)')
-  .option('--compact', 'Compact output (ID + title only)')
+  .option('--auto-state <state>',     `Filter by automation state (${AUTOMATION_STATES.join(', ')})`)
+  .option('--exec-status <status>',   `Filter by execution status (${EXECUTION_STATUSES.join(', ')})`)
+  .option('-p, --priority <priority>',`Filter by priority (${PRIORITIES.join(', ')})`)
+  .option('-a, --area <area>',        `Filter by feature area (${FEATURE_AREAS.join(', ')})`)
+  .option('-g, --group <group>',      'Filter by group/tag name')
+  .option('-w, --workflow <workflow>','Filter by workflow name (partial match)')
+  .option('-s, --search <term>',      'Search id/title/description')
+  .option('--spec <path>',            'Filter by spec file (partial match)')
   .action((opts) => {
-    // Initialise DB
     getDb();
-
     const scenarios = listScenarios({
-      status: opts.status,
+      automation_state: opts.autoState,
+      execution_status: opts.execStatus,
       priority: opts.priority,
       feature_area: opts.area,
       group: opts.group,
@@ -115,40 +125,30 @@ program
       spec_file: opts.spec,
     });
 
-    if (scenarios.length === 0) {
-      console.log(chalk.yellow('No scenarios found matching the filters.'));
+    if (!scenarios.length) {
+      console.log(chalk.gray('No scenarios match filters.'));
       closeDb();
       return;
     }
 
-    if (opts.compact) {
-      for (const s of scenarios) {
-        console.log(`${colorPriority(s.priority)} ${chalk.cyan(s.id)} ${s.title} [${colorStatus(s.status)}]`);
-      }
-    } else {
-      const table = new Table({
-        head: ['ID', 'Title', 'Status', 'Priority', 'Area', 'Groups', 'Spec File'],
-        colWidths: [22, 50, 14, 10, 12, 20, 40],
-        wordWrap: true,
-        style: { head: ['cyan'] },
-      });
-
-      for (const s of scenarios) {
-        table.push([
-          s.id,
-          s.title.slice(0, 48),
-          colorStatus(s.status),
-          colorPriority(s.priority),
-          s.feature_area,
-          s.groups.join(', ') || '—',
-          s.spec_file || '—',
-        ]);
-      }
-
-      console.log(table.toString());
+    const table = new Table({
+      head: ['ID', 'Priority', 'Auto State', 'Exec Status', 'Area', 'Title'],
+      style: { head: ['cyan'] },
+      colWidths: [22, 10, 12, 14, 14, 60],
+      wordWrap: true,
+    });
+    for (const s of scenarios) {
+      table.push([
+        s.id,
+        colorPriority(s.priority),
+        colorAuto(s.automation_state),
+        colorExec(s.execution_status),
+        s.feature_area,
+        s.title,
+      ]);
     }
-
-    console.log(chalk.gray(`\n${scenarios.length} scenario(s) found.`));
+    console.log(table.toString());
+    console.log(chalk.gray(`\n${scenarios.length} scenarios`));
     closeDb();
   });
 
@@ -168,7 +168,8 @@ program
 
     console.log(chalk.cyan.bold(`\n  ${s.id}`));
     console.log(chalk.white(`  ${s.title}\n`));
-    console.log(`  Status:       ${colorStatus(s.status)}`);
+    console.log(`  Auto State:   ${colorAuto(s.automation_state)}`);
+    console.log(`  Exec Status:  ${colorExec(s.execution_status)}`);
     console.log(`  Priority:     ${colorPriority(s.priority)}`);
     console.log(`  Feature Area: ${s.feature_area}`);
     console.log(`  Workflow:     ${s.workflow || '—'}`);
@@ -191,7 +192,8 @@ program
   .requiredOption('-i, --id <id>', 'Unique scenario ID (e.g. AUTH-LOGIN-010)')
   .requiredOption('-t, --title <title>', 'Scenario title')
   .option('-d, --description <desc>', 'Description or notes')
-  .option('-s, --status <status>', `Status (${SCENARIO_STATUSES.join(', ')})`, 'pending')
+  .option('--auto-state <state>', `Automation state (${AUTOMATION_STATES.join(', ')})`, 'pending')
+  .option('--exec-status <status>', `Execution status (${EXECUTION_STATUSES.join(', ')})`, 'not-executed')
   .option('-p, --priority <priority>', `Priority (${PRIORITIES.join(', ')})`, 'P2')
   .option('-a, --area <area>', `Feature area (${FEATURE_AREAS.join(', ')})`, 'other')
   .option('-f, --spec <path>', 'Path to the .spec.ts file')
@@ -200,8 +202,13 @@ program
   .action((opts) => {
     getDb();
 
-    if (!isValidStatus(opts.status)) {
-      console.log(chalk.red(`Invalid status: ${opts.status}. Valid: ${SCENARIO_STATUSES.join(', ')}`));
+    if (!isValidAutomationState(opts.autoState)) {
+      console.log(chalk.red(`Invalid automation state: ${opts.autoState}. Valid: ${AUTOMATION_STATES.join(', ')}`));
+      closeDb();
+      process.exit(1);
+    }
+    if (!isValidExecutionStatus(opts.execStatus)) {
+      console.log(chalk.red(`Invalid execution status: ${opts.execStatus}. Valid: ${EXECUTION_STATUSES.join(', ')}`));
       closeDb();
       process.exit(1);
     }
@@ -218,7 +225,8 @@ program
         id: opts.id.toUpperCase(),
         title: opts.title,
         description: opts.description,
-        status: opts.status as ScenarioStatus,
+        automation_state: opts.autoState as AutomationState,
+        execution_status: opts.execStatus as ExecutionStatus,
         priority: opts.priority as Priority,
         feature_area: (opts.area || 'other') as FeatureArea,
         spec_file: opts.spec,
@@ -228,7 +236,7 @@ program
       console.log(chalk.green(`✓ Added scenario: ${scenario.id} — ${scenario.title}`));
     } catch (err: any) {
       if (err.message?.includes('UNIQUE constraint')) {
-        console.log(chalk.red(`Scenario "${opts.id}" already exists. Use "status" or "show" command instead.`));
+        console.log(chalk.red(`Scenario "${opts.id}" already exists. Use "auto-state" or "show" command instead.`));
       } else {
         console.log(chalk.red(`Error: ${err.message}`));
       }
@@ -255,24 +263,59 @@ program
     closeDb();
   });
 
-// ── status ────────────────────────────────────────────────────────────────────
+// ── auto-state ────────────────────────────────────────────────────────────────
 
 program
-  .command('status <id> <newStatus>')
-  .description(`Change scenario status. Valid statuses: ${SCENARIO_STATUSES.join(', ')}`)
-  .action((id: string, newStatus: string) => {
+  .command('auto-state <id> <newState>')
+  .description(`Set automation state. Valid: ${AUTOMATION_STATES.join(', ')}`)
+  .action((id: string, newState: string) => {
     getDb();
-    if (!isValidStatus(newStatus)) {
-      console.log(chalk.red(`Invalid status: ${newStatus}. Valid: ${SCENARIO_STATUSES.join(', ')}`));
+    if (!isValidAutomationState(newState)) {
+      console.log(chalk.red(`Invalid automation state: ${newState}. Valid: ${AUTOMATION_STATES.join(', ')}`));
       closeDb();
       process.exit(1);
     }
-    const updated = setStatus(id.toUpperCase(), newStatus as ScenarioStatus);
-    if (updated) {
-      console.log(chalk.green(`✓ ${updated.id} status → ${colorStatus(updated.status)}`));
-    } else {
-      console.log(chalk.red(`Scenario "${id}" not found.`));
+    const updated = setAutomationState(id.toUpperCase(), newState as AutomationState);
+    if (updated) console.log(chalk.green(`✓ ${updated.id} auto-state → ${colorAuto(updated.automation_state)}`));
+    else         console.log(chalk.red(`Scenario "${id}" not found.`));
+    closeDb();
+  });
+
+// ── exec-status ───────────────────────────────────────────────────────────────
+
+program
+  .command('exec-status <id> <newStatus>')
+  .description(`Set execution status. Valid: ${EXECUTION_STATUSES.join(', ')}`)
+  .action((id: string, newStatus: string) => {
+    getDb();
+    if (!isValidExecutionStatus(newStatus)) {
+      console.log(chalk.red(`Invalid execution status: ${newStatus}. Valid: ${EXECUTION_STATUSES.join(', ')}`));
+      closeDb();
+      process.exit(1);
     }
+    const updated = setExecutionStatus(id.toUpperCase(), newStatus as ExecutionStatus);
+    if (updated) console.log(chalk.green(`✓ ${updated.id} exec-status → ${colorExec(updated.execution_status)}`));
+    else         console.log(chalk.red(`Scenario "${id}" not found.`));
+    closeDb();
+  });
+
+// ── status (deprecated alias) ─────────────────────────────────────────────────
+
+// Deprecated alias — routes to auto-state for backward compatibility.
+program
+  .command('status <id> <newStatus>')
+  .description('[deprecated] Alias for auto-state')
+  .action((id: string, newStatus: string) => {
+    console.log(chalk.yellow('⚠  `status` is deprecated — use `auto-state` or `exec-status` instead.'));
+    if (!isValidAutomationState(newStatus)) {
+      console.log(chalk.red(`Invalid automation state: ${newStatus}. Valid: ${AUTOMATION_STATES.join(', ')}`));
+      closeDb();
+      process.exit(1);
+    }
+    getDb();
+    const updated = setAutomationState(id.toUpperCase(), newStatus as AutomationState);
+    if (updated) console.log(chalk.green(`✓ ${updated.id} auto-state → ${colorAuto(updated.automation_state)}`));
+    else         console.log(chalk.red(`Scenario "${id}" not found.`));
     closeDb();
   });
 
@@ -404,45 +447,21 @@ program
   .action(() => {
     getDb();
     const stats = getStats();
+    console.log(chalk.bold('Scenario Tracker Report'));
+    console.log(chalk.gray('───────────────────────'));
+    console.log(`Total scenarios: ${stats.total}`);
 
-    console.log(chalk.cyan.bold(`\n  📊 Test Scenario Tracker — Report`));
-    console.log(chalk.cyan(`  ${'─'.repeat(40)}\n`));
-    console.log(`  Total scenarios: ${chalk.bold(String(stats.total))}\n`);
+    console.log(chalk.bold('\nBy Automation State:'));
+    for (const [k, v] of Object.entries(stats.byAutomationState)) console.log(`  ${colorAuto(k as AutomationState)}: ${v}`);
 
-    // By status
-    console.log(chalk.white.bold('  By Status:'));
-    for (const [status, count] of Object.entries(stats.byStatus)) {
-      if (count > 0) {
-        const pct = ((count / stats.total) * 100).toFixed(1);
-        console.log(`    ${colorStatus(status as ScenarioStatus).padEnd(25)} ${String(count).padStart(4)}  (${pct}%)`);
-      }
-    }
+    console.log(chalk.bold('\nBy Execution Status:'));
+    for (const [k, v] of Object.entries(stats.byExecutionStatus)) console.log(`  ${colorExec(k as ExecutionStatus)}: ${v}`);
 
-    // By priority
-    console.log(chalk.white.bold('\n  By Priority:'));
-    for (const [priority, count] of Object.entries(stats.byPriority)) {
-      if (count > 0) {
-        const pct = ((count / stats.total) * 100).toFixed(1);
-        console.log(`    ${colorPriority(priority as Priority).padEnd(25)} ${String(count).padStart(4)}  (${pct}%)`);
-      }
-    }
+    console.log(chalk.bold('\nBy Priority:'));
+    for (const [k, v] of Object.entries(stats.byPriority)) console.log(`  ${colorPriority(k as Priority)}: ${v}`);
 
-    // By feature area
-    console.log(chalk.white.bold('\n  By Feature Area:'));
-    for (const [area, count] of Object.entries(stats.byFeatureArea)) {
-      const pct = ((count / stats.total) * 100).toFixed(1);
-      console.log(`    ${area.padEnd(20)} ${String(count).padStart(4)}  (${pct}%)`);
-    }
-
-    // By group
-    if (Object.keys(stats.byGroup).length) {
-      console.log(chalk.white.bold('\n  By Group:'));
-      for (const [group, count] of Object.entries(stats.byGroup)) {
-        console.log(`    ${group.padEnd(20)} ${String(count).padStart(4)}`);
-      }
-    }
-
-    console.log();
+    console.log(chalk.bold('\nBy Feature Area:'));
+    for (const [k, v] of Object.entries(stats.byFeatureArea)) console.log(`  ${k}: ${v}`);
     closeDb();
   });
 
