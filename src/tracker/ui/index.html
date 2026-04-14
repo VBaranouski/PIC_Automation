@@ -78,6 +78,7 @@ tailwind.config = {
   @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
   .animate-pulse-dot { animation: pulse-dot 1s infinite; }
   @keyframes toast-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .toast-anim { animation: toast-in 0.25s ease-out; }
   .app-runner-open { padding-bottom: 360px; }
 </style>
@@ -96,8 +97,8 @@ tailwind.config = {
       <span class="material-symbols-outlined">dashboard</span>
       <span class="uppercase tracking-wider text-xs font-body">Dashboard</span>
     </a>
-    <a href="/ui/reports.html" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
-      <span class="material-symbols-outlined">folder_open</span>
+    <a href="/allure-report/index.html" id="nav-reports" onclick="openReports(event)" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined" id="nav-reports-icon">folder_open</span>
       <span class="uppercase tracking-wider text-xs font-body">Test Reports</span>
     </a>
     <a href="#workflowsAnchor" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
@@ -117,10 +118,6 @@ tailwind.config = {
     <button onclick="openAddModal()" class="w-full bg-primary-container text-on-primary py-2 rounded-lg font-bold mb-6 flex items-center justify-center gap-2 active:scale-90 duration-200 text-sm">
       <span class="material-symbols-outlined text-sm">add</span> New Scenario
     </button>
-    <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
-      <span class="material-symbols-outlined">settings</span>
-      <span class="uppercase tracking-wider text-xs font-body">Settings</span>
-    </a>
     <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
       <span class="material-symbols-outlined">help</span>
       <span class="uppercase tracking-wider text-xs font-body">Support</span>
@@ -157,7 +154,7 @@ tailwind.config = {
 </header>
 
 <!-- ═══════════════ MAIN CONTENT CANVAS ═══════════════ -->
-<main id="mainApp" class="ml-64 pt-24 px-8 pb-12">
+<main id="mainApp" class="ml-64 pt-24 px-8 pb-12" style="width:min(1050px, calc(100% - 16rem));">
 
   <!-- Dashboard Header & Stats -->
   <section class="mb-12">
@@ -167,19 +164,19 @@ tailwind.config = {
         <p class="text-on-surface-variant mt-2 max-w-2xl">Real-time automation metrics for <span class="text-tertiary">PICASso GRC</span> test infrastructure.</p>
       </div>
       <div class="flex gap-3">
-        <select id="filterPriority" class="ghost-border bg-surface-container-high px-4 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-auto">
+        <select id="filterPriority" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
           <option value="">All Priorities</option>
         </select>
-        <select id="filterArea" class="ghost-border bg-surface-container-high px-4 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-auto">
+        <select id="filterArea" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
           <option value="">All Areas</option>
         </select>
-        <select id="filterGroup" class="ghost-border bg-surface-container-high px-4 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-auto">
+        <select id="filterGroup" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
           <option value="">All Groups</option>
         </select>
       </div>
     </div>
     <!-- Bento Stats Grid -->
-    <div id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div id="dashboard" class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <div class="bg-surface-container-low p-6 rounded-xl text-center py-16 text-on-surface-variant text-sm">Loading stats…</div>
     </div>
   </section>
@@ -266,7 +263,8 @@ tailwind.config = {
       <div>
         <label for="runProject" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Project</label>
         <select id="runProject" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent">
-          <option value="chromium" selected>chromium</option>
+          <option value="auto" selected>auto (match spec projects)</option>
+          <option value="chromium">chromium</option>
           <option value="setup">setup</option><option value="smoke">smoke</option>
           <option value="release-detail-header">release-detail-header</option>
           <option value="doc-product-setup">doc-product-setup</option>
@@ -347,14 +345,14 @@ let availableSpecFiles = [];
 
 const ST = {
   'automated':   { color: '#81ecff', bg: 'rgba(129,236,255,0.15)', icon: 'verified' },
+  'passed':      { color: '#7fe3c5', bg: 'rgba(127,227,197,0.15)', icon: 'task_alt' },
   'pending':     { color: '#adaaaa', bg: 'rgba(173,170,170,0.10)', icon: 'schedule' },
-  'in-progress': { color: '#ff9157', bg: 'rgba(255,145,87,0.15)',  icon: 'autorenew' },
-  'failed':      { color: '#ff7351', bg: 'rgba(255,115,81,0.15)',  icon: 'error' },
+  'failed':      { color: '#c42e09', bg: 'rgba(196,46,9,0.15)',  icon: 'error' },
   'skipped':     { color: '#767575', bg: 'rgba(118,117,117,0.10)', icon: 'skip_next' },
   'on-hold':     { color: '#d5d4d4', bg: 'rgba(213,212,212,0.10)', icon: 'pause_circle' },
 };
 
-const RUN_DOT = { idle:'#767575', running:'#ff9157', passed:'#81ecff', failed:'#ff7351', cancelled:'#d5d4d4' };
+const RUN_DOT = { idle:'#767575', running:'#ff9157', passed:'#81ecff', failed:'#c42e09', cancelled:'#d5d4d4' };
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
@@ -404,56 +402,73 @@ async function refreshDashboard() {
   const el = document.getElementById('dashboard');
   const total = stats.total;
   const automated = stats.byStatus.automated || 0;
+  const passed = stats.byStatus.passed || 0;
   const pending = stats.byStatus.pending || 0;
   const failed = stats.byStatus.failed || 0;
   const skipped = stats.byStatus.skipped || 0;
-  const inProgress = stats.byStatus['in-progress'] || 0;
   const onHold = stats.byStatus['on-hold'] || 0;
-  const pct = total > 0 ? Math.round((automated / total) * 100) : 0;
+  const covered = automated + passed + failed + skipped + onHold;
+  const pct = total > 0 ? Math.round((covered / total) * 100) : 0;
 
   el.innerHTML = `
     <!-- Total Test Cases -->
     <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('')">
-      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <span class="material-symbols-outlined text-6xl">analytics</span>
+      <div class="flex items-start justify-between mb-4">
+        <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Total Test Cases</p>
+        <div class="h-10 w-10 flex items-center justify-end">
+          <span class="text-tertiary text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">trending_up</span> ${pct}%</span>
+        </div>
       </div>
-      <p class="uppercase tracking-wider text-xs text-on-surface-variant mb-4 font-body">Total Test Cases</p>
-      <div class="flex items-baseline gap-2">
-        <span class="text-5xl font-extrabold font-headline text-white">${total.toLocaleString()}</span>
-        <span class="text-tertiary text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">trending_up</span> ${pct}%</span>
+      <div class="flex items-end justify-between gap-4">
+        <span class="text-5xl font-extrabold font-headline text-white leading-none">${total.toLocaleString()}</span>
+        <span class="material-symbols-outlined text-6xl text-white/10 group-hover:text-white/20 transition-opacity leading-none">analytics</span>
       </div>
       <div class="mt-6 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
         <div class="h-full bg-gradient-to-r from-primary to-tertiary" style="width:${pct}%"></div>
       </div>
     </div>
 
-    <!-- Failed Sessions -->
-    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('failed')">
-      <p class="uppercase tracking-wider text-xs text-on-surface-variant mb-4 font-body">Failed Sessions</p>
-      <div class="flex items-baseline gap-2">
-        <span class="text-5xl font-extrabold font-headline text-error">${String(failed).padStart(2,'0')}</span>
-        ${failed > 0
-          ? '<span class="text-error-dim text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">warning</span> Critical</span>'
-          : '<span class="text-tertiary text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">check_circle</span> All Clear</span>'}
+    <!-- Failed Test Scenarios -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border border-error/15" onclick="toggleStatusFilter('failed')">
+      <div class="flex items-start justify-between mb-4">
+        <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Failed Test Scenarios</p>
+        <span class="material-symbols-outlined text-error text-xl">error</span>
       </div>
-      <div class="mt-6 flex gap-1">
-        ${Array(Math.min(failed, 5)).fill(0).map(() => '<div class="h-1.5 w-1.5 rounded-full bg-error"></div>').join('')}
-        ${Array(Math.max(0, 5 - Math.min(failed, 5))).fill(0).map(() => '<div class="h-1.5 w-1.5 rounded-full bg-surface-variant"></div>').join('')}
+      <div class="flex items-end justify-between gap-4">
+        <span class="text-5xl font-extrabold font-headline text-error leading-none">${String(failed).padStart(2,'0')}</span>
+        <svg width="88" height="40" viewBox="0 0 88 40" fill="none" class="opacity-90 shrink-0">
+          <path d="M2 30L14 26L25 33L37 21L49 27L60 12L73 18L86 4" stroke="#ff9157" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
     </div>
 
-    <!-- Environment Status -->
-    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
-      <p class="uppercase tracking-wider text-xs text-on-surface-variant mb-4 font-body">Environment Status</p>
-      <div class="flex items-center gap-3">
-        <div class="h-4 w-4 rounded-full ${failed > 0 ? 'bg-error' : 'bg-tertiary'} animate-pulse" style="box-shadow:0 0 12px ${failed > 0 ? 'rgba(255,115,81,0.4)' : 'rgba(129,236,255,0.4)'}"></div>
-        <span class="text-3xl font-extrabold font-headline text-white">${failed > 0 ? 'Alert' : 'Stable'}</span>
+    <!-- Automated Coverage -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border border-[rgb(58_106_60_/_0.18)]" onclick="toggleStatusFilter('automated')">
+      <div class="flex items-start justify-between mb-4">
+        <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Automated Coverage</p>
+        <div class="h-10 w-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-tertiary text-xl">robot_2</span>
+        </div>
       </div>
-      <p class="text-xs text-on-surface-variant mt-4">${automated} automated, ${pending} pending, ${skipped} skipped</p>
-      <div class="mt-4 flex items-center gap-2 flex-wrap">
-        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'in-progress' ? 'text-primary border-primary/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-primary hover:border-primary/30'} transition-colors" onclick="toggleStatusFilter('in-progress')">IN-PROGRESS ${inProgress}</span>
-        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'on-hold' ? 'text-secondary border-secondary/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-secondary hover:border-secondary/30'} transition-colors" onclick="toggleStatusFilter('on-hold')">ON-HOLD ${onHold}</span>
-        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'skipped' ? 'text-outline border-outline/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-outline hover:border-outline/30'} transition-colors" onclick="toggleStatusFilter('skipped')">SKIPPED ${skipped}</span>
+      <div class="flex items-end justify-between gap-4">
+        <span class="text-5xl font-extrabold font-headline leading-none" style="color: rgb(129 236 255)">${covered.toLocaleString()}</span>
+      </div>
+    </div>
+
+    <!-- Not Automated (Pending) -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('pending')">
+      <div class="flex items-start justify-between mb-4">
+        <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Not Automated (Pending)</p>
+        <div class="h-10 w-10 rounded-lg bg-surface-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-on-surface-variant text-xl">pending_actions</span>
+        </div>
+      </div>
+      <div class="flex items-end justify-between gap-4">
+        <span class="text-5xl font-extrabold font-headline text-on-surface-variant leading-none">${pending.toLocaleString()}</span>
+      </div>
+      <div class="mt-6 flex items-center gap-2 flex-wrap">
+        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'on-hold' ? 'text-secondary border-secondary/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-secondary hover:border-secondary/30'} transition-colors" onclick="event.stopPropagation();toggleStatusFilter('on-hold')">ON-HOLD ${onHold}</span>
+        <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full cursor-pointer border ${activeStatusFilter === 'skipped' ? 'text-outline border-outline/40' : 'text-on-surface-variant border-outline-variant/20 hover:text-outline hover:border-outline/30'} transition-colors" onclick="event.stopPropagation();toggleStatusFilter('skipped')">SKIPPED ${skipped}</span>
       </div>
     </div>`;
 }
@@ -496,19 +511,13 @@ function renderWorkflows(workflows, total) {
 
   container.innerHTML = workflows.map((wf, wfIdx) => {
     const color = wf.color || '#ff9157';
-    const pct = wf.stats.total > 0 ? Math.round((wf.stats.automated / wf.stats.total) * 100) : 0;
+    const pct = wf.stats.total > 0 ? Math.round((wf.stats.covered / wf.stats.total) * 100) : 0;
 
     let wfStatus, wfStatusColor;
     if (wf.stats.failed > 0) { wfStatus = 'ALERTS'; wfStatusColor = '#ff7351'; }
-    else if (wf.stats.total === wf.stats.automated && wf.stats.total > 0) { wfStatus = 'PASS'; wfStatusColor = '#81ecff'; }
-    else if (wf.stats.inProgress > 0) { wfStatus = 'IN-PROGRESS'; wfStatusColor = '#ff9157'; }
-    else if (wf.stats.automated > 0) { wfStatus = 'ACTIVE'; wfStatusColor = '#ff9157'; }
+    else if (wf.stats.total === wf.stats.covered && wf.stats.total > 0) { wfStatus = 'PASS'; wfStatusColor = '#81ecff'; }
+    else if (wf.stats.covered > 0) { wfStatus = 'ACTIVE'; wfStatusColor = '#ff9157'; }
     else { wfStatus = 'PENDING'; wfStatusColor = '#adaaaa'; }
-
-    const coverageText = wf.stats.failed > 0
-      ? `Alert: ${wf.stats.failed} Failures`
-      : `${pct}% Coverage`;
-    const coverageColor = wf.stats.failed > 0 ? '#ff7351' : color;
 
     return `
     <div class="wf-card relative bg-surface-container rounded-xl overflow-hidden${allExpanded ? ' open' : ''}" style="--wf-color:${color}" id="wf-${wfIdx}">
@@ -518,14 +527,17 @@ function renderWorkflows(workflows, total) {
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined expand-icon text-on-surface-variant text-xl">expand_more</span>
             <div>
-              <h4 class="font-bold text-white">${esc(cleanWorkflowName(wf.name))}</h4>
-              <p class="text-xs text-on-surface-variant mt-0.5">${esc(coverageText)}</p>
+              <h4 class="font-bold text-white">${esc(formatWorkflowName(wf.name))}</h4>
             </div>
           </div>
           <div class="mt-4 ml-9 space-y-2">
-            <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-on-surface-variant gap-4">
               <span>Automation Progress</span>
-              <span>${wf.stats.automated} / ${wf.stats.total} Steps</span>
+              <span class="inline-flex items-center gap-1 shrink-0">
+                <span>${wf.stats.covered}</span>
+                <span>/</span>
+                <span>${wf.stats.total} Scenarios</span>
+              </span>
             </div>
             <div class="w-full h-1 bg-surface-variant rounded-full overflow-hidden">
               <div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(to right,${color},${color}cc)"></div>
@@ -557,7 +569,7 @@ function renderSubsections(wf, wfIdx, color) {
     if (!sub.name) {
       return sub.items.map((s, sIdx) => renderScenarioItem(s, wfIdx, subIdx, sIdx, color)).join('');
     }
-    const subPct = sub.stats.total > 0 ? Math.round((sub.stats.automated / sub.stats.total) * 100) : 0;
+    const subPct = sub.stats.total > 0 ? Math.round((sub.stats.covered / sub.stats.total) * 100) : 0;
 
     return `
     <div class="sub-card${allExpanded ? ' open' : ''}" id="sub-${wfIdx}-${subIdx}">
@@ -565,8 +577,11 @@ function renderSubsections(wf, wfIdx, color) {
            onclick="toggleSubsection(${wfIdx},${subIdx})">
         <span class="material-symbols-outlined sub-expand text-on-surface-variant text-sm transition-transform duration-200">chevron_right</span>
         <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex-1">${esc(sub.name)}</span>
-        <span class="text-[10px] font-bold" style="color:${color}">${sub.stats.automated}</span>
-        <span class="text-[10px] text-on-surface-variant font-medium">/ ${sub.stats.total}</span>
+        <span class="inline-flex items-center gap-1 shrink-0 text-[10px] text-on-surface-variant font-medium">
+          <span class="font-bold" style="color:${color}">${sub.stats.covered}</span>
+          <span>/</span>
+          <span>${sub.stats.total}</span>
+        </span>
         <div class="w-16 h-1 bg-surface-container rounded-full overflow-hidden">
           <div class="h-full rounded-full" style="width:${subPct}%;background:${color}"></div>
         </div>
@@ -589,7 +604,7 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
   const hasNotes = s.execution_notes && s.execution_notes.trim();
   const st = ST[s.status] || ST.pending;
   const uid = `sc-${wfIdx}-${subIdx}-${sIdx}`;
-  const idColor = s.status === 'failed' ? '#ff7351' : (s.status === 'automated' ? '#81ecff' : wfColor);
+  const idColor = s.status === 'failed' ? '#c42e09' : (s.status === 'automated' || s.status === 'passed' ? '#81ecff' : wfColor);
 
   const stepsHtml = hasSteps
     ? `<div class="space-y-3">${s.steps.map((step, i) => `
@@ -629,7 +644,7 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
         <span class="text-sm text-neutral-300 truncate">${esc(s.title)}</span>
       </div>
       <div class="flex items-center gap-3 shrink-0 ml-3">
-        ${s.spec_file ? `<button onclick="event.stopPropagation();runScenario('${esc(s.spec_file)}','${esc(s.title)}')"
+        ${s.hasSpecFile ? `<button onclick="event.stopPropagation();runScenario('${esc(s.spec_file)}','${esc(s.title)}')"
           class="text-on-surface-variant hover:text-tertiary p-0.5 rounded transition-colors" title="Run test">
           <span class="material-symbols-outlined text-base">play_arrow</span></button>` : ''}
         <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter"
@@ -639,13 +654,6 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
     </div>
     <div class="sc-body">
       <div class="bg-surface-container-low rounded-lg border-l-2 overflow-hidden mt-1 mb-3" style="border-left-color:${wfColor}60">
-        <div class="p-4 bg-white/5 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded" style="color:${idColor};background:${idColor}10">${esc(s.id)}</span>
-            <span class="font-semibold text-sm text-white">${esc(s.title)}</span>
-          </div>
-          <span class="material-symbols-outlined text-sm text-neutral-500 cursor-pointer" onclick="toggleScenario('${uid}')">keyboard_arrow_up</span>
-        </div>
         <div class="p-4">
           ${descHtml}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -662,7 +670,7 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
           <!-- Meta info -->
           <div class="flex items-center gap-4 flex-wrap mt-5 pt-4 border-t border-outline-variant/10 text-[10px] text-on-surface-variant font-medium">
             <span><span class="font-bold uppercase tracking-widest">Area:</span> <span class="text-on-surface font-mono">${esc(s.feature_area)}</span></span>
-            ${s.spec_file ? `<span><span class="font-bold uppercase tracking-widest">Spec:</span> <span class="text-on-surface font-mono">${esc(s.spec_file)}</span></span>` : ''}
+            ${s.hasSpecFile ? `<span><span class="font-bold uppercase tracking-widest">Spec:</span> <span class="text-on-surface font-mono">${esc(s.spec_file)}</span></span>` : ''}
             ${groupTags ? `<span class="flex items-center gap-1"><span class="font-bold uppercase tracking-widest mr-1">Groups:</span> ${groupTags}</span>` : ''}
           </div>
           <!-- Action buttons -->
@@ -865,17 +873,24 @@ function cleanWorkflowName(name) {
   return name.replace(/^WORKFLOW\s+\d+\s*[—–-]\s*/i, '').trim();
 }
 
+function formatWorkflowName(name) {
+  if (!name) return '';
+  const numberMatch = name.match(/^WORKFLOW\s+(\d+)/i);
+  const title = cleanWorkflowName(name);
+  return numberMatch ? `${numberMatch[1]}. ${title}` : title;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 //  TEST RUNNER
 // ══════════════════════════════════════════════════════════════════════════════
 
 function collectSpecFiles(items) {
   const files = new Set();
-  for (const s of items) { if (s.spec_file) files.add(s.spec_file); }
+  for (const s of items) { if (s.spec_file && s.hasSpecFile) files.add(s.spec_file); }
   return [...files];
 }
 
-async function startRun(specFiles, grep = '', project = 'chromium') {
+async function startRun(specFiles, grep = '', project = 'auto') {
   if (!specFiles.length) { toast('No spec files found for this selection', 'error'); return; }
   try {
     await api('/run', { method: 'POST', body: JSON.stringify({ specFiles, grep, project }) });
@@ -883,6 +898,12 @@ async function startRun(specFiles, grep = '', project = 'chromium') {
     openRunnerPanel();
     startPolling();
   } catch (err) { toast(err.message, 'error'); }
+}
+
+function getRunnerExecutionLabel(data) {
+  const totalTests = Number(data.totalTests) || data.specFiles.length || 0;
+  const workers = Number(data.workers) || 1;
+  return `Running ${totalTests} tests using ${workers} ${workers === 1 ? 'worker' : 'workers'}`;
 }
 
 function runScenario(specFile, title) { startRun([specFile], title); }
@@ -918,6 +939,22 @@ function openRunnerPanel() {
   panel.classList.add('open');
   document.getElementById('mainApp').classList.add('app-runner-open');
   runnerOpen = true;
+}
+
+async function openReports(event) {
+  event.preventDefault();
+  const icon = document.getElementById('nav-reports-icon');
+  const link = document.getElementById('nav-reports');
+  icon.textContent = 'sync';
+  icon.style.animation = 'spin 1s linear infinite';
+  link.style.pointerEvents = 'none';
+  try {
+    await fetch('/api/allure/generate', { method: 'POST' });
+  } catch (_) { /* ignore — navigate regardless */ }
+  icon.style.animation = '';
+  link.style.pointerEvents = '';
+  icon.textContent = 'folder_open';
+  window.location.href = '/allure-report/index.html';
 }
 
 function toggleRunnerPanel() {
@@ -968,7 +1005,7 @@ async function pollRunStatus() {
     else dot.classList.remove('animate-pulse-dot');
 
     if (data.status === 'running') {
-      title.textContent = `Running: ${data.specFiles.join(', ')}`;
+      title.textContent = getRunnerExecutionLabel(data);
       cancelBtn.style.display = '';
     } else {
       title.textContent = data.status === 'idle' ? 'Test Runner' : `Run ${data.status}`;
@@ -1028,7 +1065,7 @@ async function openRunDialog() {
   document.getElementById('runSpecFiles').value = '';
   document.getElementById('runGrep').value = '';
   document.getElementById('runHeaded').checked = false;
-  document.getElementById('runProject').value = 'chromium';
+  document.getElementById('runProject').value = 'auto';
   if (availableSpecFiles.length === 0) {
     try { availableSpecFiles = await api('/spec-files'); } catch (e) { availableSpecFiles = []; }
   }

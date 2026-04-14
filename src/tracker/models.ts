@@ -8,8 +8,8 @@
 // ── Status lifecycle ──────────────────────────────────────────────────────────
 export const SCENARIO_STATUSES = [
   'pending',      // Not yet automated — needs implementation
-  'in-progress',  // Currently being automated
   'automated',    // Automated test exists and passes
+  'passed',       // Automated test was executed successfully
   'failed',       // Automated test exists but is currently failing
   'skipped',      // Intentionally skipped (e.g. out of scope)
   'on-hold',      // Paused — will be auto-skipped during test runs

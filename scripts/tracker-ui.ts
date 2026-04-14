@@ -42,7 +42,7 @@ import {
   FEATURE_AREAS,
   DEFAULT_GROUPS,
 } from '../src/tracker/models';
-import type { ListFilters, TrackerExport } from '../src/tracker/models';
+import type { ListFilters, TrackerExport, ScenarioStatus } from '../src/tracker/models';
 import { getDbPath, closeDb } from '../src/tracker/db';
 
 // ── App setup ─────────────────────────────────────────────────────────────────
@@ -61,7 +61,32 @@ app.use('/ui', express.static(UI_DIR));
 
 // Serve allure-report static files (so the embedded Allure report works)
 const ALLURE_REPORT_DIR = path.resolve(__dirname, '..', 'allure-report');
+const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
+const ALLURE_GENERATE_ARGS = ['allure', 'generate', 'allure-results', '-o', 'allure-report', '--clean', '--config', 'config/allure.config.ts'];
+const JSON_REPORT_PATH = path.resolve(__dirname, '..', 'test-results', 'results.json');
 app.use('/allure-report', express.static(ALLURE_REPORT_DIR));
+
+// Fallback: allure-report directory doesn't exist yet (must come after static middleware)
+app.use('/allure-report', (_req: Request, res: Response) => {
+  const hasResults = existsSync(ALLURE_RESULTS_DIR);
+  const heading = hasResults ? 'Test results found — report not generated yet' : 'No Allure report found';
+  const detail = hasResults
+    ? 'Tests were executed. Generate the HTML report with:'
+    : 'Run your tests first, then generate the report:';
+  res.status(404).send(`<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"/><title>No Allure Report</title>
+<style>body{background:#0e0e0e;color:#adaaaa;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:16px}
+h1{color:#fff;font-size:1.5rem;margin:0}p{margin:0;font-size:.875rem}
+code{background:#1a1a1a;padding:4px 10px;border-radius:4px;color:#ff9157;font-size:.8rem}
+</style></head>
+<body>
+  <h1>${heading}</h1>
+  <p>${detail}</p>
+  <code>npm run report:allure:generate</code>
+</body>
+</html>`);
+});
 
 // Root redirect → SPA
 app.get('/', (_req: Request, res: Response) => {
@@ -81,6 +106,92 @@ function wrap(fn: (req: Request, res: Response) => Promise<void> | void) {
       next(err);
     }
   };
+}
+
+const COVERED_SCENARIO_STATUSES = new Set<ScenarioStatus>(['automated', 'passed', 'failed', 'skipped', 'on-hold']);
+
+function hasExistingSpecFile(specFile: string): boolean {
+  return Boolean(specFile) && existsSync(path.join(PROJECT_ROOT, specFile));
+}
+
+function enrichScenario<T extends { spec_file: string }>(scenario: T): T & { hasSpecFile: boolean } {
+  return {
+    ...scenario,
+    hasSpecFile: hasExistingSpecFile(scenario.spec_file),
+  };
+}
+
+function normalizeSpecPath(filePath: string | undefined): string {
+  if (!filePath) return '';
+  const normalized = filePath.replace(/\\/g, '/');
+  if (path.isAbsolute(normalized)) {
+    return path.relative(PROJECT_ROOT, normalized).replace(/\\/g, '/');
+  }
+  return normalized;
+}
+
+function loadPlaywrightSpecStatuses(): Map<string, 'passed' | 'failed'> {
+  const statuses = new Map<string, 'passed' | 'failed'>();
+  if (!existsSync(JSON_REPORT_PATH)) return statuses;
+
+  try {
+    const report = JSON.parse(readFileSync(JSON_REPORT_PATH, 'utf-8'));
+    const applyStatus = (filePath: string | undefined, status: 'passed' | 'failed' | null) => {
+      if (!filePath || !status) return;
+      const normalized = normalizeSpecPath(filePath);
+      const existing = statuses.get(normalized);
+      if (existing === 'failed') return;
+      if (status === 'failed' || !existing) {
+        statuses.set(normalized, status);
+      }
+    };
+
+    const walkSuite = (suite: any, inheritedFile = '') => {
+      const currentFile = normalizeSpecPath(suite?.file || inheritedFile || '');
+
+      for (const spec of suite?.specs || []) {
+        const specFile = normalizeSpecPath(spec?.file || currentFile || '');
+        const resultStatuses = (spec?.tests || []).flatMap((test: any) =>
+          (test?.results || []).map((result: any) => String(result?.status || '').toLowerCase()),
+        );
+        const status = resultStatuses.some((item: string) => ['failed', 'timedout', 'interrupted'].includes(item))
+          ? 'failed'
+          : resultStatuses.includes('passed')
+            ? 'passed'
+            : null;
+        applyStatus(specFile, status);
+      }
+
+      for (const child of suite?.suites || []) {
+        walkSuite(child, currentFile);
+      }
+    };
+
+    for (const suite of report?.suites || []) {
+      walkSuite(suite);
+    }
+  } catch {
+    return statuses;
+  }
+
+  return statuses;
+}
+
+function syncScenarioStatusesFromRun(specFiles: string[], _fallbackStatus: 'passed' | 'failed' | null): void {
+  const statusBySpec = loadPlaywrightSpecStatuses();
+  const scenarios = listScenarios().filter((scenario) => specFiles.includes(scenario.spec_file));
+
+  for (const scenario of scenarios) {
+    // Never auto-update: on-hold, already-skipped, or pending (not yet automated)
+    if (scenario.status === 'on-hold' || scenario.status === 'skipped' || scenario.status === 'pending') continue;
+    const specResult = statusBySpec.get(scenario.spec_file);
+    if (specResult === undefined) {
+      // Spec file was in the run but produced no results → test didn't execute
+      updateScenario(scenario.id, { status: 'skipped' });
+    } else {
+      updateScenario(scenario.id, { status: specResult === 'passed' ? 'passed' : 'failed' });
+    }
+  }
 }
 
 // ── API: Scenarios ────────────────────────────────────────────────────────────
@@ -105,7 +216,7 @@ app.get(
     const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
     const total = scenarios.length;
     const start = (page - 1) * limit;
-    const items = scenarios.slice(start, start + limit);
+    const items = scenarios.slice(start, start + limit).map(enrichScenario);
 
     res.json({ items, total, page, limit, pages: Math.ceil(total / limit) });
   }),
@@ -121,7 +232,7 @@ app.get(
       res.status(404).json({ error: `Scenario ${id} not found` });
       return;
     }
-    res.json(scenario);
+    res.json(enrichScenario(scenario));
   }),
 );
 
@@ -361,7 +472,7 @@ app.get(
       if (!subsMap.has(sub)) subsMap.set(sub, []);
       const details = allDetails.get(s.id);
       subsMap.get(sub)!.push({
-        ...s,
+        ...enrichScenario(s),
         steps: details?.steps || [],
         expected_results: details?.expected_results || [],
         execution_notes: details?.execution_notes || '',
@@ -372,11 +483,12 @@ app.get(
     const computeStats = (items: any[]) => ({
       total: items.length,
       automated: items.filter((s: any) => s.status === 'automated').length,
+      passed: items.filter((s: any) => s.status === 'passed').length,
+      covered: items.filter((s: any) => COVERED_SCENARIO_STATUSES.has(s.status)).length,
       pending: items.filter((s: any) => s.status === 'pending').length,
       failed: items.filter((s: any) => s.status === 'failed').length,
       skipped: items.filter((s: any) => s.status === 'skipped').length,
       onHold: items.filter((s: any) => s.status === 'on-hold').length,
-      inProgress: items.filter((s: any) => s.status === 'in-progress').length,
     });
 
     // Sort workflows by number
@@ -523,11 +635,53 @@ interface TestRun {
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 let currentRun: TestRun = {
   id: '', proc: null, output: [], status: 'idle',
-  startTime: 0, specFiles: [], project: 'chromium', grep: '',
+  startTime: 0, specFiles: [], project: 'auto', grep: '',
   exitCode: null, summary: '',
 };
 const runHistory: RunHistoryEntry[] = [];
 const MAX_HISTORY = 50;
+
+function invalidateAllureCache(): void {
+  allureCache = null;
+}
+
+function parseExecutionCounts(lines: string[]): { totalTests: number | null; workers: number | null } {
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const plain = lines[index].replace(/\x1b\[[0-9;]*m/g, '');
+    const match = plain.match(/Running\s+(\d+)\s+tests?\s+using\s+(\d+)\s+workers?/i);
+    if (match) {
+      return { totalTests: Number(match[1]), workers: Number(match[2]) };
+    }
+  }
+  return { totalTests: null, workers: null };
+}
+
+function generateAllureReport(): Promise<void> {
+  return new Promise((resolve) => {
+    const proc = spawn('npx', ALLURE_GENERATE_ARGS, {
+      cwd: PROJECT_ROOT,
+      env: { ...process.env, FORCE_COLOR: '1' },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    const addOutput = (data: Buffer) => {
+      const lines = data.toString().split('\n').map(line => line.trimEnd()).filter(Boolean);
+      if (!lines.length) return;
+      currentRun.output.push(...lines.map(line => `\x1b[90m[allure]\x1b[0m ${line}`));
+      if (currentRun.output.length > 5000) {
+        currentRun.output = currentRun.output.slice(-4000);
+      }
+    };
+
+    proc.stdout?.on('data', addOutput);
+    proc.stderr?.on('data', addOutput);
+    proc.on('close', () => {
+      invalidateAllureCache();
+      resolve();
+    });
+    proc.on('error', () => resolve());
+  });
+}
 
 /** POST /api/run — start a Playwright test run */
 app.post(
@@ -559,9 +713,10 @@ app.post(
 
     const runId = `run-${Date.now()}`;
     const args = ['playwright', 'test', ...specFiles];
-    const projectName = project || 'chromium';
-    args.push('--project=' + projectName);
-    args.push('--reporter=list');
+    const projectName = project && project !== 'auto' ? project : 'auto';
+    if (projectName !== 'auto') {
+      args.push('--project=' + projectName);
+    }
     if (grep) args.push(`--grep=${grep}`);
     if (headed) args.push('--headed');
 
@@ -611,7 +766,7 @@ app.post(
     proc.stdout?.on('data', addOutput);
     proc.stderr?.on('data', addOutput);
 
-    proc.on('close', (code) => {
+    proc.on('close', async (code) => {
       const duration = Date.now() - currentRun.startTime;
       currentRun.exitCode = code;
       currentRun.proc = null;
@@ -637,6 +792,13 @@ app.post(
       if (summaryLine) {
         currentRun.summary = summaryLine.replace(/\x1b\[[0-9;]*m/g, '').trim();
       }
+
+      if (currentRun.status === 'passed' || currentRun.status === 'failed') {
+        syncScenarioStatusesFromRun(currentRun.specFiles, currentRun.status);
+      }
+
+      currentRun.output.push('', '\x1b[90mGenerating Allure report…\x1b[0m');
+      await generateAllureReport();
 
       // Add to history
       runHistory.unshift({
@@ -671,11 +833,14 @@ app.get(
   wrap((req, res) => {
     const since = Math.max(0, Number(req.query.since) || 0);
     const newLines = currentRun.output.slice(since);
+    const counts = parseExecutionCounts(currentRun.output);
 
     res.json({
       id: currentRun.id,
       status: currentRun.status,
       specFiles: currentRun.specFiles,
+      totalTests: counts.totalTests,
+      workers: counts.workers,
       project: currentRun.project,
       grep: currentRun.grep,
       exitCode: currentRun.exitCode,
@@ -731,8 +896,6 @@ app.get(
 // ══════════════════════════════════════════════════════════════════════════════
 // ALLURE REPORT DATA — parse allure-results JSON files and summary.json
 // ══════════════════════════════════════════════════════════════════════════════
-
-const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
 
 interface AllureResult {
   uuid: string;
@@ -797,6 +960,20 @@ function parseAllureResults(): { results: AllureResult[]; summary: any } {
   allureCache = { results, parsedAt: Date.now(), summary };
   return { results, summary };
 }
+
+/** POST /api/allure/generate — run allure generate and return when done */
+app.post(
+  '/api/allure/generate',
+  wrap(async (_req, res) => {
+    await generateAllureReport();
+    const hasReport = existsSync(path.join(ALLURE_REPORT_DIR, 'index.html'));
+    if (hasReport) {
+      res.json({ ok: true });
+    } else {
+      res.status(500).json({ ok: false, error: 'Report generation failed or allure-results is empty' });
+    }
+  }),
+);
 
 /** GET /api/allure/summary — high-level stats + per-suite breakdown */
 app.get(

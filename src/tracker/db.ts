@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS scenarios (
   title        TEXT    NOT NULL,
   description  TEXT    NOT NULL DEFAULT '',
   status       TEXT    NOT NULL DEFAULT 'pending'
-                       CHECK (status IN ('pending','in-progress','automated','failed','skipped','on-hold')),
+                       CHECK (status IN ('pending','automated','passed','failed','skipped','on-hold')),
   priority     TEXT    NOT NULL DEFAULT 'P2'
                        CHECK (priority IN ('P1','P2','P3')),
   feature_area TEXT    NOT NULL DEFAULT 'other'
@@ -79,6 +79,51 @@ CREATE TABLE IF NOT EXISTS scenario_details (
 
 let _db: Database.Database | null = null;
 
+function migrateScenarioStatuses(db: Database.Database): void {
+  const tableSql = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'scenarios'").get() as { sql?: string } | undefined;
+  const schemaSql = tableSql?.sql ?? '';
+  const needsMigration = schemaSql.includes("'in-progress'") || !schemaSql.includes("'passed'");
+
+  if (!needsMigration) {
+    db.prepare("UPDATE scenarios SET status = 'pending' WHERE status = 'in-progress'").run();
+    return;
+  }
+
+  db.pragma('foreign_keys = OFF');
+  db.exec(`
+    UPDATE scenarios SET status = 'pending' WHERE status = 'in-progress';
+
+    CREATE TABLE scenarios_new (
+      id           TEXT    PRIMARY KEY,
+      title        TEXT    NOT NULL,
+      description  TEXT    NOT NULL DEFAULT '',
+      status       TEXT    NOT NULL DEFAULT 'pending'
+                           CHECK (status IN ('pending','automated','passed','failed','skipped','on-hold')),
+      priority     TEXT    NOT NULL DEFAULT 'P2'
+                           CHECK (priority IN ('P1','P2','P3')),
+      feature_area TEXT    NOT NULL DEFAULT 'other'
+                           CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
+      spec_file    TEXT    NOT NULL DEFAULT '',
+      workflow     TEXT    NOT NULL DEFAULT '',
+      created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+      subsection   TEXT    NOT NULL DEFAULT ''
+    );
+
+    INSERT INTO scenarios_new (id, title, description, status, priority, feature_area, spec_file, workflow, created_at, updated_at, subsection)
+    SELECT id, title, description, status, priority, feature_area, spec_file, workflow, created_at, updated_at, subsection
+    FROM scenarios;
+
+    DROP TABLE scenarios;
+    ALTER TABLE scenarios_new RENAME TO scenarios;
+
+    CREATE INDEX IF NOT EXISTS idx_scenarios_status       ON scenarios(status);
+    CREATE INDEX IF NOT EXISTS idx_scenarios_priority     ON scenarios(priority);
+    CREATE INDEX IF NOT EXISTS idx_scenarios_feature_area ON scenarios(feature_area);
+  `);
+  db.pragma('foreign_keys = ON');
+}
+
 /**
  * Returns the singleton Database connection, creating the DB file
  * and schema if they don't exist yet.
@@ -107,6 +152,8 @@ export function getDb(): Database.Database {
   if (!cols.some(c => c.name === 'subsection')) {
     _db.exec("ALTER TABLE scenarios ADD COLUMN subsection TEXT NOT NULL DEFAULT ''");
   }
+
+  migrateScenarioStatuses(_db);
 
   return _db;
 }

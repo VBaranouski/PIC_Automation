@@ -58,8 +58,8 @@ import type { ScenarioStatus, Priority, FeatureArea, Scenario } from '../src/tra
 
 const statusColor: Record<ScenarioStatus, (s: string) => string> = {
   pending: chalk.yellow,
-  'in-progress': chalk.blue,
   automated: chalk.green,
+  passed: chalk.cyan,
   failed: chalk.red,
   skipped: chalk.gray,
   'on-hold': chalk.magenta,
