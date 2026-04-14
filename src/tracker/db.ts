@@ -1,3 +1,10 @@
+/**
+ * Test Scenario Tracker — Database Layer
+ *
+ * Manages the SQLite connection (singleton), schema creation, and versioning.
+ * Schema v2: dual-status model (automation_state + execution_status), meta table.
+ */
+
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
@@ -80,12 +87,13 @@ export function getDb(): Database.Database {
   _db = new Database(DB_PATH);
   _db.pragma('journal_mode = WAL');
   _db.pragma('foreign_keys = ON');
-  _db.exec(SCHEMA_SQL);
-
-  const metaRow = _db.prepare('SELECT value FROM meta WHERE key = ?').get('schema_version') as { value?: string } | undefined;
-  if (!metaRow) {
-    _db.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('schema_version', String(SCHEMA_VERSION));
-  }
+  _db.transaction(() => {
+    _db!.exec(SCHEMA_SQL);
+    const metaRow = _db!.prepare('SELECT value FROM meta WHERE key = ?').get('schema_version') as { value?: string } | undefined;
+    if (!metaRow) {
+      _db!.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('schema_version', String(SCHEMA_VERSION));
+    }
+  })();
 
   return _db;
 }
@@ -93,7 +101,7 @@ export function getDb(): Database.Database {
 export function getSchemaVersion(): number {
   const db = getDb();
   const row = db.prepare('SELECT value FROM meta WHERE key = ?').get('schema_version') as { value?: string } | undefined;
-  return row?.value ? Number(row.value) : 1;
+  return row?.value ? Number(row.value) : 0;
 }
 
 export function closeDb(): void {
