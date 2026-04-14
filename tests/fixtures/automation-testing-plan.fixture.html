@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html><head><title>Fixture</title></head><body>
+<script id="doc-auto-case-details" type="application/json">
+{
+  "AUTH-LOGIN-001": {
+    "title": "Verify login page loads",
+    "spec_path": "projects/pw-autotest/tests/auth/login.spec.ts",
+    "steps": ["Open app", "Observe login form"],
+    "expected_results": ["Form is visible"]
+  },
+  "AUTH-LOGIN-999": {
+    "title": "Broken login case",
+    "spec_path": "projects/pw-autotest/tests/auth/login.spec.ts",
+    "steps": ["Submit with wrong creds"],
+    "expected_results": ["Error shown"],
+    "execution_notes": "Known flaky on QA"
+  },
+  "DOC-CREATE-001": {
+    "title": "Create a DOC",
+    "spec_path": "projects/pw-autotest/tests/doc/doc-lifecycle.spec.ts",
+    "steps": ["Open DOC tab", "Click New"],
+    "expected_results": ["DOC wizard opens"]
+  }
+}
+</script>
+<script>
+const SUBSECTION_INDEX = {
+  "1.1": [["AUTH-LOGIN-001", "`auth/login.spec.ts` — desc"]],
+  "1.2": [["AUTH-LOGIN-999", "`auth/login.spec.ts` — desc"]],
+  "4.1": [["DOC-CREATE-001", "`doc/doc-lifecycle.spec.ts` — desc"]]
+};
+const AUTO_CASE_STATUS = {
+  'AUTH-LOGIN-001': ['Passed', 'passed'],
+  'AUTH-LOGIN-999': ['Failed: defect', 'failed-defect'],
+  'DOC-CREATE-001': ['Skipped', 'skipped']
+};
+</script>
+</body></html>
