@@ -204,8 +204,22 @@ app.get(
     const filters: ListFilters = {};
     const q = req.query;
 
-    if (q.automation_state) filters.automation_state = param(q.automation_state as any) as AutomationState;
-    if (q.execution_status) filters.execution_status = param(q.execution_status as any) as ExecutionStatus;
+    if (q.automation_state) {
+      const v = param(q.automation_state as any);
+      if (!isValidAutomationState(v)) {
+        res.status(400).json({ error: `Invalid automation_state: ${v}` });
+        return;
+      }
+      filters.automation_state = v;
+    }
+    if (q.execution_status) {
+      const v = param(q.execution_status as any);
+      if (!isValidExecutionStatus(v)) {
+        res.status(400).json({ error: `Invalid execution_status: ${v}` });
+        return;
+      }
+      filters.execution_status = v;
+    }
     if (q.priority)         filters.priority         = param(q.priority as any) as any;
     if (q.feature_area)     filters.feature_area     = param(q.feature_area as any) as any;
     if (q.group)            filters.group            = param(q.group as any);
@@ -326,22 +340,42 @@ app.delete(
 // ── API: Status shortcuts ─────────────────────────────────────────────────────
 
 // POST /api/scenarios/:id/auto-state  { state: AutomationState }
-app.post('/api/scenarios/:id/auto-state', (req: Request, res: Response) => {
-  const state = req.body?.state;
-  if (!isValidAutomationState(state)) return res.status(400).json({ error: 'invalid automation state' });
-  const updated = setAutomationState(param(req.params.id).toUpperCase(), state);
-  if (!updated) return res.status(404).json({ error: 'not found' });
-  res.json(updated);
-});
+app.post(
+  '/api/scenarios/:id/auto-state',
+  wrap((req, res) => {
+    const id = param(req.params.id);
+    const state = req.body?.state;
+    if (!isValidAutomationState(state)) {
+      res.status(400).json({ error: `Invalid automation state: ${state}` });
+      return;
+    }
+    const updated = setAutomationState(id, state);
+    if (!updated) {
+      res.status(404).json({ error: `Scenario ${id} not found` });
+      return;
+    }
+    res.json(updated);
+  }),
+);
 
 // POST /api/scenarios/:id/exec-status  { status: ExecutionStatus }
-app.post('/api/scenarios/:id/exec-status', (req: Request, res: Response) => {
-  const status = req.body?.status;
-  if (!isValidExecutionStatus(status)) return res.status(400).json({ error: 'invalid execution status' });
-  const updated = setExecutionStatus(param(req.params.id).toUpperCase(), status);
-  if (!updated) return res.status(404).json({ error: 'not found' });
-  res.json(updated);
-});
+app.post(
+  '/api/scenarios/:id/exec-status',
+  wrap((req, res) => {
+    const id = param(req.params.id);
+    const status = req.body?.status;
+    if (!isValidExecutionStatus(status)) {
+      res.status(400).json({ error: `Invalid execution status: ${status}` });
+      return;
+    }
+    const updated = setExecutionStatus(id, status);
+    if (!updated) {
+      res.status(404).json({ error: `Scenario ${id} not found` });
+      return;
+    }
+    res.json(updated);
+  }),
+);
 
 /** POST /api/scenarios/:id/hold — put on hold */
 app.post(
