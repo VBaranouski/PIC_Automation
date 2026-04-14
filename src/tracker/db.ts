@@ -1,59 +1,63 @@
-/**
- * Test Scenario Tracker — SQLite Database Layer
- *
- * Initialises the SQLite database at `config/scenarios.db`,
- * creates the schema on first run, and exposes the raw `Database` handle
- * for use by the operations module.
- */
-
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-// ── Paths ─────────────────────────────────────────────────────────────────────
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 const DB_DIR = path.join(PROJECT_ROOT, 'config');
 const DB_PATH = path.join(DB_DIR, 'scenarios.db');
 
-// ── Schema DDL ────────────────────────────────────────────────────────────────
+export const SCHEMA_VERSION = 2;
+
 const SCHEMA_SQL = `
--- Core scenarios table
-CREATE TABLE IF NOT EXISTS scenarios (
-  id           TEXT    PRIMARY KEY,
-  title        TEXT    NOT NULL,
-  description  TEXT    NOT NULL DEFAULT '',
-  status       TEXT    NOT NULL DEFAULT 'pending'
-                       CHECK (status IN ('pending','automated','passed','failed','skipped','on-hold')),
-  priority     TEXT    NOT NULL DEFAULT 'P2'
-                       CHECK (priority IN ('P1','P2','P3')),
-  feature_area TEXT    NOT NULL DEFAULT 'other'
-                       CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
-  spec_file    TEXT    NOT NULL DEFAULT '',
-  workflow     TEXT    NOT NULL DEFAULT '',
-  created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-  updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+CREATE TABLE IF NOT EXISTS meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
 );
 
--- Groups / tags — many-to-many via join table
+CREATE TABLE IF NOT EXISTS scenarios (
+  id               TEXT PRIMARY KEY,
+  title            TEXT NOT NULL,
+  description      TEXT NOT NULL DEFAULT '',
+  automation_state TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (automation_state IN ('pending','automated','on-hold')),
+  execution_status TEXT NOT NULL DEFAULT 'not-executed'
+                        CHECK (execution_status IN ('passed','not-executed','skipped','failed-defect')),
+  priority         TEXT NOT NULL DEFAULT 'P2'
+                        CHECK (priority IN ('P1','P2','P3')),
+  feature_area     TEXT NOT NULL DEFAULT 'other'
+                        CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
+  spec_file        TEXT NOT NULL DEFAULT '',
+  workflow         TEXT NOT NULL DEFAULT '',
+  subsection       TEXT NOT NULL DEFAULT '',
+  created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS scenario_groups (
-  scenario_id  TEXT    NOT NULL REFERENCES scenarios(id) ON DELETE CASCADE,
-  group_name   TEXT    NOT NULL,
+  scenario_id TEXT NOT NULL REFERENCES scenarios(id) ON DELETE CASCADE,
+  group_name  TEXT NOT NULL,
   PRIMARY KEY (scenario_id, group_name)
 );
 
--- Available group labels (for validation / autocomplete)
 CREATE TABLE IF NOT EXISTS groups (
-  name         TEXT    PRIMARY KEY,
-  description  TEXT    NOT NULL DEFAULT ''
+  name        TEXT PRIMARY KEY,
+  description TEXT NOT NULL DEFAULT ''
 );
 
--- Indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_scenarios_status       ON scenarios(status);
-CREATE INDEX IF NOT EXISTS idx_scenarios_priority     ON scenarios(priority);
-CREATE INDEX IF NOT EXISTS idx_scenarios_feature_area ON scenarios(feature_area);
-CREATE INDEX IF NOT EXISTS idx_scenario_groups_group  ON scenario_groups(group_name);
+CREATE TABLE IF NOT EXISTS scenario_details (
+  scenario_id      TEXT PRIMARY KEY REFERENCES scenarios(id) ON DELETE CASCADE,
+  steps            TEXT NOT NULL DEFAULT '[]',
+  expected_results TEXT NOT NULL DEFAULT '[]',
+  execution_notes  TEXT NOT NULL DEFAULT ''
+);
 
--- Seed default group labels
+CREATE INDEX IF NOT EXISTS idx_scenarios_auto_state  ON scenarios(automation_state);
+CREATE INDEX IF NOT EXISTS idx_scenarios_exec_status ON scenarios(execution_status);
+CREATE INDEX IF NOT EXISTS idx_scenarios_priority    ON scenarios(priority);
+CREATE INDEX IF NOT EXISTS idx_scenarios_feature     ON scenarios(feature_area);
+CREATE INDEX IF NOT EXISTS idx_scenarios_workflow    ON scenarios(workflow);
+CREATE INDEX IF NOT EXISTS idx_scenario_groups_grp   ON scenario_groups(group_name);
+
 INSERT OR IGNORE INTO groups (name, description) VALUES
   ('smoke',       'Core happy-path tests that must pass before anything else'),
   ('critical',    'Critical business flows — authentication, stage transitions, gating actions'),
@@ -62,122 +66,39 @@ INSERT OR IGNORE INTO groups (name, description) VALUES
   ('edge-case',   'Boundary conditions, error states, unusual inputs'),
   ('destructive', 'Tests that modify/delete data irreversibly — run with caution'),
   ('manual-only', 'Scenarios intentionally excluded from automation');
-
--- Add subsection column (safe to re-run — uses IF NOT EXISTS logic via pragma)
--- Handled programmatically in getDb() below.
-
--- Test case details (steps & expected results from the testing plan)
-CREATE TABLE IF NOT EXISTS scenario_details (
-  scenario_id      TEXT    PRIMARY KEY REFERENCES scenarios(id) ON DELETE CASCADE,
-  steps            TEXT    NOT NULL DEFAULT '[]',
-  expected_results TEXT    NOT NULL DEFAULT '[]',
-  execution_notes  TEXT    NOT NULL DEFAULT ''
-);
 `;
-
-// ── Public API ────────────────────────────────────────────────────────────────
 
 let _db: Database.Database | null = null;
 
-function migrateScenarioStatuses(db: Database.Database): void {
-  const tableSql = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'scenarios'").get() as { sql?: string } | undefined;
-  const schemaSql = tableSql?.sql ?? '';
-  const needsMigration = schemaSql.includes("'in-progress'") || !schemaSql.includes("'passed'");
-
-  if (!needsMigration) {
-    db.prepare("UPDATE scenarios SET status = 'pending' WHERE status = 'in-progress'").run();
-    return;
-  }
-
-  db.pragma('foreign_keys = OFF');
-  db.exec(`
-    UPDATE scenarios SET status = 'pending' WHERE status = 'in-progress';
-
-    CREATE TABLE scenarios_new (
-      id           TEXT    PRIMARY KEY,
-      title        TEXT    NOT NULL,
-      description  TEXT    NOT NULL DEFAULT '',
-      status       TEXT    NOT NULL DEFAULT 'pending'
-                           CHECK (status IN ('pending','automated','passed','failed','skipped','on-hold')),
-      priority     TEXT    NOT NULL DEFAULT 'P2'
-                           CHECK (priority IN ('P1','P2','P3')),
-      feature_area TEXT    NOT NULL DEFAULT 'other'
-                           CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
-      spec_file    TEXT    NOT NULL DEFAULT '',
-      workflow     TEXT    NOT NULL DEFAULT '',
-      created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-      updated_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-      subsection   TEXT    NOT NULL DEFAULT ''
-    );
-
-    INSERT INTO scenarios_new (id, title, description, status, priority, feature_area, spec_file, workflow, created_at, updated_at, subsection)
-    SELECT id, title, description, status, priority, feature_area, spec_file, workflow, created_at, updated_at, subsection
-    FROM scenarios;
-
-    DROP TABLE scenarios;
-    ALTER TABLE scenarios_new RENAME TO scenarios;
-
-    CREATE INDEX IF NOT EXISTS idx_scenarios_status       ON scenarios(status);
-    CREATE INDEX IF NOT EXISTS idx_scenarios_priority     ON scenarios(priority);
-    CREATE INDEX IF NOT EXISTS idx_scenarios_feature_area ON scenarios(feature_area);
-  `);
-  db.pragma('foreign_keys = ON');
-}
-
-/**
- * Returns the singleton Database connection, creating the DB file
- * and schema if they don't exist yet.
- */
 export function getDb(): Database.Database {
   if (_db) return _db;
 
-  // Ensure the directory exists
   if (!fs.existsSync(DB_DIR)) {
     fs.mkdirSync(DB_DIR, { recursive: true });
   }
 
   _db = new Database(DB_PATH);
-
-  // Enable WAL mode for better concurrent read performance
   _db.pragma('journal_mode = WAL');
-  // Enable foreign-key enforcement
   _db.pragma('foreign_keys = ON');
-
-  // Create tables if first run
   _db.exec(SCHEMA_SQL);
 
-  // ── Migrations ──────────────────────────────────────────────────────────
-  // Add subsection column if it doesn't exist yet
-  const cols = _db.prepare("PRAGMA table_info(scenarios)").all() as { name: string }[];
-  if (!cols.some(c => c.name === 'subsection')) {
-    _db.exec("ALTER TABLE scenarios ADD COLUMN subsection TEXT NOT NULL DEFAULT ''");
+  const metaRow = _db.prepare('SELECT value FROM meta WHERE key = ?').get('schema_version') as { value?: string } | undefined;
+  if (!metaRow) {
+    _db.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('schema_version', String(SCHEMA_VERSION));
   }
-
-  migrateScenarioStatuses(_db);
 
   return _db;
 }
 
-/**
- * Closes the database connection (for clean shutdown in scripts).
- */
+export function getSchemaVersion(): number {
+  const db = getDb();
+  const row = db.prepare('SELECT value FROM meta WHERE key = ?').get('schema_version') as { value?: string } | undefined;
+  return row?.value ? Number(row.value) : 1;
+}
+
 export function closeDb(): void {
-  if (_db) {
-    _db.close();
-    _db = null;
-  }
+  if (_db) { _db.close(); _db = null; }
 }
 
-/**
- * Returns the absolute path to the DB file (useful for diagnostics).
- */
-export function getDbPath(): string {
-  return DB_PATH;
-}
-
-/**
- * Returns the project root path.
- */
-export function getProjectRoot(): string {
-  return PROJECT_ROOT;
-}
+export function getDbPath(): string { return DB_PATH; }
+export function getProjectRoot(): string { return PROJECT_ROOT; }

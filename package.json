@@ -36,7 +36,9 @@
     "tracker:list": "npx tsx scripts/tracker.ts list",
     "tracker:sync": "npx tsx scripts/tracker.ts sync",
     "tracker:export": "npx tsx scripts/tracker.ts export",
-    "tracker:ui": "npx tsx scripts/tracker-ui.ts"
+    "tracker:ui": "npx tsx scripts/tracker-ui.ts",
+    "tracker:sync-from-html": "npx tsx scripts/sync-from-html-plan.ts",
+    "tracker:sync-from-html:dry": "npx tsx scripts/sync-from-html-plan.ts --dry-run"
   },
   "keywords": [
     "playwright",
@@ -68,6 +70,7 @@
     "express": "^5.2.1",
     "playwright": "^1.59.1",
     "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
