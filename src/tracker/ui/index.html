@@ -105,6 +105,16 @@ tailwind.config = {
   /* Group-by-workflow */
   .workflow-group { margin-bottom: 20px; }
   .workflow-header { font-size: 13px; color: var(--blue); padding: 6px 12px; background: var(--surface2); border-radius: var(--radius-sm); margin-bottom: 8px; }
+
+  /* CSS variable definitions for detail and workflow classes */
+  :root {
+    --border: #30363d;
+    --muted: #8b949e;
+    --surface2: #21262d;
+    --orange: #e3b341;
+    --blue: #58a6ff;
+    --radius-sm: 4px;
+  }
 </style>
 </head>
 
@@ -571,16 +581,19 @@ async function refreshWorkflows() {
   const params = new URLSearchParams();
   const search = document.getElementById('search').value.trim();
   if (search) params.set('search', search);
-  // activeStatusFilter maps to automation_state in the new API
-  if (activeStatusFilter) params.set('automation_state', activeStatusFilter);
   const priority = document.getElementById('filterPriority').value;
   if (priority) params.set('priority', priority);
   const area = document.getElementById('filterArea').value;
   if (area) params.set('feature_area', area);
   const group = document.getElementById('filterGroup').value;
   if (group) params.set('group', group);
+  // Dropdown filter-auto-state takes priority over activeStatusFilter
   const autoState = document.getElementById('filter-auto-state')?.value ?? '';
-  if (autoState) params.set('automation_state', autoState);
+  if (autoState) {
+    params.set('automation_state', autoState);
+  } else if (activeStatusFilter) {
+    params.set('automation_state', activeStatusFilter);
+  }
   const execStatus = document.getElementById('filter-exec-status')?.value ?? '';
   if (execStatus) params.set('execution_status', execStatus);
   const workflowFilter = document.getElementById('filter-workflow')?.value ?? '';
@@ -591,9 +604,16 @@ async function refreshWorkflows() {
   // data is { items, total, page, limit, pages }
   const scenarios = Array.isArray(data) ? data : (data.items || []);
   const total = data.total || scenarios.length;
-  // Build workflow grouping client-side
-  const workflows = buildWorkflowGroups(scenarios);
-  renderWorkflows(workflows, total);
+  // Check group-by-workflow toggle
+  const groupByWorkflow = document.getElementById('group-by-workflow')?.checked ?? true;
+  if (groupByWorkflow) {
+    // Grouped view: build workflow groups and render accordion
+    const workflows = buildWorkflowGroups(scenarios);
+    renderWorkflows(workflows, total);
+  } else {
+    // Flat view: render all scenarios without workflow grouping headers
+    renderFlatScenarios(scenarios, total);
+  }
   document.getElementById('refreshedTime').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
 }
 
@@ -697,6 +717,16 @@ function renderWorkflows(workflows, total) {
   }).join('');
 }
 
+function renderFlatScenarios(scenarios, total) {
+  const container = document.getElementById('workflows');
+  window._cachedWorkflows = [];
+  if (!scenarios.length) {
+    container.innerHTML = '<div class="text-center py-16 text-on-surface-variant text-sm">No scenarios match your filters</div>';
+    return;
+  }
+  container.innerHTML = `<div class="space-y-1">${scenarios.map((s, sIdx) => renderScenarioItem(s, 0, 0, sIdx, '#ff9157')).join('')}</div>`;
+}
+
 function renderSubsections(wf, wfIdx, color) {
   if (wf.subsections.length === 1 && !wf.subsections[0].name) {
     return wf.subsections[0].items.map((s, sIdx) => renderScenarioItem(s, wfIdx, 0, sIdx, color)).join('');
@@ -746,27 +776,21 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
   const idColor = s.execution_status === 'failed-defect' ? '#c42e09' : (effectiveStatus === 'automated' ? '#81ecff' : wfColor);
 
   const stepsHtml = hasSteps
-    ? `<div class="space-y-3">${s.steps.map((step, i) => `
-          <div class="flex gap-3 text-xs">
-            <span class="text-neutral-600 font-mono">${String(i+1).padStart(2,'0')}</span>
-            <p class="text-secondary-fixed-dim">${esc(step)}</p>
-          </div>`).join('')}</div>`
-    : '<p class="text-xs text-on-surface-variant italic">No execution steps defined yet</p>';
+    ? `<ol class="detail-steps">${s.steps.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol>`
+    : '<em class="muted">No steps recorded.</em>';
+  const sectionSteps = `<div class="detail-section"><h3>Steps</h3>${stepsHtml}</div>`;
 
   const expectedHtml = hasExpected
-    ? `<div class="bg-surface-container-lowest p-4 rounded-md font-mono text-[11px] text-tertiary border border-white/5">
-        <div class="mb-2 text-neutral-500">// Expected Assertions</div>
-        ${s.expected_results.map(r => `<div><span class="text-on-surface-variant">ASSERT:</span> ${esc(r)}</div>`).join('')}
-       </div>`
-    : '<p class="text-xs text-on-surface-variant italic">No expected results defined yet</p>';
+    ? `<ul class="detail-expected">${s.expected_results.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`
+    : '<em class="muted">No expected results recorded.</em>';
+  const sectionExpected = `<div class="detail-section"><h3>Expected Results</h3>${expectedHtml}</div>`;
+
+  const sectionNotes = hasNotes
+    ? `<div class="detail-section"><h3>Execution Notes</h3><div class="detail-notes"><em>${escapeHtml(s.execution_notes)}</em></div></div>`
+    : '';
 
   const descHtml = hasDescription
     ? `<div class="mb-4 p-3 bg-surface-container border-l-2 border-primary/40 rounded-r-lg text-xs text-secondary">${esc(s.description)}</div>`
-    : '';
-
-  const notesHtml = hasNotes
-    ? `<div class="mt-4 p-3 bg-error/5 border border-error/20 rounded-lg text-xs text-on-surface-variant">
-        <span class="text-error font-bold text-[10px] uppercase tracking-widest">Execution Note:</span> ${esc(s.execution_notes)}</div>`
     : '';
 
   const groupTags = (s.groups || []).map(g =>
@@ -787,8 +811,6 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
           class="text-on-surface-variant hover:text-tertiary p-0.5 rounded transition-colors" title="Run test">
           <span class="material-symbols-outlined text-base">play_arrow</span></button>` : ''}
         ${renderBadges(s)}
-        <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter"
-              style="background:${st.bg};color:${st.color}">${effectiveStatus}</span>
         <span class="text-[10px] text-on-surface-variant font-bold">${s.priority}</span>
       </div>
     </div>
@@ -796,17 +818,9 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
       <div class="bg-surface-container-low rounded-lg border-l-2 overflow-hidden mt-1 mb-3" style="border-left-color:${wfColor}60">
         <div class="p-4">
           ${descHtml}
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h5 class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-3 font-bold">Execution Steps</h5>
-              ${stepsHtml}
-            </div>
-            <div>
-              <h5 class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-3 font-bold">Expected Results</h5>
-              ${expectedHtml}
-            </div>
-          </div>
-          ${notesHtml}
+          ${sectionSteps}
+          ${sectionExpected}
+          ${sectionNotes}
           <!-- Meta info -->
           <div class="flex items-center gap-4 flex-wrap mt-5 pt-4 border-t border-outline-variant/10 text-[10px] text-on-surface-variant font-medium">
             <span><span class="font-bold uppercase tracking-widest">Area:</span> <span class="text-on-surface font-mono">${esc(s.feature_area)}</span></span>
@@ -1007,13 +1021,11 @@ function toast(msg, type = 'success') {
 // ── Badge rendering ───────────────────────────────────────────────────────────
 
 function renderBadges(s) {
-  const autoState = s.automation_state || '';
-  const execStatus = s.execution_status || '';
-  const autoClass = autoState ? 'auto-' + autoState : '';
-  const execClass = execStatus ? 'exec-' + execStatus : '';
-  const autoBadge = autoState ? `<span class="badge ${autoClass}">${esc(autoState)}</span>` : '';
-  const execBadge = execStatus ? `<span class="badge ${execClass}">${esc(execStatus)}</span>` : '';
-  return `${autoBadge} ${execBadge}`;
+  const autoState = s.automation_state || 'pending';
+  const execStatus = s.execution_status || 'not-executed';
+  const auto = `<span class="badge auto-${autoState}">${esc(autoState)}</span>`;
+  const exec = `<span class="badge exec-${execStatus}">${esc(execStatus)}</span>`;
+  return `${auto} ${exec}`;
 }
 
 // ── Workflow filter population ────────────────────────────────────────────────
@@ -1043,6 +1055,10 @@ function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function cleanWorkflowName(name) {
