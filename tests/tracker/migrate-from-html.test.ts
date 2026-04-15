@@ -35,13 +35,14 @@ test.describe('migrate-from-html', () => {
     const Database = require('better-sqlite3');
     const db = new Database(SCRATCH_DB);
     const count = (db.prepare('SELECT COUNT(*) as c FROM scenarios').get() as { c: number }).c;
-    expect(count).toBe(3);
-    const loggedIn = db.prepare('SELECT * FROM scenarios WHERE id = ?').get('AUTH-LOGIN-001') as any;
+    expect(count).toBe(4);
+    const loggedIn = db.prepare('SELECT * FROM scenarios WHERE id = ?').get('WF01-0001') as any;
     expect(loggedIn.title).toBe('Verify login page loads');
     expect(loggedIn.execution_status).toBe('passed');
     expect(loggedIn.automation_state).toBe('automated');
 
-    const detail = db.prepare('SELECT * FROM scenario_details WHERE scenario_id = ?').get('AUTH-LOGIN-999') as any;
+    // WF01-0003 → AUTH-LOGIN-999 (has execution_notes)
+    const detail = db.prepare('SELECT * FROM scenario_details WHERE scenario_id = ?').get('WF01-0003') as any;
     expect(detail.execution_notes).toBe('Known flaky on QA');
     db.close();
   });

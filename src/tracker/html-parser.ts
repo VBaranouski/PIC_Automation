@@ -1,74 +1,57 @@
 /**
- * Test Scenario Tracker — HTML Plan Parser
+ * Test Scenario Tracker — HTML Plan Parser (v2)
  *
- * Parses the three embedded data blobs from automation-testing-plan.html
- * into a clean array of scenario records ready for DB insertion.
+ * Parses the WF array from automation-testing-plan.html into clean scenario records.
+ * The WF array is the authoritative test plan data source (~1,200 items across 22 workflows).
+ *
+ * Data sources parsed:
+ * 1. const WF = [...]                   — main test plan items with workflow/section structure
+ * 2. *_SCENARIO_CASES dicts             — automated test case ID mappings per section item
+ * 3. const AUTO_CASE_STATUS             — execution status per automated case ID
+ * 4. <script id="doc-auto-case-details"> — steps/expected_results per automated case ID
+ *
+ * ID scheme: WF{n:02d}-{seq:04d} (e.g., WF01-0001 = workflow 1, 1st item)
  *
  * Pure function: takes HTML string, returns ParsedPlan. No file I/O, no DB.
  */
 
-import type {
-  Scenario,
-  AutomationState,
-  ExecutionStatus,
-  FeatureArea,
-  Priority,
-} from './models';
+import type { Scenario, AutomationState, ExecutionStatus, FeatureArea, Priority } from './models';
 
 export interface ParsedPlan {
   scenarios: Array<Omit<Scenario, 'created_at' | 'updated_at' | 'groups' | 'description'>>;
   warnings: string[];
 }
 
-interface HtmlDetailEntry {
-  title: string;
+interface DetailEntry {
+  title?: string;
   spec_path?: string;
   steps?: string[];
   expected_results?: string[];
   execution_notes?: string;
 }
 
-function extractJsonBlob(html: string, id: string): string | null {
-  const re = new RegExp(`<script\\s+id="${id}"[^>]*>([\\s\\S]*?)</script>`, 'i');
-  const match = re.exec(html);
-  return match ? match[1].trim() : null;
-}
+// Maps WF workflow number to FeatureArea value
+const WF_FEATURE_AREA: Record<number, FeatureArea> = {
+  1: 'auth',
+  2: 'landing',
+  3: 'products',
+  4: 'releases', 5: 'releases', 6: 'releases', 7: 'releases',
+  8: 'releases', 9: 'releases', 10: 'releases',
+  11: 'doc', 12: 'doc', 13: 'doc',
+  14: 'releases', 15: 'releases',
+  16: 'doc',
+  17: 'other',
+  18: 'backoffice',
+  19: 'reports',
+  20: 'integrations', 21: 'integrations', 22: 'integrations',
+};
 
-function extractObjectLiteral(html: string, varName: string): string | null {
-  // Matches:  const VAR = { ... };  including multi-line, balanced to the matching brace.
-  const startRe = new RegExp(`(?:const|let|var)\\s+${varName}\\s*=\\s*{`);
-  const start = startRe.exec(html);
-  if (!start) return null;
-  const openIdx = html.indexOf('{', start.index + start[0].length - 1);
-  let depth = 0;
-  for (let i = openIdx; i < html.length; i++) {
-    const ch = html[i];
-    if (ch === '{') depth++;
-    else if (ch === '}') {
-      depth--;
-      if (depth === 0) return html.slice(openIdx, i + 1);
-    }
-  }
-  return null;
-}
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Converts simple JS object literals (as used in AUTO_CASE_STATUS and SUBSECTION_INDEX)
- * into parseable JSON.
- *
- * Limitations (acceptable for this controlled HTML file):
- * - String values must not contain apostrophes (the global ' → " replace is naive)
- * - Brace counter does not track string content (nested { } inside strings would misfire)
- * If the production HTML starts failing, these are the first places to look.
- */
-function parseLooseObject<T = unknown>(text: string): T {
-  // Converts single-quoted JS object literals into JSON by replacing
-  // keys and string values. Used for AUTO_CASE_STATUS and SUBSECTION_INDEX.
-  const jsonish = text
-    .replace(/([\{,]\s*)([A-Za-z_][\w-]*)\s*:/g, '$1"$2":')  // keys: `key:` → `"key":`
-    .replace(/'/g, '"')                                       // single → double quotes
-    .replace(/,\s*([}\]])/g, '$1');                           // trailing commas
-  return JSON.parse(jsonish) as T;
+function normalizePriority(raw: string): Priority {
+  if (raw === 'P0' || raw === 'P1') return 'P1';
+  if (raw === 'P3') return 'P3';
+  return 'P2';
 }
 
 function normalizeSpecPath(raw: string | undefined): string {
@@ -78,116 +61,255 @@ function normalizeSpecPath(raw: string | undefined): string {
   return p;
 }
 
-function inferFeatureArea(id: string, specPath: string): FeatureArea {
-  const idUp = id.toUpperCase();
-  const spec = specPath.toLowerCase();
-  if (idUp.startsWith('AUTH-')) return 'auth';
-  if (idUp.startsWith('LANDING-')) return 'landing';
-  if (idUp.startsWith('PRODUCT-') || spec.includes('products/')) return 'products';
-  if (idUp.startsWith('DOC-') || idUp.startsWith('ATC-DOC-') || idUp.startsWith('REVIEW-CONFIRM-')) return 'doc';
-  if (idUp.startsWith('RELEASE-') || idUp.startsWith('MANAGE-') || idUp.startsWith('CLONE-') || idUp.startsWith('ATC-REVIEW-CONFIRM-')) return 'releases';
-  if (spec.includes('report') || spec.includes('tableau')) return 'reports';
-  if (spec.includes('backoffice')) return 'backoffice';
-  if (spec.includes('integration') || spec.includes('jira') || spec.includes('jama') || spec.includes('intel')) return 'integrations';
-  return 'other';
+function extractJsonBlob(html: string, id: string): string | null {
+  const re = new RegExp(`<script\\s+id="${id}"[^>]*>([\\s\\S]*?)</script>`, 'i');
+  const m = re.exec(html);
+  return m ? m[1].trim() : null;
 }
 
-function inferWorkflow(subsection: string, area: FeatureArea): string {
-  // Use subsection's first number to pick a workflow name.
-  const major = subsection.split('.')[0];
-  const map: Record<string, string> = {
-    '1': 'WORKFLOW 1 — Authentication',
-    '2': 'WORKFLOW 2 — Landing Page & Home Navigation',
-    '3': 'WORKFLOW 3 — Product Management',
-    '4': 'WORKFLOW 4 — DOC Lifecycle',
-    '5': 'WORKFLOW 5 — Review & Confirm',
-    '6': 'WORKFLOW 6 — Release Management',
-    '7': 'WORKFLOW 7 — Reports & Dashboards',
-  };
-  if (map[major]) return map[major];
-  // Fallback: derive from feature area
-  return `WORKFLOW — ${area.charAt(0).toUpperCase()}${area.slice(1)}`;
+/** Extracts a balanced { ... } block for a named JS/TS variable declaration. */
+function extractObjectLiteral(text: string, varName: string): string | null {
+  const startRe = new RegExp(`(?:const|let|var)\\s+${varName}\\s*=\\s*{`);
+  const start = startRe.exec(text);
+  if (!start) return null;
+  const openIdx = text.indexOf('{', start.index + start[0].length - 1);
+  let depth = 0;
+  for (let i = openIdx; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return text.slice(openIdx, i + 1);
+    }
+  }
+  return null;
 }
 
-function inferPriority(id: string): Priority {
-  // P3 is not inferred from the HTML plan — scenarios can be set to P3 manually if needed.
-  // Heuristics: IDs ending in -001 or matching known smoke/auth patterns get P1, rest get P2.
-  const idUp = id.toUpperCase();
-  if (idUp.includes('SMOKE') || idUp.startsWith('AUTH-LOGIN-') || idUp.startsWith('DOC-CREATE-')) return 'P1';
-  if (idUp.endsWith('-001')) return 'P1';
-  return 'P2';
+function parseAutoStatus(literal: string): Record<string, ExecutionStatus> {
+  const result: Record<string, ExecutionStatus> = {};
+  // Match: 'ID': ['Label', 'css-value']  or  "ID": ["Label", "css-value"]
+  const entryRe = /['"]([A-Z][A-Z0-9-]+)['"]\s*:\s*\[[^\]]*,\s*['"]([^'"]+)['"]/g;
+  let m: RegExpExecArray | null;
+  while ((m = entryRe.exec(literal)) !== null) {
+    const id = m[1];
+    const css = m[2];
+    const valid: ExecutionStatus[] = ['passed', 'not-executed', 'skipped', 'failed-defect'];
+    result[id] = (valid as string[]).includes(css) ? (css as ExecutionStatus) : 'not-executed';
+  }
+  return result;
 }
+
+/**
+ * Parses all *_SCENARIO_CASES dicts into a nested map:
+ *   dictName → { sectionKey → [atcId, ...] }
+ *
+ * Each entry looks like:  "1.1": [["AUTH-LOGIN-001", "desc"], ...]
+ * Multiple ATC IDs per key are possible; we collect all.
+ */
+function parseAllScenarioCases(script: string): Record<string, Record<string, string[]>> {
+  const dictNames = [
+    'AUTH_SCENARIO_CASES',
+    'LANDING_SCENARIO_CASES',
+    'PRODUCT_SCENARIO_CASES',
+    'RELEASE_SCENARIO_CASES',
+    'DOC_SCENARIO_CASES',
+  ] as const;
+
+  const allDicts: Record<string, Record<string, string[]>> = {};
+
+  for (const name of dictNames) {
+    const block = extractObjectLiteral(script, name);
+    if (!block) continue;
+
+    const dict: Record<string, string[]> = {};
+    // Match outer key: "N.N.N":
+    const keyRe = /"([^"]+)"\s*:\s*\[/g;
+    let km: RegExpExecArray | null;
+    while ((km = keyRe.exec(block)) !== null) {
+      const key = km[1];
+      const afterBracket = block.slice(km.index + km[0].length);
+      // Collect text of this array entry (balanced [])
+      let depth = 1;
+      let entryText = '';
+      for (let i = 0; i < afterBracket.length && depth > 0; i++) {
+        const ch = afterBracket[i];
+        if (ch === '[') depth++;
+        else if (ch === ']') depth--;
+        entryText += ch;
+      }
+      // Extract all IDs inside inner ["ID", "..."] tuples
+      const ids: string[] = [];
+      const idRe = /\[\s*["']([A-Z][A-Z0-9-]+)["']/g;
+      let idM: RegExpExecArray | null;
+      while ((idM = idRe.exec(entryText)) !== null) {
+        ids.push(idM[1]);
+      }
+      if (ids.length) dict[key] = ids;
+    }
+
+    allDicts[name] = dict;
+  }
+
+  return allDicts;
+}
+
+/** Resolves a raw JS expression like AUTH_SCENARIO_CASES["1.1"] to its ATC IDs. */
+function resolveAtcIds(
+  refExpr: string,
+  scenarioCases: Record<string, Record<string, string[]>>,
+): string[] {
+  const m = /(\w+_SCENARIO_CASES)\["([^"]+)"\]/.exec(refExpr);
+  if (!m) return [];
+  const dict = scenarioCases[m[1]];
+  if (!dict) return [];
+  return dict[m[2]] ?? [];
+}
+
+// ── WF array parser ──────────────────────────────────────────────────────────
+
+interface RawItem {
+  wfN: number;
+  wfTitle: string;
+  sectionTitle: string;
+  done: boolean;
+  itemTitle: string;
+  priority: string;
+  scenarioRef: string; // raw JS ref expression, e.g. AUTH_SCENARIO_CASES["1.1"]
+}
+
+/**
+ * Line-by-line state machine over the WF block.
+ *
+ * Tracks current workflow (n, title) and section (title) as it scans,
+ * emitting a RawItem whenever it encounters an item line.
+ */
+function parseWfItems(script: string): RawItem[] {
+  const wfStart = script.indexOf('const WF = [');
+  if (wfStart < 0) return [];
+
+  // Stop at the next top-level const declaration after WF (e.g. const prefixMap)
+  const nextConst = script.indexOf('\nconst ', wfStart + 10);
+  const wfBlock = nextConst > 0 ? script.slice(wfStart, nextConst) : script.slice(wfStart);
+
+  const items: RawItem[] = [];
+  let currentWfN = 0;
+  let currentWfTitle = '';
+  let currentSection = '';
+
+  // Regex patterns (each applied per-line)
+  const wfHeaderRe = /n\s*:\s*(\d+)\s*,\s*title\s*:\s*"([^"]+)"/;
+  const sectionWithTitleRe = /\{\s*title\s*:\s*"([^"]+)"\s*,\s*items\s*:\s*\[/;
+  const sectionNullRe = /\{\s*title\s*:\s*null\s*,\s*items\s*:\s*\[/;
+  // Item: [true/false, "title (with possible \" escapes)", "P0-P9", optional CASES_DICT["key"]]
+  // The 4th arg is matched specifically as WORD_SCENARIO_CASES["key"] to avoid
+  // ambiguity with the ] inside the reference expression (e.g. AUTH_SCENARIO_CASES["1.1"]).
+  const itemRe =
+    /^\s*\[\s*(true|false)\s*,\s*"((?:[^"\\]|\\.)*)"\s*,\s*"(P\d)"\s*(?:,\s*(\w+_SCENARIO_CASES\["[^"]+"\]))?\s*\],?\s*$/;
+
+  for (const line of wfBlock.split('\n')) {
+    const wfM = wfHeaderRe.exec(line);
+    if (wfM) {
+      currentWfN = parseInt(wfM[1], 10);
+      currentWfTitle = wfM[2];
+      currentSection = '';
+      continue;
+    }
+
+    const secM = sectionWithTitleRe.exec(line);
+    if (secM) {
+      currentSection = secM[1];
+      continue;
+    }
+    if (sectionNullRe.test(line)) {
+      currentSection = '';
+      continue;
+    }
+
+    const itemM = itemRe.exec(line);
+    if (itemM) {
+      items.push({
+        wfN: currentWfN,
+        wfTitle: currentWfTitle,
+        sectionTitle: currentSection,
+        done: itemM[1] === 'true',
+        itemTitle: itemM[2].replace(/\\"/g, '"'),
+        priority: itemM[3],
+        scenarioRef: (itemM[4] ?? '').trim(),
+      });
+    }
+  }
+
+  return items;
+}
+
+// ── Public API ───────────────────────────────────────────────────────────────
 
 export function parseHtmlPlan(html: string): ParsedPlan {
   const warnings: string[] = [];
 
-  // 1) doc-auto-case-details JSON
+  // 1. doc-auto-case-details (steps, expected_results, execution_notes)
   const detailJson = extractJsonBlob(html, 'doc-auto-case-details');
   if (!detailJson) throw new Error('Missing <script id="doc-auto-case-details"> blob');
-  const details = JSON.parse(detailJson) as Record<string, HtmlDetailEntry>;
+  const details = JSON.parse(detailJson) as Record<string, DetailEntry>;
 
-  // 2) AUTO_CASE_STATUS object literal
+  // 2. AUTO_CASE_STATUS (execution status per ATC ID)
   const statusLiteral = extractObjectLiteral(html, 'AUTO_CASE_STATUS');
-  const statusMap: Record<string, [string, string]> = statusLiteral
-    ? parseLooseObject(statusLiteral)
-    : {};
+  const statusMap = statusLiteral ? parseAutoStatus(statusLiteral) : {};
 
-  // 3) SUBSECTION_INDEX (keyed by "1.1", values are arrays-of-arrays)
-  const indexLiteral = extractObjectLiteral(html, 'SUBSECTION_INDEX');
-  const subsectionIndex: Record<string, Array<[string, string]>> = indexLiteral
-    ? parseLooseObject(indexLiteral)
-    : {};
+  // 3. *_SCENARIO_CASES dicts (section key → ATC IDs)
+  const scenarioCases = parseAllScenarioCases(html);
 
-  // Invert: scenarioId → subsection
-  const idToSubsection = new Map<string, string>();
-  for (const [sub, entries] of Object.entries(subsectionIndex)) {
-    for (const [scenarioId] of entries) {
-      idToSubsection.set(scenarioId, sub);
-    }
+  // 4. WF array items
+  const rawItems = parseWfItems(html);
+  if (rawItems.length === 0) {
+    warnings.push('WF array not found or empty — check HTML source structure');
   }
 
-  // Union of all IDs we see
-  const allIds = new Set<string>([
-    ...Object.keys(details),
-    ...Object.keys(statusMap),
-    ...idToSubsection.keys(),
-  ]);
+  // Sequential counter per workflow number for ID generation
+  const wfSeq = new Map<number, number>();
 
-  const scenarios: ParsedPlan['scenarios'] = [];
-  for (const id of allIds) {
-    const d = details[id];
-    const title = d?.title ?? id;
-    const spec_file = normalizeSpecPath(d?.spec_path);
-    const subsection = idToSubsection.get(id) ?? '';
-    const feature_area = inferFeatureArea(id, spec_file);
-    const workflow = inferWorkflow(subsection, feature_area);
+  const scenarios: ParsedPlan['scenarios'] = rawItems.map((raw) => {
+    const seq = (wfSeq.get(raw.wfN) ?? 0) + 1;
+    wfSeq.set(raw.wfN, seq);
 
-    const statusEntry = statusMap[id];
-    const execCss = statusEntry?.[1];
-    const execution_status: ExecutionStatus = (['passed', 'not-executed', 'skipped', 'failed-defect'] as const)
-      .includes(execCss as ExecutionStatus) ? (execCss as ExecutionStatus) : 'not-executed';
+    const id = `WF${String(raw.wfN).padStart(2, '0')}-${String(seq).padStart(4, '0')}`;
+    const feature_area: FeatureArea = WF_FEATURE_AREA[raw.wfN] ?? 'other';
+    const priority = normalizePriority(raw.priority);
+    const automation_state: AutomationState = raw.done ? 'automated' : 'pending';
 
-    const automation_state: AutomationState = spec_file ? 'automated' : 'pending';
+    // Resolve ATC IDs from the *_SCENARIO_CASES reference
+    const atcIds = raw.scenarioRef ? resolveAtcIds(raw.scenarioRef, scenarioCases) : [];
+    const primaryAtcId = atcIds[0] ?? '';
 
-    if (!d) warnings.push(`${id}: missing details block`);
-    if (!subsection) warnings.push(`${id}: missing SUBSECTION_INDEX entry`);
+    // Some _SCENARIO_CASES dicts prefix IDs with "ATC-" (e.g. ATC-DOC-SETUP-001) while
+    // doc-auto-case-details and AUTO_CASE_STATUS use the bare form (DOC-SETUP-001).
+    // Strip the prefix before doing lookups so both forms resolve correctly.
+    const lookupId = primaryAtcId.replace(/^ATC-/, '');
 
-    scenarios.push({
+    // Look up detail content (steps, results, notes) via primary ATC ID
+    const detail = lookupId ? details[lookupId] : undefined;
+    const spec_file = normalizeSpecPath(detail?.spec_path);
+
+    // Look up execution status from AUTO_CASE_STATUS
+    const execution_status: ExecutionStatus = lookupId
+      ? (statusMap[lookupId] ?? 'not-executed')
+      : 'not-executed';
+
+    return {
       id,
-      title,
+      title: raw.itemTitle,
       automation_state,
       execution_status,
-      priority: inferPriority(id),
+      priority,
       feature_area,
       spec_file,
-      workflow,
-      subsection,
-      steps: d?.steps ?? [],
-      expected_results: d?.expected_results ?? [],
-      execution_notes: d?.execution_notes ?? '',
-    });
-  }
+      workflow: raw.wfTitle,
+      subsection: raw.sectionTitle,
+      steps: detail?.steps ?? [],
+      expected_results: detail?.expected_results ?? [],
+      execution_notes: detail?.execution_notes ?? '',
+    };
+  });
 
-  scenarios.sort((a, b) => a.id.localeCompare(b.id));
   return { scenarios, warnings };
 }

@@ -24,15 +24,37 @@
 }
 </script>
 <script>
-const SUBSECTION_INDEX = {
-  "1.1": [["AUTH-LOGIN-001", "`auth/login.spec.ts` — desc"]],
-  "1.2": [["AUTH-LOGIN-999", "`auth/login.spec.ts` — desc"]],
-  "4.1": [["DOC-CREATE-001", "`doc/doc-lifecycle.spec.ts` — desc"]]
+const AUTH_SCENARIO_CASES = {
+  "1.1": [["AUTH-LOGIN-001", "`auth/login.spec.ts` — Verify login page loads"]],
+  "1.2": [["AUTH-LOGIN-999", "`auth/login.spec.ts` — Broken login case"]]
+};
+const DOC_SCENARIO_CASES = {
+  "11.1.1": [["DOC-CREATE-001", "`doc/doc-lifecycle.spec.ts` — Create a DOC"]]
 };
 const AUTO_CASE_STATUS = {
   'AUTH-LOGIN-001': ['Passed', 'passed'],
   'AUTH-LOGIN-999': ['Failed: defect', 'failed-defect'],
   'DOC-CREATE-001': ['Skipped', 'skipped']
 };
+const WF = [
+  {
+    n:1, title:"Authentication", icon:"🔐", color:"#58a6ff",
+    spec:"auth/login.spec.ts", po:"login.page.ts",
+    sections:[{ title:null, items:[
+      [true,  "Verify login page loads", "P1", AUTH_SCENARIO_CASES["1.1"]],
+      [false, "Login via SSO with a valid identity", "P2"],
+      [true,  "\"Forgot password\" link opens the recovery flow", "P2", AUTH_SCENARIO_CASES["1.2"]],
+    ]}]
+  },
+  {
+    n:11, title:"Digital Offer Certification (DOC)", icon:"📜", color:"#79c0ff",
+    spec:"doc/doc-lifecycle.spec.ts", po:"doc-details.page.ts",
+    sections:[
+      { title:"11.1 Product Setup for DOC", items:[
+        [true,  "Create a DOC", "P1", DOC_SCENARIO_CASES["11.1.1"]],
+      ]}
+    ]
+  }
+];
 </script>
 </body></html>
