@@ -30,8 +30,6 @@
     "codegen:doc": "node scripts/codegen.mjs --url '/GRC_PICASso_DOC/DOCDetail?DOCId=77&ProductId=730'",
     "codegen:landing": "node scripts/codegen.mjs --url '/GRC_PICASso/'",
     "tracker": "npx tsx scripts/tracker.ts",
-    "tracker:seed": "npx tsx scripts/seed-tracker.ts",
-    "tracker:seed:dry": "npx tsx scripts/seed-tracker.ts --dry-run",
     "tracker:report": "npx tsx scripts/tracker.ts report",
     "tracker:list": "npx tsx scripts/tracker.ts list",
     "tracker:sync": "npx tsx scripts/tracker.ts sync",
