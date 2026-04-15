@@ -444,6 +444,10 @@ async function init() {
   // Group-by-workflow toggle
   const groupByCheck = document.getElementById('group-by-workflow');
   if (groupByCheck) {
+    // Initialize group-by preference — default to grouped on first visit
+    if (localStorage.getItem('tracker.groupByWorkflow') === null) {
+      localStorage.setItem('tracker.groupByWorkflow', '1');
+    }
     groupByCheck.checked = localStorage.getItem('tracker.groupByWorkflow') === '1';
     groupByCheck.addEventListener('change', () => {
       localStorage.setItem('tracker.groupByWorkflow', groupByCheck.checked ? '1' : '0');
@@ -1021,10 +1025,10 @@ function toast(msg, type = 'success') {
 // ── Badge rendering ───────────────────────────────────────────────────────────
 
 function renderBadges(s) {
-  const autoState = s.automation_state || 'pending';
-  const execStatus = s.execution_status || 'not-executed';
-  const auto = `<span class="badge auto-${autoState}">${esc(autoState)}</span>`;
-  const exec = `<span class="badge exec-${execStatus}">${esc(execStatus)}</span>`;
+  const autoState = (s.automation_state || 'pending').replace(/[^a-z0-9-]/gi, '');
+  const execStatus = (s.execution_status || 'not-executed').replace(/[^a-z0-9-]/gi, '');
+  const auto = `<span class="badge auto-${autoState}">${esc(s.automation_state || 'pending')}</span>`;
+  const exec = `<span class="badge exec-${execStatus}">${esc(s.execution_status || 'not-executed')}</span>`;
   return `${auto} ${exec}`;
 }
 
