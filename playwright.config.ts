@@ -135,6 +135,11 @@ export default defineConfig({
 			testMatch: /doc-lifecycle\.spec\.ts/,
 			use: { ...devices['Desktop Chrome'] },
 		},
+		// ── Tracker unit/integration tests (no browser, no dependencies) ────────────────
+		{
+			name: 'tracker',
+			testMatch: /tracker\/.*\.test\.ts/,
+		},
 		// ────────────────────────────────────────────────────────────────────────────────
 		{
 			name: 'chromium',
