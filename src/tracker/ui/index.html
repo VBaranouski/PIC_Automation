@@ -85,6 +85,7 @@ tailwind.config = {
   /* Execution status badge */
   .badge { display: inline-block; font-size: 10px; font-weight: 700; line-height: 1; padding: 2px 7px; border-radius: 4px; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 0.04em; }
   .badge.exec-passed        { background: #0d2a0f; color: #3fb950; border-color: #3fb950; }
+  .badge.exec-n-a           { background: #1a1a1a; color: #8b949e; border-color: #30363d; }
   .badge.exec-not-executed  { background: #21262d; color: #8b949e; border-color: #30363d; }
   .badge.exec-skipped       { background: #21262d; color: #e3b341; border-color: #e3b341; }
   .badge.exec-failed-defect { background: #3b0d10; color: #ff7b72; border-color: #ff7b72; }
@@ -139,27 +140,27 @@ tailwind.config = {
       <span class="material-symbols-outlined" id="nav-reports-icon">folder_open</span>
       <span class="uppercase tracking-wider text-xs font-body">Test Reports</span>
     </a>
-    <a href="#workflowsAnchor" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+    <div class="flex items-center gap-3 px-4 py-3 text-neutral-500 opacity-70 cursor-default">
       <span class="material-symbols-outlined">account_tree</span>
       <span class="uppercase tracking-wider text-xs font-body">Scenarios</span>
-    </a>
+    </div>
     <a href="#" onclick="event.preventDefault();toggleRunnerPanel()" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
       <span class="material-symbols-outlined">history</span>
       <span class="uppercase tracking-wider text-xs font-body">Execution Logs</span>
     </a>
-    <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+    <div class="flex items-center gap-3 px-4 py-3 text-neutral-500 opacity-70 cursor-default">
       <span class="material-symbols-outlined">insights</span>
       <span class="uppercase tracking-wider text-xs font-body">Analytics</span>
-    </a>
+    </div>
   </nav>
   <div class="mt-auto px-4 space-y-1">
     <button onclick="openAddModal()" class="w-full bg-primary-container text-on-primary py-2 rounded-lg font-bold mb-6 flex items-center justify-center gap-2 active:scale-90 duration-200 text-sm">
       <span class="material-symbols-outlined text-sm">add</span> New Scenario
     </button>
-    <a href="#" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+    <button type="button" onclick="openSupportModal()" class="w-full flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all rounded-lg text-left">
       <span class="material-symbols-outlined">help</span>
       <span class="uppercase tracking-wider text-xs font-body">Support</span>
-    </a>
+    </button>
   </div>
 </aside>
 
@@ -244,8 +245,13 @@ tailwind.config = {
         <input id="fTitle" required class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
       </div>
       <div class="mb-4">
-        <label for="fDescription" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Description</label>
-        <textarea id="fDescription" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all resize-vertical min-h-[60px]"></textarea>
+        <label for="fSteps" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Test Steps</label>
+        <textarea id="fSteps" placeholder="One step per line" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all resize-vertical min-h-[96px]"></textarea>
+        <p class="text-[10px] text-on-surface-variant mt-1.5">Store the user journey here so automation can be generated later from just the scenario ID or title.</p>
+      </div>
+      <div class="mb-4">
+        <label for="fExpectedResults" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Expected Results</label>
+        <textarea id="fExpectedResults" placeholder="One expected result per line" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all resize-vertical min-h-[96px]"></textarea>
       </div>
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
@@ -262,12 +268,9 @@ tailwind.config = {
         <select id="fArea" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent"></select>
       </div>
       <div class="mb-4">
-        <label for="fSpecFile" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Spec File</label>
-        <input id="fSpecFile" placeholder="tests/releases/example.spec.ts" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all font-mono text-xs" />
-      </div>
-      <div class="mb-4">
         <label for="fWorkflow" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Workflow</label>
-        <input id="fWorkflow" placeholder="WORKFLOW 1 — Authentication" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent transition-all" />
+        <select id="fWorkflow" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent"></select>
+        <p class="text-[10px] text-on-surface-variant mt-1.5">Pick the closest workflow, or use Uncategorized if the destination spec is not known yet.</p>
       </div>
       <div class="mb-4">
         <label for="fGroups" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Groups (comma-separated)</label>
@@ -278,6 +281,34 @@ tailwind.config = {
         <button type="submit" id="modalSubmitBtn" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform">Add</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ═══════════════ SUPPORT MODAL ═══════════════ -->
+<div class="modal-overlay" id="supportModalOverlay">
+  <div class="bg-surface-container-high border border-outline-variant/10 rounded-xl w-[520px] max-w-[95vw] p-6">
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <h2 class="text-lg font-bold font-headline text-on-surface">Support</h2>
+        <p class="text-xs text-on-surface-variant mt-1">Tracker help and defect reporting guidance.</p>
+      </div>
+      <button type="button" onclick="closeSupportModal()" class="text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="space-y-4 text-sm text-on-surface">
+      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Primary Contact</p>
+        <p>Please contact Uladzislau Baranouski for assistance with the tracker or automation coverage updates.</p>
+      </div>
+      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Defect Intake</p>
+        <p>Find a defect? Raise it through the standard defect intake form or your team Jira process, then link the scenario ID in the defect summary.</p>
+      </div>
+    </div>
+    <div class="flex justify-end mt-6 pt-4 border-t border-outline-variant/10">
+      <button type="button" onclick="closeSupportModal()" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform">Close</button>
+    </div>
   </div>
 </div>
 
@@ -371,6 +402,7 @@ tailwind.config = {
 const API = '/api';
 let meta = { statuses: [], automation_states: [], execution_statuses: [], priorities: [], featureAreas: [], feature_areas: [], defaultGroups: [], default_groups: [] };
 let allGroups = [];
+let existingScenarioIds = new Set();
 let allExpanded = false;
 let activeStatusFilter = '';
 let activeExecutionStatusFilter = '';
@@ -378,6 +410,7 @@ let runnerPollTimer = null;
 let runnerLineIndex = 0;
 let runnerOpen = false;
 let availableSpecFiles = [];
+let workflowOptions = ['Uncategorized'];
 
 const ST = {
   'automated':   { color: '#81ecff', bg: 'rgba(129,236,255,0.15)', icon: 'verified' },
@@ -431,6 +464,10 @@ async function init() {
     default_groups: rawMeta.default_groups || rawMeta.defaultGroups || [],
   };
   allGroups = await api('/groups');
+  const allScenarioData = await api('/scenarios?limit=5000');
+  const allScenarioItems = Array.isArray(allScenarioData) ? allScenarioData : (allScenarioData.items || []);
+  existingScenarioIds = new Set(allScenarioItems.map(s => String(s.id || '').trim()).filter(Boolean));
+  workflowOptions = buildWorkflowOptions(await api('/workflows'));
   populateFilterDropdowns();
   updateHeaderNav();
   await refreshDashboard();
@@ -442,6 +479,10 @@ async function init() {
   });
   for (const sel of ['filterPriority', 'filterArea']) {
     document.getElementById(sel).addEventListener('change', () => refreshWorkflows());
+  }
+  for (const sel of ['fTitle', 'fArea', 'fWorkflow']) {
+    document.getElementById(sel).addEventListener('input', syncScenarioIdFromForm);
+    document.getElementById(sel).addEventListener('change', syncScenarioIdFromForm);
   }
 }
 
@@ -494,10 +535,23 @@ async function refreshDashboard() {
   const skipped = byExec.skipped || byState.skipped || 0;
   const nonPending = total - pending;
   const pct = nonPending > 0 ? Math.round((covered / nonPending) * 100) : 0;
+  const isGlobalSelected = !activeStatusFilter && !activeExecutionStatusFilter;
+  const totalCardStyle = isGlobalSelected
+    ? 'border-color: rgb(255 145 87); box-shadow: inset 0 0 0 1px rgb(255 145 87);'
+    : 'border-color: rgb(72 72 71 / 0.35);';
+  const failedCardStyle = activeExecutionStatusFilter === 'failed-defect'
+    ? 'border-color: rgb(255 115 81); box-shadow: inset 0 0 0 1px rgb(255 115 81);'
+    : 'border-color: rgb(196 46 9 / 0.15);';
+  const automatedCardStyle = activeStatusFilter === 'automated'
+    ? 'border-color: rgb(129 236 255); box-shadow: inset 0 0 0 1px rgb(129 236 255);'
+    : 'border-color: rgb(58 106 60 / 0.18);';
+  const pendingCardStyle = activeStatusFilter === 'pending'
+    ? 'border-color: rgb(173 170 170); box-shadow: inset 0 0 0 1px rgb(173 170 170);'
+    : 'border-color: rgb(72 72 71 / 0.35);';
 
   el.innerHTML = `
     <!-- Total Test Cases -->
-    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('')">
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border transition-all duration-200" style="${totalCardStyle}" onclick="toggleStatusFilter('')">
       <div class="flex items-start justify-between mb-4">
         <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Total Test Cases</p>
         <div class="h-10 w-10 rounded-lg bg-surface-container flex items-center justify-center">
@@ -513,8 +567,21 @@ async function refreshDashboard() {
       </div>
     </div>
 
+    <!-- Automated Coverage -->
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border transition-all duration-200" style="${automatedCardStyle}" onclick="toggleStatusFilter('automated')">
+      <div class="flex items-start justify-between mb-4">
+        <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Automated Coverage</p>
+        <div class="h-10 w-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-tertiary text-xl">robot_2</span>
+        </div>
+      </div>
+      <div class="flex items-end justify-between gap-4">
+        <span class="text-5xl font-extrabold font-headline leading-none" style="color: rgb(129 236 255)">${covered.toLocaleString()}</span>
+      </div>
+    </div>
+
     <!-- Failed Test Scenarios -->
-    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border border-error/15" onclick="toggleExecStatusFilter('failed-defect')">
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border transition-all duration-200" style="${failedCardStyle}" onclick="toggleExecStatusFilter('failed-defect')">
       <div class="flex items-start justify-between mb-4">
         <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Failed Test Scenarios</p>
         <span class="material-symbols-outlined text-error text-xl">error</span>
@@ -527,21 +594,8 @@ async function refreshDashboard() {
       </div>
     </div>
 
-    <!-- Automated Coverage -->
-    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border border-[rgb(58_106_60_/_0.18)]" onclick="toggleStatusFilter('automated')">
-      <div class="flex items-start justify-between mb-4">
-        <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Automated Coverage</p>
-        <div class="h-10 w-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
-          <span class="material-symbols-outlined text-tertiary text-xl">robot_2</span>
-        </div>
-      </div>
-      <div class="flex items-end justify-between gap-4">
-        <span class="text-5xl font-extrabold font-headline leading-none" style="color: rgb(129 236 255)">${covered.toLocaleString()}</span>
-      </div>
-    </div>
-
     <!-- Not Automated (Pending) -->
-    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('pending')">
+    <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer border transition-all duration-200" style="${pendingCardStyle}" onclick="toggleStatusFilter('pending')">
       <div class="flex items-start justify-between mb-4">
         <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Not Automated (Pending)</p>
         <div class="h-10 w-10 rounded-lg bg-surface-container flex items-center justify-center">
@@ -559,19 +613,130 @@ async function refreshDashboard() {
 }
 
 function toggleStatusFilter(status) {
-  activeStatusFilter = (activeStatusFilter === status) ? '' : status;
-  activeExecutionStatusFilter = '';
+  if (!status) {
+    activeStatusFilter = '';
+    activeExecutionStatusFilter = '';
+  } else {
+    activeStatusFilter = status;
+    activeExecutionStatusFilter = '';
+  }
   updateHeaderNav();
   refreshDashboard();
   refreshWorkflows();
 }
 
 function toggleExecStatusFilter(execStatus) {
-  activeExecutionStatusFilter = (activeExecutionStatusFilter === execStatus) ? '' : execStatus;
-  activeStatusFilter = '';
+  if (!execStatus) {
+    activeExecutionStatusFilter = '';
+    activeStatusFilter = '';
+  } else {
+    activeExecutionStatusFilter = execStatus;
+    activeStatusFilter = '';
+  }
   updateHeaderNav();
   refreshDashboard();
   refreshWorkflows();
+}
+
+function buildWorkflowOptions(workflows) {
+  const unique = new Set(['Uncategorized']);
+  for (const workflow of workflows || []) {
+    const name = String(workflow || '').trim();
+    if (name) unique.add(name);
+  }
+  return [...unique].sort((a, b) => {
+    if (a === 'Uncategorized') return -1;
+    if (b === 'Uncategorized') return 1;
+    return formatWorkflowName(a).localeCompare(formatWorkflowName(b));
+  });
+}
+
+function renderWorkflowOptions(selectedValue = 'Uncategorized') {
+  const normalizedSelected = selectedValue || 'Uncategorized';
+  return workflowOptions.map(workflow => {
+    const selected = workflow === normalizedSelected ? ' selected' : '';
+    return `<option value="${esc(workflow)}"${selected}>${esc(formatWorkflowName(workflow) || workflow)}</option>`;
+  }).join('');
+}
+
+function slugifyIdPart(value, fallback = 'GENERIC') {
+  const normalized = String(value || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+  return normalized || fallback;
+}
+
+function getWorkflowIdPart(workflow) {
+  const cleaned = String(workflow || '').trim();
+  if (!cleaned || cleaned === 'Uncategorized') return 'UNCAT';
+  const displayName = formatWorkflowName(cleaned);
+  const numberMatch = String(displayName || '').match(/^(\d+)/);
+  if (numberMatch) return `WF${numberMatch[1].padStart(2, '0')}`;
+  return slugifyIdPart(cleaned.split(/\s+/).slice(0, 2).join('-'), 'WF');
+}
+
+function getTitleIdPart(title) {
+  const sanitized = String(title || '').replace(/^\d+(?:\.\d+)*\s+/, '').trim();
+  const tokens = sanitized
+    .split(/[^A-Za-z0-9]+/)
+    .map(token => token.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  return slugifyIdPart(tokens.join('-'), 'SCENARIO');
+}
+
+function generateScenarioId() {
+  const area = document.getElementById('fArea').value || 'other';
+  const workflow = document.getElementById('fWorkflow').value || 'Uncategorized';
+  const title = document.getElementById('fTitle').value || '';
+  const areaPart = slugifyIdPart(area, 'OTHER');
+  const workflowPart = getWorkflowIdPart(workflow);
+  const titlePart = getTitleIdPart(title);
+  const baseId = `${areaPart}-${workflowPart}-${titlePart}`;
+
+  let candidate = baseId;
+  let suffix = 1;
+  while (existingScenarioIds.has(candidate)) {
+    suffix += 1;
+    candidate = `${baseId}-${String(suffix).padStart(3, '0')}`;
+  }
+  return candidate;
+}
+
+function syncScenarioIdFromForm() {
+  if (document.getElementById('editMode').value !== 'add') return;
+  document.getElementById('fId').value = generateScenarioId();
+}
+
+function parseMultilineList(value) {
+  return String(value || '')
+    .split(/\r?\n/)
+    .map(line => line.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
+    .filter(Boolean);
+}
+
+function formatMultilineList(items) {
+  return Array.isArray(items) ? items.join('\n') : '';
+}
+
+function getDisplayExecutionStatus(s) {
+  const effectiveStatus = s.automation_state || s.status || 'pending';
+  if (effectiveStatus === 'pending') return 'n-a';
+  return s.execution_status || 'not-executed';
+}
+
+function getDisplayExecutionStatusLabel(status) {
+  return status === 'n-a' ? 'n/a' : status;
+}
+
+function openSupportModal() {
+  document.getElementById('supportModalOverlay').classList.add('open');
+}
+
+function closeSupportModal() {
+  document.getElementById('supportModalOverlay').classList.remove('open');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -733,6 +898,8 @@ function renderSubsections(wf, wfIdx, color) {
     return wf.subsections[0].items.map((s, sIdx) => renderScenarioItem(s, wfIdx, 0, sIdx, color)).join('');
   }
 
+  const displayNames = buildSubsectionDisplayNames(wf.subsections);
+
   return wf.subsections.map((sub, subIdx) => {
     if (!sub.name) {
       return sub.items.map((s, sIdx) => renderScenarioItem(s, wfIdx, subIdx, sIdx, color)).join('');
@@ -744,7 +911,7 @@ function renderSubsections(wf, wfIdx, color) {
       <div class="sub-header flex items-center gap-3 py-2.5 px-3 cursor-pointer hover:bg-surface-container-highest rounded-lg transition-colors"
            onclick="toggleSubsection(${wfIdx},${subIdx})">
         <span class="material-symbols-outlined sub-expand text-on-surface-variant text-sm transition-transform duration-200">chevron_right</span>
-        <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex-1">${esc(sub.name)}</span>
+        <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex-1">${esc(displayNames[subIdx])}</span>
         <span class="inline-flex items-center gap-1 shrink-0 text-[10px] text-on-surface-variant font-medium">
           <span class="font-bold" style="color:${color}">${sub.stats.automated}</span>
           <span>/</span>
@@ -772,9 +939,10 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
   const hasFullTitle = s.title && s.title.trim();
   // Support both old (s.status) and new (s.automation_state) field names
   const effectiveStatus = s.automation_state || s.status || 'pending';
+  const effectiveExecutionStatus = getDisplayExecutionStatus(s);
   const st = ST[effectiveStatus] || ST.pending;
   const uid = `sc-${wfIdx}-${subIdx}-${sIdx}`;
-  const idColor = s.execution_status === 'failed-defect' ? '#c42e09' : (effectiveStatus === 'automated' ? '#81ecff' : wfColor);
+  const idColor = effectiveExecutionStatus === 'failed-defect' ? '#c42e09' : (effectiveStatus === 'automated' ? '#81ecff' : wfColor);
 
   const stepsHtml = hasSteps
     ? `<ol class="detail-steps">${s.steps.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol>`
@@ -787,7 +955,7 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
   const sectionExpected = `<div class="detail-section"><h3>Expected Results</h3>${expectedHtml}</div>`;
 
   const notesText = buildExecutionNotesText(s);
-  const notesAccent = getExecutionNotesAccentColor(s.execution_status);
+  const notesAccent = getExecutionNotesAccentColor(effectiveExecutionStatus);
 
   const sectionNotes = notesText
     ? `<div class="detail-section"><h3>Execution Notes</h3><div class="detail-notes" style="border-left-color:${notesAccent}"><em>${escapeHtml(notesText)}</em></div></div>`
@@ -901,6 +1069,7 @@ function populateFilterDropdowns() {
   document.getElementById('fStatus').innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join('');
   document.getElementById('fPriority').innerHTML = meta.priorities.map(p => `<option value="${p}">${p}</option>`).join('');
   document.getElementById('fArea').innerHTML = areas.map(a => `<option value="${a}">${a}</option>`).join('');
+  document.getElementById('fWorkflow').innerHTML = renderWorkflowOptions();
 }
 
 function getExecutionNotesAccentColor(executionStatus) {
@@ -924,13 +1093,16 @@ function openAddModal() {
   document.getElementById('fId').value = '';
   document.getElementById('fId').disabled = false;
   document.getElementById('fTitle').value = '';
-  document.getElementById('fDescription').value = '';
+  document.getElementById('fSteps').value = '';
+  document.getElementById('fExpectedResults').value = '';
   document.getElementById('fStatus').value = 'pending';
+  document.getElementById('fStatus').disabled = true;
   document.getElementById('fPriority').value = 'P2';
   document.getElementById('fArea').value = 'other';
-  document.getElementById('fSpecFile').value = '';
-  document.getElementById('fWorkflow').value = '';
+  document.getElementById('fWorkflow').innerHTML = renderWorkflowOptions('Uncategorized');
+  document.getElementById('fWorkflow').value = 'Uncategorized';
   document.getElementById('fGroups').value = '';
+  syncScenarioIdFromForm();
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -942,12 +1114,14 @@ async function openEditModal(id) {
   document.getElementById('fId').value = s.id;
   document.getElementById('fId').disabled = true;
   document.getElementById('fTitle').value = s.title;
-  document.getElementById('fDescription').value = s.description;
+  document.getElementById('fSteps').value = formatMultilineList(s.steps);
+  document.getElementById('fExpectedResults').value = formatMultilineList(s.expected_results);
+  document.getElementById('fStatus').disabled = false;
   document.getElementById('fStatus').value = s.automation_state || s.status || 'pending';
   document.getElementById('fPriority').value = s.priority;
   document.getElementById('fArea').value = s.feature_area;
-  document.getElementById('fSpecFile').value = s.spec_file;
-  document.getElementById('fWorkflow').value = s.workflow;
+  document.getElementById('fWorkflow').innerHTML = renderWorkflowOptions(s.workflow || 'Uncategorized');
+  document.getElementById('fWorkflow').value = s.workflow || 'Uncategorized';
   document.getElementById('fGroups').value = (s.groups || []).join(', ');
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -960,17 +1134,18 @@ async function saveScenario(e) {
   const body = {
     id: document.getElementById('fId').value.trim(),
     title: document.getElementById('fTitle').value.trim(),
-    description: document.getElementById('fDescription').value.trim(),
-    automation_state: document.getElementById('fStatus').value,
+    automation_state: mode === 'add' ? 'pending' : document.getElementById('fStatus').value,
     priority: document.getElementById('fPriority').value,
     feature_area: document.getElementById('fArea').value,
-    spec_file: document.getElementById('fSpecFile').value.trim(),
     workflow: document.getElementById('fWorkflow').value.trim(),
     groups: document.getElementById('fGroups').value.split(',').map(g => g.trim()).filter(Boolean),
+    steps: parseMultilineList(document.getElementById('fSteps').value),
+    expected_results: parseMultilineList(document.getElementById('fExpectedResults').value),
   };
   try {
     if (mode === 'add') {
       await api('/scenarios', { method: 'POST', body: JSON.stringify(body) });
+      existingScenarioIds.add(body.id);
       toast(`Scenario ${body.id} added`, 'success');
     } else {
       await api(`/scenarios/${encodeURIComponent(body.id)}`, { method: 'PUT', body: JSON.stringify(body) });
@@ -1044,9 +1219,10 @@ function toast(msg, type = 'success') {
 
 function renderBadges(s) {
   const autoState = (s.automation_state || 'pending').replace(/[^a-z0-9-]/gi, '');
-  const execStatus = (s.execution_status || 'not-executed').replace(/[^a-z0-9-]/gi, '');
+  const executionStatus = getDisplayExecutionStatus(s);
+  const execStatus = executionStatus.replace(/[^a-z0-9-]/gi, '');
   const auto = `<span class="badge auto-${autoState}">${esc(s.automation_state || 'pending')}</span>`;
-  const exec = `<span class="badge exec-${execStatus}">${esc(s.execution_status || 'not-executed')}</span>`;
+  const exec = `<span class="badge exec-${execStatus}">${esc(getDisplayExecutionStatusLabel(executionStatus))}</span>`;
   return `${auto} ${exec}`;
 }
 
@@ -1063,6 +1239,41 @@ function esc(s) {
 
 function normalizeText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function buildSubsectionDisplayNames(subsections) {
+  const displayNames = new Array(subsections.length).fill('');
+  const childCounters = new Map();
+
+  for (let index = 0; index < subsections.length; index += 1) {
+    const subsectionName = String(subsections[index]?.name || '').trim();
+    if (!subsectionName) {
+      displayNames[index] = '';
+      continue;
+    }
+
+    const prefixMatch = subsectionName.match(/^(\d+(?:\.\d+)*)\b\s*(.*)$/);
+    if (!prefixMatch) {
+      displayNames[index] = subsectionName;
+      continue;
+    }
+
+    const prefix = prefixMatch[1];
+    const remainder = String(prefixMatch[2] || '').trim();
+    const isParentSection = /\btab\b/i.test(remainder) || !remainder.includes(':');
+
+    if (isParentSection) {
+      childCounters.set(prefix, 0);
+      displayNames[index] = subsectionName;
+      continue;
+    }
+
+    const nextChildIndex = (childCounters.get(prefix) || 0) + 1;
+    childCounters.set(prefix, nextChildIndex);
+    displayNames[index] = `${prefix}.${nextChildIndex} ${remainder}`;
+  }
+
+  return displayNames;
 }
 
 function escapeHtml(str) {

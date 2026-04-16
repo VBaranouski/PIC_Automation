@@ -123,6 +123,7 @@ Set `TEST_ENV=qa` (or `dev`/`ppr`) in `.env` or as an environment variable.
 - [Application Map](docs/ai/application-map.html) — PICASso application structure
 - [Pipeline](docs/ai/pipeline.md) — automation pipeline description
 - [Tracker Migration Completion](docs/ai/tracker-migration-completion.md) — compact completion note for plan-to-tracker migration
+- [Stable Tracker DB Rollback Plan](docs/ai/backups/tracker-db-rollback-plan-stable-2026-04-16.md) — restore point and rollback steps before scenario porting updates
 
 ## CI/CD
 

@@ -769,7 +769,7 @@ app.get(
 app.post(
   '/api/scenarios',
   wrap((req, res) => {
-    const { id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups } = req.body;
+    const { id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups, steps, expected_results, execution_notes } = req.body;
     if (!id || !title) {
       res.status(400).json({ error: 'id and title are required' });
       return;
@@ -791,7 +791,21 @@ app.post(
       return;
     }
     try {
-      const scenario = addScenario({ id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups });
+      const scenario = addScenario({
+        id,
+        title,
+        description,
+        automation_state,
+        execution_status,
+        priority,
+        feature_area,
+        spec_file,
+        workflow,
+        groups,
+        steps: Array.isArray(steps) ? steps : [],
+        expected_results: Array.isArray(expected_results) ? expected_results : [],
+        execution_notes: typeof execution_notes === 'string' ? execution_notes : '',
+      });
       res.status(201).json(scenario);
     } catch (err: any) {
       if (err.message?.includes('UNIQUE constraint')) {
@@ -807,7 +821,7 @@ app.post(
 app.put(
   '/api/scenarios/:id',
   wrap((req, res) => {
-    const { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups } = req.body;
+    const { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups, steps, expected_results, execution_notes } = req.body;
     if (automation_state && !isValidAutomationState(automation_state)) {
       res.status(400).json({ error: `Invalid automation_state: ${automation_state}` });
       return;
@@ -830,7 +844,14 @@ app.put(
       res.status(404).json({ error: `Scenario ${id} not found` });
       return;
     }
-    res.json(updated);
+    if (steps !== undefined || expected_results !== undefined || execution_notes !== undefined) {
+      setScenarioDetails(id, {
+        steps: Array.isArray(steps) ? steps : updated.steps,
+        expected_results: Array.isArray(expected_results) ? expected_results : updated.expected_results,
+        execution_notes: typeof execution_notes === 'string' ? execution_notes : updated.execution_notes,
+      });
+    }
+    res.json(getScenario(id));
   }),
 );
 
