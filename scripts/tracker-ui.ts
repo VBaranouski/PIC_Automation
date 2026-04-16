@@ -704,7 +704,6 @@ function syncScenarioStatusesFromRun(specFiles: string[], _fallbackStatus: 'pass
     });
   }
 }
-}
 
 // ── API: Scenarios ────────────────────────────────────────────────────────────
 

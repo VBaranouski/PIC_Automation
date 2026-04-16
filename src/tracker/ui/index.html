@@ -965,9 +965,6 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
     ? `<div class="mt-2 text-xs text-secondary">${esc(s.description)}</div>`
     : '';
   const descHtml = `<div class="mb-4 p-3 bg-surface-container border-l-2 border-primary/40 rounded-r-lg text-xs text-secondary">
-      <div class="flex items-center gap-2 flex-wrap mb-1">
-        <span class="text-[10px] font-mono shrink-0 px-1.5 py-0.5 rounded" style="color:${idColor};background:${idColor}15">${esc(s.id)}</span>
-      </div>
       <div class="text-sm text-on-surface break-words font-semibold">${escapeHtml(hasFullTitle ? s.title : s.description || s.id)}</div>
       ${descBody}
     </div>`;
