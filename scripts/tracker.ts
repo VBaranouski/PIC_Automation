@@ -47,6 +47,8 @@ import {
   listAllGroups,
   addGroup,
   syncWithSpecFiles,
+  importMissingScenariosFromSpecs,
+  syncScenarioDetailsFromSpecs,
   getStats,
   exportToJson,
   importFromJson,
@@ -425,7 +427,8 @@ program
 program
   .command('sync')
   .description('Reconcile DB with actual .spec.ts files (find new IDs, detect orphans)')
-  .action(() => {
+  .option('--import-missing', 'Create DB rows for missing scenario IDs discovered in specs')
+  .action((opts) => {
     getDb();
     console.log(chalk.cyan('Scanning tests/**/*.spec.ts for allure.description IDs...'));
     const result = syncWithSpecFiles();
@@ -443,9 +446,45 @@ program
       for (const id of result.updatedSpecFiles) console.log(`  ↻ ${id}`);
     }
 
+    if (opts.importMissing && result.newIds.length) {
+      const imported = importMissingScenariosFromSpecs(result.newIds);
+      if (imported.importedIds.length) {
+        console.log(chalk.green(`\nImported missing scenarios from specs (${imported.importedIds.length}):`));
+        for (const id of imported.importedIds) console.log(`  + ${id}`);
+      }
+      if (imported.skippedIds.length) {
+        console.log(chalk.gray(`\nSkipped already-existing scenarios during import (${imported.skippedIds.length})`));
+      }
+    }
+
     if (!result.newIds.length && !result.orphanedIds.length && !result.updatedSpecFiles.length) {
       console.log(chalk.green('✓ DB is in sync with spec files.'));
     }
+    closeDb();
+  });
+
+program
+  .command('sync-details')
+  .description('Backfill scenario steps/details from automated specs and demote uncovered automated rows to pending')
+  .action(() => {
+    getDb();
+    console.log(chalk.cyan('Syncing tracker scenario details from spec files...'));
+    const result = syncScenarioDetailsFromSpecs();
+
+    if (result.updatedDetailIds.length) {
+      console.log(chalk.green(`\nUpdated scenario details (${result.updatedDetailIds.length}):`));
+      for (const id of result.updatedDetailIds) console.log(`  ↻ ${id}`);
+    }
+
+    if (result.demotedIds.length) {
+      console.log(chalk.yellow(`\nDemoted uncovered automated scenarios to pending (${result.demotedIds.length}):`));
+      for (const id of result.demotedIds) console.log(`  ↘ ${id}`);
+    }
+
+    if (!result.updatedDetailIds.length && !result.demotedIds.length) {
+      console.log(chalk.green('✓ Scenario details already match automated spec coverage.'));
+    }
+
     closeDb();
   });
 

@@ -35,6 +35,7 @@
     "tracker:sync": "npx tsx scripts/tracker.ts sync",
     "tracker:export": "npx tsx scripts/tracker.ts export",
     "tracker:ui": "npx tsx scripts/tracker-ui.ts",
+    "tracker:ui:stop": "pkill -f \"tracker-ui.ts|tracker:ui\" || true",
     "tracker:migrate": "npx tsx scripts/migrate-from-html.ts",
     "tracker:migrate:dry": "npx tsx scripts/migrate-from-html.ts --dry-run"
   },

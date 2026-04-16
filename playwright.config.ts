@@ -8,6 +8,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 const environment = getEnvironment(process.env.TEST_ENV);
 const projectRoot = __dirname;
 
+const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const exactSpec = (...segments: string[]): RegExp => new RegExp(segments.map(escapeRegex).join('[\\\\/]') + '$');
+
 export default defineConfig({
 	testDir: path.resolve(projectRoot, 'tests'),
 	timeout: 30_000,
@@ -44,23 +47,23 @@ export default defineConfig({
 			name: 'setup',
 			testMatch: /.*\.setup\.ts/,
 			// Exclude the DOC-specific state setup — it has its own project with dependencies
-			testIgnore: [/doc-state\.setup\.ts/],
+			testIgnore: [exactSpec('tests', 'doc', 'doc-state.setup.ts')],
 		},
 		{
 			name: 'release-detail-header',
-			testMatch: /release-detail-header\.spec\.ts/,
+			testMatch: exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],
 		},
 		{
 			name: 'doc-product-setup',
-			testMatch: /new-product-creation-digital-offer\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'new-product-creation-digital-offer.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],
 		},
 		{
 			name: 'doc-initiation',
-			testMatch: /initiate-doc\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'initiate-doc.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-product-setup'],
 		},
@@ -68,97 +71,97 @@ export default defineConfig({
 		// All DOC detail specs depend on this project.
 		{
 			name: 'doc-state-setup',
-			testMatch: /doc-state\.setup\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-state.setup.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-initiation'],
 		},
 		// ── DOC tab specs (each depends on the previous to preserve logical order) ──────
 		{
 			name: 'doc-my-docs-tab',
-			testMatch: /my-docs-tab\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'my-docs-tab.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
 		{
 			name: 'doc-detail-header',
-			testMatch: /doc-detail\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
 		{
 			name: 'doc-detail-offer',
-			testMatch: /doc-detail-offer\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail-offer.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
 		{
 			name: 'doc-detail-roles',
-			testMatch: /doc-detail-roles\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail-roles.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
 		{
 			name: 'doc-detail-its',
-			testMatch: /doc-detail-its\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail-its.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
 		{
 			name: 'doc-control-detail',
-			testMatch: /control-detail\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'control-detail.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-detail-its'],
 		},
 		{
 			name: 'doc-history',
-			testMatch: /doc-history\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-history.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
 		{
 			name: 'doc-detail-actions',
-			testMatch: /doc-detail-actions\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail-actions.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{
 			name: 'doc-detail-risk-summary',
-			testMatch: /doc-detail-risk-summary\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail-risk-summary.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{
 			name: 'doc-detail-certification',
-			testMatch: /doc-detail-certification\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-detail-certification.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 		},
 		{
 			name: 'doc-lifecycle',
-			testMatch: /doc-lifecycle\.spec\.ts/,
+			testMatch: exactSpec('tests', 'doc', 'doc-lifecycle.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 		},
 		// ── Tracker unit/integration tests (no browser, no dependencies) ────────────────
 		{
 			name: 'tracker',
-			testMatch: /tracker\/.*\.test\.ts/,
+			testMatch: /[\\/]tests[\\/]tracker[\\/].*\.test\.ts$/,
 		},
 		// ────────────────────────────────────────────────────────────────────────────────
 		{
 			name: 'chromium',
 			testIgnore: [
-				/new-product-creation-digital-offer\.spec\.ts/,
-				/initiate-doc\.spec\.ts/,
-				/doc-state\.setup\.ts/,
-				/my-docs-tab\.spec\.ts/,
-				/doc-detail\.spec\.ts/,
-				/doc-detail-offer\.spec\.ts/,
-				/doc-detail-roles\.spec\.ts/,
-				/doc-detail-its\.spec\.ts/,
-				/control-detail\.spec\.ts/,
-				/doc-history\.spec\.ts/,
-				/doc-detail-actions\.spec\.ts/,
-				/doc-detail-risk-summary\.spec\.ts/,
-				/doc-detail-certification\.spec\.ts/,
-				/doc-lifecycle\.spec\.ts/,
-				/release-detail-header\.spec\.ts/,
+				exactSpec('tests', 'doc', 'new-product-creation-digital-offer.spec.ts'),
+				exactSpec('tests', 'doc', 'initiate-doc.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-state.setup.ts'),
+				exactSpec('tests', 'doc', 'my-docs-tab.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail-offer.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail-roles.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail-its.spec.ts'),
+				exactSpec('tests', 'doc', 'control-detail.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-history.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail-actions.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail-risk-summary.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-detail-certification.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-lifecycle.spec.ts'),
+				exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
 			],
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],
@@ -167,9 +170,9 @@ export default defineConfig({
 			name: 'smoke',
 			grep: /@smoke/,
 			testIgnore: [
-				/new-product-creation-digital-offer\.spec\.ts/,
-				/initiate-doc\.spec\.ts/,
-				/doc-state\.setup\.ts/,
+				exactSpec('tests', 'doc', 'new-product-creation-digital-offer.spec.ts'),
+				exactSpec('tests', 'doc', 'initiate-doc.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-state.setup.ts'),
 			],
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],

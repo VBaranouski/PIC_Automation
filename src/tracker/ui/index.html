@@ -2,7 +2,7 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Kinetic Observatory - System Overview</title>
+<title>PICASso Automation - Overview</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script>
@@ -91,15 +91,19 @@ tailwind.config = {
 
   /* Automation state badge */
   .badge.auto-pending   { background: #332500; color: #e3b341; border-color: #e3b341; }
-  .badge.auto-automated { background: #0d2a0f; color: #3fb950; border-color: #3fb950; }
+  .badge.auto-automated { background: #123e1500; color: #ffffff5e; border-color: #3fb950; }
   .badge.auto-on-hold   { background: #2b1241; color: #d2a8ff; border-color: #d2a8ff; }
 
   /* Detail drawer sections */
   .detail-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border); }
   .detail-section h3 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-  .detail-steps, .detail-expected { padding-left: 24px; }
-  .detail-steps li, .detail-expected li { margin: 4px 0; line-height: 1.5; }
-  .detail-notes { padding: 8px 12px; background: var(--surface2); border-left: 3px solid var(--orange); border-radius: 4px; }
+  .detail-columns { display: grid; gap: 16px; }
+  @media (min-width: 768px) { .detail-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+  .detail-columns .detail-section { margin-top: 0; }
+  .detail-steps, .detail-expected { padding-left: 24px; font-size: 12px; list-style: decimal; list-style-position: outside; }
+  .detail-steps li, .detail-expected li { margin: 4px 0; line-height: 1.5; font-size: 12px; }
+  .detail-notes { padding: 8px 12px; background: var(--surface2); border-left: 3px solid var(--orange); border-radius: 4px; font-size: 12px; line-height: 1.5; }
+  .detail-empty { font-size: 10px; }
   .muted { color: var(--muted); }
 
   /* Group-by-workflow */
@@ -123,8 +127,8 @@ tailwind.config = {
 <!-- ═══════════════ SIDE NAVBAR ═══════════════ -->
 <aside class="bg-[#0e0e0e] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 z-50 border-r border-white/5">
   <div class="px-6 mb-10">
-    <h1 class="text-xl font-bold tracking-tighter text-white font-headline">Kinetic Observatory</h1>
-    <p class="text-[10px] uppercase tracking-wider text-neutral-500 mt-1 font-body">Precision Testing v2.4</p>
+    <h1 class="text-xl font-bold tracking-tighter text-white font-headline">PICASso Automation</h1>
+    <p class="text-[10px] uppercase tracking-wider text-neutral-500 mt-1 font-body">Test Scenario tracker v0.10</p>
   </div>
   <nav class="flex-1 space-y-1">
     <a href="/ui/index.html" class="flex items-center gap-3 px-4 py-3 text-[#ff9157] bg-[#1a1a1a] border-l-2 border-[#ff9157]">
@@ -194,7 +198,7 @@ tailwind.config = {
   <section class="mb-12">
     <div class="flex justify-between items-end mb-8">
       <div>
-        <h2 class="text-4xl font-extrabold font-headline tracking-tight text-white">System Overview</h2>
+        <h2 class="text-4xl font-extrabold font-headline tracking-tight text-white">Overview</h2>
         <p class="text-on-surface-variant mt-2 max-w-2xl">Real-time automation metrics for <span class="text-tertiary">PICASso GRC</span> test infrastructure.</p>
       </div>
       <div class="flex gap-3">
@@ -204,29 +208,6 @@ tailwind.config = {
         <select id="filterArea" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
           <option value="">All Areas</option>
         </select>
-        <select id="filterGroup" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
-          <option value="">All Groups</option>
-        </select>
-        <select id="filter-auto-state" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
-          <option value="">Any auto state</option>
-          <option value="pending">Pending</option>
-          <option value="automated">Automated</option>
-          <option value="on-hold">On hold</option>
-        </select>
-        <select id="filter-exec-status" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
-          <option value="">Any exec status</option>
-          <option value="passed">Passed</option>
-          <option value="not-executed">Not executed</option>
-          <option value="skipped">Skipped</option>
-          <option value="failed-defect">Failed: defect</option>
-        </select>
-        <select id="filter-workflow" class="ghost-border bg-surface-container-high px-4 pr-9 py-2 rounded-md text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer text-on-surface-variant appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M6 8l4 4 4-4%22 stroke=%22%23adaaaa%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-[length:16px_16px] bg-[right_0.75rem_center] bg-no-repeat">
-          <option value="">Any workflow</option>
-          <!-- populated at load from /api/workflows -->
-        </select>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#8b949e;cursor:pointer">
-          <input type="checkbox" id="group-by-workflow" style="accent-color:#ff9157"> Group by workflow
-        </label>
       </div>
     </div>
     <!-- Bento Stats Grid -->
@@ -392,6 +373,7 @@ let meta = { statuses: [], automation_states: [], execution_statuses: [], priori
 let allGroups = [];
 let allExpanded = false;
 let activeStatusFilter = '';
+let activeExecutionStatusFilter = '';
 let runnerPollTimer = null;
 let runnerLineIndex = 0;
 let runnerOpen = false;
@@ -407,6 +389,31 @@ const ST = {
 };
 
 const RUN_DOT = { idle:'#767575', running:'#ff9157', passed:'#81ecff', failed:'#c42e09', cancelled:'#d5d4d4' };
+
+const WORKFLOW_ORDER = [
+  'Authentication',
+  'Landing Page & Home Navigation',
+  'Product Management',
+  'Release — Stage 1: Creation & Scoping',
+  'Release — Stage 2: Review & Confirm',
+  'Release — Stage 3: Manage',
+  'Release — Stage 4: SA & PQL Sign Off',
+  'Release — Stage 5: FCSR Review',
+  'Release — Stage 6: Post FCSR Actions',
+  'Release — Stage 7: Final Acceptance',
+  'Digital Offer Certification (DOC)',
+  'Data Protection & Privacy (DPP) Review',
+  'Actions Management',
+  'Roles Delegation',
+  'Stage Sidebar & Responsible Users',
+  'Release History',
+  'Reports & Dashboards (Tableau Integration)',
+  'Maintenance Mode',
+  'Requirements Versioning: BackOffice Administration',
+  'Integration: Data Extraction API',
+  'Integration: Data Ingestion API',
+  'Integration: Intel DS / Informatica (Training Completion)',
+];
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
@@ -427,32 +434,14 @@ async function init() {
   populateFilterDropdowns();
   updateHeaderNav();
   await refreshDashboard();
-  await populateWorkflowFilter();
   await refreshWorkflows();
   let timer;
   document.getElementById('search').addEventListener('input', () => {
     clearTimeout(timer);
     timer = setTimeout(() => refreshWorkflows(), 300);
   });
-  for (const sel of ['filterPriority', 'filterArea', 'filterGroup']) {
+  for (const sel of ['filterPriority', 'filterArea']) {
     document.getElementById(sel).addEventListener('change', () => refreshWorkflows());
-  }
-  // New filter listeners
-  ['filter-auto-state', 'filter-exec-status', 'filter-workflow'].forEach(id => {
-    document.getElementById(id)?.addEventListener('change', () => refreshWorkflows());
-  });
-  // Group-by-workflow toggle
-  const groupByCheck = document.getElementById('group-by-workflow');
-  if (groupByCheck) {
-    // Initialize group-by preference — default to grouped on first visit
-    if (localStorage.getItem('tracker.groupByWorkflow') === null) {
-      localStorage.setItem('tracker.groupByWorkflow', '1');
-    }
-    groupByCheck.checked = localStorage.getItem('tracker.groupByWorkflow') === '1';
-    groupByCheck.addEventListener('change', () => {
-      localStorage.setItem('tracker.groupByWorkflow', groupByCheck.checked ? '1' : '0');
-      refreshWorkflows();
-    });
   }
 }
 
@@ -467,13 +456,21 @@ async function api(path, opts = {}) {
 function updateHeaderNav() {
   const nav = document.getElementById('headerNav');
   const items = [
-    { label: 'Global View', filter: '' },
-    { label: 'Automated', filter: 'automated' },
-    { label: 'Pending', filter: 'pending' },
+    { label: 'Global View', kind: 'global', value: '' },
+    { label: 'Automated', kind: 'automation', value: 'automated' },
+    { label: 'Failed', kind: 'execution', value: 'failed-defect' },
+    { label: 'Pending', kind: 'automation', value: 'pending' },
   ];
   nav.innerHTML = items.map(item => {
-    const isActive = item.filter === activeStatusFilter;
-    return `<a class="cursor-pointer text-sm transition-colors ${isActive ? 'text-[#ff9157] border-b-2 border-[#ff9157] pb-1 font-medium' : 'text-neutral-400 font-normal hover:text-white'}" onclick="toggleStatusFilter('${item.filter}')">${item.label}</a>`;
+    const isActive = item.kind === 'global'
+      ? !activeStatusFilter && !activeExecutionStatusFilter
+      : item.kind === 'automation'
+        ? item.value === activeStatusFilter
+        : item.value === activeExecutionStatusFilter;
+    const clickHandler = item.kind === 'execution'
+      ? `toggleExecStatusFilter('${item.value}')`
+      : `toggleStatusFilter('${item.value}')`;
+    return `<a class="cursor-pointer text-sm transition-colors ${isActive ? 'text-[#ff9157] border-b-2 border-[#ff9157] pb-1 font-medium' : 'text-neutral-400 font-normal hover:text-white'}" onclick="${clickHandler}">${item.label}</a>`;
   }).join('');
 }
 
@@ -503,8 +500,8 @@ async function refreshDashboard() {
     <div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group cursor-pointer" onclick="toggleStatusFilter('')">
       <div class="flex items-start justify-between mb-4">
         <p class="uppercase tracking-wider text-xs text-on-surface-variant font-body">Total Test Cases</p>
-        <div class="h-10 w-10 flex items-center justify-end">
-          <span class="text-tertiary text-xs flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">trending_up</span> ${pct}%</span>
+        <div class="h-10 w-10 rounded-lg bg-surface-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-on-surface-variant text-xl">fact_check</span>
         </div>
       </div>
       <div class="flex items-end justify-between gap-4">
@@ -563,16 +560,16 @@ async function refreshDashboard() {
 
 function toggleStatusFilter(status) {
   activeStatusFilter = (activeStatusFilter === status) ? '' : status;
+  activeExecutionStatusFilter = '';
   updateHeaderNav();
   refreshDashboard();
   refreshWorkflows();
 }
 
 function toggleExecStatusFilter(execStatus) {
-  const sel = document.getElementById('filter-exec-status');
-  if (sel) {
-    sel.value = (sel.value === execStatus) ? '' : execStatus;
-  }
+  activeExecutionStatusFilter = (activeExecutionStatusFilter === execStatus) ? '' : execStatus;
+  activeStatusFilter = '';
+  updateHeaderNav();
   refreshDashboard();
   refreshWorkflows();
 }
@@ -589,35 +586,19 @@ async function refreshWorkflows() {
   if (priority) params.set('priority', priority);
   const area = document.getElementById('filterArea').value;
   if (area) params.set('feature_area', area);
-  const group = document.getElementById('filterGroup').value;
-  if (group) params.set('group', group);
-  // Dropdown filter-auto-state takes priority over activeStatusFilter
-  const autoState = document.getElementById('filter-auto-state')?.value ?? '';
-  if (autoState) {
-    params.set('automation_state', autoState);
-  } else if (activeStatusFilter) {
+  if (activeStatusFilter) {
     params.set('automation_state', activeStatusFilter);
   }
-  const execStatus = document.getElementById('filter-exec-status')?.value ?? '';
+  const execStatus = activeExecutionStatusFilter;
   if (execStatus) params.set('execution_status', execStatus);
-  const workflowFilter = document.getElementById('filter-workflow')?.value ?? '';
-  if (workflowFilter) params.set('workflow', workflowFilter);
-  // Fetch all matching scenarios (high limit to avoid pagination issues)
-  params.set('limit', '500');
+  // Fetch all matching scenarios — high limit so no pagination is needed
+  params.set('limit', '5000');
   const data = await api('/scenarios?' + params.toString());
   // data is { items, total, page, limit, pages }
   const scenarios = Array.isArray(data) ? data : (data.items || []);
   const total = data.total || scenarios.length;
-  // Check group-by-workflow toggle
-  const groupByWorkflow = document.getElementById('group-by-workflow')?.checked ?? true;
-  if (groupByWorkflow) {
-    // Grouped view: build workflow groups and render accordion
-    const workflows = buildWorkflowGroups(scenarios);
-    renderWorkflows(workflows, total);
-  } else {
-    // Flat view: render all scenarios without workflow grouping headers
-    renderFlatScenarios(scenarios, total);
-  }
+  const workflows = buildWorkflowGroups(scenarios);
+  renderWorkflows(workflows, total);
   document.getElementById('refreshedTime').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
 }
 
@@ -635,19 +616,26 @@ function buildWorkflowGroups(scenarios) {
   const workflows = [];
   for (const [wfName, subsMap] of workflowMap) {
     const subsections = [];
-    let wfTotal = 0, wfCovered = 0, wfFailed = 0, wfPending = 0;
+    let wfTotal = 0, wfAutomated = 0, wfFailed = 0, wfPending = 0;
     for (const [subName, items] of subsMap) {
-      let subTotal = items.length, subCovered = 0, subPending = 0;
+      let subTotal = items.length, subAutomated = 0, subPending = 0;
       for (const s of items) {
         const autoState = s.automation_state || s.status || 'pending';
         if (autoState === 'pending') subPending++;
-        else subCovered++;
+        if (autoState === 'automated') subAutomated++;
       }
-      subsections.push({ name: subName, items, stats: { total: subTotal, covered: subCovered, pending: subPending } });
+      subsections.push({ name: subName, items, stats: { total: subTotal, automated: subAutomated, pending: subPending } });
       wfTotal += subTotal;
-      wfCovered += subCovered;
+      wfAutomated += subAutomated;
       wfPending += subPending;
     }
+
+    // Sort subsections numerically by their leading "NN.M" prefix (e.g. 13.2 before 13.10)
+    subsections.sort((a, b) => {
+      if (!a.name) return -1;
+      if (!b.name) return 1;
+      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+    });
     // Count scenarios with exec_status = failed-defect for wfFailed
     for (const s of scenarios.filter(s => (s.workflow || 'Uncategorized') === wfName)) {
       if (s.execution_status === 'failed-defect') wfFailed++;
@@ -655,9 +643,18 @@ function buildWorkflowGroups(scenarios) {
     workflows.push({
       name: wfName,
       subsections,
-      stats: { total: wfTotal, covered: wfCovered, pending: wfPending, failed: wfFailed },
+      stats: { total: wfTotal, automated: wfAutomated, pending: wfPending, failed: wfFailed },
     });
   }
+
+  // Sort workflows in the same business order as the automation plan, then alphabetize any unknown entries.
+  workflows.sort((a, b) => {
+    const orderA = getWorkflowOrder(a.name);
+    const orderB = getWorkflowOrder(b.name);
+    if (orderA !== orderB) return orderA - orderB;
+    return cleanWorkflowName(a.name).localeCompare(cleanWorkflowName(b.name), undefined, { numeric: true, sensitivity: 'base' });
+  });
+
   return workflows;
 }
 
@@ -672,16 +669,16 @@ function renderWorkflows(workflows, total) {
 
   container.innerHTML = workflows.map((wf, wfIdx) => {
     const color = wf.color || '#ff9157';
-    const pct = (wf.stats.total - wf.stats.pending) > 0 ? Math.round((wf.stats.covered / (wf.stats.total - wf.stats.pending)) * 100) : 0;
+    const pct = wf.stats.total > 0 ? Math.round((wf.stats.automated / wf.stats.total) * 100) : 0;
 
     let wfStatus, wfStatusColor;
     if (wf.stats.failed > 0) { wfStatus = 'ALERTS'; wfStatusColor = '#ff7351'; }
-    else if (wf.stats.total === wf.stats.covered && wf.stats.total > 0) { wfStatus = 'PASS'; wfStatusColor = '#81ecff'; }
-    else if (wf.stats.covered > 0) { wfStatus = 'ACTIVE'; wfStatusColor = '#ff9157'; }
+    else if (wf.stats.total === wf.stats.automated && wf.stats.total > 0) { wfStatus = 'PASS'; wfStatusColor = '#81ecff'; }
+    else if (wf.stats.automated > 0) { wfStatus = 'ACTIVE'; wfStatusColor = '#ff9157'; }
     else { wfStatus = 'PENDING'; wfStatusColor = '#adaaaa'; }
 
     return `
-    <div class="wf-card relative bg-surface-container rounded-xl overflow-hidden${allExpanded ? ' open' : ''}" style="--wf-color:${color}" id="wf-${wfIdx}">
+    <div class="wf-card relative bg-surface-container rounded-xl overflow-hidden" style="--wf-color:${color}" id="wf-${wfIdx}">
       <div class="wf-header p-5 cursor-pointer hover:bg-white/5 transition-colors flex justify-between items-start"
            onclick="toggleWorkflow(${wfIdx})">
         <div class="flex-1 min-w-0">
@@ -695,7 +692,7 @@ function renderWorkflows(workflows, total) {
             <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-on-surface-variant gap-4">
               <span>Automation Progress</span>
               <span class="inline-flex items-center gap-1 shrink-0">
-                <span>${wf.stats.covered}</span>
+                <span>${wf.stats.automated}</span>
                 <span>/</span>
                 <span>${wf.stats.total} Scenarios</span>
               </span>
@@ -740,16 +737,16 @@ function renderSubsections(wf, wfIdx, color) {
     if (!sub.name) {
       return sub.items.map((s, sIdx) => renderScenarioItem(s, wfIdx, subIdx, sIdx, color)).join('');
     }
-    const subPct = (sub.stats.total - sub.stats.pending) > 0 ? Math.round((sub.stats.covered / (sub.stats.total - sub.stats.pending)) * 100) : 0;
+    const subPct = sub.stats.total > 0 ? Math.round((sub.stats.automated / sub.stats.total) * 100) : 0;
 
     return `
-    <div class="sub-card${allExpanded ? ' open' : ''}" id="sub-${wfIdx}-${subIdx}">
+    <div class="sub-card" id="sub-${wfIdx}-${subIdx}">
       <div class="sub-header flex items-center gap-3 py-2.5 px-3 cursor-pointer hover:bg-surface-container-highest rounded-lg transition-colors"
            onclick="toggleSubsection(${wfIdx},${subIdx})">
         <span class="material-symbols-outlined sub-expand text-on-surface-variant text-sm transition-transform duration-200">chevron_right</span>
         <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex-1">${esc(sub.name)}</span>
         <span class="inline-flex items-center gap-1 shrink-0 text-[10px] text-on-surface-variant font-medium">
-          <span class="font-bold" style="color:${color}">${sub.stats.covered}</span>
+          <span class="font-bold" style="color:${color}">${sub.stats.automated}</span>
           <span>/</span>
           <span>${sub.stats.total}</span>
         </span>
@@ -772,7 +769,7 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
   const hasSteps = s.steps && s.steps.length > 0;
   const hasExpected = s.expected_results && s.expected_results.length > 0;
   const hasDescription = s.description && s.description.trim();
-  const hasNotes = s.execution_notes && s.execution_notes.trim();
+  const hasFullTitle = s.title && s.title.trim();
   // Support both old (s.status) and new (s.automation_state) field names
   const effectiveStatus = s.automation_state || s.status || 'pending';
   const st = ST[effectiveStatus] || ST.pending;
@@ -781,21 +778,31 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
 
   const stepsHtml = hasSteps
     ? `<ol class="detail-steps">${s.steps.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol>`
-    : '<em class="muted">No steps recorded.</em>';
+    : '<em class="muted detail-empty">No steps recorded.</em>';
   const sectionSteps = `<div class="detail-section"><h3>Steps</h3>${stepsHtml}</div>`;
 
   const expectedHtml = hasExpected
-    ? `<ul class="detail-expected">${s.expected_results.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`
-    : '<em class="muted">No expected results recorded.</em>';
+    ? `<ol class="detail-expected">${s.expected_results.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol>`
+    : '<em class="muted detail-empty">No expected results recorded.</em>';
   const sectionExpected = `<div class="detail-section"><h3>Expected Results</h3>${expectedHtml}</div>`;
 
-  const sectionNotes = hasNotes
-    ? `<div class="detail-section"><h3>Execution Notes</h3><div class="detail-notes"><em>${escapeHtml(s.execution_notes)}</em></div></div>`
+  const notesText = buildExecutionNotesText(s);
+  const notesAccent = getExecutionNotesAccentColor(s.execution_status);
+
+  const sectionNotes = notesText
+    ? `<div class="detail-section"><h3>Execution Notes</h3><div class="detail-notes" style="border-left-color:${notesAccent}"><em>${escapeHtml(notesText)}</em></div></div>`
     : '';
 
-  const descHtml = hasDescription
-    ? `<div class="mb-4 p-3 bg-surface-container border-l-2 border-primary/40 rounded-r-lg text-xs text-secondary">${esc(s.description)}</div>`
+  const descBody = hasDescription && normalizeText(s.description) !== normalizeText(s.title)
+    ? `<div class="mt-2 text-xs text-secondary">${esc(s.description)}</div>`
     : '';
+  const descHtml = `<div class="mb-4 p-3 bg-surface-container border-l-2 border-primary/40 rounded-r-lg text-xs text-secondary">
+      <div class="flex items-center gap-2 flex-wrap mb-1">
+        <span class="text-[10px] font-mono shrink-0 px-1.5 py-0.5 rounded" style="color:${idColor};background:${idColor}15">${esc(s.id)}</span>
+      </div>
+      <div class="text-sm text-on-surface break-words font-semibold">${escapeHtml(hasFullTitle ? s.title : s.description || s.id)}</div>
+      ${descBody}
+    </div>`;
 
   const groupTags = (s.groups || []).map(g =>
     `<span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">${esc(g)}</span>`
@@ -811,19 +818,20 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
         <span class="text-sm text-neutral-300 truncate">${esc(s.title)}</span>
       </div>
       <div class="flex items-center gap-3 shrink-0 ml-3">
-        ${s.hasSpecFile ? `<button onclick="event.stopPropagation();runScenario('${esc(s.spec_file)}','${esc(s.title)}')"
+        ${s.hasSpecFile && s.canRunIndividually ? `<button onclick='event.stopPropagation();runScenario(${JSON.stringify(s.id)}, ${JSON.stringify(s.spec_file)}, ${JSON.stringify(s.title)}, ${JSON.stringify(s.description || '')})'
           class="text-on-surface-variant hover:text-tertiary p-0.5 rounded transition-colors" title="Run test">
           <span class="material-symbols-outlined text-base">play_arrow</span></button>` : ''}
         ${renderBadges(s)}
-        <span class="text-[10px] text-on-surface-variant font-bold">${s.priority}</span>
       </div>
     </div>
     <div class="sc-body">
       <div class="bg-surface-container-low rounded-lg border-l-2 overflow-hidden mt-1 mb-3" style="border-left-color:${wfColor}60">
         <div class="p-4">
           ${descHtml}
-          ${sectionSteps}
-          ${sectionExpected}
+          <div class="detail-columns">
+            ${sectionSteps}
+            ${sectionExpected}
+          </div>
           ${sectionNotes}
           <!-- Meta info -->
           <div class="flex items-center gap-4 flex-wrap mt-5 pt-4 border-t border-outline-variant/10 text-[10px] text-on-surface-variant font-medium">
@@ -888,13 +896,23 @@ function populateFilterDropdowns() {
   const areaEl = document.getElementById('filterArea');
   const areas = meta.featureAreas.length ? meta.featureAreas : meta.feature_areas;
   areas.forEach(a => { areaEl.innerHTML += `<option value="${a}">${a}</option>`; });
-  const groupEl = document.getElementById('filterGroup');
-  allGroups.forEach(g => { groupEl.innerHTML += `<option value="${g.name}">${g.name} (${g.count})</option>`; });
   // Use automation_states for status select in modal
   const statuses = meta.statuses.length ? meta.statuses : meta.automation_states;
   document.getElementById('fStatus').innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join('');
   document.getElementById('fPriority').innerHTML = meta.priorities.map(p => `<option value="${p}">${p}</option>`).join('');
   document.getElementById('fArea').innerHTML = areas.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+function getExecutionNotesAccentColor(executionStatus) {
+  if (executionStatus === 'failed-defect') return '#ff7351';
+  if (executionStatus === 'skipped') return '#81ecff';
+  return '#e3b341';
+}
+
+function buildExecutionNotesText(s) {
+  const notes = String(s.execution_notes || '').trim();
+  if (notes) return notes;
+  return '';
 }
 
 // ── Add / Edit modal ──────────────────────────────────────────────────────────
@@ -1034,24 +1052,6 @@ function renderBadges(s) {
 
 // ── Workflow filter population ────────────────────────────────────────────────
 
-async function populateWorkflowFilter() {
-  try {
-    const res = await fetch('/api/workflows');
-    if (!res.ok) return;
-    const data = await res.json();
-    // /api/workflows returns string[] of distinct workflow names
-    const names = Array.isArray(data) ? data : [];
-    const sel = document.getElementById('filter-workflow');
-    if (!sel) return;
-    for (const w of names) {
-      const opt = document.createElement('option');
-      opt.value = w;
-      opt.textContent = w;
-      sel.appendChild(opt);
-    }
-  } catch (e) { /* non-critical — filter just won't be pre-populated */ }
-}
-
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
 function esc(s) {
@@ -1059,6 +1059,10 @@ function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+function normalizeText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 function escapeHtml(str) {
@@ -1070,11 +1074,20 @@ function cleanWorkflowName(name) {
   return name.replace(/^WORKFLOW\s+\d+\s*[—–-]\s*/i, '').trim();
 }
 
+function getWorkflowOrder(name) {
+  const cleaned = cleanWorkflowName(name);
+  const exactIndex = WORKFLOW_ORDER.findIndex(entry => entry.toLowerCase() === cleaned.toLowerCase());
+  if (exactIndex >= 0) return exactIndex + 1;
+  const prefixedIndex = WORKFLOW_ORDER.findIndex(entry => cleaned.toLowerCase().startsWith(entry.toLowerCase()));
+  if (prefixedIndex >= 0) return prefixedIndex + 1;
+  return WORKFLOW_ORDER.length + 100;
+}
+
 function formatWorkflowName(name) {
   if (!name) return '';
-  const numberMatch = name.match(/^WORKFLOW\s+(\d+)/i);
   const title = cleanWorkflowName(name);
-  return numberMatch ? `${numberMatch[1]}. ${title}` : title;
+  const order = getWorkflowOrder(name);
+  return order <= WORKFLOW_ORDER.length ? `${order}. ${title}` : title;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1103,7 +1116,25 @@ function getRunnerExecutionLabel(data) {
   return `Running ${totalTests} tests using ${workers} ${workers === 1 ? 'worker' : 'workers'}`;
 }
 
-function runScenario(specFile, title) { startRun([specFile], title); }
+async function runScenario(scenarioId, specFile, title, description) {
+  (async () => {
+    try {
+      const resp = await api('/run/resolve-scenario', {
+        method: 'POST',
+        body: JSON.stringify({ scenarioId, specFile, title, description }),
+      });
+      const project = resp?.project || 'auto';
+      const grep = resp?.grep || '';
+      if (!grep) {
+        toast(`Scenario ${scenarioId} cannot be run independently from the current spec structure`, 'error');
+        return;
+      }
+      startRun([specFile], grep, project);
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  })();
+}
 
 function runWorkflow(wfIdx) {
   const wf = window._cachedWorkflows?.[wfIdx];
@@ -1120,7 +1151,22 @@ function runSubsection(wfIdx, subIdx) {
   if (!sub) return;
   const files = collectSpecFiles(sub.items);
   if (!files.length) { toast('No spec files linked in this subsection', 'error'); return; }
-  startRun(files);
+  if (files.length !== 1) {
+    startRun(files);
+    return;
+  }
+
+  (async () => {
+    try {
+      const resp = await api('/run/resolve-subsection', {
+        method: 'POST',
+        body: JSON.stringify({ subsection: sub.name, specFile: files[0] }),
+      });
+      startRun(files, resp?.grep || '', resp?.project || 'auto');
+    } catch {
+      startRun(files);
+    }
+  })();
 }
 
 async function cancelRun() {
@@ -1151,7 +1197,7 @@ async function openReports(event) {
   icon.style.animation = '';
   link.style.pointerEvents = '';
   icon.textContent = 'folder_open';
-  window.location.href = '/allure-report/index.html';
+  window.location.href = `/allure-report/index.html?ts=${Date.now()}`;
 }
 
 function toggleRunnerPanel() {

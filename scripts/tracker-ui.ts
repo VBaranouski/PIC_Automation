@@ -11,7 +11,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { spawn, ChildProcess } from 'child_process';
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'fs';
 import {
   addScenario,
   getScenario,
@@ -35,6 +35,7 @@ import {
   isValidPriority,
   isValidFeatureArea,
   getScenarioDetails,
+  setScenarioDetails,
   getDistinctWorkflows,
 } from '../src/tracker/operations';
 import {
@@ -66,7 +67,11 @@ const ALLURE_REPORT_DIR = path.resolve(__dirname, '..', 'allure-report');
 const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
 const ALLURE_GENERATE_ARGS = ['allure', 'generate', 'allure-results', '-o', 'allure-report', '--config', 'config/allure.config.ts'];
 const JSON_REPORT_PATH = path.resolve(__dirname, '..', 'test-results', 'results.json');
-app.use('/allure-report', express.static(ALLURE_REPORT_DIR));
+app.use('/allure-report', express.static(ALLURE_REPORT_DIR, {
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+  },
+}));
 
 // Fallback: allure-report directory doesn't exist yet (must come after static middleware)
 app.use('/allure-report', (_req: Request, res: Response) => {
@@ -110,25 +115,418 @@ function wrap(fn: (req: Request, res: Response) => Promise<void> | void) {
   };
 }
 
-
-function hasExistingSpecFile(specFile: string): boolean {
-  return Boolean(specFile) && existsSync(path.join(PROJECT_ROOT, specFile));
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function enrichScenario<T extends { spec_file: string }>(scenario: T): T & { hasSpecFile: boolean } {
+function normalizeWorkspaceSpecPath(filePath: string | undefined): string {
+  if (!filePath) return '';
+  const normalized = filePath.replace(/\\/g, '/').replace(/^\.\//, '');
+  if (path.isAbsolute(normalized)) {
+    return path.relative(PROJECT_ROOT, normalized).replace(/\\/g, '/').replace(/^\.\//, '');
+  }
+  return normalized;
+}
+
+function stripSubsectionPrefix(subsection: string | undefined): string {
+  return String(subsection ?? '').replace(/^\d+(?:\.\d+)*\s+/, '').trim();
+}
+
+interface ParsedSpecTestTarget {
+  scenarioId: string;
+  testTitle: string;
+  descriptionText: string;
+}
+
+interface ParsedSpecRunTargets {
+  tests: ParsedSpecTestTarget[];
+  scenarioTitleById: Map<string, string>;
+  subsectionTitleByName: Map<string, string>;
+}
+
+const parsedSpecRunTargetsCache = new Map<string, ParsedSpecRunTargets>();
+
+function getSpecContent(specFile: string): string {
+  const candidates = [
+    path.join(PROJECT_ROOT, specFile),
+    path.join(PROJECT_ROOT, 'tests', specFile),
+  ];
+  const absPath = candidates.find((candidate) => existsSync(candidate));
+  return absPath ? readFileSync(absPath, 'utf-8') : '';
+}
+
+function parseSubsectionTitleMap(content: string): Map<string, string> {
+  const subsectionTitleByName = new Map<string, string>();
+  let pendingSubsection = '';
+
+  for (const line of content.split(/\r?\n/)) {
+    const workflowMatch = line.match(/^\s*\/\/\s*WORKFLOW\s+(\d+(?:\.\d+)*)\s+[—–-]\s+(.+?)\s*$/);
+    if (workflowMatch) {
+      pendingSubsection = `${workflowMatch[1]} ${workflowMatch[2].trim()}`;
+      continue;
+    }
+
+    const describeMatch = line.match(/test\.describe\(\s*(['"`])(.+?)\1\s*,/);
+    if (pendingSubsection && describeMatch) {
+      subsectionTitleByName.set(pendingSubsection, describeMatch[2].trim());
+      pendingSubsection = '';
+    }
+  }
+
+  return subsectionTitleByName;
+}
+
+function getSpecRunTargets(specFile: string): ParsedSpecRunTargets {
+  const normalizedSpecFile = normalizeWorkspaceSpecPath(specFile);
+  const cached = parsedSpecRunTargetsCache.get(normalizedSpecFile);
+  if (cached) return cached;
+
+  const content = getSpecContent(normalizedSpecFile);
+  const tests: ParsedSpecTestTarget[] = [];
+  const scenarioTitleById = new Map<string, string>();
+  const subsectionTitleByName = parseSubsectionTitleMap(content);
+  const testRegex = /test(?:\.(?:skip|fixme|fail|only))?\s*\(\s*(['"`])([\s\S]*?)\1\s*,[\s\S]*?allure\.description\(([\s\S]*?)\);/g;
+
+  for (const match of content.matchAll(testRegex)) {
+    const testTitle = String(match[2] ?? '').trim();
+    const description = extractQuotedText(String(match[3] ?? ''));
+    const scenarioId = extractScenarioIdFromDescription(description);
+    const descriptionText = extractScenarioTextFromDescription(description) || testTitle;
+
+    if (!testTitle) continue;
+
+    tests.push({ scenarioId, testTitle, descriptionText });
+    if (scenarioId && !scenarioTitleById.has(scenarioId)) {
+      scenarioTitleById.set(scenarioId, testTitle);
+    }
+  }
+
+  const parsed = { tests, scenarioTitleById, subsectionTitleByName };
+  parsedSpecRunTargetsCache.set(normalizedSpecFile, parsed);
+  return parsed;
+}
+
+function resolveScenarioRunGrep(
+  specFile: string,
+  scenarioId: string,
+  title: string | undefined,
+  description: string | undefined,
+): string {
+  const targets = getSpecRunTargets(specFile);
+  const direct = targets.scenarioTitleById.get(String(scenarioId || '').toUpperCase());
+  if (direct) return escapeRegex(direct);
+
+  const candidateText = `${title ?? ''} ${description ?? ''}`.trim();
+  const candidateTokens = tokenizeMatchText(candidateText || scenarioId);
+  let bestTitle = '';
+  let bestScore = 0;
+
+  for (const target of targets.tests) {
+    const normalizedTestTitle = normalizeText(target.testTitle);
+    const normalizedDescriptionText = normalizeText(target.descriptionText);
+    const normalizedCandidateText = normalizeText(candidateText);
+
+    if (
+      normalizedCandidateText
+      && (
+        normalizedTestTitle.includes(normalizedCandidateText)
+        || normalizedCandidateText.includes(normalizedTestTitle)
+        || normalizedDescriptionText.includes(normalizedCandidateText)
+        || normalizedCandidateText.includes(normalizedDescriptionText)
+      )
+    ) {
+      const score = Math.max(normalizedTestTitle.length, normalizedDescriptionText.length, normalizedCandidateText.length);
+      if (score > bestScore) {
+        bestScore = score;
+        bestTitle = target.testTitle;
+      }
+    }
+
+    const titleScore = overlapScore(candidateTokens, tokenizeMatchText(target.testTitle));
+    const descriptionScore = overlapScore(candidateTokens, tokenizeMatchText(target.descriptionText));
+    const fuzzyScore = Math.max(titleScore, descriptionScore);
+    if (fuzzyScore >= 0.45 && fuzzyScore > bestScore) {
+      bestScore = fuzzyScore;
+      bestTitle = target.testTitle;
+    }
+  }
+
+  return bestTitle ? escapeRegex(bestTitle) : '';
+}
+
+function resolveSubsectionRunGrep(specFile: string, subsection: string): string {
+  const targets = getSpecRunTargets(specFile);
+  const direct = targets.subsectionTitleByName.get(subsection);
+  if (direct) return escapeRegex(direct);
+
+  const strippedSubsection = stripSubsectionPrefix(subsection);
+  const normalizedSubsection = normalizeText(strippedSubsection || subsection);
+  let bestDescribe = '';
+  let bestScore = 0;
+
+  for (const [subsectionName, describeTitle] of targets.subsectionTitleByName.entries()) {
+    const normalizedSubsectionName = normalizeText(stripSubsectionPrefix(subsectionName) || subsectionName);
+    const normalizedDescribeTitle = normalizeText(describeTitle);
+
+    if (
+      normalizedSubsection
+      && (
+        normalizedDescribeTitle.includes(normalizedSubsection)
+        || normalizedSubsection.includes(normalizedDescribeTitle)
+        || normalizedSubsectionName.includes(normalizedSubsection)
+        || normalizedSubsection.includes(normalizedSubsectionName)
+      )
+    ) {
+      const score = Math.max(normalizedDescribeTitle.length, normalizedSubsectionName.length, normalizedSubsection.length);
+      if (score > bestScore) {
+        bestScore = score;
+        bestDescribe = describeTitle;
+      }
+    }
+
+    const subsectionScore = overlapScore(tokenizeMatchText(strippedSubsection), tokenizeMatchText(describeTitle));
+    if (subsectionScore >= 0.45 && subsectionScore > bestScore) {
+      bestScore = subsectionScore;
+      bestDescribe = describeTitle;
+    }
+  }
+
+  return bestDescribe ? escapeRegex(bestDescribe) : '';
+}
+
+function hasExistingSpecFile(specFile: string): boolean {
+  const normalizedSpecFile = normalizeWorkspaceSpecPath(specFile);
+  return Boolean(normalizedSpecFile) && existsSync(path.join(PROJECT_ROOT, normalizedSpecFile));
+}
+
+function enrichScenario<T extends { id: string; title: string; description: string; spec_file: string }>(scenario: T): T & { hasSpecFile: boolean; canRunIndividually: boolean } {
+  const hasSpecFile = hasExistingSpecFile(scenario.spec_file);
   return {
     ...scenario,
-    hasSpecFile: hasExistingSpecFile(scenario.spec_file),
+    hasSpecFile,
+    canRunIndividually: hasSpecFile && Boolean(resolveScenarioRunGrep(scenario.spec_file, scenario.id, scenario.title, scenario.description)),
   };
 }
 
 function normalizeSpecPath(filePath: string | undefined): string {
   if (!filePath) return '';
   const normalized = filePath.replace(/\\/g, '/');
+  const withoutTestsPrefix = normalized.replace(/^tests\//, '');
   if (path.isAbsolute(normalized)) {
-    return path.relative(PROJECT_ROOT, normalized).replace(/\\/g, '/');
+    return path.relative(path.join(PROJECT_ROOT, 'tests'), normalized).replace(/\\/g, '/').replace(/^\.\.\//, '');
   }
-  return normalized;
+  return withoutTestsPrefix;
+}
+
+function normalizeText(value: string | undefined): string {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/verify\s+/g, '')
+    .replace(/should\s+/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function inferFeatureAreaFromSpecPath(specFile: string): string {
+  const normalized = normalizeSpecPath(specFile);
+  if (normalized.startsWith('auth/')) return 'auth';
+  if (normalized.startsWith('landing/')) return 'landing';
+  if (normalized.startsWith('products/')) return 'products';
+  if (normalized.startsWith('releases/')) return 'releases';
+  if (normalized.startsWith('doc/')) return 'doc';
+  return '';
+}
+
+function normalizeMatchToken(token: string): string {
+  return token
+    .replace(/(ing|ed|es|s)$/i, '')
+    .trim();
+}
+
+function tokenizeMatchText(value: string | undefined): string[] {
+  const stopWords = new Set(['the', 'and', 'for', 'with', 'when', 'that', 'this', 'from', 'into', 'then', 'than', 'are', 'was', 'were', 'has', 'have', 'had', 'not', 'all', 'any', 'per', 'via', 'tab', 'page', 'grid', 'data']);
+  return normalizeText(value)
+    .split(/\s+/)
+    .map(normalizeMatchToken)
+    .filter((token) => token.length >= 3 && !stopWords.has(token));
+}
+
+function overlapScore(left: string[], right: string[]): number {
+  if (!left.length || !right.length) return 0;
+  const leftSet = new Set(left);
+  const rightSet = new Set(right);
+  let shared = 0;
+  for (const token of leftSet) {
+    if (rightSet.has(token)) shared += 1;
+  }
+  return shared / Math.max(leftSet.size, rightSet.size);
+}
+
+function executionStatusRank(status: ExecutionStatus): number {
+  switch (status) {
+    case 'failed-defect': return 4;
+    case 'passed': return 3;
+    case 'skipped': return 2;
+    case 'not-executed':
+    default:
+      return 1;
+  }
+}
+
+function pickHigherExecutionStatus(current: ExecutionStatus | undefined, next: ExecutionStatus): ExecutionStatus {
+  if (!current) return next;
+  return executionStatusRank(next) > executionStatusRank(current) ? next : current;
+}
+
+function extractScenarioIdFromDescription(description: string): string {
+  const match = description.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+|WF\d{2}-\d{4})/i);
+  return match ? match[1].toUpperCase() : '';
+}
+
+function extractScenarioTextFromDescription(description: string): string {
+  const parts = description.split(/:\s+/, 2);
+  return parts.length === 2 ? parts[1].trim() : description.trim();
+}
+
+function extractQuotedText(expression: string): string {
+  const parts = Array.from(expression.matchAll(/(['"])((?:\\.|(?!\1)[\s\S])*)\1/g)).map((match) => match[2]);
+  return parts.join('').replace(/\s+/g, ' ').trim();
+}
+
+function buildScenarioLookupForSpec(specFile: string): Map<string, { id: string; searchText: string }> {
+  const lookup = new Map<string, { id: string; searchText: string }>();
+  const targets = getSpecRunTargets(specFile);
+
+  for (const target of targets.tests) {
+    const searchText = normalizeText(target.descriptionText || target.testTitle);
+    lookup.set(normalizeText(target.testTitle), { id: target.scenarioId, searchText });
+  }
+
+  return lookup;
+}
+
+function resolveScenarioIdForResult(
+  scenarioLookup: Map<string, { id: string; searchText: string }>,
+  scenariosBySpec: ReturnType<typeof listScenarios>,
+  testTitle: string,
+): string {
+  const normalizedTitle = normalizeText(testTitle);
+  const direct = scenarioLookup.get(normalizedTitle);
+  if (direct?.id && scenariosBySpec.some((scenario) => scenario.id === direct.id)) {
+    return direct.id;
+  }
+
+  const candidateText = direct?.searchText || normalizedTitle;
+  let bestMatch = '';
+  let bestScore = 0;
+  const candidateTokens = tokenizeMatchText(candidateText || testTitle);
+
+  for (const scenario of scenariosBySpec) {
+    const titleText = normalizeText(scenario.title);
+    const descriptionText = normalizeText(scenario.description);
+    if (candidateText && (titleText.includes(candidateText) || candidateText.includes(titleText) || (descriptionText && (descriptionText.includes(candidateText) || candidateText.includes(descriptionText))))) {
+      const score = Math.max(titleText.length, descriptionText.length, candidateText.length);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = scenario.id;
+      }
+    }
+
+    const titleScore = overlapScore(candidateTokens, tokenizeMatchText(scenario.title));
+    const descriptionScore = overlapScore(candidateTokens, tokenizeMatchText(scenario.description));
+    const fuzzyScore = Math.max(titleScore, descriptionScore);
+    if (fuzzyScore >= 0.45 && fuzzyScore > bestScore) {
+      bestScore = fuzzyScore;
+      bestMatch = scenario.id;
+    }
+  }
+
+  return bestMatch;
+}
+
+function mapPlaywrightStatus(status: string | undefined): ExecutionStatus {
+  switch (String(status || '').toLowerCase()) {
+    case 'passed':
+      return 'passed';
+    case 'skipped':
+      return 'skipped';
+    case 'failed':
+    case 'timedout':
+    case 'interrupted':
+      return 'failed-defect';
+    default:
+      return 'not-executed';
+  }
+}
+
+function extractResultMessage(result: any): string {
+  const errors = Array.isArray(result?.errors) ? result.errors : [];
+  for (const error of errors) {
+    const message = String(error?.message || error?.value || '').trim();
+    if (message) return message;
+  }
+
+  const directMessage = String(result?.error?.message || result?.error?.value || '').trim();
+  if (directMessage) return directMessage;
+
+  return '';
+}
+
+function extractTestAnnotationReason(test: any): string {
+  const annotations = Array.isArray(test?.annotations) ? test.annotations : [];
+  for (const annotation of annotations) {
+    const type = String(annotation?.type || '').toLowerCase();
+    if (!['skip', 'fixme', 'fail'].includes(type)) continue;
+    const description = String(annotation?.description || '').trim();
+    if (description) return description;
+  }
+  return '';
+}
+
+function normalizeExecutionNoteMessage(message: string): string {
+  return message
+    .replace(/\s+/g, ' ')
+    .replace(/^Error:\s*/i, '')
+    .trim();
+}
+
+function isDeferredFixme(test: any): boolean {
+  const annotations = Array.isArray(test?.annotations) ? test.annotations : [];
+  return annotations.some((annotation) => String(annotation?.type || '').toLowerCase() === 'fixme');
+}
+
+function isTimeoutFailure(result: any, resultMessage: string): boolean {
+  const normalizedStatus = String(result?.status || '').toLowerCase();
+  if (normalizedStatus === 'timedout' || normalizedStatus === 'timed-out') return true;
+  return /timeout(?:\s+of)?|test timeout exceeded/i.test(resultMessage);
+}
+
+function formatExecutionNote(test: any, result: any, status: ExecutionStatus): string {
+  const annotationReason = extractTestAnnotationReason(test);
+  const resultMessage = normalizeExecutionNoteMessage(extractResultMessage(result));
+  const reason = annotationReason || resultMessage;
+
+  if (status === 'skipped') {
+    return reason ? `Skipped: ${reason}` : '';
+  }
+
+  if (status === 'failed-defect') {
+    if (isTimeoutFailure(result, resultMessage)) {
+      return 'Failed: Timeout Error. Element is missing or has not been loaded due to perfomance issue.';
+    }
+    return `Failed: ${reason || 'Execution failed during Playwright run.'}`;
+  }
+
+  return '';
+}
+
+function mergeExecutionNotes(existingNote: string, runtimeNote: string): string {
+  const existing = String(existingNote || '').trim();
+  const runtime = String(runtimeNote || '').trim();
+  if (!runtime) return existing;
+  if (!existing) return runtime;
+  if (existing === runtime || existing.includes(runtime)) return existing;
+  return `${runtime}\n\n${existing}`;
 }
 
 function loadPlaywrightSpecStatuses(): Map<string, 'passed' | 'failed'> {
@@ -178,21 +576,134 @@ function loadPlaywrightSpecStatuses(): Map<string, 'passed' | 'failed'> {
   return statuses;
 }
 
-function syncScenarioStatusesFromRun(specFiles: string[], _fallbackStatus: 'passed' | 'failed' | null): void {
-  const statusBySpec = loadPlaywrightSpecStatuses();
-  const scenarios = listScenarios().filter((scenario) => specFiles.includes(scenario.spec_file));
+function listSpecFilesInJsonReport(): string[] {
+  if (!existsSync(JSON_REPORT_PATH)) return [];
 
-  for (const scenario of scenarios) {
-    // Never auto-update: on-hold or pending (not yet automated)
-    if (scenario.automation_state === 'on-hold' || scenario.automation_state === 'pending') continue;
-    const specResult = statusBySpec.get(scenario.spec_file);
-    if (specResult === undefined) {
-      // Spec file was in the run but produced no results → test didn't execute
-      setExecutionStatus(scenario.id, 'not-executed');
-    } else {
-      setExecutionStatus(scenario.id, specResult === 'passed' ? 'passed' : 'failed-defect');
+  try {
+    const report = JSON.parse(readFileSync(JSON_REPORT_PATH, 'utf-8'));
+    const specFiles = new Set<string>();
+
+    const walkSuite = (suite: any, inheritedFile = '') => {
+      const currentFile = normalizeSpecPath(suite?.file || inheritedFile || '');
+      for (const spec of suite?.specs || []) {
+        const specFile = normalizeSpecPath(spec?.file || currentFile || '');
+        if (specFile) specFiles.add(specFile);
+      }
+      for (const child of suite?.suites || []) {
+        walkSuite(child, currentFile);
+      }
+    };
+
+    for (const suite of report?.suites || []) {
+      walkSuite(suite);
     }
+
+    return [...specFiles];
+  } catch {
+    return [];
   }
+}
+
+function syncScenarioStatusesFromRun(specFiles: string[], _fallbackStatus: 'passed' | 'failed' | null): void {
+  if (!existsSync(JSON_REPORT_PATH)) return;
+
+  const report = JSON.parse(readFileSync(JSON_REPORT_PATH, 'utf-8'));
+  const normalizedSpecFiles = specFiles.map(normalizeSpecPath);
+  const allScenarios = listScenarios();
+  const trackedScenarios = new Map<string, (typeof allScenarios)>();
+  for (const specFile of normalizedSpecFiles) {
+    const featureArea = inferFeatureAreaFromSpecPath(specFile);
+    trackedScenarios.set(
+      specFile,
+      allScenarios.filter((scenario) => {
+        const scenarioSpecFile = normalizeSpecPath(scenario.spec_file);
+        if (scenarioSpecFile === specFile) return true;
+        return !scenarioSpecFile && Boolean(featureArea) && scenario.feature_area === featureArea;
+      }),
+    );
+  }
+
+  const statusByScenario = new Map<string, ExecutionStatus>();
+  const noteByScenario = new Map<string, string>();
+  const matchedScenarioSpecFiles = new Map<string, string>();
+  const deferredFixmeByScenario = new Map<string, boolean>();
+
+  const walkSuite = (suite: any, inheritedFile = '') => {
+    const currentFile = normalizeSpecPath(suite?.file || inheritedFile || '');
+
+    for (const spec of suite?.specs || []) {
+      const specFile = normalizeSpecPath(spec?.file || currentFile || '');
+      if (!normalizedSpecFiles.includes(specFile)) continue;
+
+      const specScenarios = trackedScenarios.get(specFile) || [];
+      if (!specScenarios.length) continue;
+
+      const scenarioLookup = buildScenarioLookupForSpec(specFile);
+
+      for (const test of spec?.tests || []) {
+        const scenarioId = resolveScenarioIdForResult(
+          scenarioLookup,
+          specScenarios,
+          String(test?.title || spec?.title || ''),
+        );
+        if (!scenarioId) continue;
+        matchedScenarioSpecFiles.set(scenarioId, specFile);
+        deferredFixmeByScenario.set(scenarioId, isDeferredFixme(test));
+
+        for (const result of test?.results || []) {
+          const mappedStatus = mapPlaywrightStatus(result?.status);
+          if (mappedStatus === 'not-executed') continue;
+          const currentStatus = statusByScenario.get(scenarioId);
+          const nextStatus = pickHigherExecutionStatus(currentStatus, mappedStatus);
+          statusByScenario.set(scenarioId, nextStatus);
+
+          const runtimeNote = formatExecutionNote(test, result, mappedStatus);
+          if (!runtimeNote) continue;
+          if (!currentStatus || executionStatusRank(mappedStatus) >= executionStatusRank(currentStatus)) {
+            noteByScenario.set(scenarioId, runtimeNote);
+          }
+        }
+      }
+    }
+
+    for (const child of suite?.suites || []) {
+      walkSuite(child, currentFile);
+    }
+  };
+
+  for (const suite of report?.suites || []) {
+    walkSuite(suite);
+  }
+
+  const matchedScenarioIds = new Set<string>([
+    ...Array.from(statusByScenario.keys()),
+    ...Array.from(matchedScenarioSpecFiles.keys()),
+  ]);
+
+  for (const scenario of allScenarios.filter((item) => matchedScenarioIds.has(item.id))) {
+    if (scenario.automation_state === 'on-hold') continue;
+
+    const nextStatus = statusByScenario.get(scenario.id) || 'not-executed';
+    const matchedSpecFile = matchedScenarioSpecFiles.get(scenario.id);
+    if (matchedSpecFile && normalizeSpecPath(scenario.spec_file) !== matchedSpecFile) {
+      updateScenario(scenario.id, { spec_file: path.join('tests', matchedSpecFile) });
+    }
+    if (scenario.automation_state === 'pending' && nextStatus !== 'not-executed' && !deferredFixmeByScenario.get(scenario.id)) {
+      setAutomationState(scenario.id, 'automated');
+    }
+
+    setExecutionStatus(scenario.id, nextStatus);
+
+    const existingDetails = getScenarioDetails(scenario.id);
+    const runtimeNote = noteByScenario.get(scenario.id) || '';
+    const mergedNotes = mergeExecutionNotes(existingDetails?.execution_notes ?? scenario.execution_notes ?? '', runtimeNote);
+    setScenarioDetails(scenario.id, {
+      steps: existingDetails?.steps ?? scenario.steps ?? [],
+      expected_results: existingDetails?.expected_results ?? scenario.expected_results ?? [],
+      execution_notes: mergedNotes,
+    });
+  }
+}
 }
 
 // ── API: Scenarios ────────────────────────────────────────────────────────────
@@ -229,9 +740,9 @@ app.get(
 
     const scenarios = listScenarios(Object.keys(filters).length ? filters : undefined);
 
-    // Server-side pagination
+    // Server-side pagination — allow up to 5 000 rows so the UI can load all workflows in one call
     const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+    const limit = Math.min(5000, Math.max(1, Number(req.query.limit) || 50));
     const total = scenarios.length;
     const start = (page - 1) * limit;
     const items = scenarios.slice(start, start + limit).map(enrichScenario);
@@ -465,6 +976,103 @@ app.delete(
   }),
 );
 
+// ── API: Project resolution for test runner ───────────────────────────────────
+
+/**
+ * Map spec file paths to their Playwright project name by matching against
+ * testMatch patterns from playwright.config.ts.  Specific projects take
+ * precedence over the catch-all "chromium" project so that tests run with
+ * the correct (and minimal) dependency chain.
+ */
+const SPEC_TO_PROJECT = new Map<string, string>([
+  ['tests/releases/release-detail-header.spec.ts', 'release-detail-header'],
+  ['tests/doc/new-product-creation-digital-offer.spec.ts', 'doc-product-setup'],
+  ['tests/doc/initiate-doc.spec.ts', 'doc-initiation'],
+  ['tests/doc/doc-state.setup.ts', 'doc-state-setup'],
+  ['tests/doc/my-docs-tab.spec.ts', 'doc-my-docs-tab'],
+  ['tests/doc/doc-detail.spec.ts', 'doc-detail-header'],
+  ['tests/doc/doc-detail-offer.spec.ts', 'doc-detail-offer'],
+  ['tests/doc/doc-detail-roles.spec.ts', 'doc-detail-roles'],
+  ['tests/doc/doc-detail-its.spec.ts', 'doc-detail-its'],
+  ['tests/doc/control-detail.spec.ts', 'doc-control-detail'],
+  ['tests/doc/doc-history.spec.ts', 'doc-history'],
+  ['tests/doc/doc-detail-actions.spec.ts', 'doc-detail-actions'],
+  ['tests/doc/doc-detail-risk-summary.spec.ts', 'doc-detail-risk-summary'],
+  ['tests/doc/doc-detail-certification.spec.ts', 'doc-detail-certification'],
+  ['tests/doc/doc-lifecycle.spec.ts', 'doc-lifecycle'],
+]);
+
+function resolveProjectForSpec(specFile: string): string {
+  const normalizedSpecFile = normalizeWorkspaceSpecPath(specFile);
+  const explicitProject = SPEC_TO_PROJECT.get(normalizedSpecFile);
+  if (explicitProject) return explicitProject;
+  if (/[\\/]tests[\\/]tracker[\\/].*\.test\.ts$/.test(normalizedSpecFile)) {
+    return 'tracker';
+  }
+  if (/\.setup\.ts$/.test(normalizedSpecFile)) return 'setup';
+  return 'chromium';
+}
+
+/** POST /api/run/resolve-project — resolve best Playwright project for a spec file */
+app.post(
+  '/api/run/resolve-project',
+  wrap((req, res) => {
+    const { specFile } = req.body as { specFile?: string };
+    if (!specFile) {
+      res.status(400).json({ error: 'specFile is required' });
+      return;
+    }
+    res.json({ specFile, project: resolveProjectForSpec(specFile) });
+  }),
+);
+
+/** POST /api/run/resolve-scenario — resolve a single scenario to an exact grep target */
+app.post(
+  '/api/run/resolve-scenario',
+  wrap((req, res) => {
+    const { scenarioId, specFile, title, description } = req.body as {
+      scenarioId?: string;
+      specFile?: string;
+      title?: string;
+      description?: string;
+    };
+
+    if (!scenarioId || !specFile) {
+      res.status(400).json({ error: 'scenarioId and specFile are required' });
+      return;
+    }
+
+    const grep = resolveScenarioRunGrep(specFile, scenarioId, title, description);
+    if (!grep) {
+      res.status(404).json({ error: `Scenario ${scenarioId} cannot be run independently from ${specFile}` });
+      return;
+    }
+
+    res.json({ scenarioId, specFile, grep, project: resolveProjectForSpec(specFile) });
+  }),
+);
+
+/** POST /api/run/resolve-subsection — resolve a subsection to a describe-level grep target */
+app.post(
+  '/api/run/resolve-subsection',
+  wrap((req, res) => {
+    const { subsection, specFile } = req.body as { subsection?: string; specFile?: string };
+
+    if (!subsection || !specFile) {
+      res.status(400).json({ error: 'subsection and specFile are required' });
+      return;
+    }
+
+    const grep = resolveSubsectionRunGrep(specFile, subsection);
+    if (!grep) {
+      res.status(404).json({ error: `Subsection ${subsection} cannot be resolved to a specific describe block in ${specFile}` });
+      return;
+    }
+
+    res.json({ subsection, specFile, grep, project: resolveProjectForSpec(specFile) });
+  }),
+);
+
 // ── API: Stats & tools ────────────────────────────────────────────────────────
 
 /** GET /api/workflows — distinct workflow names for UI dropdowns */
@@ -600,6 +1208,9 @@ function parseExecutionCounts(lines: string[]): { totalTests: number | null; wor
 
 function generateAllureReport(): Promise<void> {
   return new Promise((resolve) => {
+    rmSync(ALLURE_REPORT_DIR, { recursive: true, force: true });
+    invalidateAllureCache();
+
     const proc = spawn('npx', ALLURE_GENERATE_ARGS, {
       cwd: PROJECT_ROOT,
       env: { ...process.env, FORCE_COLOR: '1' },
@@ -655,8 +1266,18 @@ app.post(
 
     const runId = `run-${Date.now()}`;
     const args = ['playwright', 'test', ...specFiles];
-    const projectName = project && project !== 'auto' ? project : 'auto';
-    if (projectName !== 'auto') {
+
+    // Resolve project: explicit > auto-detected from spec files > none
+    let projectName = project && project !== 'auto' ? project : '';
+    if (!projectName && specFiles.length > 0) {
+      // When all spec files resolve to the same project, use it automatically
+      const resolved = new Set(specFiles.map(resolveProjectForSpec));
+      if (resolved.size === 1) {
+        projectName = [...resolved][0];
+      }
+      // Mixed projects: let Playwright figure it out (no --project flag)
+    }
+    if (projectName) {
       args.push('--project=' + projectName);
     }
     if (grep) args.push(`--grep=${grep}`);
@@ -668,7 +1289,7 @@ app.post(
       output: [
         `\x1b[36m▶ Starting test run: ${runId}\x1b[0m`,
         `\x1b[90m  Files:   ${specFiles.join(', ')}\x1b[0m`,
-        `\x1b[90m  Project: ${projectName}\x1b[0m`,
+        `\x1b[90m  Project: ${projectName || 'auto (all matching)'}\x1b[0m`,
         grep ? `\x1b[90m  Grep:    ${grep}\x1b[0m` : '',
         `\x1b[90m  Command: npx ${args.join(' ')}\x1b[0m`,
         '─'.repeat(70),
@@ -677,7 +1298,7 @@ app.post(
       status: 'running',
       startTime: Date.now(),
       specFiles,
-      project: projectName,
+      project: projectName || 'auto',
       grep: grep || '',
       exitCode: null,
       summary: '',
@@ -792,6 +1413,25 @@ app.get(
       lines: newLines,
       since,
     });
+  }),
+);
+
+/** POST /api/run/sync-results — apply the latest JSON report statuses to tracker scenarios */
+app.post(
+  '/api/run/sync-results',
+  wrap((req, res) => {
+    const requested = Array.isArray(req.body?.specFiles)
+      ? req.body.specFiles.map((item: unknown) => normalizeSpecPath(String(item))).filter(Boolean)
+      : [];
+    const specFiles = requested.length ? requested : listSpecFilesInJsonReport();
+
+    if (!specFiles.length) {
+      res.status(400).json({ error: 'No spec files found in the latest JSON report.' });
+      return;
+    }
+
+    syncScenarioStatusesFromRun(specFiles, null);
+    res.json({ ok: true, syncedSpecFiles: specFiles });
   }),
 );
 

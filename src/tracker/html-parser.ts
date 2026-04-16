@@ -265,14 +265,16 @@ export function parseHtmlPlan(html: string): ParsedPlan {
     warnings.push('WF array not found or empty — check HTML source structure');
   }
 
-  // Sequential counter per workflow number for ID generation
+  // Sequential counter per workflow number for fallback ID generation
   const wfSeq = new Map<number, number>();
+  // Track used ATC IDs to handle duplicates (multiple WF items sharing same ref)
+  const usedAtcIds = new Set<string>();
 
   const scenarios: ParsedPlan['scenarios'] = rawItems.map((raw) => {
     const seq = (wfSeq.get(raw.wfN) ?? 0) + 1;
     wfSeq.set(raw.wfN, seq);
 
-    const id = `WF${String(raw.wfN).padStart(2, '0')}-${String(seq).padStart(4, '0')}`;
+    const fallbackId = `WF${String(raw.wfN).padStart(2, '0')}-${String(seq).padStart(4, '0')}`;
     const feature_area: FeatureArea = WF_FEATURE_AREA[raw.wfN] ?? 'other';
     const priority = normalizePriority(raw.priority);
     const automation_state: AutomationState = raw.done ? 'automated' : 'pending';
@@ -285,6 +287,26 @@ export function parseHtmlPlan(html: string): ParsedPlan {
     // doc-auto-case-details and AUTO_CASE_STATUS use the bare form (DOC-SETUP-001).
     // Strip the prefix before doing lookups so both forms resolve correctly.
     const lookupId = primaryAtcId.replace(/^ATC-/, '');
+
+    // Use the ATC ID as the scenario ID when available; fall back to WF-based ID.
+    // If the same ATC ID is referenced by multiple WF items, suffix duplicates.
+    let id: string;
+    if (lookupId) {
+      if (!usedAtcIds.has(lookupId)) {
+        id = lookupId;
+        usedAtcIds.add(lookupId);
+      } else {
+        // Find next available suffix letter for this duplicate
+        let suffix = 'b';
+        while (usedAtcIds.has(`${lookupId}-${suffix}`)) {
+          suffix = String.fromCharCode(suffix.charCodeAt(0) + 1);
+        }
+        id = `${lookupId}-${suffix}`;
+        usedAtcIds.add(id);
+      }
+    } else {
+      id = fallbackId;
+    }
 
     // Look up detail content (steps, results, notes) via primary ATC ID
     const detail = lookupId ? details[lookupId] : undefined;

@@ -227,7 +227,7 @@ function getSpecEntries(specFile: string): SpecEntry[] {
 // ── DB operations ─────────────────────────────────────────────────────────────
 
 function getAllScenarios(): DbScenario[] {
-  return db.prepare(`SELECT id, title, description, spec_file, feature_area, status, subsection
+  return db.prepare(`SELECT id, title, description, spec_file, feature_area, automation_state AS status, subsection
                      FROM scenarios
                      ORDER BY feature_area, spec_file, id`).all() as DbScenario[];
 }
@@ -309,7 +309,7 @@ for (const scenario of scenarios) {
 
   assigned.add(best.canonicalId);
 
-  const isLegacyId = scenario.id.startsWith('DIGITAL-OFFER-CERTIF-');
+  const isLegacyId = scenario.id.startsWith('DIGITAL-OFFER-CERTIF-') || /^WF\d+-\d+$/.test(scenario.id);
   const newId      = best.canonicalId;
   const newTitle   = best.testTitle.length > 20 ? best.testTitle : scenario.title;
   const newDesc    = best.description || scenario.description;

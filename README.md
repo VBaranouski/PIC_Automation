@@ -26,7 +26,7 @@ npm run test:smoke              # smoke suite
 
 ## Project Structure
 
-```
+```text
 ├── src/
 │   ├── fixtures/               # Playwright test fixtures (extended test object)
 │   ├── helpers/                # Utility helpers (wait, data, doc, API)
@@ -57,7 +57,7 @@ npm run test:smoke              # smoke suite
 ## Available Scripts
 
 | Command | Description |
-|---------|-------------|
+| ------- | ----------- |
 | `npm test` | Run all Playwright tests |
 | `npm run test:chromium` | Run chromium project only |
 | `npm run test:smoke` | Run smoke-tagged tests |
@@ -69,12 +69,38 @@ npm run test:smoke              # smoke suite
 | `npm run typecheck` | TypeScript type checking |
 | `npm run lint` | ESLint check |
 | `npm run format` | Prettier formatting |
+| `npm run tracker:ui` | Start the tracker web UI at `http://localhost:3005` |
+| `npm run tracker:ui:stop` | Stop a running tracker UI process |
+| `npm run tracker -- sync` | Reconcile tracker `spec_file` mappings against current specs |
+| `npm run tracker -- sync --import-missing` | Reconcile mappings and create missing tracker rows from spec metadata |
+| `npm run tracker:export` | Export tracker data to `config/scenarios-export.json` |
+
+## Tracker Workflow
+
+The tracker is the current operational source for scenario execution status and spec-file linking.
+
+```bash
+# start / stop the tracker UI
+npm run tracker:ui
+npm run tracker:ui:stop
+
+# refresh tracker mappings after spec changes or file splits
+npm run tracker -- sync
+
+# import new scenario IDs that already exist in allure.description(...) but are missing in the DB
+npm run tracker -- sync --import-missing
+
+# export the normalized tracker dataset
+npm run tracker:export
+```
+
+Use `sync --import-missing` after splitting specs or introducing new canonical scenario IDs in tests so the UI can display and run them immediately.
 
 ## Test Projects (Playwright Config)
 
 The Playwright config defines **15+ projects** with dependency chains for the DOC lifecycle:
 
-```
+```text
 setup → doc-product-setup → doc-initiation → doc-state-setup → doc-detail-*
 ```
 
@@ -83,7 +109,7 @@ Standalone projects: `chromium`, `smoke`, `doc-detail-actions`, `doc-lifecycle`,
 ## Environment Configuration
 
 | Environment | Config File |
-|-------------|-------------|
+| ----------- | ----------- |
 | QA | `config/environments/qa.ts` |
 | Dev | `config/environments/dev.ts` |
 | PPR | `config/environments/ppr.ts` |
@@ -96,9 +122,11 @@ Set `TEST_ENV=qa` (or `dev`/`ppr`) in `.env` or as an environment variable.
 - [Coverage Matrix](docs/ai/current-automation-coverage-matrix.md) — current automation coverage
 - [Application Map](docs/ai/application-map.html) — PICASso application structure
 - [Pipeline](docs/ai/pipeline.md) — automation pipeline description
+- [Tracker Migration Completion](docs/ai/tracker-migration-completion.md) — compact completion note for plan-to-tracker migration
 
 ## CI/CD
 
 GitHub Actions workflow (`.github/workflows/playwright.yml`) runs on:
+
 - Push/PR to `main` or `develop` branches
 - Manual dispatch with environment, role, and test filter selection
