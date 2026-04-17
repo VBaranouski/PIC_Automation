@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { docDetailsLocators, type DocDetailsLocators } from '@locators/doc-details.locators';
+import { OfferTab, RolesTab, ItsTab, ActionsTab, RiskSummaryTab, HistoryTab, CertificationTab } from './doc-details/tabs';
 
 export class DocDetailsPage extends BasePage {
   // DOC Detail URL — note module is GRC_PICASso_DOC, not GRC_PICASso
@@ -8,10 +9,28 @@ export class DocDetailsPage extends BasePage {
 
   private readonly l: DocDetailsLocators;
 
+  // ── Lazy tab instances ────────────────────────────────────────────────────
+  private _offer?: OfferTab;
+  private _roles?: RolesTab;
+  private _its?: ItsTab;
+  private _actions?: ActionsTab;
+  private _riskSummary?: RiskSummaryTab;
+  private _history?: HistoryTab;
+  private _certification?: CertificationTab;
+
   constructor(page: Page) {
     super(page);
     this.l = docDetailsLocators(page);
   }
+
+  // ── Tab accessors (lazy init) ─────────────────────────────────────────────
+  get offer(): OfferTab { return (this._offer ??= new OfferTab(this.page, this.l)); }
+  get roles(): RolesTab { return (this._roles ??= new RolesTab(this.page, this.l)); }
+  get its(): ItsTab { return (this._its ??= new ItsTab(this.page, this.l)); }
+  get actions(): ActionsTab { return (this._actions ??= new ActionsTab(this.page, this.l)); }
+  get riskSummary(): RiskSummaryTab { return (this._riskSummary ??= new RiskSummaryTab(this.page, this.l)); }
+  get history(): HistoryTab { return (this._history ??= new HistoryTab(this.page, this.l)); }
+  get certification(): CertificationTab { return (this._certification ??= new CertificationTab(this.page, this.l)); }
 
   // ==================== Public locator accessors ====================
 
@@ -19,15 +38,8 @@ export class DocDetailsPage extends BasePage {
 
   get saveRolesChangesButton(): Locator { return this.l.saveRolesChangesButton; }
 
-  // ==================== Actions ====================
+  // ==================== Core actions ====================
 
-  /**
-   * Clicks the Initiate DOC button, fills the confirmation modal, and submits.
-   *
-   * Required fields: docName, docReason.
-   * If release is 'Other Release', releaseVersion and targetReleaseDate are also required
-   * (the modal reveals two additional fields when "Other Release" is selected).
-   */
   async clickInitiateDOC(options: {
     docName: string;
     docReason: string;
@@ -57,21 +69,12 @@ export class DocDetailsPage extends BasePage {
     await this.l.modalInitiateButton.click();
   }
 
-  /**
-   * Waits for DOC initiation to complete.
-   * The readiness signal is the "Controls Scoping" status appearing in the DOC table
-   * on the Product Detail page after the modal is submitted.
-   */
   async waitForInitiation(): Promise<void> {
     await this.waitForOSLoad();
     await this.l.productTableStatusCell.waitFor({ state: 'visible', timeout: 60_000 });
     await this.l.firstDocTableLink.waitFor({ state: 'visible', timeout: 60_000 });
   }
 
-  /**
-   * Navigates from the Product Detail DOC table to the first DOC's detail page.
-   * Call after waitForInitiation() to land on the DOC Detail page.
-   */
   async navigateToFirstDoc(): Promise<void> {
     await this.l.firstDocTableLink.waitFor({ state: 'visible', timeout: 30_000 });
 
@@ -131,35 +134,7 @@ export class DocDetailsPage extends BasePage {
     await this.l.cancelDocButton.waitFor({ state: 'visible', timeout: 60_000 });
   }
 
-  /**
-   * Clicks the Digital Offer Details tab and waits for its panel to load.
-   */
-  async clickDigitalOfferDetailsTab(): Promise<void> {
-    await this.waitForOSLoad();
-
-    const panelAlreadyVisible = await this.l.digitalOfferDetailsPanel.isVisible().catch(() => false);
-    const editButtonVisible = await this.l.editDetailsButton.isVisible().catch(() => false);
-    const saveButtonVisible = await this.l.saveChangesButton.isVisible().catch(() => false);
-    if (panelAlreadyVisible && (editButtonVisible || saveButtonVisible)) {
-      return;
-    }
-
-    await this.l.digitalOfferDetailsTab.waitFor({ state: 'visible', timeout: 30_000 });
-
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.digitalOfferDetailsTab.click({ force: attempt > 1 });
-      await this.waitForOSLoad();
-
-      const panelVisible = await this.l.digitalOfferDetailsPanel.isVisible().catch(() => false);
-      if (panelVisible) {
-        return;
-      }
-    }
-
-    await this.l.digitalOfferDetailsPanel.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  // ==================== Assertions ====================
+  // ==================== Core assertions ====================
 
   async expectDocStatus(status: string): Promise<void> {
     await this.l.docIdHeader.waitFor({ state: 'visible', timeout: 30_000 });
@@ -171,52 +146,16 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.docStageLabel).toContainText(stageName);
   }
 
-  async expectDigitalOfferDetailsTabClickable(): Promise<void> {
-    await expect(this.l.digitalOfferDetailsTab).toBeVisible({ timeout: 30_000 });
-    await expect(this.l.digitalOfferDetailsTab).toBeEnabled();
-  }
-
-  /**
-   * Roles & Responsibilities tab is clickable after initiation (shows team assignments table).
-   */
-  async expectRolesResponsibilitiesTabClickable(): Promise<void> {
-    await expect(this.l.rolesResponsibilitiesTab).toBeVisible({ timeout: 30_000 });
-    await expect(this.l.rolesResponsibilitiesTab).toBeEnabled();
-  }
-
-  /**
-   * ITS Checklist tab is clickable after initiation.
-   */
-  async expectITSChecklistTabClickable(): Promise<void> {
-    await expect(this.l.itsChecklistTab).toBeVisible({ timeout: 30_000 });
-    await expect(this.l.itsChecklistTab).toBeEnabled();
-  }
-
-  async expectDigitalOfferDetailsTabPanelVisible(): Promise<void> {
-    await expect(this.l.digitalOfferDetailsPanel).toBeVisible({ timeout: 30_000 });
-  }
-
-  /**
-   * Asserts that the initiator username is shown under the Initiate DOC flow tab.
-   * The tab displays the username (login) of the user who initiated the DOC.
-   */
   async expectInitiatorNameVisible(username: string): Promise<void> {
     const initiateContainer = this.l.initiateStageContainer;
     await expect(initiateContainer.getByText(username, { exact: true })).toBeVisible({ timeout: 30_000 });
   }
 
-  /**
-   * Asserts that the initiation date (year) is shown under the Initiate DOC flow tab.
-   */
   async expectInitiationDateVisible(year: string): Promise<void> {
     const initiateContainer = this.l.initiateStageContainer;
     await expect(initiateContainer.getByText(new RegExp(year))).toBeVisible({ timeout: 30_000 });
   }
 
-  /**
-   * Asserts that the Cancel DOC button is visible in the header.
-   * Visible to users with CANCEL_DIGITAL_OFFER_CERTIFICATION privilege.
-   */
   async expectCancelOptionVisibleInScopeStage(): Promise<void> {
     await expect(this.l.cancelDocButton).toBeVisible({ timeout: 30_000 });
   }
@@ -225,83 +164,8 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.cancelDocButton).toBeHidden();
   }
 
-  // ── Cancel DOC popup (DOC-INIT-023) ─────────────────────────────────────────
-
-  /** Clicks "Cancel DOC" header button and waits for the popup to appear. */
-  async openCancelDocDialog(): Promise<void> {
-    await this.l.cancelDocButton.waitFor({ state: 'visible', timeout: 30_000 });
-    await this.l.cancelDocButton.click();
-    await this.l.cancelDocPopup.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  /** Verifies the Cancel DOC popup is visible. */
-  async expectCancelDocPopupVisible(): Promise<void> {
-    await expect(this.l.cancelDocPopup).toBeVisible({ timeout: 30_000 });
-  }
-
-  /** Verifies the mandatory Comment text field is present inside the Cancel DOC popup. */
-  async expectCancelDocCommentFieldVisible(): Promise<void> {
-    await expect(this.l.cancelDocCommentInput).toBeVisible({ timeout: 30_000 });
-  }
-
-  /** Closes the Cancel DOC popup by clicking the dismiss (Cancel) button — does NOT cancel the DOC. */
-  async dismissCancelDocDialog(): Promise<void> {
-    await this.l.cancelDocPopupDismiss.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.cancelDocPopupDismiss.click();
-    await this.l.cancelDocPopup.waitFor({ state: 'hidden', timeout: 15_000 });
-  }
-
-  // ── Initiate DOC modal helpers (DOC-INIT-020, DOC-INIT-021) ─────────────────
-
-  /** Opens the Initiate DOC modal WITHOUT filling any fields (for validation / cancel tests). */
-  async openInitiateDocModal(): Promise<void> {
-    await this.l.initiateDOCButton.waitFor({ state: 'visible', timeout: 30_000 });
-    await this.l.initiateDOCButton.click();
-    await this.l.initiateDocModal.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  /** Asserts the Initiate DOC modal is currently open. */
-  async expectInitiateDocModalVisible(): Promise<void> {
-    await expect(this.l.initiateDocModal).toBeVisible({ timeout: 30_000 });
-  }
-
-  /** Asserts the Initiate DOC modal has closed. */
-  async expectInitiateDocModalClosed(): Promise<void> {
-    await this.l.initiateDocModal.waitFor({ state: 'hidden', timeout: 15_000 });
-  }
-
-  /** Clicks the Cancel button inside the Initiate DOC modal to close it without submitting. */
-  async clickInitiateDocModalCancel(): Promise<void> {
-    await this.l.modalCancelButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.modalCancelButton.click();
-  }
-
-  /** Clicks the Initiate DOC button inside the modal to trigger form validation with empty fields. */
-  async submitInitiateDocModalEmpty(): Promise<void> {
-    await this.l.modalInitiateButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.modalInitiateButton.click();
-  }
-
-  /** Asserts that at least one "Required field!" validation message is visible in the modal. */
-  async expectInitiateDocModalValidationErrors(): Promise<void> {
-    await expect(this.l.modalFieldRequiredError).toBeVisible({ timeout: 15_000 });
-  }
-
-  /**
-   * Checks whether the Revoke DOC button is present in the header.
-   * Returns false when the current user lacks the REVOKE_DOC privilege.
-   */
-  async hasRevokeDocButton(): Promise<boolean> {
-    return this.l.revokeDocButton.isVisible().catch(() => false);
-  }
-
-  async expectRevokeDocButtonVisible(): Promise<void> {
-    await expect(this.l.revokeDocButton).toBeVisible({ timeout: 15_000 });
-  }
-
   async expectDocIdFormat(): Promise<void> {
     await expect(this.l.docIdHeader).toBeVisible({ timeout: 30_000 });
-    // DOC ID format: DOC- followed by digits (length varies by environment)
     await expect(this.l.docIdHeader).toHaveText(/^DOC-\d+/);
   }
 
@@ -324,33 +188,67 @@ export class DocDetailsPage extends BasePage {
     await expect(cell).toContainText(/\d/);
   }
 
-  // ==================== Private helpers ====================
+  // ── Cancel DOC popup ────────────────────────────────────────────────────────
 
-  /**
-   * Selects a date in the OutSystems calendar widget.
-   * The calendar floats outside the dialog; it is opened by clicking the date input.
-   */
-  private async selectCalendarDate(year: number, month: number, day: number): Promise<void> {
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    const monthName = monthNames[month - 1];
-
-    await this.l.calendarMonthSelect.selectOption({ label: monthName });
-
-    const yearInput = this.l.calendarYearSpinbutton;
-    await yearInput.fill(year.toString());
-    await yearInput.press('Enter'); // Enter triggers calendar update; Tab does not
-
-    // Day cells are generic elements with aria-label "Month D, YYYY" — use CSS attribute selector
-    const dateLabel = `${monthName} ${day}, ${year}`;
-    const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).first();
-    await dayCell.waitFor({ state: 'visible', timeout: 10_000 });
-    await dayCell.click();
+  async openCancelDocDialog(): Promise<void> {
+    await this.l.cancelDocButton.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.cancelDocButton.click();
+    await this.l.cancelDocPopup.waitFor({ state: 'visible', timeout: 30_000 });
   }
 
-  // ==================== DOC Detail — Breadcrumb ====================
+  async expectCancelDocPopupVisible(): Promise<void> {
+    await expect(this.l.cancelDocPopup).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectCancelDocCommentFieldVisible(): Promise<void> {
+    await expect(this.l.cancelDocCommentInput).toBeVisible({ timeout: 30_000 });
+  }
+
+  async dismissCancelDocDialog(): Promise<void> {
+    await this.l.cancelDocPopupDismiss.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.cancelDocPopupDismiss.click();
+    await this.l.cancelDocPopup.waitFor({ state: 'hidden', timeout: 15_000 });
+  }
+
+  // ── Initiate DOC modal helpers ──────────────────────────────────────────────
+
+  async openInitiateDocModal(): Promise<void> {
+    await this.l.initiateDOCButton.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.initiateDOCButton.click();
+    await this.l.initiateDocModal.waitFor({ state: 'visible', timeout: 30_000 });
+  }
+
+  async expectInitiateDocModalVisible(): Promise<void> {
+    await expect(this.l.initiateDocModal).toBeVisible({ timeout: 30_000 });
+  }
+
+  async expectInitiateDocModalClosed(): Promise<void> {
+    await this.l.initiateDocModal.waitFor({ state: 'hidden', timeout: 15_000 });
+  }
+
+  async clickInitiateDocModalCancel(): Promise<void> {
+    await this.l.modalCancelButton.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.modalCancelButton.click();
+  }
+
+  async submitInitiateDocModalEmpty(): Promise<void> {
+    await this.l.modalInitiateButton.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.modalInitiateButton.click();
+  }
+
+  async expectInitiateDocModalValidationErrors(): Promise<void> {
+    await expect(this.l.modalFieldRequiredError).toBeVisible({ timeout: 15_000 });
+  }
+
+  async hasRevokeDocButton(): Promise<boolean> {
+    return this.l.revokeDocButton.isVisible().catch(() => false);
+  }
+
+  async expectRevokeDocButtonVisible(): Promise<void> {
+    await expect(this.l.revokeDocButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ── Breadcrumb ──────────────────────────────────────────────────────────────
 
   async expectBreadcrumbHomeLinkVisible(): Promise<void> {
     await expect(this.l.breadcrumbHomeLink).toBeVisible({ timeout: 30_000 });
@@ -360,12 +258,8 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.breadcrumbProductLink).toBeVisible({ timeout: 30_000 });
   }
 
-  // ==================== DOC Detail — Pipeline stages ====================
+  // ── Pipeline stages ─────────────────────────────────────────────────────────
 
-  /**
-   * Asserts all 5 DOC workflow pipeline stages are rendered and visible.
-   * Stage tabs: Initiate DOC · Scope ITS Controls · Risk Assessment · Risk Summary Review · Issue Certification
-   */
   async expectAllPipelineStagesVisible(): Promise<void> {
     await expect(this.l.initiateStageContainer).toBeVisible({ timeout: 30_000 });
     await expect(this.l.docStageLabel).toBeVisible({ timeout: 30_000 });
@@ -374,9 +268,6 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.docPipelineTab5).toBeVisible({ timeout: 30_000 });
   }
 
-  /**
-   * Returns true when the given pipeline stage tab has aria-selected="true".
-   */
   async isPipelineStageActive(stageName: string): Promise<boolean> {
     const stageTab = this.page.getByRole('tab', { name: stageName });
     const ariaSelected = await stageTab.getAttribute('aria-selected');
@@ -395,1344 +286,224 @@ export class DocDetailsPage extends BasePage {
   }
 
   async expectPipelineHidden(): Promise<void> {
-    // OutSystems collapses the pipeline via CSS overflow:hidden on a wrapper —
-    // inner tab elements keep their DOM presence so toBeHidden() is unreliable.
-    // Instead, confirm the toggle button now reads "Show Flow", proving the
-    // pipeline was collapsed.
     await expect(this.l.hideShowFlowButton).toContainText('Show Flow', { timeout: 15_000 });
   }
 
   async expectPipelineVisible(): Promise<void> {
-    // When the pipeline is visible the toggle button reads "Hide Flow".
-    // This is the most reliable indicator — not affected by CSS overflow tricks.
     await expect(this.l.hideShowFlowButton).toContainText('Hide Flow', { timeout: 15_000 });
   }
 
-  // ==================== DOC Detail — Digital Offer Details tab (edit) ====================
+  // ── Private helpers ─────────────────────────────────────────────────────────
 
-  async clickEditDetails(): Promise<void> {
-    await this.l.editDetailsButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.editDetailsButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async fillOfferDocName(name: string): Promise<void> {
-    await this.l.offerDocNameInput.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.offerDocNameInput.fill(name);
-  }
-
-  async fillOfferDocReason(text: string): Promise<void> {
-    await this.l.offerDocReasonTextarea.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.offerDocReasonTextarea.fill(text);
-  }
-
-  async selectOfferRelease(label: string): Promise<void> {
-    await this.l.offerReleaseDropdown.waitFor({ state: 'visible', timeout: 15_000 });
-
-    try {
-      await this.l.offerReleaseDropdown.selectOption({ label });
-      await this.waitForOSLoad();
-      return;
-    } catch {
-      await this.l.offerReleaseDropdown.click();
-      const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const option = this.page.getByRole('option', { name: new RegExp(`^${escapedLabel}$`, 'i') }).first();
-      await option.waitFor({ state: 'visible', timeout: 15_000 });
-      await option.click();
-      await this.waitForOSLoad();
-    }
-  }
-
-  async clickSaveChanges(): Promise<void> {
-    await expect(this.l.saveChangesButton).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.saveChangesButton).toBeEnabled({ timeout: 15_000 });
-
-    const activeTagName = await this.page.evaluate(() => (globalThis as any).document?.activeElement?.tagName ?? '');
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTagName)) {
-      await this.page.keyboard.press('Tab');
-      await this.waitForOSLoad();
-    }
-
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.saveChangesButton.click({ force: attempt > 1 });
-      await this.waitForOSLoad();
-
-      const returnedToReadOnly = await this.l.editDetailsButton.isVisible().catch(() => false);
-      if (returnedToReadOnly) {
-        return;
-      }
-
-      const canRetrySave = await this.l.saveChangesButton.isVisible().catch(() => false);
-      if (!canRetrySave || attempt === 3) {
-        break;
-      }
-    }
-  }
-
-  async clickCancelEdit(): Promise<void> {
-    await this.l.cancelEditButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async expectEditDetailsButtonVisible(): Promise<void> {
-    await expect(this.l.editDetailsButton).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectSaveChangesButtonVisible(): Promise<void> {
-    await expect(this.l.saveChangesButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectCancelEditButtonVisible(): Promise<void> {
-    await expect(this.l.cancelEditButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectDocNameInputEditable(): Promise<void> {
-    await expect(this.l.offerDocNameInput).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.offerDocNameInput).toBeEditable();
-  }
-
-  async expectDocReasonCharCountVisible(): Promise<void> {
-    await expect(this.l.offerDocReasonCharCount).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectReleaseVersionInputVisible(): Promise<void> {
-    await expect(this.l.offerReleaseVersionInput).toBeVisible({ timeout: 15_000 });
-  }
-
-  // ── WF 11.16 — Release Linkage helpers ─────────────────────────────────────
-
-  /** ATC-11.16.1: checks the Release header area has a visible label and non-empty value. */
-  async expectReleaseHeaderLabelAndValue(): Promise<void> {
-    // Use the specific #Release_Con container to avoid strict-mode violations
-    // (page.getByText(/Release/) matches multiple elements on this page).
-    const releaseContainer = this.page.locator('#Release_Con');
-    await expect(releaseContainer).toBeVisible({ timeout: 30_000 });
-    const link = releaseContainer.getByRole('link').first();
-    const isLink = await link.isVisible().catch(() => false);
-    if (isLink) {
-      const linkText = (await link.textContent() ?? '').trim();
-      expect(linkText.length, 'Release link text should not be empty').toBeGreaterThan(0);
-    } else {
-      const containerText = (await releaseContainer.textContent() ?? '').trim();
-      expect(
-        containerText.replace(/^Release\s*/i, '').trim().length,
-        'Release header container should contain a non-empty release value',
-      ).toBeGreaterThan(0);
-    }
-  }
-
-  /** ATC-11.16.3: returns the list of all release options from the offer tab dropdown (edit mode). */
-  async getOfferReleaseOptions(): Promise<string[]> {
-    await this.l.offerReleaseDropdown.waitFor({ state: 'visible', timeout: 15_000 });
-
-    const normalize = (value: string): string => value.replace(/\s+/g, ' ').trim();
-
-    const readNativeOptions = async (): Promise<string[]> => {
-      const nativeOptions = await this.l.offerReleaseDropdown
-        .locator('option')
-        .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ''))
-        .catch(() => [] as string[]);
-
-      return [...new Set(nativeOptions.map(normalize).filter(Boolean))];
-    };
-
-    let options = await readNativeOptions();
-
-    if (options.length <= 1) {
-      await expect
-        .poll(async () => {
-          const values = await readNativeOptions();
-          return values.length > 1;
-        }, {
-          timeout: 10_000,
-          message: 'Waiting for Release dropdown options to populate',
-        })
-        .toBeTruthy()
-        .catch(() => undefined);
-
-      options = await readNativeOptions();
-    }
-
-    return options;
-  }
-
-  /**
-   * ATC-11.16.4: selects the first named release (non-empty, not "Other Release") in edit mode.
-   * Returns the selected label, or null if no named release is available.
-   */
-  async selectFirstNamedRelease(): Promise<string | null> {
-    const options = await this.getOfferReleaseOptions();
-    const named = options.filter(
-      (option) =>
-        option &&
-        !/^select release$/i.test(option) &&
-        option !== 'Other Release' &&
-        option !== '-' &&
-        option !== '--',
-    );
-    if (named.length === 0) return null;
-    await this.selectOfferRelease(named[0]);
-    return named[0];
-  }
-
-  /**
-   * ATC-11.16.4: asserts Target Release Date has a non-empty value after release selection.
-   * Works for both disabled-input and plain-text display modes.
-   */
-  async expectTargetReleaseDateHasValue(): Promise<void> {
-    const tabpanel = this.page.getByRole('tabpanel').first();
-    const dateInput = tabpanel
-      .getByLabel(/Target Release Date/i)
-      .or(tabpanel.getByRole('textbox', { name: /Target Release Date/i }))
-      .first();
-
-    const inputCount = await dateInput.count();
-    if (inputCount > 0) {
-      const value = await dateInput.inputValue().catch(() => '');
-      expect(value.trim(), 'Target Release Date should have a non-empty value').not.toBe('');
-    } else {
-      await expect(this.l.targetReleaseDateHeader).toContainText(/\d/, { timeout: 15_000 });
-    }
-  }
-
-  /** ATC-11.16.7: asserts the Release Version text input is hidden (after switching to named release). */
-  async expectReleaseVersionInputHidden(): Promise<void> {
-    await expect(this.l.offerReleaseVersionInput).toBeHidden({ timeout: 10_000 });
-  }
-
-  /** ATC-11.16.10/11: navigates to the associated Product Detail page via the breadcrumb link. */
-  async navigateToLinkedProduct(): Promise<void> {
-    await this.l.breadcrumbProductLink.waitFor({ state: 'visible', timeout: 30_000 });
-    await Promise.all([
-      this.page.waitForURL(/ProductDetail/, { timeout: 60_000 }),
-      this.l.breadcrumbProductLink.click(),
-    ]);
-  }
-
-  async isEditRolesButtonVisible(): Promise<boolean> {
-    return this.l.editRolesButton.isVisible().catch(() => false);
-  }
-
-  async isSaveRolesChangesDisabled(): Promise<boolean> {
-    return this.l.saveRolesChangesButton.isDisabled().catch(() => false);
-  }
-
-  async expectSaveRolesChangesButtonVisible(): Promise<void> {
-    await expect(this.l.saveRolesChangesButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async getRolesTeamMembersText(roleName: string): Promise<string> {
-    const row = this.l.rolesGrid.locator('tr').filter({ hasText: roleName }).first();
-    await expect(row).toBeVisible({ timeout: 15_000 });
-    const teamMembersCell = row.locator('td').nth(1);
-    return (await teamMembersCell.textContent())?.trim() ?? '';
-  }
-
-  // ==================== DOC Detail — Roles & Responsibilities tab ====================
-
-  async clickRolesResponsibilitiesTab(): Promise<void> {
-    await this.waitForOSLoad();
-
-    const rolesVisible = await this.l.rolesGrid.isVisible().catch(() => false);
-    const editRolesVisible = await this.l.editRolesButton.isVisible().catch(() => false);
-    const saveRolesVisible = await this.l.saveRolesChangesButton.isVisible().catch(() => false);
-    if (rolesVisible && (editRolesVisible || saveRolesVisible)) {
-      return;
-    }
-
-    await this.l.rolesResponsibilitiesTab.waitFor({ state: 'visible', timeout: 30_000 });
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.rolesResponsibilitiesTab.click({ force: attempt > 1 });
-      await this.waitForOSLoad();
-
-      if (await this.l.rolesGrid.isVisible().catch(() => false)) {
-        return;
-      }
-    }
-
-    await this.l.rolesGrid.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  async expectRolesGridVisible(): Promise<void> {
-    await expect(this.l.rolesGrid).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectRolesGridColumnHeaders(): Promise<void> {
-    // Column headers are uppercase in DOM: 'USER ROLE', 'TEAM MEMBERS', 'EMAIL', 'LOCATION'
-    const expected = ['USER ROLE', 'TEAM MEMBERS', 'EMAIL', 'LOCATION'];
-    for (const header of expected) {
-      await expect(this.l.rolesGrid.locator('th').filter({ hasText: header })).toBeVisible({ timeout: 15_000 });
-    }
-  }
-
-  async expectRolesRowPresent(roleName: string | RegExp): Promise<void> {
-    await expect(this.l.rolesGrid.locator('tr').filter({ hasText: roleName }).first()).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectAllRoleRowsPresent(): Promise<void> {
-    const requiredRoles = [
-      'IT Owner',
-      'Project Manager',
-      'Product Owner',
-      /Security (and Data Protection )?Advisor/,
+  private async selectCalendarDate(year: number, month: number, day: number): Promise<void> {
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
-    const optionalRoles = [
-      'BU Security Officer',
-      'CISO',
-      'Digital Offer Certification Lead',
-      'Digital Risk Lead',
-      'Business Vice President',
-      'Senior Business Vice President',
-    ];
-    for (const role of requiredRoles) {
-      await this.expectRolesRowPresent(role);
-    }
-
-    // In QA some Controls Scoping DOCs only expose the product-derived rows.
-    // Treat the remaining workflow-assigned roles as optional for this assertion.
-    for (const role of optionalRoles) {
-      const isVisible = await this.l.rolesGrid.locator('tr').filter({ hasText: role }).first().isVisible().catch(() => false);
-      if (isVisible) {
-        await this.expectRolesRowPresent(role);
-      }
-    }
-  }
-
-  async expectEditRolesButtonVisible(): Promise<void> {
-    await expect(this.l.editRolesButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async clickEditRoles(): Promise<void> {
-    await this.l.editRolesButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.editRolesButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async expectSaveRolesChangesButtonDisabled(): Promise<void> {
-    await expect(this.l.saveRolesChangesButton).toBeDisabled({ timeout: 15_000 });
-  }
-
-  async clickCancelRoles(): Promise<void> {
-    await this.l.cancelRolesButton.click();
-    await this.waitForOSLoad();
-  }
-
-  /** Asserts that at least one input field is visible in the Roles edit mode (user lookup fields). */
-  async expectEditModeUserLookupVisible(): Promise<void> {
-    await expect(this.l.rolesEditModeInput).toBeVisible({ timeout: 15_000 });
-  }
-
-  /** Asserts the Roles grid has the expected column headers: User Role, Team Members, Email, Location. */
-  async expectRolesGridColumnsVisible(): Promise<void> {
-    await expect(this.l.rolesGrid).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.rolesGrid.getByRole('columnheader', { name: /User Role/i })).toBeVisible({ timeout: 10_000 });
-    await expect(this.l.rolesGrid.getByRole('columnheader', { name: /Team Members/i })).toBeVisible({ timeout: 10_000 });
-  }
-
-  // ==================== DOC Detail — ITS Checklist tab ====================
-
-  async clickITSChecklistTab(): Promise<void> {
-    await this.waitForOSLoad();
-
-    const itsVisible = await this.l.itsChecklistPanel.isVisible().catch(() => false);
-    if (itsVisible) {
-      return;
-    }
-
-    await this.l.itsChecklistTab.waitFor({ state: 'visible', timeout: 30_000 });
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.itsChecklistTab.click({ force: true });
-      await this.waitForOSLoad();
-
-      if (await this.l.itsChecklistPanel.isVisible().catch(() => false)) {
-        return;
-      }
-    }
-
-    await this.l.itsChecklistPanel.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  async expectITSSecurityControlsTitleVisible(): Promise<void> {
-    await expect(this.l.itsSecurityControlsTitle).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectITSGridColumnHeaders(): Promise<void> {
-    // ITS grid column headers are uppercase in DOM
-    const expected = ['CONTROL ID', 'DESCRIPTION', 'EVIDENCE EXPECTATION', 'CATEGORY'];
-    for (const header of expected) {
-      await expect(
-        this.l.itsGrid.locator('th').filter({ hasText: header }),
-      ).toBeVisible({ timeout: 15_000 });
-    }
-  }
-
-  /**
-   * Checks whether the ITS Checklist has at least one data row.
-   * Use to guard tests that depend on controls being present.
-   */
-  async hasITSControls(): Promise<boolean> {
-    const noControlsMsg = await this.l.itsNoControlsAddedMessage.isVisible().catch(() => false);
-    const noActiveMsg = await this.l.itsNoActiveControlsMessage.isVisible().catch(() => false);
-    return !noControlsMsg && !noActiveMsg;
-  }
-
-  async expectITSFilterControlsVisible(): Promise<void> {
-    await expect(this.l.itsCategoryFilter).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.itsSearchInput).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.itsResetButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async hasControlsInAddControlPopup(): Promise<boolean> {
-    return this.l.addControlTable.locator('tbody tr').first().isVisible().catch(() => false);
-  }
-
-  async searchITSControls(query: string): Promise<void> {
-    await this.l.itsSearchInput.fill(query);
-    await this.waitForOSLoad();
-  }
-
-  async hasITSNoResultsMessage(): Promise<boolean> {
-    return this.l.itsNoResultsMessage.isVisible().catch(() => false);
-  }
-
-  async getITSGridDataRowCount(): Promise<number> {
-    return this.l.itsGrid.locator('tbody tr').count();
-  }
-
-  async clickITSReset(): Promise<void> {
-    await this.l.itsResetButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async expectITSSecurityControlsTitleLoaded(): Promise<void> {
-    await expect(this.l.itsSecurityControlsTitle).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectITSGridVisible(): Promise<void> {
-    await expect(this.l.itsGrid).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectITSGridColumnHeadersVisible(): Promise<void> {
-    await expect(this.l.itsGrid.locator('thead tr').first()).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectITSNoResultsMessageVisible(): Promise<void> {
-    await expect(this.l.itsNoResultsMessage).toBeVisible({ timeout: 15_000 });
-  }
-
-  async clickITSGridColumnHeader(headerText: string | RegExp): Promise<void> {
-    const header = this.l.itsGrid.locator('th').filter({ hasText: headerText });
-    await header.waitFor({ state: 'visible', timeout: 15_000 });
-    await header.click();
-    await this.waitForOSLoad();
-  }
-
-  async expectAddControlButtonVisible(): Promise<void> {
-    await expect(this.l.itsAddControlButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async clickAddControl(): Promise<void> {
-    await this.l.itsAddControlButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.itsAddControlButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async expectAddControlPopupVisible(): Promise<void> {
-    await expect(this.l.addControlPopup).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectAddControlPopupElements(): Promise<void> {
-    await expect(this.l.addControlSearchInput).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.addControlCategoryFilter).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.addControlTable).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.addSelectedButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  /** Checks first checkbox in the Add Control popup table. */
-  async selectFirstControlInPopup(): Promise<void> {
-    // addControlTable uses <table> with <tbody><tr> structure
-    const firstRow = this.l.addControlTable.locator('tbody tr').first();
-    await firstRow.waitFor({ state: 'visible', timeout: 15_000 });
-    await firstRow.locator('input[type="checkbox"]').click();
-    await this.waitForOSLoad();
-  }
-
-  async expectAddSelectedButtonEnabled(): Promise<void> {
-    await expect(this.l.addSelectedButton).toBeEnabled({ timeout: 15_000 });
-  }
-
-  async expectSelectedCountVisible(): Promise<void> {
-    await expect(this.l.addControlSelectedCount).toBeVisible({ timeout: 15_000 });
-  }
-
-  async closeAddControlPopup(): Promise<void> {
-    await this.l.addControlCloseButton.click();
-    await this.waitForOSLoad();
-  }
-
-  /** Clicks the Descope (×) button on the first ITS control data row. */
-  async clickFirstControlDescopeButton(): Promise<void> {
-    const firstRow = this.l.itsGridDataRow(0);
-    await firstRow.waitFor({ state: 'visible', timeout: 15_000 });
-    // The last cell in the row contains the descope link (icon)
-    await firstRow.locator('td:last-child a').click();
-    await this.waitForOSLoad();
-  }
-
-  /** Navigates to Control Detail page by clicking the Control ID link in the first row. */
-  async clickFirstControlIdLink(): Promise<void> {
-    const firstRow = this.l.itsGridDataRow(0);
-    await firstRow.waitFor({ state: 'visible', timeout: 15_000 });
-    const controlLink = firstRow.locator('td:first-child a').first();
-    const href = await controlLink.getAttribute('href');
-
-    if (href) {
-      await this.page.goto(new URL(href, this.page.url()).toString(), {
-        waitUntil: 'domcontentloaded',
-        timeout: 30_000,
-      });
-    } else {
-      await controlLink.click({ force: true });
-    }
-
-    await this.page.waitForURL(/ControlDetail/, { timeout: 30_000, waitUntil: 'domcontentloaded' }).catch(async () => {
-      await expect.poll(() => this.page.url(), { timeout: 30_000 }).toMatch(/ControlDetail/);
-    });
-    await this.waitForOSLoad();
-  }
-
-  async expectUnscopePopupVisible(): Promise<void> {
-    await expect(this.l.unscopePopupHeading).toBeVisible({ timeout: 15_000 });
-  }
-
-  async fillUnscopeJustification(text: string): Promise<void> {
-    await this.l.unscopeJustificationInput.fill(text);
-  }
-
-  async expectUnscopeDescoperButtonEnabled(): Promise<void> {
-    await expect(this.l.unscopeDescoperButton).toBeEnabled({ timeout: 15_000 });
-  }
-
-  async expectUnscopeDescoperButtonDisabled(): Promise<void> {
-    await expect(this.l.unscopeDescoperButton).toBeDisabled({ timeout: 15_000 });
-  }
-
-  async cancelUnscopePopup(): Promise<void> {
-    await this.l.unscopePopupCancelButton.click();
-    await this.waitForOSLoad();
-  }
-
-  // ==================== DOC Detail — Action Plan tab ====================
-
-  async clickActionPlanTab(): Promise<void> {
-    await this.waitForOSLoad();
-
-    const panelVisible = await this.l.actionPlanPanel.isVisible().catch(() => false);
-    if (panelVisible) {
-      return;
-    }
-
-    await this.l.actionPlanTab.waitFor({ state: 'visible', timeout: 30_000 });
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.actionPlanTab.click({ force: attempt > 1 });
-      await this.waitForOSLoad();
-
-      if (await this.l.actionPlanPanel.isVisible().catch(() => false)) {
-        return;
-      }
-    }
-
-    await this.l.actionPlanPanel.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  async expectActionPlanTitleVisible(): Promise<void> {
-    await expect(this.l.actionPlanTitle).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectActionPlanControlsVisible(): Promise<void> {
-    await expect(this.l.actionPlanSearchInput).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.actionPlanShowOpenOnly).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.actionPlanResetButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectActionPlanGridColumnHeaders(): Promise<void> {
-    const expected = ['Action Name', 'Description', 'Status', 'Due Date', 'Assignee', 'Findings'];
-    for (const header of expected) {
-      await expect(this.l.actionPlanGrid.getByRole('columnheader', { name: header })).toBeVisible({ timeout: 15_000 });
-    }
-  }
-
-  async hasActionPlanRows(): Promise<boolean> {
-    return this.l.actionPlanDataRows.first().isVisible().catch(() => false);
-  }
-
-  async getActionPlanRowCount(): Promise<number> {
-    return this.l.actionPlanDataRows.count();
-  }
-
-  async getActionPlanRowText(rowIndex = 0): Promise<string> {
-    const row = this.l.actionPlanDataRows.nth(rowIndex);
-    await expect(row).toBeVisible({ timeout: 15_000 });
-    return (await row.textContent())?.replace(/\s+/g, ' ').trim() ?? '';
-  }
-
-  async expectFirstActionNameLinkVisible(): Promise<void> {
-    await expect(this.l.actionPlanDataRows.first().getByRole('link').first()).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectAnyFindingLinkVisible(): Promise<void> {
-    await expect(this.l.actionPlanDataRows.getByRole('link', { name: /Finding/i }).first()).toBeVisible({ timeout: 15_000 });
-  }
-
-  async searchActionPlan(query: string): Promise<void> {
-    await this.l.actionPlanSearchInput.fill(query);
-    await this.waitForOSLoad();
-  }
-
-  async toggleActionPlanShowOpenOnly(enable: boolean): Promise<void> {
-    await this.l.actionPlanShowOpenOnly.setChecked(enable);
-    await this.waitForOSLoad();
-  }
-
-  async resetActionPlanFilters(): Promise<void> {
-    await this.l.actionPlanResetButton.click();
-    await this.waitForOSLoad();
-    // Wait for the grid to repopulate after the reset clears any active filters.
-    await this.l.actionPlanDataRows.first().waitFor({ state: 'visible', timeout: 15_000 }).catch(() => undefined);
-  }
-
-  async hasActionPlanNoResultsMessage(): Promise<boolean> {
-    return this.l.actionPlanNoResultsMessage.isVisible().catch(() => false);
-  }
-
-  async isAddActionButtonVisible(): Promise<boolean> {
-    return this.l.actionPlanAddActionButton.isVisible({ timeout: 5_000 }).catch(() => false);
-  }
-
-  async expectAddActionButtonVisible(): Promise<void> {
-    await expect(this.l.actionPlanAddActionButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async clickAddActionButton(): Promise<void> {
-    await this.l.actionPlanAddActionButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async hasActionPlanNoActionsMessage(): Promise<boolean> {
-    return this.l.actionPlanNoActionsMessage.isVisible({ timeout: 5_000 }).catch(() => false);
-  }
-
-  async expectActionPlanNoActionsMessageVisible(): Promise<void> {
-    await expect(this.l.actionPlanNoActionsMessage).toBeVisible({ timeout: 15_000 });
-  }
-
-  async clickFirstActionNameLink(): Promise<void> {
-    const firstLink = this.l.actionPlanDataRows.first().getByRole('link').first();
-    await expect(firstLink).toBeVisible({ timeout: 15_000 });
-    await firstLink.click();
-    await this.waitForOSLoad();
-  }
-
-  // ==================== DOC Detail — Risk Summary tab ====================
-
-  async clickRiskSummaryTab(): Promise<void> {
-    await this.waitForOSLoad();
-
-    const panelVisible = await this.l.riskSummaryPanel.isVisible().catch(() => false);
-    if (panelVisible) {
-      return;
-    }
-
-    await this.l.riskSummaryTab.waitFor({ state: 'visible', timeout: 30_000 });
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.riskSummaryTab.click({ force: attempt > 1 });
-      await this.waitForOSLoad();
-
-      if (await this.l.riskSummaryPanel.isVisible().catch(() => false)) {
-        return;
-      }
-    }
-
-    await this.l.riskSummaryPanel.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  async expectRiskSummarySectionsVisible(): Promise<void> {
-    await expect(this.l.riskSummarySdlTitle).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryPrivacyTitle).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryItsTitle).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryControlsTitle).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectRiskSummarySdlFcsrContentVisible(): Promise<void> {
-    await expect(this.l.riskSummarySdlDecisionLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummarySdlCommentsLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummarySdlLinkLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryLinks.first()).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectRiskSummaryPrivacyContentVisible(): Promise<void> {
-    await expect(this.l.riskSummaryPrivacyDecisionLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryPrivacyCommentsLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryPrivacyLinkLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryLinks.nth(1)).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectRiskSummaryItsControlSummaryVisible(): Promise<void> {
-    await expect(this.l.riskSummaryOverallRiskLabel).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryItsCommentLabel).toBeVisible({ timeout: 15_000 });
-  }
-
-  async hasRiskSummaryNoResultsMessage(): Promise<boolean> {
-    return this.l.riskSummaryNoResultsMessage.isVisible().catch(() => false);
-  }
-
-  async getRiskSummaryPanelText(): Promise<string> {
-    await expect(this.l.riskSummaryPanel).toBeVisible({ timeout: 15_000 });
-    return (await this.l.riskSummaryPanel.textContent())?.replace(/\s+/g, ' ').trim() ?? '';
-  }
-
-  async hasRiskSummaryControlsGrid(): Promise<boolean> {
-    return this.l.riskSummaryControlsGrid.isVisible({ timeout: 5_000 }).catch(() => false);
-  }
-
-  async expectRiskSummaryControlsGridColumnHeaders(): Promise<void> {
-    const headers = ['Category', 'Status', 'Risk Level'];
-    for (const header of headers) {
-      await expect(
-        this.l.riskSummaryControlsGrid.locator('th').filter({ hasText: header }),
-      ).toBeVisible({ timeout: 15_000 });
-    }
-  }
-
-  async getRiskSummaryControlsRowCount(): Promise<number> {
-    return this.l.riskSummaryControlsDataRows.count();
-  }
-
-  // ==================== DOC Detail — View History ====================
-
-  async clickViewHistory(): Promise<void> {
-    await this.l.viewHistoryLink.waitFor({ state: 'visible', timeout: 60_000 });
-    await this.l.viewHistoryLink.click();
-    await this.waitForOSLoad();
-  }
-
-  async expectHistoryDialogVisible(): Promise<void> {
-    await expect(this.l.historyDialog).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectHistoryGridVisible(): Promise<void> {
-    await expect(this.l.historyGrid).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectHistoryGridHasRows(): Promise<void> {
-    // historyGrid is a <table>; check that at least one tbody tr exists
-    await expect(this.l.historyGrid.locator('tbody tr').first()).toBeVisible({ timeout: 30_000 });
-  }
-
-  async expectHistoryGridColumnHeaders(): Promise<void> {
-    const expected = ['Date', 'User', 'Activity', 'Description'];
-    for (const header of expected) {
-      await expect(
-        this.l.historyGrid.locator('th').filter({ hasText: header }),
-      ).toBeVisible({ timeout: 15_000 });
-    }
-  }
-
-  async expectHistoryFiltersVisible(): Promise<void> {
-    await expect(this.l.historySearchInput).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.historyActivityFilter).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.historySearchButton).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.historyResetButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectHistoryDateRangeInputsVisible(): Promise<void> {
-    // The date range uses a flatpickr component with a single visible input.
-    // The "from" and "to" dates are selected from the same calendar popup, not via two separate text inputs.
-    await expect(this.l.historyDateFromInput).toBeVisible({ timeout: 15_000 });
-  }
-
-  async getHistoryRowCount(): Promise<number> {
-    return this.l.historyGrid.locator('tbody tr').count();
-  }
-
-  async getHistoryDateTexts(limit = 5): Promise<string[]> {
-    const dateCells = this.l.historyGrid.locator('tbody tr td:first-child');
-    const count = Math.min(await dateCells.count(), limit);
-    const values: string[] = [];
-
-    for (let index = 0; index < count; index++) {
-      const value = (await dateCells.nth(index).textContent() ?? '').trim();
-      if (value) values.push(value);
-    }
-
-    return values;
-  }
-
-  async clickHistorySearchButton(): Promise<void> {
-    await this.l.historySearchButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async selectHistoryActivityFilter(activityLabel: string): Promise<void> {
-    await this.l.historyActivityFilter.selectOption({ label: activityLabel });
-    await this.waitForOSLoad();
-  }
-
-  async clickHistoryResetFilters(): Promise<void> {
-    await this.l.historyResetButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async getHistorySearchInputValue(): Promise<string> {
-    return this.l.historySearchInput.inputValue();
-  }
-
-  async getSelectedHistoryActivityFilterLabel(): Promise<string> {
-    return this.l.historyActivityFilter.evaluate((element) => {
-      const select = element as HTMLSelectElement;
-      return select.options[select.selectedIndex]?.textContent?.trim() ?? '';
-    });
-  }
-
-  async closeHistoryDialog(): Promise<void> {
-    await this.l.historyCloseButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.historyCloseButton.click();
-    await this.waitForOSLoad();
-  }
-
-  async fillHistorySearchInput(text: string): Promise<void> {
-    await this.l.historySearchInput.fill(text);
-  }
-
-  private formatHistoryDateInputValue(targetDate: Date): string {
-    const day = targetDate.getDate();
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = monthNames[targetDate.getMonth()];
-    const year = targetDate.getFullYear();
-    return `${day} ${month} ${year}`;
-  }
-
-  private async setHistoryDateInput(input: Locator, targetDate: Date): Promise<void> {
-    const value = this.formatHistoryDateInputValue(targetDate);
-    const normalizedTarget = value.toLowerCase().replace(/\s+/g, ' ').trim();
-
-    const readValue = async (): Promise<string> => (
-      await input.inputValue().catch(() => '')
-    ).toLowerCase().replace(/\s+/g, ' ').trim();
-
-    await input.waitFor({ state: 'visible', timeout: 15_000 });
-    await input.scrollIntoViewIfNeeded().catch(() => undefined);
-    await input.focus().catch(() => undefined);
-    await input.click({ force: true }).catch(() => undefined);
-    await input.press(`${process.platform === 'darwin' ? 'Meta' : 'Control'}+A`).catch(() => undefined);
-    await input.fill(value).catch(() => undefined);
-    if ((await readValue()) !== normalizedTarget) {
-      await input.pressSequentially(value, { delay: 30 }).catch(() => undefined);
-    }
-    await input.press('Enter').catch(() => undefined);
-    await input.press('Tab').catch(() => undefined);
-
-    let currentValue = await readValue();
-    if (currentValue !== normalizedTarget) {
-      await input.evaluate((element, newValue) => {
-        const field = element as HTMLInputElement;
-        const prototype = Object.getPrototypeOf(field);
-        const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
-        descriptor?.set?.call(field, newValue);
-        field.dispatchEvent(new Event('input', { bubbles: true }));
-        field.dispatchEvent(new Event('change', { bubbles: true }));
-        field.blur();
-      }, value);
-      currentValue = await readValue();
-    }
-
-    if (currentValue !== normalizedTarget) {
-      throw new Error(`Failed to set DOC History date input to ${value}.`);
-    }
-  }
-
-  async selectHistoryDateRange(fromDate: Date, toDate: Date): Promise<void> {
-    await this.setHistoryDateInput(this.l.historyDateFromInput, fromDate);
-
-    const toInputVisible = await this.l.historyDateToInput.isVisible().catch(() => false);
-    if (toInputVisible) {
-      await this.setHistoryDateInput(this.l.historyDateToInput, toDate);
-    }
-  }
-
-  /** Returns the number of <option> elements in the Activity filter dropdown.
-   * Polls up to 8 s because OutSystems populates the LOV asynchronously after
-   * the dialog renders.
-   */
-  async getHistoryActivityFilterOptionCount(): Promise<number> {
-    let count = 0;
-    try {
-      // Wait until the select has more than the blank/placeholder option
-      await expect.poll(
-        async () => {
-          const h = await this.l.historyActivityFilter.elementHandle();
-          if (!h) return 0;
-          count = await h.evaluate((el) => (el as HTMLSelectElement).options.length);
-          return count;
-        },
-        { timeout: 8_000, intervals: [500, 500, 1_000, 2_000] },
-      ).toBeGreaterThan(1);
-    } catch {
-      // Timed out; return whatever was last read — test assertion will judge
-    }
-    return count;
-  }
-
-  /** Returns the text labels of all <option> elements in the Activity filter dropdown,
-   *  excluding any blank/placeholder option. */
-  async getHistoryActivityFilterOptions(): Promise<string[]> {
-    await this.getHistoryActivityFilterOptionCount(); // ensure LOV is loaded
-    const options = await this.l.historyActivityFilter.locator('option').allTextContents();
-    return options.map(o => o.trim()).filter(o => o.length > 0 && !/^(- select -|select|all)$/i.test(o));
-  }
-
-  async getHistoryTotalRecordCount(): Promise<number> {
-    await this.l.historyPaginationStatus.waitFor({ state: 'visible', timeout: 15_000 });
-    const statusText = await this.l.historyPaginationStatus.textContent();
-    const match = statusText?.match(/(\d+)\s*record(?:s)?/i);
-    return match ? Number(match[1]) : 0;
-  }
-
-  async changeHistoryPerPage(value: '10' | '20' | '30' | '50' | '100'): Promise<void> {
-    await this.l.historyPerPageSelect.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.historyPerPageSelect.selectOption(value);
-    await this.waitForOSLoad();
-    await expect
-      .poll(() => this.getHistoryRowCount(), { timeout: 30_000, intervals: [500, 1_000, 2_000] })
-      .toBeGreaterThan(0);
-  }
-
-  async getCurrentHistoryPageNumber(): Promise<number> {
-    const currentPageButton = this.l.historyPaginationNav.getByRole('button', { name: /current page/i });
-    const text = await currentPageButton.textContent();
-    return Number(text?.trim() || '0');
-  }
-
-  async goToHistoryPage(pageNumber: number): Promise<void> {
-    await this.l.historyPaginationNav.getByRole('button', { name: `go to page ${pageNumber}` }).click();
-    await this.waitForOSLoad();
-  }
-
-  async expectHistoryNoDataMessageVisible(): Promise<void> {
-    await expect(this.l.historyNoDataMessage).toBeVisible({ timeout: 15_000 });
-  }
-
-  /**
-   * Returns the trimmed text content of the Date cell (first td) in the first
-   * history data row.  Used to validate that a recognisable date value is shown.
-   */
-  async getHistoryFirstRowDateText(): Promise<string> {
-    const firstRow = this.l.historyGrid.locator('tbody tr').first();
-    return ((await firstRow.locator('td').first().textContent()) ?? '').trim();
-  }
-
-  // ==================== DOC Detail — Certification Decision tab ====================
-
-  async clickCertificationDecisionTab(): Promise<void> {
-    await this.waitForOSLoad();
-
-    // Use aria-selected to detect whether the tab is already active
-    const isAlreadyActive = await this.l.certificationDecisionTab
-      .getAttribute('aria-selected')
-      .catch(() => null);
-    if (isAlreadyActive === 'true') return;
-
-    await this.l.certificationDecisionTab.waitFor({ state: 'visible', timeout: 30_000 });
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      await this.l.certificationDecisionTab.click({ force: attempt > 1 });
-      await this.waitForOSLoad();
-
-      const isNowActive = await this.l.certificationDecisionTab
-        .getAttribute('aria-selected')
-        .catch(() => null);
-      if (isNowActive === 'true') return;
-    }
-
-    await this.l.certDecisionPanel.waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  /** True when the "Propose Decision" action button is visible (no decision set yet). */
-  async hasProposeDecisionButton(): Promise<boolean> {
-    return this.l.proposeDecisionButton.isVisible().catch(() => false);
-  }
-
-  /** True when the warning text about a missing proposed decision is visible. */
-  async hasCertDecisionWarning(): Promise<boolean> {
-    return this.l.certDecisionWarningText.isVisible().catch(() => false);
-  }
-
-  /**
-   * Asserts that at least one of the decision-action buttons is visible:
-   * – "Propose Decision" (no decision set) OR "Edit" (decision already saved).
-   */
-  async expectProposeOrEditDecisionButtonVisible(): Promise<void> {
-    // Wait up to 15s for at least one of the action buttons to appear.
-    // The cert decision panel content is rendered asynchronously by OutSystems
-    // after the tab becomes active, so an immediate isVisible() check can return
-    // false even when the page is still hydrating.
-    const hasProposeBtn = await this.l.proposeDecisionButton
-      .waitFor({ state: 'visible', timeout: 15_000 })
-      .then(() => true)
-      .catch(() => false);
-
-    if (hasProposeBtn) return; // fast path
-
-    // "Edit" button for an existing decision – scoped inside the cert decision panel
-    const hasEditBtn = await this.l.certDecisionPanel
-      .getByRole('button', { name: 'Edit' })
-      .first()
-      .waitFor({ state: 'visible', timeout: 5_000 })
-      .then(() => true)
-      .catch(() => false);
-
-    expect(
-      hasProposeBtn || hasEditBtn,
-      'Expected either "Propose Decision" or "Edit" button to be visible on the Certification Decision tab',
-    ).toBe(true);
-  }
-
-  async expectSubmitForApprovalButtonVisible(): Promise<void> {
-    await expect(this.l.submitForApprovalButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  /** Asserts that all three Risk Summary cards are visible on the Certification Decision tab. */
-  async expectCertRiskSummaryCardsVisible(): Promise<void> {
-    // certDecisionItsCardTitle uses a case-insensitive regex to handle "ITS Control Summary"
-    // or "ITS CONTROL SUMMARY" — whichever the cert decision tabpanel renders.
-    await expect(this.l.certDecisionItsCardTitle).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummarySdlTitle).toBeVisible({ timeout: 15_000 });
-    await expect(this.l.riskSummaryPrivacyTitle).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectUnresolvedFindingsSectionVisible(): Promise<void> {
-    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
-  }
-
-  async hasUnresolvedFindingsGrid(): Promise<boolean> {
-    return this.l.unresolvedFindingsGrid.isVisible().catch(() => false);
-  }
-
-  async expectDocApprovalsSectionVisible(): Promise<void> {
-    await expect(this.l.docApprovalsSection).toBeVisible({ timeout: 15_000 });
-  }
-
-  async hasDocApprovalsSection(): Promise<boolean> {
-    return this.l.docApprovalsSection.isVisible().catch(() => false);
-  }
-
-  /** Asserts the DOC Approvals signatures table is visible with its expected columns. */
-  async expectDocSignaturesTableVisible(): Promise<void> {
-    await expect(this.l.docApprovalsSignaturesTable).toBeVisible({ timeout: 15_000 });
-    // Verify expected column headers
-    await expect(
-      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Approver Name' }),
-    ).toBeVisible({ timeout: 10_000 });
-    await expect(
-      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Role' }),
-    ).toBeVisible({ timeout: 10_000 });
-    await expect(
-      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Signature' }),
-    ).toBeVisible({ timeout: 10_000 });
-    await expect(
-      this.l.docApprovalsSignaturesTable.getByRole('columnheader', { name: 'Comment' }),
-    ).toBeVisible({ timeout: 10_000 });
-  }
-
-  /** Returns true when a "Provide Signature" button is visible on the page (for an approver). */
-  async hasProvideSignatureButton(): Promise<boolean> {
-    return this.l.provideSignatureButton.isVisible().catch(() => false);
-  }
-
-  /** Asserts that the Unresolved Findings CONTROL ID column has a clickable link in at least one row. */
-  async expectUnresolvedFindingsControlIdClickable(): Promise<void> {
-    // The Unresolved Findings grid must be visible first
-    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
-
-    const hasLink = await this.l.unresolvedFindingsControlIdLink.isVisible().catch(() => false);
-    if (!hasLink) {
-      // Empty findings — acceptable, test should skip gracefully
-      return;
-    }
-    await expect(this.l.unresolvedFindingsControlIdLink).toBeVisible({ timeout: 10_000 });
-    const href = await this.l.unresolvedFindingsControlIdLink.getAttribute('href');
-    expect(href, 'Control ID link must have a valid href pointing to ControlDetail').toMatch(/ControlDetail/);
-  }
-
-  /** Returns true if the Closed Actions count link is present in the Unresolved Findings table. */
-  async hasClosedActionsLink(): Promise<boolean> {
-    return this.l.closedActionsLink.isVisible().catch(() => false);
-  }
-
-  /** Asserts the Closed Actions cell in Unresolved Findings shows a clickable "N of M" link. */
-  async expectClosedActionsLinkVisible(): Promise<void> {
-    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
-    const hasLink = await this.l.closedActionsLink.isVisible().catch(() => false);
-    if (!hasLink) {
-      return; // no findings with actions — acceptable
-    }
-    await expect(this.l.closedActionsLink).toBeVisible({ timeout: 10_000 });
-  }
-
-  /** Asserts the DOC ID (DOC-NNN format) is visible in the DOC Detail header. */
-  async expectDocIdHeaderVisible(): Promise<void> {
-    await expect(this.l.docIdHeader).toBeVisible({ timeout: 15_000 });
-    const text = (await this.l.docIdHeader.first().textContent()) ?? '';
-    expect(text, 'DOC ID header must match DOC-NNN format').toMatch(/^DOC-\d+/);
-  }
-
-  /** Asserts the VESTA ID value is visible in the DOC Detail header. */
-  async expectVestaIdHeaderVisible(): Promise<void> {
-    await expect(this.l.vestaIdHeaderValue).toBeVisible({ timeout: 15_000 });
-  }
-
-  /** Asserts the Monitor Action Closure stage tab is visible in the DOC pipeline. */
-  async expectMonitorActionClosureStageVisible(): Promise<void> {
-    await expect(this.l.docPipelineTab6).toBeVisible({ timeout: 15_000 });
-  }
-
-  /** Asserts the Unresolved Findings section shows an empty state (no rows). */
-  async expectUnresolvedFindingsEmptyState(): Promise<void> {
-    await expect(this.l.unresolvedFindingsSection).toBeVisible({ timeout: 15_000 });
-    const hasGrid = await this.l.unresolvedFindingsGrid.isVisible().catch(() => false);
-    if (hasGrid) {
-      // Grid present — verify 0 data rows (only header row)
-      const rowCount = await this.l.unresolvedFindingsGrid.getByRole('row').count();
-      expect(rowCount, 'Unresolved Findings must have no data rows when certified').toBeLessThanOrEqual(1);
-    }
-    // If grid is not present, the section shows an inline empty message — acceptable
-  }
-
-  // ==================== DOC Detail — Roles tab (save flow) ===================
-
-  /**
-   * Clicks the Save Changes button on the Roles & Responsibilities tab and waits
-   * for the page to settle back to read-only mode.
-   */
-  async clickSaveRoles(): Promise<void> {
-    await this.l.saveRolesChangesButton.waitFor({ state: 'visible', timeout: 15_000 });
-    await this.l.saveRolesChangesButton.click();
-    await this.waitForOSLoad();
-  }
-
-  // ==================== DOC Detail — ITS Checklist (sort + popup) ============
-
-  /**
-   * Asserts that the ITS Checklist grid is sorted by Control ID ascending by default.
-   * Compares the text content of the first two data rows; skips gracefully if
-   * fewer than 2 controls are loaded.
-   */
-  async expectITSDefaultSortedByControlId(): Promise<void> {
-    const row0 = this.l.itsGridDataRow(0);
-    const row1 = this.l.itsGridDataRow(1);
-
-    const hasRow1 = await row1.isVisible({ timeout: 10_000 }).catch(() => false);
-    if (!hasRow1) return; // Fewer than 2 rows — skip gracefully
-
-    const id0 = ((await row0.locator('td').first().textContent()) ?? '').trim();
-    const id1 = ((await row1.locator('td').first().textContent()) ?? '').trim();
-    expect(
-      id0 <= id1,
-      `ITS grid row[0] Control ID "${id0}" should be ≤ row[1] "${id1}" (default ascending sort)`,
-    ).toBe(true);
-  }
-
-  /**
-   * Opens the Add Control popup, optionally selects the first control, then
-   * searches for a term that returns no results and verifies:
-   *  – "No results found" appears in the popup
-   *  – any existing selection count is still visible
-   *  – the Add Selected button remains enabled
-   * Closes the popup afterwards without adding any controls.
-   * Skips gracefully if the Add Control button is not visible.
-   */
-  async expectAddControlPopupNoResultsWithCountPreserved(): Promise<void> {
-    const addBtnVisible = await this.l.itsAddControlButton
-      .isVisible({ timeout: 10_000 })
-      .catch(() => false);
-    if (!addBtnVisible) return; // Add Control not visible — skip
-
-    await this.l.itsAddControlButton.click();
-    await this.waitForOSLoad();
-    await this.l.addControlPopup.waitFor({ state: 'visible', timeout: 15_000 });
-
-    const hasControls = await this.hasControlsInAddControlPopup();
-
-    if (hasControls) {
-      // Select the first control so we get a non-zero count
-      await this.selectFirstControlInPopup();
-      await this.expectSelectedCountVisible();
-    }
-
-    // Search for something that will never match
-    await this.l.addControlSearchInput.fill('ZZZNOMATCH_9999');
-    await this.waitForOSLoad();
-
-    // "No results found" must appear in the popup
-    await expect(this.l.addControlNoResultsMessage).toBeVisible({ timeout: 10_000 });
-
-    if (hasControls) {
-      // Selection count must still be displayed and Add Selected must be enabled
-      await this.expectSelectedCountVisible();
-      await this.expectAddSelectedButtonEnabled();
-    }
-
-    // Close the popup without adding anything
-    await this.l.addControlCloseButton.click();
-    await this.waitForOSLoad();
-  }
-
-  // ==================== DOC Detail — Certification Decision (additional) =====
-
-  /** Asserts the "Edit" button is visible on the Certification Decision tab
-   *  (shown when a Proposed Decision has already been saved). */
-  async expectCertEditDecisionButtonVisible(): Promise<void> {
-    await expect(this.l.certEditDecisionButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  /**
-   * Returns the number of data rows (tbody tr) in the DOC Approvals signatures
-   * table on the Certification Decision tab.
-   */
-  async getApproverDataRowCount(): Promise<number> {
-    return this.l.docApprovalsSignaturesTable.locator('tbody tr').count().catch(() => 0);
-  }
-
-  /** Asserts the Monitor Action Closure pipeline stage (tab 6) is NOT visible. */
-  async expectMonitorActionClosureStageHidden(): Promise<void> {
-    await expect(this.l.docPipelineTab6).toBeHidden({ timeout: 10_000 });
-  }
-
-  /**
-   * Clicks "Submit for Approval" and waits up to 10 s for a confirmation dialog
-   * to appear. Returns true if a dialog appeared; false if the button was
-   * disabled or no dialog appeared (direct submission or no-op).
-   * Does NOT submit — call dismissSubmitForApprovalPopup() to close the dialog.
-   */
-  async clickSubmitForApprovalAndExpectPopup(): Promise<boolean> {
-    await this.l.submitForApprovalButton.waitFor({ state: 'visible', timeout: 15_000 });
-    const isEnabled = await this.l.submitForApprovalButton.isEnabled().catch(() => false);
-    if (!isEnabled) return false;
-
-    await this.l.submitForApprovalButton.click();
-    await this.waitForOSLoad();
-
-    const popupVisible = await this.page
-      .getByRole('dialog')
-      .last()
-      .waitFor({ state: 'visible', timeout: 10_000 })
-      .then(() => true)
-      .catch(() => false);
-    return popupVisible;
-  }
-
-  /** Asserts a dialog (confirmation popup) is currently visible on the page. */
-  async expectSubmitForApprovalPopupVisible(): Promise<void> {
-    await expect(this.page.getByRole('dialog').last()).toBeVisible({ timeout: 15_000 });
-  }
-
-  /**
-   * Dismisses the Submit for Approval confirmation popup by clicking the
-   * Cancel / No button inside the currently visible dialog.
-   */
-  async dismissSubmitForApprovalPopup(): Promise<void> {
-    const cancelBtn = this.page
-      .getByRole('dialog')
-      .last()
-      .getByRole('button', { name: /Cancel|No/i })
-      .first();
-    await cancelBtn.waitFor({ state: 'visible', timeout: 10_000 });
-    await cancelBtn.click();
-    await this.waitForOSLoad();
-  }
-
-  /** Asserts that a "Provide Signature" button is visible for the current user. */
-  async expectProvideSignatureButtonVisible(): Promise<void> {
-    await expect(this.l.provideSignatureButton).toBeVisible({ timeout: 15_000 });
-  }
-
-  async openProposeDecisionPopup(): Promise<boolean> {
-    const hasButton = await this.hasProposeDecisionButton();
-    if (!hasButton) return false;
-
-    await this.l.proposeDecisionButton.click();
-    await this.waitForOSLoad();
-
-    return this.l.certDecisionDialog
-      .waitFor({ state: 'visible', timeout: 15_000 })
-      .then(() => true)
-      .catch(() => false);
-  }
-
-  async expectProposeDecisionPopupBaseFieldsVisible(): Promise<void> {
-    await expect(this.l.certDecisionDialog).toBeVisible({ timeout: 15_000 });
-    await expect(
-      this.l.certDecisionDialog.getByText(/Proposed Decision/i).first(),
-    ).toBeVisible({ timeout: 10_000 });
-    await expect(
-      this.l.certDecisionDialog.getByRole('combobox').first(),
-    ).toBeVisible({ timeout: 10_000 });
-    await expect(
-      this.l.certDecisionDialog.getByText(/Comment/i).first(),
-    ).toBeVisible({ timeout: 10_000 });
-  }
-
-  async getProposedDecisionOptions(): Promise<string[]> {
-    const optionTexts = await this.l.certDecisionDialog
-      .getByRole('combobox')
-      .first()
-      .locator('option')
-      .allTextContents()
-      .catch(() => []);
-
-    return optionTexts
-      .map((value) => value.trim())
-      .filter((value) => value && !/^(- select -|select)$/i.test(value));
-  }
-
-  async selectProposedDecisionOption(optionLabel: string): Promise<void> {
-    const select = this.l.certDecisionDialog.getByRole('combobox').first();
-    await select.waitFor({ state: 'visible', timeout: 10_000 });
-    await select.selectOption({ label: optionLabel });
-    await this.waitForOSLoad();
-  }
-
-  async hasValidityEndDateField(): Promise<boolean> {
-    return this.l.certDecisionDialog
-      .getByText(/Validity End Date/i)
-      .first()
-      .isVisible()
-      .catch(() => false);
-  }
-
-  async hasActionsClosureDueDateField(): Promise<boolean> {
-    return this.l.certDecisionDialog
-      .getByText(/Due Date for Actions Closure/i)
-      .first()
-      .isVisible()
-      .catch(() => false);
-  }
-
-  async closeProposeDecisionPopup(): Promise<void> {
-    const dialog = this.l.certDecisionDialog;
-    const cancelButton = dialog.getByRole('button', { name: /Cancel|Close/i }).first();
-    const cancelVisible = await cancelButton.isVisible().catch(() => false);
-
-    if (cancelVisible) {
-      await cancelButton.click();
-    } else {
-      const closeIcon = dialog.locator('.popup-structure-header i.fa-times').first();
-      const closeVisible = await closeIcon.isVisible().catch(() => false);
-      if (closeVisible) {
-        await closeIcon.click();
-      }
-    }
-
-    await this.waitForOSLoad();
-  }
+    const monthName = monthNames[month - 1];
+
+    await this.l.calendarMonthSelect.selectOption({ label: monthName });
+
+    const yearInput = this.l.calendarYearSpinbutton;
+    await yearInput.fill(year.toString());
+    await yearInput.press('Enter');
+
+    const dateLabel = `${monthName} ${day}, ${year}`;
+    const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).first();
+    await dayCell.waitFor({ state: 'visible', timeout: 10_000 });
+    await dayCell.click();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — Digital Offer Details tab
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickDigitalOfferDetailsTab(): Promise<void> { return this.offer.clickDigitalOfferDetailsTab(); }
+  async clickEditDetails(): Promise<void> { return this.offer.clickEditDetails(); }
+  async fillOfferDocName(name: string): Promise<void> { return this.offer.fillOfferDocName(name); }
+  async fillOfferDocReason(text: string): Promise<void> { return this.offer.fillOfferDocReason(text); }
+  async selectOfferRelease(label: string): Promise<void> { return this.offer.selectOfferRelease(label); }
+  async clickSaveChanges(): Promise<void> { return this.offer.clickSaveChanges(); }
+  async clickCancelEdit(): Promise<void> { return this.offer.clickCancelEdit(); }
+  async expectEditDetailsButtonVisible(): Promise<void> { return this.offer.expectEditDetailsButtonVisible(); }
+  async expectSaveChangesButtonVisible(): Promise<void> { return this.offer.expectSaveChangesButtonVisible(); }
+  async expectCancelEditButtonVisible(): Promise<void> { return this.offer.expectCancelEditButtonVisible(); }
+  async expectDocNameInputEditable(): Promise<void> { return this.offer.expectDocNameInputEditable(); }
+  async expectDocReasonCharCountVisible(): Promise<void> { return this.offer.expectDocReasonCharCountVisible(); }
+  async expectReleaseVersionInputVisible(): Promise<void> { return this.offer.expectReleaseVersionInputVisible(); }
+  async expectDigitalOfferDetailsTabClickable(): Promise<void> { return this.offer.expectDigitalOfferDetailsTabClickable(); }
+  async expectDigitalOfferDetailsTabPanelVisible(): Promise<void> { return this.offer.expectDigitalOfferDetailsTabPanelVisible(); }
+  async expectReleaseHeaderLabelAndValue(): Promise<void> { return this.offer.expectReleaseHeaderLabelAndValue(); }
+  async getOfferReleaseOptions(): Promise<string[]> { return this.offer.getOfferReleaseOptions(); }
+  async selectFirstNamedRelease(): Promise<string | null> { return this.offer.selectFirstNamedRelease(); }
+  async expectTargetReleaseDateHasValue(): Promise<void> { return this.offer.expectTargetReleaseDateHasValue(); }
+  async expectReleaseVersionInputHidden(): Promise<void> { return this.offer.expectReleaseVersionInputHidden(); }
+  async navigateToLinkedProduct(): Promise<void> { return this.offer.navigateToLinkedProduct(); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — Roles & Responsibilities tab
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickRolesResponsibilitiesTab(): Promise<void> { return this.roles.clickRolesResponsibilitiesTab(); }
+  async expectRolesResponsibilitiesTabClickable(): Promise<void> { return this.roles.expectRolesResponsibilitiesTabClickable(); }
+  async expectRolesGridVisible(): Promise<void> { return this.roles.expectRolesGridVisible(); }
+  async expectRolesGridColumnHeaders(): Promise<void> { return this.roles.expectRolesGridColumnHeaders(); }
+  async expectRolesRowPresent(roleName: string | RegExp): Promise<void> { return this.roles.expectRolesRowPresent(roleName); }
+  async expectAllRoleRowsPresent(): Promise<void> { return this.roles.expectAllRoleRowsPresent(); }
+  async expectEditRolesButtonVisible(): Promise<void> { return this.roles.expectEditRolesButtonVisible(); }
+  async clickEditRoles(): Promise<void> { return this.roles.clickEditRoles(); }
+  async expectSaveRolesChangesButtonDisabled(): Promise<void> { return this.roles.expectSaveRolesChangesButtonDisabled(); }
+  async clickCancelRoles(): Promise<void> { return this.roles.clickCancelRoles(); }
+  async expectEditModeUserLookupVisible(): Promise<void> { return this.roles.expectEditModeUserLookupVisible(); }
+  async expectRolesGridColumnsVisible(): Promise<void> { return this.roles.expectRolesGridColumnsVisible(); }
+  async isEditRolesButtonVisible(): Promise<boolean> { return this.roles.isEditRolesButtonVisible(); }
+  async isSaveRolesChangesDisabled(): Promise<boolean> { return this.roles.isSaveRolesChangesDisabled(); }
+  async expectSaveRolesChangesButtonVisible(): Promise<void> { return this.roles.expectSaveRolesChangesButtonVisible(); }
+  async getRolesTeamMembersText(roleName: string): Promise<string> { return this.roles.getRolesTeamMembersText(roleName); }
+  async clickSaveRoles(): Promise<void> { return this.roles.clickSaveRoles(); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — ITS Checklist tab
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickITSChecklistTab(): Promise<void> { return this.its.clickITSChecklistTab(); }
+  async expectITSChecklistTabClickable(): Promise<void> { return this.its.expectITSChecklistTabClickable(); }
+  async expectITSSecurityControlsTitleVisible(): Promise<void> { return this.its.expectITSSecurityControlsTitleVisible(); }
+  async expectITSGridColumnHeaders(): Promise<void> { return this.its.expectITSGridColumnHeaders(); }
+  async hasITSControls(): Promise<boolean> { return this.its.hasITSControls(); }
+  async expectITSFilterControlsVisible(): Promise<void> { return this.its.expectITSFilterControlsVisible(); }
+  async hasControlsInAddControlPopup(): Promise<boolean> { return this.its.hasControlsInAddControlPopup(); }
+  async searchITSControls(query: string): Promise<void> { return this.its.searchITSControls(query); }
+  async hasITSNoResultsMessage(): Promise<boolean> { return this.its.hasITSNoResultsMessage(); }
+  async getITSGridDataRowCount(): Promise<number> { return this.its.getITSGridDataRowCount(); }
+  async clickITSReset(): Promise<void> { return this.its.clickITSReset(); }
+  async expectITSSecurityControlsTitleLoaded(): Promise<void> { return this.its.expectITSSecurityControlsTitleLoaded(); }
+  async expectITSGridVisible(): Promise<void> { return this.its.expectITSGridVisible(); }
+  async expectITSGridColumnHeadersVisible(): Promise<void> { return this.its.expectITSGridColumnHeadersVisible(); }
+  async expectITSNoResultsMessageVisible(): Promise<void> { return this.its.expectITSNoResultsMessageVisible(); }
+  async clickITSGridColumnHeader(headerText: string | RegExp): Promise<void> { return this.its.clickITSGridColumnHeader(headerText); }
+  async expectAddControlButtonVisible(): Promise<void> { return this.its.expectAddControlButtonVisible(); }
+  async clickAddControl(): Promise<void> { return this.its.clickAddControl(); }
+  async expectAddControlPopupVisible(): Promise<void> { return this.its.expectAddControlPopupVisible(); }
+  async expectAddControlPopupElements(): Promise<void> { return this.its.expectAddControlPopupElements(); }
+  async selectFirstControlInPopup(): Promise<void> { return this.its.selectFirstControlInPopup(); }
+  async expectAddSelectedButtonEnabled(): Promise<void> { return this.its.expectAddSelectedButtonEnabled(); }
+  async expectSelectedCountVisible(): Promise<void> { return this.its.expectSelectedCountVisible(); }
+  async closeAddControlPopup(): Promise<void> { return this.its.closeAddControlPopup(); }
+  async clickFirstControlDescopeButton(): Promise<void> { return this.its.clickFirstControlDescopeButton(); }
+  async clickFirstControlIdLink(): Promise<void> { return this.its.clickFirstControlIdLink(); }
+  async expectUnscopePopupVisible(): Promise<void> { return this.its.expectUnscopePopupVisible(); }
+  async fillUnscopeJustification(text: string): Promise<void> { return this.its.fillUnscopeJustification(text); }
+  async expectUnscopeDescoperButtonEnabled(): Promise<void> { return this.its.expectUnscopeDescoperButtonEnabled(); }
+  async expectUnscopeDescoperButtonDisabled(): Promise<void> { return this.its.expectUnscopeDescoperButtonDisabled(); }
+  async cancelUnscopePopup(): Promise<void> { return this.its.cancelUnscopePopup(); }
+  async expectITSDefaultSortedByControlId(): Promise<void> { return this.its.expectITSDefaultSortedByControlId(); }
+  async expectAddControlPopupNoResultsWithCountPreserved(): Promise<void> { return this.its.expectAddControlPopupNoResultsWithCountPreserved(); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — Action Plan tab
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickActionPlanTab(): Promise<void> { return this.actions.clickActionPlanTab(); }
+  async expectActionPlanTitleVisible(): Promise<void> { return this.actions.expectActionPlanTitleVisible(); }
+  async expectActionPlanControlsVisible(): Promise<void> { return this.actions.expectActionPlanControlsVisible(); }
+  async expectActionPlanGridColumnHeaders(): Promise<void> { return this.actions.expectActionPlanGridColumnHeaders(); }
+  async hasActionPlanRows(): Promise<boolean> { return this.actions.hasActionPlanRows(); }
+  async getActionPlanRowCount(): Promise<number> { return this.actions.getActionPlanRowCount(); }
+  async getActionPlanRowText(rowIndex = 0): Promise<string> { return this.actions.getActionPlanRowText(rowIndex); }
+  async expectFirstActionNameLinkVisible(): Promise<void> { return this.actions.expectFirstActionNameLinkVisible(); }
+  async expectAnyFindingLinkVisible(): Promise<void> { return this.actions.expectAnyFindingLinkVisible(); }
+  async searchActionPlan(query: string): Promise<void> { return this.actions.searchActionPlan(query); }
+  async toggleActionPlanShowOpenOnly(enable: boolean): Promise<void> { return this.actions.toggleActionPlanShowOpenOnly(enable); }
+  async resetActionPlanFilters(): Promise<void> { return this.actions.resetActionPlanFilters(); }
+  async hasActionPlanNoResultsMessage(): Promise<boolean> { return this.actions.hasActionPlanNoResultsMessage(); }
+  async isAddActionButtonVisible(): Promise<boolean> { return this.actions.isAddActionButtonVisible(); }
+  async expectAddActionButtonVisible(): Promise<void> { return this.actions.expectAddActionButtonVisible(); }
+  async clickAddActionButton(): Promise<void> { return this.actions.clickAddActionButton(); }
+  async hasActionPlanNoActionsMessage(): Promise<boolean> { return this.actions.hasActionPlanNoActionsMessage(); }
+  async expectActionPlanNoActionsMessageVisible(): Promise<void> { return this.actions.expectActionPlanNoActionsMessageVisible(); }
+  async clickFirstActionNameLink(): Promise<void> { return this.actions.clickFirstActionNameLink(); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — Risk Summary tab
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickRiskSummaryTab(): Promise<void> { return this.riskSummary.clickRiskSummaryTab(); }
+  async expectRiskSummarySectionsVisible(): Promise<void> { return this.riskSummary.expectRiskSummarySectionsVisible(); }
+  async expectRiskSummarySdlFcsrContentVisible(): Promise<void> { return this.riskSummary.expectRiskSummarySdlFcsrContentVisible(); }
+  async expectRiskSummaryPrivacyContentVisible(): Promise<void> { return this.riskSummary.expectRiskSummaryPrivacyContentVisible(); }
+  async expectRiskSummaryItsControlSummaryVisible(): Promise<void> { return this.riskSummary.expectRiskSummaryItsControlSummaryVisible(); }
+  async hasRiskSummaryNoResultsMessage(): Promise<boolean> { return this.riskSummary.hasRiskSummaryNoResultsMessage(); }
+  async getRiskSummaryPanelText(): Promise<string> { return this.riskSummary.getRiskSummaryPanelText(); }
+  async hasRiskSummaryControlsGrid(): Promise<boolean> { return this.riskSummary.hasRiskSummaryControlsGrid(); }
+  async expectRiskSummaryControlsGridColumnHeaders(): Promise<void> { return this.riskSummary.expectRiskSummaryControlsGridColumnHeaders(); }
+  async getRiskSummaryControlsRowCount(): Promise<number> { return this.riskSummary.getRiskSummaryControlsRowCount(); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — View History dialog
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickViewHistory(): Promise<void> { return this.history.clickViewHistory(); }
+  async expectHistoryDialogVisible(): Promise<void> { return this.history.expectHistoryDialogVisible(); }
+  async expectHistoryGridVisible(): Promise<void> { return this.history.expectHistoryGridVisible(); }
+  async expectHistoryGridHasRows(): Promise<void> { return this.history.expectHistoryGridHasRows(); }
+  async expectHistoryGridColumnHeaders(): Promise<void> { return this.history.expectHistoryGridColumnHeaders(); }
+  async expectHistoryFiltersVisible(): Promise<void> { return this.history.expectHistoryFiltersVisible(); }
+  async expectHistoryDateRangeInputsVisible(): Promise<void> { return this.history.expectHistoryDateRangeInputsVisible(); }
+  async getHistoryRowCount(): Promise<number> { return this.history.getHistoryRowCount(); }
+  async getHistoryDateTexts(limit = 5): Promise<string[]> { return this.history.getHistoryDateTexts(limit); }
+  async clickHistorySearchButton(): Promise<void> { return this.history.clickHistorySearchButton(); }
+  async selectHistoryActivityFilter(activityLabel: string): Promise<void> { return this.history.selectHistoryActivityFilter(activityLabel); }
+  async clickHistoryResetFilters(): Promise<void> { return this.history.clickHistoryResetFilters(); }
+  async getHistorySearchInputValue(): Promise<string> { return this.history.getHistorySearchInputValue(); }
+  async getSelectedHistoryActivityFilterLabel(): Promise<string> { return this.history.getSelectedHistoryActivityFilterLabel(); }
+  async closeHistoryDialog(): Promise<void> { return this.history.closeHistoryDialog(); }
+  async fillHistorySearchInput(text: string): Promise<void> { return this.history.fillHistorySearchInput(text); }
+  async selectHistoryDateRange(fromDate: Date, toDate: Date): Promise<void> { return this.history.selectHistoryDateRange(fromDate, toDate); }
+  async getHistoryActivityFilterOptionCount(): Promise<number> { return this.history.getHistoryActivityFilterOptionCount(); }
+  async getHistoryActivityFilterOptions(): Promise<string[]> { return this.history.getHistoryActivityFilterOptions(); }
+  async getHistoryTotalRecordCount(): Promise<number> { return this.history.getHistoryTotalRecordCount(); }
+  async changeHistoryPerPage(value: '10' | '20' | '30' | '50' | '100'): Promise<void> { return this.history.changeHistoryPerPage(value); }
+  async getCurrentHistoryPageNumber(): Promise<number> { return this.history.getCurrentHistoryPageNumber(); }
+  async goToHistoryPage(pageNumber: number): Promise<void> { return this.history.goToHistoryPage(pageNumber); }
+  async expectHistoryNoDataMessageVisible(): Promise<void> { return this.history.expectHistoryNoDataMessageVisible(); }
+  async getHistoryFirstRowDateText(): Promise<string> { return this.history.getHistoryFirstRowDateText(); }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Backward-compatible delegation — Certification Decision tab
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  async clickCertificationDecisionTab(): Promise<void> { return this.certification.clickCertificationDecisionTab(); }
+  async hasProposeDecisionButton(): Promise<boolean> { return this.certification.hasProposeDecisionButton(); }
+  async hasCertDecisionWarning(): Promise<boolean> { return this.certification.hasCertDecisionWarning(); }
+  async expectProposeOrEditDecisionButtonVisible(): Promise<void> { return this.certification.expectProposeOrEditDecisionButtonVisible(); }
+  async expectSubmitForApprovalButtonVisible(): Promise<void> { return this.certification.expectSubmitForApprovalButtonVisible(); }
+  async expectCertRiskSummaryCardsVisible(): Promise<void> { return this.certification.expectCertRiskSummaryCardsVisible(); }
+  async expectUnresolvedFindingsSectionVisible(): Promise<void> { return this.certification.expectUnresolvedFindingsSectionVisible(); }
+  async hasUnresolvedFindingsGrid(): Promise<boolean> { return this.certification.hasUnresolvedFindingsGrid(); }
+  async expectDocApprovalsSectionVisible(): Promise<void> { return this.certification.expectDocApprovalsSectionVisible(); }
+  async hasDocApprovalsSection(): Promise<boolean> { return this.certification.hasDocApprovalsSection(); }
+  async expectDocSignaturesTableVisible(): Promise<void> { return this.certification.expectDocSignaturesTableVisible(); }
+  async hasProvideSignatureButton(): Promise<boolean> { return this.certification.hasProvideSignatureButton(); }
+  async expectUnresolvedFindingsControlIdClickable(): Promise<void> { return this.certification.expectUnresolvedFindingsControlIdClickable(); }
+  async hasClosedActionsLink(): Promise<boolean> { return this.certification.hasClosedActionsLink(); }
+  async expectClosedActionsLinkVisible(): Promise<void> { return this.certification.expectClosedActionsLinkVisible(); }
+  async expectDocIdHeaderVisible(): Promise<void> { return this.certification.expectDocIdHeaderVisible(); }
+  async expectVestaIdHeaderVisible(): Promise<void> { return this.certification.expectVestaIdHeaderVisible(); }
+  async expectMonitorActionClosureStageVisible(): Promise<void> { return this.certification.expectMonitorActionClosureStageVisible(); }
+  async expectUnresolvedFindingsEmptyState(): Promise<void> { return this.certification.expectUnresolvedFindingsEmptyState(); }
+  async expectCertEditDecisionButtonVisible(): Promise<void> { return this.certification.expectCertEditDecisionButtonVisible(); }
+  async getApproverDataRowCount(): Promise<number> { return this.certification.getApproverDataRowCount(); }
+  async expectMonitorActionClosureStageHidden(): Promise<void> { return this.certification.expectMonitorActionClosureStageHidden(); }
+  async clickSubmitForApprovalAndExpectPopup(): Promise<boolean> { return this.certification.clickSubmitForApprovalAndExpectPopup(); }
+  async expectSubmitForApprovalPopupVisible(): Promise<void> { return this.certification.expectSubmitForApprovalPopupVisible(); }
+  async dismissSubmitForApprovalPopup(): Promise<void> { return this.certification.dismissSubmitForApprovalPopup(); }
+  async expectProvideSignatureButtonVisible(): Promise<void> { return this.certification.expectProvideSignatureButtonVisible(); }
+  async openProposeDecisionPopup(): Promise<boolean> { return this.certification.openProposeDecisionPopup(); }
+  async expectProposeDecisionPopupBaseFieldsVisible(): Promise<void> { return this.certification.expectProposeDecisionPopupBaseFieldsVisible(); }
+  async getProposedDecisionOptions(): Promise<string[]> { return this.certification.getProposedDecisionOptions(); }
+  async selectProposedDecisionOption(optionLabel: string): Promise<void> { return this.certification.selectProposedDecisionOption(optionLabel); }
+  async hasValidityEndDateField(): Promise<boolean> { return this.certification.hasValidityEndDateField(); }
+  async hasActionsClosureDueDateField(): Promise<boolean> { return this.certification.hasActionsClosureDueDateField(); }
+  async closeProposeDecisionPopup(): Promise<void> { return this.certification.closeProposeDecisionPopup(); }
 }
-
