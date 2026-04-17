@@ -21,7 +21,7 @@ export default defineConfig({
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
-	workers: Number(process.env.WORKERS) || 4,
+	workers: process.env.CI ? 4 : undefined,
 	outputDir: path.resolve(projectRoot, 'test-results'),
 
 	reporter: [

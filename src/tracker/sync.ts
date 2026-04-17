@@ -126,7 +126,8 @@ export function normalizeScenarioSpecMappings(scenarios: Scenario[], persist = f
 
 // ── Sync: scan spec files & reconcile ─────────────────────────────────────────
 
-export function syncWithSpecFiles(): SyncResult {
+export function syncWithSpecFiles(options?: { dryRun?: boolean }): SyncResult {
+  const dryRun = options?.dryRun ?? false;
   const root = getProjectRoot();
   const testsDir = path.join(root, 'tests');
   const result: SyncResult = { newIds: [], orphanedIds: [], updatedSpecFiles: [] };
@@ -156,7 +157,7 @@ export function syncWithSpecFiles(): SyncResult {
     }
   }
 
-  const normalized = normalizeScenarioSpecMappings(listScenarios(), true);
+  const normalized = normalizeScenarioSpecMappings(listScenarios(), !dryRun);
   result.updatedSpecFiles.push(...normalized.updatedIds);
 
   // Check for DB entries whose spec_file no longer exists or no longer contains the ID

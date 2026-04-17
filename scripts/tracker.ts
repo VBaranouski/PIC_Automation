@@ -433,7 +433,7 @@ program
     getDb();
     if (opts.dryRun) console.log(chalk.magenta('[DRY RUN] No DB changes will be made.\n'));
     console.log(chalk.cyan('Scanning tests/**/*.spec.ts for allure.description IDs...'));
-    const result = syncWithSpecFiles();
+    const result = syncWithSpecFiles({ dryRun: opts.dryRun });
 
     if (result.newIds.length) {
       console.log(chalk.yellow(`\nNew IDs found in spec files but NOT in DB (${result.newIds.length}):`));
