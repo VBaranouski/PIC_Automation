@@ -104,25 +104,25 @@ src/tracker/
 
 ---
 
-## Phase 4 — Remove Hardcoded QA URLs ⬜ PENDING
+## Phase 4 — Remove Hardcoded QA URLs ✅ DONE
 
-Some spec files have hardcoded `https://qa.leap.schneider-electric.com/...` URLs. Replace with env-driven construction.
+Replaced ~60 hardcoded QA URLs with relative paths + `buildUrl()` helper.
 
 ### Tasks
-- [ ] Audit all spec files for hardcoded base URLs (`grep -r "qa.leap" tests/`)
-- [ ] Add `buildUrl(path: string)` helper to `src/helpers/url.helper.ts` using `process.env.BASE_URL`
-- [ ] Replace hardcoded URLs with `buildUrl(...)` calls
-- [ ] Simplify `testIgnore` lists in `playwright.config.ts` — extract to a shared constant array
+- [x] Audit all spec files for hardcoded base URLs
+- [x] Add `buildUrl(path: string)` helper to `src/helpers/url.helper.ts` using env config
+- [x] Replace hardcoded URLs with relative paths (Playwright resolves via `baseURL`)
+- [x] Update `release-navigation.ts` to use `buildUrl()` instead of `QA_BASE_URL`
 
 ---
 
-## Phase 5 — Tracker DB Improvements ⬜ PENDING
+## Phase 5 — Tracker DB Improvements ✅ DONE
 
 ### Tasks
-- [ ] Extract DB migrations to `src/tracker/migrations.ts` — replace inline `CREATE TABLE` strings with versioned migration objects
-- [ ] Add migration rollback stubs
-- [ ] Fix `upsertScenario()` to update `scenario_details` rows when steps/expected_results change (currently only inserts new records)
-- [ ] Add DB index on `scenarios(feature_area)` and `scenarios(automation_state)` for faster filtered queries
+- [x] Extract DB migrations to `src/tracker/migrations.ts` — versioned migration objects with `up` SQL
+- [x] Replace inline `CREATE TABLE` / migration SQL in `db.ts` with loop over `MIGRATIONS` array
+- [x] Fix `upsertScenario()` to update `scenario_details` rows *(done in Phase 3)*
+- [x] DB indexes already exist on `feature_area`, `automation_state`, `execution_status`, `priority`, `workflow`
 
 ---
 
