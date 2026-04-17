@@ -34,6 +34,23 @@ function productUrlFromDocState(): string {
 
 test.describe('DOC — Product Setup for DOC (WF11.1 extended) @regression', () => {
   test.setTimeout(120_000);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // DOC-SETUP-002 — "Request DOC" button visible (skip — different role)
+  // ───────────────────────────────────────────────────────────────────────────
+  test('DOC-SETUP-002 — "Request DOC" button visible for CREATE_DIGITAL_OFFER_CERTIFICATION privilege user',
+    async () => {
+      test.skip(true, 'Requires a separate user account with CREATE_DIGITAL_OFFER_CERTIFICATION privilege');
+    });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // DOC-SETUP-003 — User without INITIATE or CREATE sees no buttons (skip)
+  // ───────────────────────────────────────────────────────────────────────────
+  test('DOC-SETUP-003 — User without INITIATE or CREATE privilege sees neither button',
+    async () => {
+      test.skip(true, 'Requires a separate user account without INITIATE or CREATE privilege');
+    });
+
   // ───────────────────────────────────────────────────────────────────────────
   // DOC-SETUP-004 — "Show active only" toggle visible on DOC Certification tab
   // ───────────────────────────────────────────────────────────────────────────
@@ -60,6 +77,14 @@ test.describe('DOC — Product Setup for DOC (WF11.1 extended) @regression', () 
       await test.step('Verify the "Show active only" toggle is visible', async () => {
         await newProductPage.expectDOCShowActiveOnlyToggleVisible();
       });
+    });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // DOC-SETUP-006 — Multiple VESTA IDs (skip — complex setup)
+  // ───────────────────────────────────────────────────────────────────────────
+  test('DOC-SETUP-006 — Multiple VESTA IDs produce separate DOC line per VESTA ID',
+    async () => {
+      test.skip(true, 'Requires a product pre-configured with 2+ VESTA IDs in the test environment');
     });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -118,6 +143,14 @@ test.describe('DOC — Product Setup for DOC (WF11.1 extended) @regression', () 
     });
 
   // ───────────────────────────────────────────────────────────────────────────
+  // DOC-SETUP-009 — Inactive product (skip — complex setup)
+  // ───────────────────────────────────────────────────────────────────────────
+  test('DOC-SETUP-009 — Inactive product cannot have new DOCs created',
+    async () => {
+      test.skip(true, 'Requires a product in Inactive state to be present in the test environment');
+    });
+
+  // ───────────────────────────────────────────────────────────────────────────
   // DOC-SETUP-010 — Inactivate button disabled when product has active DOCs
   // ───────────────────────────────────────────────────────────────────────────
   test('DOC-SETUP-010 — Inactivate button is disabled when the product has active DOCs or releases',
@@ -125,31 +158,5 @@ test.describe('DOC — Product Setup for DOC (WF11.1 extended) @regression', () 
       test.skip(true,
         'Requires a user with the INACTIVATE_PRODUCT privilege. ' +
         'The PQL role does not see this button. Use a product_owner credential set to automate.');
-    });
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // Skipped — require different role credentials
-  // ───────────────────────────────────────────────────────────────────────────
-  test('DOC-SETUP-002 — "Request DOC" button visible for CREATE_DIGITAL_OFFER_CERTIFICATION privilege user',
-    async () => {
-      test.skip(true, 'Requires a separate user account with CREATE_DIGITAL_OFFER_CERTIFICATION privilege');
-    });
-
-  test('DOC-SETUP-003 — User without INITIATE or CREATE privilege sees neither button',
-    async () => {
-      test.skip(true, 'Requires a separate user account without INITIATE or CREATE privilege');
-    });
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // Skipped — complex setup not available in current test environment
-  // ───────────────────────────────────────────────────────────────────────────
-  test('DOC-SETUP-006 — Multiple VESTA IDs produce separate DOC line per VESTA ID',
-    async () => {
-      test.skip(true, 'Requires a product pre-configured with 2+ VESTA IDs in the test environment');
-    });
-
-  test('DOC-SETUP-009 — Inactive product cannot have new DOCs created',
-    async () => {
-      test.skip(true, 'Requires a product in Inactive state to be present in the test environment');
     });
 });

@@ -1417,18 +1417,19 @@ function runSubsection(wfIdx, subIdx) {
   if (!sub) return;
   const files = collectSpecFiles(sub.items);
   if (!files.length) { toast('No spec files linked in this subsection', 'error'); return; }
-  if (files.length !== 1) {
-    startRun(files);
-    return;
-  }
 
   (async () => {
     try {
-      const resp = await api('/run/resolve-subsection', {
-        method: 'POST',
-        body: JSON.stringify({ subsection: sub.name, specFile: files[0] }),
-      });
-      startRun(files, resp?.grep || '', resp?.project || 'auto');
+      if (files.length === 1) {
+        // Single spec file — try to resolve to a describe-level grep
+        const resp = await api('/run/resolve-subsection', {
+          method: 'POST',
+          body: JSON.stringify({ subsection: sub.name, specFile: files[0] }),
+        });
+        startRun(files, resp?.grep || '', resp?.project || 'auto');
+      } else {
+        startRun(files);
+      }
     } catch {
       startRun(files);
     }

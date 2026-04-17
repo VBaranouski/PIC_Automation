@@ -140,45 +140,52 @@ test.describe('DOC — Initiation extended: header & validation @regression', ()
         await docDetailsPage.expectTargetReleaseDatePopulated();
       });
     });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // DOC-INIT-023 — Cancel DOC popup has mandatory Comment field
-  // ─────────────────────────────────────────────────────────────────────────
-  test('DOC-INIT-023 — Cancel DOC popup shows mandatory Comment field and can be dismissed safely',
-    async ({ page, docDetailsPage }) => {
-      await allure.suite('DOC');
-      await allure.severity('normal');
-      await allure.tag('regression');
-      await allure.description(
-        'DOC-INIT-023: Clicking "Cancel DOC" in the DOC Detail header opens a popup that ' +
-        'contains a mandatory Comment field.  The popup can be dismissed (Cancel) without ' +
-        'actually cancelling the DOC.',
-      );
-
-      await test.step('Navigate to a Controls Scoping DOC via persisted state', async () => {
-        const { docDetailsUrl } = readDocState();
-        await page.goto(docDetailsUrl, { waitUntil: 'domcontentloaded' });
-        await docDetailsPage.waitForOSLoad();
-      });
-
-      await test.step('Open the Cancel DOC popup', async () => {
-        await docDetailsPage.openCancelDocDialog();
-        await docDetailsPage.expectCancelDocPopupVisible();
-      });
-
-      await test.step('Verify the Comment field is present inside the popup', async () => {
-        await docDetailsPage.expectCancelDocCommentFieldVisible();
-      });
-
-      await test.step('Dismiss the popup without cancelling the DOC', async () => {
-        await docDetailsPage.dismissCancelDocDialog();
-      });
-    });
 });
 
 // ─── DOC-INIT-020 & 021 (serial — create product once, test modal twice) ─────
 test.describe.serial('DOC — Initiate DOC modal: validation and cancel @regression', () => {
   test.setTimeout(360_000);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOC-INIT-015 — VESTA ID with active DOC is disabled (skip)
+  // ─────────────────────────────────────────────────────────────────────────
+  test('DOC-INIT-015 — VESTA ID with active DOC is disabled in Create DOC popup',
+    async () => {
+      test.skip(true, 'Requires a product with 2+ VESTA IDs, one of which has an active DOC');
+    });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOC-INIT-016 — Single-VESTA-ID product auto-selects (skip)
+  // ─────────────────────────────────────────────────────────────────────────
+  test('DOC-INIT-016 — Single-VESTA-ID product: VESTA ID auto-selected in Create DOC popup',
+    async () => {
+      test.skip(true, 'Requires deterministic product setup with exactly one VESTA ID and no active DOC');
+    });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOC-INIT-017 — Multi-VESTA-ID product: user must select (skip)
+  // ─────────────────────────────────────────────────────────────────────────
+  test('DOC-INIT-017 — Multi-VESTA-ID product: VESTA ID field empty, user must select',
+    async () => {
+      test.skip(true, 'Requires a product pre-configured with 2+ VESTA IDs');
+    });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOC-INIT-018 — Request DOC popup for CREATE privilege user (skip)
+  // ─────────────────────────────────────────────────────────────────────────
+  test('DOC-INIT-018 — Request DOC popup for CREATE privilege user has no DOC Reason field',
+    async () => {
+      test.skip(true, 'Requires a user with CREATE_DIGITAL_OFFER_CERTIFICATION (not INITIATE) privilege');
+    });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOC-INIT-019 — Submit Request creates DOC (skip)
+  // ─────────────────────────────────────────────────────────────────────────
+  test('DOC-INIT-019 — Submit Request creates DOC with status "Pending Initiation"',
+    async () => {
+      test.skip(true, 'Requires a user with CREATE_DIGITAL_OFFER_CERTIFICATION (not INITIATE) privilege');
+    });
+
   // ─────────────────────────────────────────────────────────────────────────
   // DOC-INIT-020 — validation errors for empty mandatory fields
   // ─────────────────────────────────────────────────────────────────────────
@@ -243,35 +250,49 @@ test.describe.serial('DOC — Initiate DOC modal: validation and cancel @regress
     });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Skipped — require a different user role or special product state
+  // DOC-INIT-022 — Cancel DOC button requires privilege (skip)
   // ─────────────────────────────────────────────────────────────────────────
-  test('DOC-INIT-015 — VESTA ID with active DOC is disabled in Create DOC popup',
-    async () => {
-      test.skip(true, 'Requires a product with 2+ VESTA IDs, one of which has an active DOC');
-    });
-
-  test('DOC-INIT-016 — Single-VESTA-ID product: VESTA ID auto-selected in Create DOC popup',
-    async () => {
-      test.skip(true, 'Requires deterministic product setup with exactly one VESTA ID and no active DOC');
-    });
-
-  test('DOC-INIT-017 — Multi-VESTA-ID product: VESTA ID field empty, user must select',
-    async () => {
-      test.skip(true, 'Requires a product pre-configured with 2+ VESTA IDs');
-    });
-
-  test('DOC-INIT-018 — Request DOC popup for CREATE privilege user has no DOC Reason field',
-    async () => {
-      test.skip(true, 'Requires a user with CREATE_DIGITAL_OFFER_CERTIFICATION (not INITIATE) privilege');
-    });
-
-  test('DOC-INIT-019 — Submit Request creates DOC with status "Pending Initiation"',
-    async () => {
-      test.skip(true, 'Requires a user with CREATE_DIGITAL_OFFER_CERTIFICATION (not INITIATE) privilege');
-    });
-
   test('DOC-INIT-022 — CANCEL_DIGITAL_OFFER_CERTIFICATION_REQUEST privilege grants Cancel DOC button',
     async () => {
       test.skip(true, 'Requires a user with CANCEL_DIGITAL_OFFER_CERTIFICATION_REQUEST privilege');
+    });
+});
+
+// ─── DOC-INIT-023 (needs existing DOC state, not product creation) ────────────
+test.describe('DOC — Initiation extended: Cancel DOC popup @regression', () => {
+  test.setTimeout(120_000);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DOC-INIT-023 — Cancel DOC popup has mandatory Comment field
+  // ─────────────────────────────────────────────────────────────────────────
+  test('DOC-INIT-023 — Cancel DOC popup shows mandatory Comment field and can be dismissed safely',
+    async ({ page, docDetailsPage }) => {
+      await allure.suite('DOC');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'DOC-INIT-023: Clicking "Cancel DOC" in the DOC Detail header opens a popup that ' +
+        'contains a mandatory Comment field.  The popup can be dismissed (Cancel) without ' +
+        'actually cancelling the DOC.',
+      );
+
+      await test.step('Navigate to a Controls Scoping DOC via persisted state', async () => {
+        const { docDetailsUrl } = readDocState();
+        await page.goto(docDetailsUrl, { waitUntil: 'domcontentloaded' });
+        await docDetailsPage.waitForOSLoad();
+      });
+
+      await test.step('Open the Cancel DOC popup', async () => {
+        await docDetailsPage.openCancelDocDialog();
+        await docDetailsPage.expectCancelDocPopupVisible();
+      });
+
+      await test.step('Verify the Comment field is present inside the popup', async () => {
+        await docDetailsPage.expectCancelDocCommentFieldVisible();
+      });
+
+      await test.step('Dismiss the popup without cancelling the DOC', async () => {
+        await docDetailsPage.dismissCancelDocDialog();
+      });
     });
 });
