@@ -91,6 +91,22 @@ export const newProductLocators = (page: Page) => ({
   docCertificationGrid:       page.getByRole('tabpanel').locator('table').first(),
   docCertificationEmptyState: page.getByText(/No DOC|no certification|No Digital/i).first(),
 
+  // Digital Offer Certification tab — "Show active only" toggle (view mode)
+  // Filters out Completed / Cancelled DOC rows when checked (DOC-SETUP-004)
+  // The checkbox has no aria-label; scoped by the label text next to it.
+  docShowActiveOnlyToggle:    page.getByRole('tabpanel').locator('label').filter({ hasText: /show active only/i }).first(),
+
+  // Digital Offer Certification (DOC) grid in edit mode — delete button per VESTA ID row
+  // The button is REMOVED from the DOM (not just disabled) when the VESTA ID has an active DOC
+  // (DOC-SETUP-007). Use not.toBeVisible() assertion, not toBeDisabled().
+  docVestaIdRowDeleteButton:  page.getByRole('grid').filter({
+    has: page.getByRole('textbox', { name: /VESTA ID/i }),
+  }).getByRole('button').first(),
+
+  // Product Detail header — Inactivate action button
+  // Only visible to users with INACTIVATE_PRODUCT privilege (DOC-SETUP-010)
+  inactivateProductButton:    page.getByRole('button', { name: 'Inactivate' }),
+
   // Product Organization fields
   orgLevel1Select:  page.getByRole('combobox', { name: 'Org Level 1*' }),
   orgLevel2Select:  page.getByRole('combobox', { name: 'Org Level 2*' }),

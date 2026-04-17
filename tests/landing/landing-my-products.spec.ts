@@ -218,4 +218,71 @@ test.describe('Landing Page - My Products Advanced Filters @regression', () => {
       await landingPage.expectGridHasRows();
     });
   });
+
+  test('should show DOC-related My Products columns when at least one product has Digital Offer', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-DOCS-017: My Products table must show VESTA ID, Security Advisor, and DOC Lead columns when at least one visible product has Digital Offer enabled.',
+    );
+
+    let headers: string[] = [];
+
+    await test.step('Capture My Products column headers', async () => {
+      await landingPage.expectColumnHeadersExist();
+      headers = await landingPage.getColumnHeaders();
+    });
+
+    await test.step('Verify DOC-related columns are present', async () => {
+      const normalized = headers.map((header) => header.trim().toLowerCase());
+      expect(normalized, 'VESTA ID column should be present in My Products grid').toContain('vesta id');
+      expect(normalized, 'Security Advisor column should be present in My Products grid').toContain('security advisor');
+      expect(normalized, 'DOC Lead column should be present in My Products grid').toContain('doc lead');
+    });
+  });
+
+  test('should show compact multi-VESTA summary when a My Products row contains multiple VESTA IDs', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-DOCS-019: In My Products, a VESTA ID cell with multiple values must display the first IDs plus a "+N" summary indicator.',
+    );
+
+    let vestaColumnIndex = -1;
+    let compactValueFound = false;
+
+    await test.step('Locate the VESTA ID column index', async () => {
+      const headers = await landingPage.getColumnHeaders();
+      vestaColumnIndex = headers.findIndex((header) => /vesta id/i.test(header.trim()));
+      expect(vestaColumnIndex, 'VESTA ID column not found in My Products grid').toBeGreaterThanOrEqual(0);
+    });
+
+    await test.step('Scan visible rows for a compact multi-VESTA indicator', async () => {
+      const rowCount = await landingPage.getGridRowCount();
+      for (let rowIndex = 1; rowIndex <= Math.min(rowCount, 15); rowIndex++) {
+        const cellText = (
+          await landingPage.grid
+            .getByRole('row')
+            .nth(rowIndex)
+            .getByRole('gridcell')
+            .nth(vestaColumnIndex)
+            .textContent()
+            .catch(() => '')
+        )?.trim() ?? '';
+
+        if (/\+\d+/.test(cellText)) {
+          compactValueFound = true;
+          break;
+        }
+      }
+
+      test.skip(!compactValueFound, 'No visible My Products row contains a compact +N VESTA ID summary in the current QA data set.');
+    });
+
+    await test.step('Verify the compact indicator format is present', async () => {
+      expect(compactValueFound, 'Expected at least one VESTA ID cell to contain a +N compact indicator').toBe(true);
+    });
+  });
 });

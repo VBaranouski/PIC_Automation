@@ -204,4 +204,93 @@ export class ControlDetailPage extends BasePage {
       'Comment textarea must NOT be visible in read-only mode',
     ).toBe(false);
   }
+
+  /** Checks if the "Send for Remediation" button is visible on the Control Detail page. */
+  async isSendForRemediationButtonVisible(): Promise<boolean> {
+    return this.l.sendForRemediationButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectSendForRemediationButtonVisible(): Promise<void> {
+    await expect(this.l.sendForRemediationButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Checks if the "Send Back for Update" button is visible on the Control Detail page. */
+  async isSendBackForUpdateButtonVisible(): Promise<boolean> {
+    return this.l.sendBackForUpdateButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectSendBackForUpdateButtonVisible(): Promise<void> {
+    await expect(this.l.sendBackForUpdateButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  /** Asserts that the Descope Control button is NOT visible (descoped controls). */
+  async expectDescopeButtonRemoved(): Promise<void> {
+    await expect(this.l.descopeControlButton).toBeHidden({ timeout: 15_000 });
+  }
+
+  /** Checks if the descope justification tooltip icon is visible next to the Control ID. */
+  async isDescopeJustificationTooltipVisible(): Promise<boolean> {
+    return this.l.descopeJustificationTooltipIcon.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectDescopeJustificationTooltipVisible(): Promise<void> {
+    await expect(this.l.descopeJustificationTooltipIcon).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ── Risk Assessment action button checks ────────────────────────────────
+
+  async isSubmitForReviewButtonVisible(): Promise<boolean> {
+    return this.l.submitForReviewButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectSubmitForReviewButtonVisible(): Promise<void> {
+    await expect(this.l.submitForReviewButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async getSubmitForReviewButtonDisabledState(): Promise<boolean | null> {
+    const isVisible = await this.isSubmitForReviewButtonVisible();
+    if (!isVisible) return null;
+
+    return this.l.submitForReviewButton.isDisabled().catch(() => null);
+  }
+
+  async isEvaluateButtonVisible(): Promise<boolean> {
+    return this.l.evaluateButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectEvaluateButtonVisible(): Promise<void> {
+    await expect(this.l.evaluateButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async isCompleteRiskAssessmentButtonVisible(): Promise<boolean> {
+    return this.l.completeRiskAssessmentButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async isMarkNotApplicableButtonVisible(): Promise<boolean> {
+    return this.l.markNotApplicableButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async isAddFindingButtonVisible(): Promise<boolean> {
+    return this.l.addFindingButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectAddFindingButtonVisible(): Promise<void> {
+    await expect(this.l.addFindingButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async isAddEvidenceLinkButtonVisible(): Promise<boolean> {
+    return this.l.addEvidenceLinkButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectAddEvidenceLinkButtonVisible(): Promise<void> {
+    await expect(this.l.addEvidenceLinkButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async hasNoFindingsMessage(): Promise<boolean> {
+    return this.l.noFindingsMessage.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async isAddActionButtonInFindingsVisible(): Promise<boolean> {
+    return this.l.addActionButtonInFindings.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
 }

@@ -1731,6 +1731,38 @@ export class NewProductPage extends BasePage {
 
   // ==================== Product Detail — Digital Offer Certification Tab ====================
 
+  /** DOC-SETUP-004: The "Show active only" toggle must be visible on the DOC certification tab. */
+  async expectDOCShowActiveOnlyToggleVisible(): Promise<void> {
+    await expect(this.l.docShowActiveOnlyToggle).toBeVisible({ timeout: 30_000 });
+  }
+
+  /**
+   * DOC-SETUP-007: In edit mode, the VESTA ID row delete button must be absent (not rendered)
+   * when the VESTA ID already has an active DOC. The application removes the button from the
+   * DOM rather than disabling it.
+   */
+  async expectVestaIdDeleteButtonNotPresent(): Promise<void> {
+    await expect(this.l.docVestaIdRowDeleteButton).toBeHidden({ timeout: 30_000 });
+  }
+
+  /**
+   * DOC-SETUP-008: In edit mode the "Digital Offer" checkbox must be disabled (not
+   * unchecked) when the product has one or more active DOCs.
+   */
+  async expectDigitalOfferCheckboxDisabledInEditMode(): Promise<void> {
+    await expect(this.l.digitalOfferCheckbox).toBeDisabled({ timeout: 30_000 });
+  }
+
+  /** DOC-SETUP-010: The Inactivate button must be visible on the product detail header. */
+  async expectInactivateButtonVisible(): Promise<void> {
+    await expect(this.l.inactivateProductButton).toBeVisible({ timeout: 30_000 });
+  }
+
+  /** DOC-SETUP-010: The Inactivate button must be disabled when active DOCs / releases exist. */
+  async expectInactivateButtonDisabled(): Promise<void> {
+    await expect(this.l.inactivateProductButton).toBeDisabled({ timeout: 30_000 });
+  }
+
   async clickDigitalOfferCertificationTab(): Promise<void> {
     await this.l.digitalOfferCertificationTab.waitFor({ state: 'visible', timeout: 30_000 });
     await this.l.digitalOfferCertificationTab.click();

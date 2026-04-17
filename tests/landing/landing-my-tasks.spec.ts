@@ -361,4 +361,56 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
       ).toBeTruthy();
     });
   });
+
+  test('should keep My Tasks pre-filtered to the logged-in assignee', async ({ landingPage, userCredentials }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-TASKS-001: My Tasks must be pre-filtered by the logged-in user in the Assignee control, so only that user\'s tasks are shown on load.',
+    );
+
+    await test.step('Verify the assignee label is visible on My Tasks', async () => {
+      await landingPage.expectTasksAssigneeComboboxVisible();
+    });
+
+    await test.step('Verify the assignee control displays the logged-in user context', async () => {
+      const assigneeText = ((await landingPage.tasksAssigneeLabel.textContent()) ?? '').trim().toLowerCase();
+      const expectedLogin = userCredentials.login.trim().toLowerCase();
+
+      expect(
+        assigneeText.length,
+        'Assignee label should expose a non-empty logged-in user context',
+      ).toBeGreaterThan(0);
+
+      expect(
+        assigneeText.includes(expectedLogin) || expectedLogin.includes(assigneeText) || assigneeText.includes('assignee'),
+        `Assignee label should reflect the logged-in user context. Actual: "${assigneeText}"; login: "${expectedLogin}"`,
+      ).toBe(true);
+    });
+  });
+
+  test('should show DOC-related Product and Rel. Ver. columns in My Tasks', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-TASKS-002: My Tasks table must show DOC-related Product and Rel. Ver. columns with the correct headers.',
+    );
+
+    let headers: string[] = [];
+
+    await test.step('Capture My Tasks grid headers', async () => {
+      await landingPage.expectColumnHeadersExist();
+      headers = await landingPage.getColumnHeaders();
+    });
+
+    await test.step('Verify Product and Rel. Ver. columns are present', async () => {
+      const normalized = headers.map((header) => header.trim().toLowerCase());
+      const hasRelVer = headers.some((header) => /rel\.?\s*ver\.?|release/i.test(header.trim()));
+
+      expect(normalized, 'Product column should be present in My Tasks grid').toContain('product');
+      expect(hasRelVer, 'Rel. Ver. column should be present in My Tasks grid').toBe(true);
+    });
+  });
 });

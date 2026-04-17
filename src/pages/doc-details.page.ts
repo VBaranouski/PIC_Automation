@@ -225,6 +225,68 @@ export class DocDetailsPage extends BasePage {
     await expect(this.l.cancelDocButton).toBeHidden();
   }
 
+  // ── Cancel DOC popup (DOC-INIT-023) ─────────────────────────────────────────
+
+  /** Clicks "Cancel DOC" header button and waits for the popup to appear. */
+  async openCancelDocDialog(): Promise<void> {
+    await this.l.cancelDocButton.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.cancelDocButton.click();
+    await this.l.cancelDocPopup.waitFor({ state: 'visible', timeout: 30_000 });
+  }
+
+  /** Verifies the Cancel DOC popup is visible. */
+  async expectCancelDocPopupVisible(): Promise<void> {
+    await expect(this.l.cancelDocPopup).toBeVisible({ timeout: 30_000 });
+  }
+
+  /** Verifies the mandatory Comment text field is present inside the Cancel DOC popup. */
+  async expectCancelDocCommentFieldVisible(): Promise<void> {
+    await expect(this.l.cancelDocCommentInput).toBeVisible({ timeout: 30_000 });
+  }
+
+  /** Closes the Cancel DOC popup by clicking the dismiss (Cancel) button — does NOT cancel the DOC. */
+  async dismissCancelDocDialog(): Promise<void> {
+    await this.l.cancelDocPopupDismiss.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.cancelDocPopupDismiss.click();
+    await this.l.cancelDocPopup.waitFor({ state: 'hidden', timeout: 15_000 });
+  }
+
+  // ── Initiate DOC modal helpers (DOC-INIT-020, DOC-INIT-021) ─────────────────
+
+  /** Opens the Initiate DOC modal WITHOUT filling any fields (for validation / cancel tests). */
+  async openInitiateDocModal(): Promise<void> {
+    await this.l.initiateDOCButton.waitFor({ state: 'visible', timeout: 30_000 });
+    await this.l.initiateDOCButton.click();
+    await this.l.initiateDocModal.waitFor({ state: 'visible', timeout: 30_000 });
+  }
+
+  /** Asserts the Initiate DOC modal is currently open. */
+  async expectInitiateDocModalVisible(): Promise<void> {
+    await expect(this.l.initiateDocModal).toBeVisible({ timeout: 30_000 });
+  }
+
+  /** Asserts the Initiate DOC modal has closed. */
+  async expectInitiateDocModalClosed(): Promise<void> {
+    await this.l.initiateDocModal.waitFor({ state: 'hidden', timeout: 15_000 });
+  }
+
+  /** Clicks the Cancel button inside the Initiate DOC modal to close it without submitting. */
+  async clickInitiateDocModalCancel(): Promise<void> {
+    await this.l.modalCancelButton.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.modalCancelButton.click();
+  }
+
+  /** Clicks the Initiate DOC button inside the modal to trigger form validation with empty fields. */
+  async submitInitiateDocModalEmpty(): Promise<void> {
+    await this.l.modalInitiateButton.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.modalInitiateButton.click();
+  }
+
+  /** Asserts that at least one "Required field!" validation message is visible in the modal. */
+  async expectInitiateDocModalValidationErrors(): Promise<void> {
+    await expect(this.l.modalFieldRequiredError).toBeVisible({ timeout: 15_000 });
+  }
+
   /**
    * Checks whether the Revoke DOC button is present in the header.
    * Returns false when the current user lacks the REVOKE_DOC privilege.
@@ -365,7 +427,20 @@ export class DocDetailsPage extends BasePage {
   }
 
   async selectOfferRelease(label: string): Promise<void> {
-    await this.l.offerReleaseDropdown.selectOption({ label });
+    await this.l.offerReleaseDropdown.waitFor({ state: 'visible', timeout: 15_000 });
+
+    try {
+      await this.l.offerReleaseDropdown.selectOption({ label });
+      await this.waitForOSLoad();
+      return;
+    } catch {
+      await this.l.offerReleaseDropdown.click();
+      const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const option = this.page.getByRole('option', { name: new RegExp(`^${escapedLabel}$`, 'i') }).first();
+      await option.waitFor({ state: 'visible', timeout: 15_000 });
+      await option.click();
+      await this.waitForOSLoad();
+    }
   }
 
   async clickSaveChanges(): Promise<void> {
@@ -422,6 +497,116 @@ export class DocDetailsPage extends BasePage {
 
   async expectReleaseVersionInputVisible(): Promise<void> {
     await expect(this.l.offerReleaseVersionInput).toBeVisible({ timeout: 15_000 });
+  }
+
+  // ── WF 11.16 — Release Linkage helpers ─────────────────────────────────────
+
+  /** ATC-11.16.1: checks the Release header area has a visible label and non-empty value. */
+  async expectReleaseHeaderLabelAndValue(): Promise<void> {
+    // Use the specific #Release_Con container to avoid strict-mode violations
+    // (page.getByText(/Release/) matches multiple elements on this page).
+    const releaseContainer = this.page.locator('#Release_Con');
+    await expect(releaseContainer).toBeVisible({ timeout: 30_000 });
+    const link = releaseContainer.getByRole('link').first();
+    const isLink = await link.isVisible().catch(() => false);
+    if (isLink) {
+      const linkText = (await link.textContent() ?? '').trim();
+      expect(linkText.length, 'Release link text should not be empty').toBeGreaterThan(0);
+    } else {
+      const containerText = (await releaseContainer.textContent() ?? '').trim();
+      expect(
+        containerText.replace(/^Release\s*/i, '').trim().length,
+        'Release header container should contain a non-empty release value',
+      ).toBeGreaterThan(0);
+    }
+  }
+
+  /** ATC-11.16.3: returns the list of all release options from the offer tab dropdown (edit mode). */
+  async getOfferReleaseOptions(): Promise<string[]> {
+    await this.l.offerReleaseDropdown.waitFor({ state: 'visible', timeout: 15_000 });
+
+    const normalize = (value: string): string => value.replace(/\s+/g, ' ').trim();
+
+    const readNativeOptions = async (): Promise<string[]> => {
+      const nativeOptions = await this.l.offerReleaseDropdown
+        .locator('option')
+        .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ''))
+        .catch(() => [] as string[]);
+
+      return [...new Set(nativeOptions.map(normalize).filter(Boolean))];
+    };
+
+    let options = await readNativeOptions();
+
+    if (options.length <= 1) {
+      await expect
+        .poll(async () => {
+          const values = await readNativeOptions();
+          return values.length > 1;
+        }, {
+          timeout: 10_000,
+          message: 'Waiting for Release dropdown options to populate',
+        })
+        .toBeTruthy()
+        .catch(() => undefined);
+
+      options = await readNativeOptions();
+    }
+
+    return options;
+  }
+
+  /**
+   * ATC-11.16.4: selects the first named release (non-empty, not "Other Release") in edit mode.
+   * Returns the selected label, or null if no named release is available.
+   */
+  async selectFirstNamedRelease(): Promise<string | null> {
+    const options = await this.getOfferReleaseOptions();
+    const named = options.filter(
+      (option) =>
+        option &&
+        !/^select release$/i.test(option) &&
+        option !== 'Other Release' &&
+        option !== '-' &&
+        option !== '--',
+    );
+    if (named.length === 0) return null;
+    await this.selectOfferRelease(named[0]);
+    return named[0];
+  }
+
+  /**
+   * ATC-11.16.4: asserts Target Release Date has a non-empty value after release selection.
+   * Works for both disabled-input and plain-text display modes.
+   */
+  async expectTargetReleaseDateHasValue(): Promise<void> {
+    const tabpanel = this.page.getByRole('tabpanel').first();
+    const dateInput = tabpanel
+      .getByLabel(/Target Release Date/i)
+      .or(tabpanel.getByRole('textbox', { name: /Target Release Date/i }))
+      .first();
+
+    const inputCount = await dateInput.count();
+    if (inputCount > 0) {
+      const value = await dateInput.inputValue().catch(() => '');
+      expect(value.trim(), 'Target Release Date should have a non-empty value').not.toBe('');
+    } else {
+      await expect(this.l.targetReleaseDateHeader).toContainText(/\d/, { timeout: 15_000 });
+    }
+  }
+
+  /** ATC-11.16.7: asserts the Release Version text input is hidden (after switching to named release). */
+  async expectReleaseVersionInputHidden(): Promise<void> {
+    await expect(this.l.offerReleaseVersionInput).toBeHidden({ timeout: 10_000 });
+  }
+
+  /** ATC-11.16.10/11: navigates to the associated Product Detail page via the breadcrumb link. */
+  async navigateToLinkedProduct(): Promise<void> {
+    await this.l.breadcrumbProductLink.waitFor({ state: 'visible', timeout: 30_000 });
+    await Promise.all([
+      this.page.waitForURL(/ProductDetail/, { timeout: 60_000 }),
+      this.l.breadcrumbProductLink.click(),
+    ]);
   }
 
   async isEditRolesButtonVisible(): Promise<boolean> {
@@ -820,6 +1005,34 @@ export class DocDetailsPage extends BasePage {
     return this.l.actionPlanNoResultsMessage.isVisible().catch(() => false);
   }
 
+  async isAddActionButtonVisible(): Promise<boolean> {
+    return this.l.actionPlanAddActionButton.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectAddActionButtonVisible(): Promise<void> {
+    await expect(this.l.actionPlanAddActionButton).toBeVisible({ timeout: 15_000 });
+  }
+
+  async clickAddActionButton(): Promise<void> {
+    await this.l.actionPlanAddActionButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async hasActionPlanNoActionsMessage(): Promise<boolean> {
+    return this.l.actionPlanNoActionsMessage.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectActionPlanNoActionsMessageVisible(): Promise<void> {
+    await expect(this.l.actionPlanNoActionsMessage).toBeVisible({ timeout: 15_000 });
+  }
+
+  async clickFirstActionNameLink(): Promise<void> {
+    const firstLink = this.l.actionPlanDataRows.first().getByRole('link').first();
+    await expect(firstLink).toBeVisible({ timeout: 15_000 });
+    await firstLink.click();
+    await this.waitForOSLoad();
+  }
+
   // ==================== DOC Detail — Risk Summary tab ====================
 
   async clickRiskSummaryTab(): Promise<void> {
@@ -876,6 +1089,23 @@ export class DocDetailsPage extends BasePage {
   async getRiskSummaryPanelText(): Promise<string> {
     await expect(this.l.riskSummaryPanel).toBeVisible({ timeout: 15_000 });
     return (await this.l.riskSummaryPanel.textContent())?.replace(/\s+/g, ' ').trim() ?? '';
+  }
+
+  async hasRiskSummaryControlsGrid(): Promise<boolean> {
+    return this.l.riskSummaryControlsGrid.isVisible({ timeout: 5_000 }).catch(() => false);
+  }
+
+  async expectRiskSummaryControlsGridColumnHeaders(): Promise<void> {
+    const headers = ['Category', 'Status', 'Risk Level'];
+    for (const header of headers) {
+      await expect(
+        this.l.riskSummaryControlsGrid.locator('th').filter({ hasText: header }),
+      ).toBeVisible({ timeout: 15_000 });
+    }
+  }
+
+  async getRiskSummaryControlsRowCount(): Promise<number> {
+    return this.l.riskSummaryControlsDataRows.count();
   }
 
   // ==================== DOC Detail — View History ====================
@@ -1051,6 +1281,14 @@ export class DocDetailsPage extends BasePage {
       // Timed out; return whatever was last read — test assertion will judge
     }
     return count;
+  }
+
+  /** Returns the text labels of all <option> elements in the Activity filter dropdown,
+   *  excluding any blank/placeholder option. */
+  async getHistoryActivityFilterOptions(): Promise<string[]> {
+    await this.getHistoryActivityFilterOptionCount(); // ensure LOV is loaded
+    const options = await this.l.historyActivityFilter.locator('option').allTextContents();
+    return options.map(o => o.trim()).filter(o => o.length > 0 && !/^(- select -|select|all)$/i.test(o));
   }
 
   async getHistoryTotalRecordCount(): Promise<number> {

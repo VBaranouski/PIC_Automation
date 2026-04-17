@@ -75,10 +75,24 @@ export default defineConfig({
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-initiation'],
 		},
+		// ── WF11.1 extended — DOC product-setup behaviours (uses persisted doc-state) ────
+		{
+			name: 'doc-product-setup-extended',
+			testMatch: exactSpec('tests', 'doc', 'product-setup-doc.spec.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['doc-state-setup'],
+		},
+		// ── WF11.2 extended — DOC initiation modal / header / cancel (uses doc-state) ────
+		{
+			name: 'doc-initiation-extended',
+			testMatch: exactSpec('tests', 'doc', 'doc-initiation-extended.spec.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['doc-state-setup'],
+		},
 		// ── DOC tab specs (each depends on the previous to preserve logical order) ──────
 		{
 			name: 'doc-my-docs-tab',
-			testMatch: exactSpec('tests', 'doc', 'my-docs-tab.spec.ts'),
+			testMatch: exactSpec('tests', 'landing', 'my-docs-tab.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['doc-state-setup'],
 		},
@@ -138,6 +152,12 @@ export default defineConfig({
 			testMatch: exactSpec('tests', 'doc', 'doc-lifecycle.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 		},
+		{
+			name: 'doc-release-linkage',
+			testMatch: exactSpec('tests', 'doc', 'doc-release-linkage.spec.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['doc-state-setup'],
+		},
 		// ── Tracker unit/integration tests (no browser, no dependencies) ────────────────
 		{
 			name: 'tracker',
@@ -150,7 +170,9 @@ export default defineConfig({
 				exactSpec('tests', 'doc', 'new-product-creation-digital-offer.spec.ts'),
 				exactSpec('tests', 'doc', 'initiate-doc.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-state.setup.ts'),
-				exactSpec('tests', 'doc', 'my-docs-tab.spec.ts'),
+				exactSpec('tests', 'doc', 'product-setup-doc.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-initiation-extended.spec.ts'),
+				exactSpec('tests', 'landing', 'my-docs-tab.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-detail.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-detail-offer.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-detail-roles.spec.ts'),
@@ -161,6 +183,7 @@ export default defineConfig({
 				exactSpec('tests', 'doc', 'doc-detail-risk-summary.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-detail-certification.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-lifecycle.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-release-linkage.spec.ts'),
 				exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
 			],
 			use: { ...devices['Desktop Chrome'] },
@@ -173,6 +196,8 @@ export default defineConfig({
 				exactSpec('tests', 'doc', 'new-product-creation-digital-offer.spec.ts'),
 				exactSpec('tests', 'doc', 'initiate-doc.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-state.setup.ts'),
+				exactSpec('tests', 'doc', 'product-setup-doc.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-initiation-extended.spec.ts'),
 			],
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],

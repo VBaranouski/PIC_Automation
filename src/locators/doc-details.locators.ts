@@ -9,7 +9,7 @@ export const docDetailsLocators = (page: Page) => ({
   docNameHeader:            page.locator('.doc-header, [class*="doc-name"], .page-header').getByText(/\w/).first(),
   releaseHeaderLink:        page.getByText(/Release/).locator('..').getByRole('link').first(),
   releaseHeaderText:        page.getByText(/Release/).locator('..'),
-  targetReleaseDateHeader:  page.getByText(/Target Release Date/).locator('..'),
+  targetReleaseDateHeader:  page.getByText(/Target Release Date/).locator('..').first(),
 
   // --- DOC status badge and current stage ---
   // DOC status/stage markup differs between Product Detail and DOC Detail pages,
@@ -104,6 +104,12 @@ export const docDetailsLocators = (page: Page) => ({
   offerDocReasonCharCount: page.getByRole('tabpanel').getByText(/\/500/).first(),
   offerReleaseDropdown:    page.getByRole('tabpanel').getByRole('combobox', { name: /Release/ }).first(),
   offerReleaseVersionInput: page.getByRole('tabpanel').getByRole('textbox', { name: /Release Version/ }).first(),
+  // VESTA ID dropdown in edit mode
+  offerVestaIdDropdown:    page.getByRole('tabpanel').getByRole('combobox', { name: /VESTA/ }).first(),
+  // Related Documents field/link in Digital Offer Details
+  offerRelatedDocumentsLink: page.getByRole('tabpanel').getByText(/Related Documents/i).first(),
+  // Target Release Date input in edit mode
+  offerTargetReleaseDateInput: page.getByRole('tabpanel').getByRole('textbox', { name: /Select a date/ }).first(),
   // Save / Cancel buttons scoped to tabpanel to avoid conflict with modal buttons
   saveChangesButton:        page.getByRole('tabpanel').getByRole('button', { name: 'Save Changes' }).first(),
   cancelEditButton:         page.getByRole('tabpanel').getByRole('button', { name: 'Cancel' }).first(),
@@ -163,6 +169,8 @@ export const docDetailsLocators = (page: Page) => ({
   actionPlanGrid:              page.getByRole('tabpanel').getByRole('grid').first(),
   actionPlanDataRows:          page.getByRole('tabpanel').getByRole('grid').first().getByRole('row').filter({ has: page.locator('td') }),
   actionPlanNoResultsMessage:  page.getByRole('tabpanel').getByText('No results found').first(),
+  actionPlanAddActionButton:   page.getByRole('tabpanel').getByRole('button', { name: /Add Action/i }).first(),
+  actionPlanNoActionsMessage:  page.getByRole('tabpanel').getByText(/No Actions created/i).first(),
 
   // ─── DOC Detail — Risk Summary tab ───────────────────────────────────────
   riskSummaryPanel:             page.getByRole('tabpanel').filter({ has: page.getByText('SDL FCSR Summary') }).first(),
@@ -180,6 +188,9 @@ export const docDetailsLocators = (page: Page) => ({
   riskSummaryItsCommentLabel:   page.getByRole('tabpanel').getByText('Comment').first(),
   riskSummaryLinks:             page.getByRole('tabpanel').filter({ has: page.getByText('SDL FCSR Summary') }).first().getByRole('link'),
   riskSummaryNoResultsMessage:  page.getByRole('tabpanel').filter({ has: page.getByText('SDL FCSR Summary') }).first().getByText('No results found').first(),
+  // Controls table inside Risk Summary tab
+  riskSummaryControlsGrid:      page.getByRole('tabpanel').filter({ has: page.getByText('SDL FCSR Summary') }).first().getByRole('grid').first(),
+  riskSummaryControlsDataRows:  page.getByRole('tabpanel').filter({ has: page.getByText('SDL FCSR Summary') }).first().getByRole('grid').first().getByRole('row').filter({ has: page.locator('td') }),
 
   // ─── DOC Detail — Unscope (Descope) ITS Control popup ───────────────────
   // Dialog title is 'Descope ITS Control' — not a heading role, just text
@@ -256,6 +267,21 @@ export const docDetailsLocators = (page: Page) => ({
   // When a Proposed Decision is already saved the "Propose Decision" button is
   // replaced by an "Edit" or "Edit Decision" button.
   certEditDecisionButton: page.getByRole('button', { name: /^Edit( Decision)?$/i }).first(),
+
+  // ─── Cancel DOC popup ─────────────────────────────────────────────────────
+  // Appears when the "Cancel DOC" header button is clicked.
+  // Contains a mandatory Comment field and "Cancel DOC" / "Close" buttons (DOC-INIT-023).
+  // Dialog title: "Cancel DOC" | Comment field placeholder: "Write DOC cancellation reason"
+  cancelDocPopup:         page.getByRole('dialog').filter({ has: page.getByText(/Cancel DOC/i) }).first(),
+  cancelDocCommentInput:  page.getByRole('dialog').filter({ has: page.getByText(/Cancel DOC/i) }).getByRole('textbox').first(),
+  // "Cancel DOC" button inside the popup — actually cancels the DOC
+  cancelDocConfirmButton: page.getByRole('dialog').filter({ has: page.getByText(/Cancel DOC/i) }).getByRole('button', { name: 'Cancel DOC' }).first(),
+  // "Close" button dismisses the popup without cancelling the DOC
+  cancelDocPopupDismiss:  page.getByRole('dialog').filter({ has: page.getByText(/Cancel DOC/i) }).getByRole('button', { name: 'Close' }).first(),
+
+  // ─── Initiate DOC modal — validation feedback ────────────────────────────
+  // "Required field!" messages shown when the user submits empty mandatory fields
+  modalFieldRequiredError: page.getByRole('dialog').getByText('Required field!').first(),
 });
 
 export type DocDetailsLocators = ReturnType<typeof docDetailsLocators>;

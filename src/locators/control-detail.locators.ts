@@ -56,14 +56,19 @@ export const controlDetailLocators = (page: Page) => ({
   // ─── Findings section ────────────────────────────────────────────────────
   // No heading tags — finding these by text in a label/span.
   noFindingsMessage:   page.getByText('No findings added yet'),
-  // Findings table rendered when at least one finding exists (last table on the page).
-  findingsTable:       page.locator('table').last(),
+  // Findings table — scoped by the FINDING ID column header to avoid matching other tables.
+  findingsTable:       page.locator('table').filter({ has: page.locator('th', { hasText: /FINDING ID/i }) }),
 
   // ─── Actions ─────────────────────────────────────────────────────────────
   // "Descope Control" is a proper <button> element with that exact text.
   descopeControlButton: page.getByRole('button', { name: 'Descope Control' }),
   // After descoping: button is removed and a tooltip icon may appear next to the Control ID.
   descopeJustificationTooltipIcon: page.locator('[class*="tooltip"][title*="justif"], [aria-label*="justif"]').first(),
+
+  // "Send for Remediation" button — visible on controls with findings
+  sendForRemediationButton: page.getByRole('button', { name: /Send for Remediation/i }),
+  // "Send Back for Update" button — DOCL can send control back to DO Team
+  sendBackForUpdateButton: page.getByRole('button', { name: /Send Back for Update/i }),
 
   // ─── Risk Level section ───────────────────────────────────────────────────
   // Shown on later-stage controls where a risk assessment has been started.
@@ -79,6 +84,14 @@ export const controlDetailLocators = (page: Page) => ({
   // These editing controls MUST NOT be visible when the DOC is read-only.
   addEvidenceLinkButton: page.getByRole('button', { name: /Add (Evidence|Link)/i }).first(),
   addCommentTextarea:    page.getByRole('textbox', { name: /[Cc]omment/ }).first(),
+
+  // ─── Risk Assessment actions ─────────────────────────────────────────────
+  submitForReviewButton:       page.getByRole('button', { name: /Submit for Review/i }),
+  evaluateButton:              page.getByRole('button', { name: /Evaluate/i }),
+  completeRiskAssessmentButton: page.getByRole('button', { name: /Complete Risk Assessment/i }),
+  markNotApplicableButton:     page.getByRole('button', { name: /Mark.*Not Applicable/i }),
+  addFindingButton:            page.getByRole('button', { name: /Add Finding/i }),
+  addActionButtonInFindings:   page.getByRole('button', { name: /Add Action/i }),
 });
 
 export type ControlDetailLocators = ReturnType<typeof controlDetailLocators>;

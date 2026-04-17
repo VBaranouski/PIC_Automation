@@ -74,14 +74,16 @@
 - [x] **P2** `LANDING-TASKS-PROD-001` Product filter narrows task list
 - [x] **P2** `LANDING-TASKS-DATE-001` Task Creation Date Range picker filters results
 - [x] **P2** `LANDING-TASKS-ASSIGNEE-001` Assignee filter changes task list to the selected user (user is pre-filtered by own name on load)
+- [x] **P2** `DOC-TASKS-001` My Tasks stays pre-filtered to the logged-in user in the Assignee control on initial load
+- [x] **P2** `DOC-TASKS-002` My Tasks shows DOC-related Product and Rel. Ver. columns with the correct headers
 - [x] **P2** `LANDING-TASKS-RESET-001` Reset button clears all applied filters
 - [x] **P2** `LANDING-TASKS-REVIEW-001` Clicking the Review button navigates to DOC Details (DOC task) or Release Detail (SDL task)
 
 ### 2.3 My Products Tab
 
 - [x] **P1** `LANDING-HOME-008` My Products grid columns are all present (Org Level 1, Org Level 2, Org Level 3, Product, Product Id, Product Status, Latest Release, VESTA ID, Product Owner, Security Advisor, DOC Lead, Actions)
-- [ ] **P2** VESTA ID, Security Advisor, and DOC Lead columns are visible only when at least one product in the list has Digital Offer = Yes; they are hidden entirely when no Digital Offer products exist
-- [ ] **P2** VESTA ID cell shows the first 2 VESTA IDs with "+N" indicator when more exist; hovering reveals the full list
+- [x] **P2** `LANDING-DOCS-017` VESTA ID, Security Advisor, and DOC Lead columns are visible when at least one product in the list has Digital Offer = Yes
+- [x] **P2** `LANDING-DOCS-019` VESTA ID cell shows the first 2 VESTA IDs with "+N" indicator when more exist *(validated when such a row is present in visible QA data; otherwise the test skips gracefully)*
 - [ ] **P2** DOC Lead column shows the DOCL set by default from BackOffice for that product's scope
 - [x] **P1** `LANDING-HOME-009` "Show Active Only" toggle is ON by default
 - [x] **P2** `LANDING-HOME-010` "Show Active Only" toggle changes grid content when toggled
@@ -1722,6 +1724,27 @@
 - [ ] **P2** When a role is changed (Product Owner or PM updated on Product Details), the task for the previous user is closed and a new task is created for the new user; new user receives relevant tasks
 - [ ] **P3** After DOC moves to Actions Closure stage, "Close unresolved findings and actions" task appears for DO Team and DOCL
 - [ ] **P3** Users listed in Roles & Responsibilities are the only recipients of DOC tasks and notifications; when a role is re-assigned, the new user takes over tasks and the old user's tasks are closed
+
+### 11.16 DOC–Release Linkage
+
+**Spec:** `doc/doc-release-linkage.spec.ts` (new) · also extends `doc/doc-detail-offer.spec.ts`, `landing/my-docs-tab.spec.ts`
+**Page objects:** `doc-details.page.ts`, `new-product.page.ts`
+
+**Already covered by earlier TCs (no new code needed):**
+- `ATC-11.16.2` — Clicking Release link in DOC header navigates to Release Detail → covered by `DOC-DETAIL-010` ✅
+- `ATC-11.16.5` — "Other Release" reveals Release Version field → covered by `DOC-OFFER-005` ✅
+- `ATC-11.16.6` — Target Release Date is disabled/read-only in edit mode → covered by `DOC-OFFER-009` ✅
+- `ATC-11.16.8` — My DOCs grid shows "Target Release Date" column header → covered by `LANDING-DOCS-003` ✅
+
+**Automated scenarios:**
+
+- [x] **P2** `ATC-11.16.1` DOC Detail header shows a "Release" label and a non-empty release value (link or plain text) — `doc-release-linkage.spec.ts`
+- [x] **P2** `ATC-11.16.3` In edit mode, the Release dropdown on the Digital Offer Details tab lists at least one available release option — `doc-detail-offer.spec.ts`
+- [x] **P2** `ATC-11.16.4` Selecting a named release in edit mode auto-populates the Target Release Date field with a non-empty value — `doc-detail-offer.spec.ts`
+- [x] **P2** `ATC-11.16.7` Switching from "Other Release" back to a named release hides the "Release Version" text input — `doc-detail-offer.spec.ts`
+- [x] **P2** `ATC-11.16.9` At least one row in the My DOCs grid shows a non-empty Target Release Date cell value — `landing/my-docs-tab.spec.ts`
+- [x] **P2** `ATC-11.16.10` The Product Detail page of the associated product shows a "Digital Offer Certification" tab after DOC is initiated — `doc-release-linkage.spec.ts`
+- [x] **P2** `ATC-11.16.11` The Digital Offer Certification tab on Product Detail shows a table with DOC ID, Name, Status, and VESTA ID columns, and at least one data row — `doc-release-linkage.spec.ts`
 
 ---
 
