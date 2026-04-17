@@ -182,7 +182,7 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       await test.step('Check whether Monitor Action Closure stage is shown', async () => {
         // DOC 273 may or may not have Actions Closure depending on its decision type.
         // If it was Certified (no exception/waiver), the 6th stage should be hidden.
-        const monitorTab = page.getByRole('tab', { name: /Monitor Action Closure/i });
+        const monitorTab = page.getByRole('tab', { name: /Monitor Actions? Closure/i });
         const isVisible = await monitorTab.isVisible().catch(() => false);
 
         if (!isVisible) {
