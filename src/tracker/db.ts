@@ -97,6 +97,10 @@ export function getDb(): Database.Database {
       // Migration v2 → v3: widen priority CHECK constraint to include 'Edge'
       _db!.exec(`
         PRAGMA foreign_keys = OFF;
+        CREATE TABLE scenario_groups_backup_v3 AS
+          SELECT scenario_id, group_name FROM scenario_groups;
+        CREATE TABLE scenario_details_backup_v3 AS
+          SELECT scenario_id, steps, expected_results, execution_notes FROM scenario_details;
         CREATE TABLE scenarios_v3 (
           id               TEXT PRIMARY KEY,
           title            TEXT NOT NULL,
@@ -118,6 +122,14 @@ export function getDb(): Database.Database {
         INSERT INTO scenarios_v3 SELECT * FROM scenarios;
         DROP TABLE scenarios;
         ALTER TABLE scenarios_v3 RENAME TO scenarios;
+        DELETE FROM scenario_groups;
+        INSERT INTO scenario_groups (scenario_id, group_name)
+        SELECT scenario_id, group_name FROM scenario_groups_backup_v3;
+        DELETE FROM scenario_details;
+        INSERT INTO scenario_details (scenario_id, steps, expected_results, execution_notes)
+        SELECT scenario_id, steps, expected_results, execution_notes FROM scenario_details_backup_v3;
+        DROP TABLE scenario_groups_backup_v3;
+        DROP TABLE scenario_details_backup_v3;
         CREATE INDEX IF NOT EXISTS idx_scenarios_auto_state  ON scenarios(automation_state);
         CREATE INDEX IF NOT EXISTS idx_scenarios_exec_status ON scenarios(execution_status);
         CREATE INDEX IF NOT EXISTS idx_scenarios_priority    ON scenarios(priority);
