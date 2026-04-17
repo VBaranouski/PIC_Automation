@@ -21,14 +21,6 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-CONTROL-001 ───────────────────────────────────────────────────────
   test('should navigate to Control Detail page via ITS Checklist Control ID link', async ({
     page, docDetailsPage, controlDetailPage,

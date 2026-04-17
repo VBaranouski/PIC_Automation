@@ -34,14 +34,6 @@ function productUrlFromDocState(): string {
 
 test.describe('DOC — Product Setup for DOC (WF11.1 extended) @regression', () => {
   test.setTimeout(120_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ───────────────────────────────────────────────────────────────────────────
   // DOC-SETUP-004 — "Show active only" toggle visible on DOC Certification tab
   // ───────────────────────────────────────────────────────────────────────────

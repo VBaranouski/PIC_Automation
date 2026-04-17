@@ -25,6 +25,7 @@ dist/
 .doc-state.json
 .product-state.json
 .auth-state.json
+.auth/
 
 # Temporary debug / diagnostic scripts
 diagnose-*.mjs

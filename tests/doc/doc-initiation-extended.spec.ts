@@ -106,14 +106,6 @@ async function createProductForModalTesting(
 // ─── DOC-INIT-008 ────────────────────────────────────────────────────────────
 test.describe('DOC — Initiation extended: header & validation @regression', () => {
   test.setTimeout(360_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ─────────────────────────────────────────────────────────────────────────
   // DOC-INIT-008 (smoke) — DOC header: VESTA ID, DOC ID format, Target Release Date
   // ─────────────────────────────────────────────────────────────────────────
@@ -187,14 +179,6 @@ test.describe('DOC — Initiation extended: header & validation @regression', ()
 // ─── DOC-INIT-020 & 021 (serial — create product once, test modal twice) ─────
 test.describe.serial('DOC — Initiate DOC modal: validation and cancel @regression', () => {
   test.setTimeout(360_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ─────────────────────────────────────────────────────────────────────────
   // DOC-INIT-020 — validation errors for empty mandatory fields
   // ─────────────────────────────────────────────────────────────────────────

@@ -8,10 +8,8 @@ import * as allure from 'allure-js-commons';
 test.describe('Landing Page - My Releases Filters & Navigation @regression', () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Releases');
     await landingPage.waitForGridDataRows();
@@ -149,10 +147,8 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
 test.describe('Landing Page - My Releases Target Date Filter @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Releases');
   });
@@ -178,10 +174,8 @@ test.describe('Landing Page - My Releases Target Date Filter @regression', () =>
 test.describe('Landing Page - My Releases Grid Actions @regression', () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Releases');
     await landingPage.waitForGridDataRows();

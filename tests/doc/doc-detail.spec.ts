@@ -18,14 +18,6 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-DETAIL-001 ────────────────────────────────────────────────────────
   test('should show breadcrumb with clickable Home and Product Name links', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');

@@ -135,16 +135,7 @@ async function openDocWithActionPlanTab(
 }
 
 test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
-	test.describe.configure({ mode: 'serial' });
 	test.setTimeout(240_000);
-
-	test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-		await loginPage.goto();
-		await loginPage.waitForPageLoad();
-		await loginPage.login(userCredentials.login, userCredentials.password);
-		await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-	});
-
 	test('should display the Action Plan grid with expected columns', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(

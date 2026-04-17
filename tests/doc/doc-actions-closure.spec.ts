@@ -20,14 +20,6 @@ const COMPLETED_DOC_URL =
 
 test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-CLOSURE-001 ──────────────────────────────────────────────────────
   test('should show controls in ITS Checklist with correct data during Actions Closure',
     async ({ page, docDetailsPage }) => {

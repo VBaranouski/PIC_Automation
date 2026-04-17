@@ -19,14 +19,6 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-OFFER-001 ─────────────────────────────────────────────────────────
   test('should show Digital Offer Details tab content in read-only mode', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');

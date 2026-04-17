@@ -95,14 +95,6 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	// so serial mode is NOT used here — it would cause cascade-skips when
 	// running a subset of tests with --grep.
 	test.setTimeout(240_000);
-
-	test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-		await loginPage.goto();
-		await loginPage.waitForPageLoad();
-		await loginPage.login(userCredentials.login, userCredentials.password);
-		await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-	});
-
 	test('should display the Certification Decision tab for eligible DOC stages', async ({
 		page,
 		landingPage,

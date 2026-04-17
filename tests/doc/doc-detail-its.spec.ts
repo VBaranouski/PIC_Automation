@@ -20,14 +20,6 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-ITS-001 ───────────────────────────────────────────────────────────
   test('should show the IT SECURITY CONTROLS subtitle on the ITS Checklist tab', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');

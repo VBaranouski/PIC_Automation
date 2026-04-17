@@ -99,12 +99,6 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   let releaseDetailUrl: string;
 
   // Login before every test — same pattern as create-new-release.spec.ts
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── RELEASE-HEADER-001 ────────────────────────────────────────────────────
   test('should load Release Detail page with breadcrumb showing Home > Product > Release', async ({
     page, landingPage, releaseDetailPage,

@@ -8,10 +8,8 @@ import * as allure from 'allure-js-commons';
 test.describe('Landing Page - My Tasks Filters & Navigation @regression', () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.waitForGridDataRows();
   });
@@ -100,10 +98,8 @@ test.describe('Landing Page - My Tasks Filters & Navigation @regression', () => 
 test.describe('Landing Page - My Tasks Advanced Filters @regression', () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.waitForGridDataRows();
   });
@@ -176,10 +172,8 @@ test.describe('Landing Page - My Tasks Advanced Filters @regression', () => {
 test.describe('Landing Page - My Tasks Date Range Filter @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
@@ -204,10 +198,8 @@ test.describe('Landing Page - My Tasks Date Range Filter @regression', () => {
 test.describe('Landing Page - My Tasks Assignee Filter @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
@@ -232,10 +224,8 @@ test.describe('Landing Page - My Tasks Assignee Filter @regression', () => {
 test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.waitForGridDataRows();
   });

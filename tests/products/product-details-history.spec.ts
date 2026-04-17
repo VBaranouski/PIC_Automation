@@ -146,14 +146,6 @@ function isSameCalendarDay(timestamp: number, target: Date): boolean {
 
 test.describe('Product Details - View History @regression', () => {
   test.setTimeout(240_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should open View History dialog when clicking View History link @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');

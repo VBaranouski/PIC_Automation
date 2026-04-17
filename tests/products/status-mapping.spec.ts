@@ -36,10 +36,8 @@ async function openStatusMappingPopup(page: Page): Promise<boolean> {
 test.describe.serial('Status Mapping Configuration @regression', () => {
   test.setTimeout(180_000);
 
-  test.beforeEach(async ({ loginPage, userCredentials, landingPage }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 

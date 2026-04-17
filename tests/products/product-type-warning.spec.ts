@@ -70,14 +70,6 @@ async function findProductWithActiveRelease(
 
 test.describe.serial('Products / Product Type Warning @regression', () => {
   test.setTimeout(300_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // -------------------------------------------------------------------------
   // PRODUCT-TYPE-WARN-001
   // -------------------------------------------------------------------------

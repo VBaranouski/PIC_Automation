@@ -11,14 +11,6 @@ import * as allure from 'allure-js-commons';
 
 test.describe('Product Details - Actions Management @regression', () => {
   test.setTimeout(240_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should navigate to Actions Management page from Product Detail @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - Actions Management');
     await allure.severity('normal');

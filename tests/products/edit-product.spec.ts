@@ -90,14 +90,6 @@ test.describe.serial('Products - Edit Existing Product (PIC-108, PIC-109) @regre
   let productState: string;
   let productDefinition: string;
   let productType: string;
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should edit an existing product from My Products and save changes', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('critical');

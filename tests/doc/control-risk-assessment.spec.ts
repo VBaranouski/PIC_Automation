@@ -28,14 +28,6 @@ const COMPLETED_DOC_URL =
 
 test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-CTRL-RA-001 ──────────────────────────────────────────────────────
   test('should show additional RA columns (Status, Risk Level, Findings) during Risk Assessment',
     async ({ page, docDetailsPage }) => {

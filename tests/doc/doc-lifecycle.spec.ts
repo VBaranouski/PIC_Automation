@@ -25,14 +25,6 @@ const COMPLETED_DOC_URL =
 
 test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── TC-LIFECYCLE-001 ──────────────────────────────────────────────────────
   test('should show Cancel DOC button for privileged user on a Controls Scoping DOC',
     async ({ page, docDetailsPage }) => {
