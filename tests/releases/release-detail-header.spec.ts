@@ -57,7 +57,7 @@ async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promi
     const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
     productUrl = await link.getAttribute('href') ?? null;
     if (!productUrl) throw new Error('No product links found on My Products tab');
-    if (!productUrl.startsWith('http')) productUrl = `https://qa.leap.schneider-electric.com${productUrl}`;
+    // Playwright resolves relative paths against baseURL from config
   }
 
   // Navigate to Product Detail page
@@ -99,12 +99,6 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   let releaseDetailUrl: string;
 
   // Login before every test — same pattern as create-new-release.spec.ts
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── RELEASE-HEADER-001 ────────────────────────────────────────────────────
   test('should load Release Detail page with breadcrumb showing Home > Product > Release', async ({
     page, landingPage, releaseDetailPage,

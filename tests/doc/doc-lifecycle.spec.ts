@@ -18,21 +18,13 @@ import * as allure from 'allure-js-commons';
 
 // ── Seed URLs ─────────────────────────────────────────────────────────────────
 const CONTROLS_SCOPING_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
 const COMPLETED_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── TC-LIFECYCLE-001 ──────────────────────────────────────────────────────
   test('should show Cancel DOC button for privileged user on a Controls Scoping DOC',
     async ({ page, docDetailsPage }) => {
@@ -544,7 +536,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC in Risk Assessment stage', async () => {
         await page.goto(RA_DOC_URL);
@@ -588,7 +580,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC in Risk Assessment stage', async () => {
         await page.goto(RA_DOC_URL);
@@ -627,7 +619,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC in Risk Assessment stage', async () => {
         await page.goto(RA_DOC_URL);
@@ -667,7 +659,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC (DOC 538)', async () => {
         await page.goto(RA_DOC_URL);
@@ -693,7 +685,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC', async () => {
         await page.goto(RA_DOC_URL);
@@ -725,7 +717,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC (DOC 538)', async () => {
         await page.goto(RA_DOC_URL);
@@ -788,7 +780,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
 
       // Try DOC 538 which may have CwE decision
       const CWE_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC (DOC 538)', async () => {
         await page.goto(CWE_DOC_URL);
@@ -835,7 +827,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
 
       // Search for a DOC with Waiver decision — use DOC 538 or skip
       const WAIVER_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC', async () => {
         await page.goto(WAIVER_DOC_URL);
@@ -880,7 +872,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC (DOC 538)', async () => {
         await page.goto(RA_DOC_URL);
@@ -977,7 +969,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const CANCELLED_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=274&ProductId=898';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=274&ProductId=898';
 
       await test.step('Navigate to Cancelled DOC (DOC 274)', async () => {
         await page.goto(CANCELLED_DOC_URL);
@@ -1049,7 +1041,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC (DOC 538)', async () => {
         await page.goto(RA_DOC_URL);
@@ -1085,7 +1077,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
       );
 
       const RA_DOC_URL =
-        'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+        '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
       await test.step('Navigate to DOC (DOC 538)', async () => {
         await page.goto(RA_DOC_URL);

@@ -77,14 +77,6 @@ async function navigateToUsersManagement(
 
 test.describe.serial('Products / Users Management @regression', () => {
   test.setTimeout(300_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // -------------------------------------------------------------------------
   // PRODUCT-LEAP-001
   // -------------------------------------------------------------------------

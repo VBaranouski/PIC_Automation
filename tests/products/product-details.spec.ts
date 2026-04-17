@@ -201,14 +201,6 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
 
   let productName: string;
   let productUrl: string;
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should display product detail header with name, ID, status, and action links', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('critical');
@@ -707,14 +699,6 @@ test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regressi
 // ────────────────────────────────────────────────────────────────────────────
 test.describe('Product Details - Digital Offer Certification Tab @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should display Digital Offer Certification tab on a Digital Offer product @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - Digital Offer Certification');
     await allure.severity('normal');
@@ -726,7 +710,7 @@ test.describe('Product Details - Digital Offer Certification Tab @regression', (
     );
 
     await test.step('Navigate to Digital Offer product', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
       await newProductPage.expectProductDetailLoaded();
     });
 
@@ -746,7 +730,7 @@ test.describe('Product Details - Digital Offer Certification Tab @regression', (
     );
 
     await test.step('Navigate to Digital Offer product', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
       await newProductPage.expectProductDetailLoaded();
     });
 

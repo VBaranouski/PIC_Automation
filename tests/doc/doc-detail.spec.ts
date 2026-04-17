@@ -18,14 +18,6 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-DETAIL-001 ────────────────────────────────────────────────────────
   test('should show breadcrumb with clickable Home and Product Name links', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
@@ -175,7 +167,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
     );
 
     const completedDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
     await test.step('Navigate to a completed DOC (Annual review — DOCId=273)', async () => {
       await page.goto(completedDocUrl);
@@ -217,7 +209,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
     );
 
     const completedDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
     await test.step('Navigate to completed DOC (Annual review — DOCId=273)', async () => {
       await page.goto(completedDocUrl);
@@ -259,7 +251,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
     );
 
     const completedDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
     await test.step('Navigate to a completed DOC that has an associated release', async () => {
       await page.goto(completedDocUrl);
@@ -380,7 +372,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
 
     // Use a known cancelled DOC in QA environment
     const cancelledDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=274&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=274&ProductId=898';
 
     await test.step('Navigate to a cancelled DOC', async () => {
       await page.goto(cancelledDocUrl);
@@ -419,7 +411,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
 
     // Use a completed DOC that shows all 6 tabs
     const completedDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
     await test.step('Navigate to a completed DOC that shows all 6 tabs', async () => {
       await page.goto(completedDocUrl);
@@ -481,7 +473,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
 
     // Use a known DOC in Actions Closure with a Waiver decision (if available)
     const actionsClosureDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
     await test.step('Navigate to a DOC in Actions Closure stage', async () => {
       await page.goto(actionsClosureDocUrl);

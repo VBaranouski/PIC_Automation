@@ -55,14 +55,6 @@ test.describe.serial('Releases - Create New Release (PIC-100) @regression', () =
 
   let productUrl: string;
   let productName: string;
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should show required validation when trying to create the first release without mandatory fields', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Releases');
     await allure.severity('normal');
@@ -211,14 +203,6 @@ test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression'
 
   // Shared product URL — discovered once by the first test in the serial block
   let noReleaseProductUrl = '';
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── RELEASE-CREATE-003 ────────────────────────────────────────────────────
   test('should show Release Type radio buttons with "New Product Release" selected by default', async ({
     page, landingPage, newProductPage,

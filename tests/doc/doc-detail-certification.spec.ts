@@ -95,14 +95,6 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	// so serial mode is NOT used here — it would cause cascade-skips when
 	// running a subset of tests with --grep.
 	test.setTimeout(240_000);
-
-	test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-		await loginPage.goto();
-		await loginPage.waitForPageLoad();
-		await loginPage.login(userCredentials.login, userCredentials.password);
-		await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-	});
-
 	test('should display the Certification Decision tab for eligible DOC stages', async ({
 		page,
 		landingPage,
@@ -526,7 +518,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		);
 
 		const actionsClosureUrl =
-			'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+			'/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 		await test.step('Navigate to the Actions Closure DOC', async () => {
 			await page.goto(actionsClosureUrl);
@@ -552,7 +544,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		);
 
 		const completedDocUrl =
-			'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+			'/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 		await test.step('Navigate to the Completed DOC', async () => {
 			await page.goto(completedDocUrl);
@@ -833,7 +825,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			);
 
 			const CERT_DOC_URL =
-				'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+				'/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 			await test.step('Navigate to DOC and open Certification Decision tab', async () => {
 				await page.goto(CERT_DOC_URL);
@@ -884,7 +876,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			);
 
 			const CERT_DOC_URL =
-				'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+				'/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 			await test.step('Navigate to DOC and open Certification Decision tab', async () => {
 				await page.goto(CERT_DOC_URL);
@@ -950,7 +942,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			);
 
 			const CERT_DOC_URL =
-				'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+				'/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 			await test.step('Navigate to DOC and open Certification Decision tab', async () => {
 				await page.goto(CERT_DOC_URL);
@@ -981,7 +973,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			);
 
 			const CERT_DOC_URL =
-				'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+				'/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 			await test.step('Navigate to DOC', async () => {
 				await page.goto(CERT_DOC_URL);
@@ -1011,7 +1003,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			);
 
 			const COMPLETED_DOC_URL =
-				'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+				'/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 			await test.step('Navigate to Completed DOC', async () => {
 				await page.goto(COMPLETED_DOC_URL);
@@ -1041,7 +1033,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			);
 
 			const COMPLETED_DOC_URL =
-				'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+				'/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 			await test.step('Navigate to Completed DOC', async () => {
 				await page.goto(COMPLETED_DOC_URL);

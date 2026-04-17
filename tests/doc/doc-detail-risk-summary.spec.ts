@@ -79,14 +79,6 @@ async function openDocWithRiskSummaryTab(
 test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	test.describe.configure({ mode: 'serial' });
 	test.setTimeout(240_000);
-
-	test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-		await loginPage.goto();
-		await loginPage.waitForPageLoad();
-		await loginPage.login(userCredentials.login, userCredentials.password);
-		await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-	});
-
 	test('should display the four Risk Summary sections', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.description(
@@ -394,7 +386,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		);
 
 		// Use the seed DOC which may use "Other Release" (not linked to existing release)
-		const seedDocUrl = 'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+		const seedDocUrl = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 		await test.step('Navigate to DOC and switch to Risk Summary', async () => {
 			await page.goto(seedDocUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });

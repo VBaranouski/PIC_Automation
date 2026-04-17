@@ -9,14 +9,6 @@ import * as allure from 'allure-js-commons';
 
 test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── LANDING-DOCS-001 ──────────────────────────────────────────────────────
   test('should show My DOCs tab visible on the Landing Page', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');

@@ -95,14 +95,6 @@ async function findProductWithoutReleases(
 
 test.describe('Product Details - Releases Tab @regression', () => {
   test.setTimeout(300_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should display releases grid with at least one row for a product with existing releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('critical');

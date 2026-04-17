@@ -55,7 +55,6 @@ function isSameCalendarDay(timestamp: number, target: Date): boolean {
 }
 
 test.describe('DOC - DOC History (11.12) @regression', () => {
-  test.describe.configure({ mode: 'serial' });
   test.setTimeout(180_000);
 
   let docDetailsUrl: string;
@@ -63,14 +62,6 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-HISTORY-001 ───────────────────────────────────────────────────────
   test('should open the DOC History popup when View History link is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');

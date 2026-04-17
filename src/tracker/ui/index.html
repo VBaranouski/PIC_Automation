@@ -448,11 +448,11 @@ const WORKFLOW_ORDER = [
   'Release — Stage 6: Post FCSR Actions',
   'Release — Stage 7: Final Acceptance',
   'Digital Offer Certification (DOC)',
-  'Data Protection & Privacy (DPP) Review',
-  'Actions Management',
   'Roles Delegation',
-  'Stage Sidebar & Responsible Users',
+  'Actions Management',
   'Release History',
+  'Stage Sidebar & Responsible Users',
+  'Data Protection & Privacy (DPP) Review',
   'Reports & Dashboards (Tableau Integration)',
   'Maintenance Mode',
   'Requirements Versioning: BackOffice Administration',
@@ -460,6 +460,33 @@ const WORKFLOW_ORDER = [
   'Integration: Data Ingestion API',
   'Integration: Intel DS / Informatica (Training Completion)',
 ];
+
+// ── Filter persistence (localStorage) ─────────────────────────────────────────
+const FILTER_STORAGE_KEY = 'tracker-filter-state';
+
+function saveFilterState() {
+  const state = {
+    search: document.getElementById('search').value,
+    priority: document.getElementById('filterPriority').value,
+    area: document.getElementById('filterArea').value,
+    autoState: activeStatusFilter || '',
+    execStatus: activeExecutionStatusFilter || '',
+  };
+  try { localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function restoreFilterState() {
+  try {
+    const raw = localStorage.getItem(FILTER_STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.search) document.getElementById('search').value = state.search;
+    if (state.priority) document.getElementById('filterPriority').value = state.priority;
+    if (state.area) document.getElementById('filterArea').value = state.area;
+    if (state.autoState) activeStatusFilter = state.autoState;
+    if (state.execStatus) activeExecutionStatusFilter = state.execStatus;
+  } catch {}
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
@@ -482,6 +509,7 @@ async function init() {
   existingScenarioIds = new Set(allScenarioItems.map(s => String(s.id || '').trim()).filter(Boolean));
   workflowOptions = buildWorkflowOptions(await api('/workflows'));
   populateFilterDropdowns();
+  restoreFilterState();
   updateHeaderNav();
   await refreshDashboard();
   await refreshWorkflows();
@@ -758,6 +786,7 @@ function closeSupportModal() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function refreshWorkflows() {
+  saveFilterState();
   const params = new URLSearchParams();
   const search = document.getElementById('search').value.trim();
   if (search) params.set('search', search);
@@ -1388,18 +1417,19 @@ function runSubsection(wfIdx, subIdx) {
   if (!sub) return;
   const files = collectSpecFiles(sub.items);
   if (!files.length) { toast('No spec files linked in this subsection', 'error'); return; }
-  if (files.length !== 1) {
-    startRun(files);
-    return;
-  }
 
   (async () => {
     try {
-      const resp = await api('/run/resolve-subsection', {
-        method: 'POST',
-        body: JSON.stringify({ subsection: sub.name, specFile: files[0] }),
-      });
-      startRun(files, resp?.grep || '', resp?.project || 'auto');
+      if (files.length === 1) {
+        // Single spec file — try to resolve to a describe-level grep
+        const resp = await api('/run/resolve-subsection', {
+          method: 'POST',
+          body: JSON.stringify({ subsection: sub.name, specFile: files[0] }),
+        });
+        startRun(files, resp?.grep || '', resp?.project || 'auto');
+      } else {
+        startRun(files);
+      }
     } catch {
       startRun(files);
     }

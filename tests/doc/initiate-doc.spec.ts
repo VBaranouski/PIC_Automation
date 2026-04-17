@@ -99,15 +99,6 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   test.setTimeout(360_000);
 
   let docDetailsUrl: string;
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    // OutSystems redirect is slow — wait for landing page to settle before proceeding
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ---------------------------------------------------------------------------
   // DOC-INIT-001 (smoke) — Create product with Digital Offer, initiate DOC,
   //                   verify status transitions to "Controls Scoping"

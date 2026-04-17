@@ -5,10 +5,8 @@ import * as allure from 'allure-js-commons';
 test.describe('Landing Page @smoke', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
@@ -61,10 +59,8 @@ test.describe('Landing Page @smoke', () => {
 test.describe('Landing Page - My Tasks Tab @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
@@ -180,10 +176,8 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
 test.describe('Landing Page - My Products Tab @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Products');
   });
@@ -254,10 +248,8 @@ test.describe('Landing Page - My Products Tab @regression', () => {
 test.describe('Landing Page - My Releases Tab @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Releases');
   });
@@ -325,10 +317,8 @@ test.describe('Landing Page - My Releases Tab @regression', () => {
 test.describe('Landing Page - My DOCs Tab @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My DOCs');
   });
@@ -377,10 +367,8 @@ test.describe('Landing Page - My DOCs Tab @regression', () => {
 test.describe('Landing Page - Reports & Dashboards Tab @regression', () => {
   test.setTimeout(90_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('Reports & Dashboards');
   });

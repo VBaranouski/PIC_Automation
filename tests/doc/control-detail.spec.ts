@@ -21,14 +21,6 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-CONTROL-001 ───────────────────────────────────────────────────────
   test('should navigate to Control Detail page via ITS Checklist Control ID link', async ({
     page, docDetailsPage, controlDetailPage,
@@ -179,7 +171,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
       );
 
       await test.step('Navigate to DOC 538 and open ITS Checklist tab', async () => {
-        await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+        await page.goto('/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
         await docDetailsPage.waitForOSLoad();
         await docDetailsPage.clickITSChecklistTab();
       });
@@ -305,7 +297,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
         if (laterStageControlUrl) {
           await page.goto(laterStageControlUrl);
         } else {
-          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+          await page.goto('/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
           await docDetailsPage.waitForOSLoad();
           await docDetailsPage.clickITSChecklistTab();
           const hasControls = await docDetailsPage.hasITSControls();
@@ -335,7 +327,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
         if (laterStageControlUrl) {
           await page.goto(laterStageControlUrl);
         } else {
-          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+          await page.goto('/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
           await docDetailsPage.waitForOSLoad();
           await docDetailsPage.clickITSChecklistTab();
           const hasControls = await docDetailsPage.hasITSControls();
@@ -365,7 +357,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
         if (laterStageControlUrl) {
           await page.goto(laterStageControlUrl);
         } else {
-          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
+          await page.goto('/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944');
           await docDetailsPage.waitForOSLoad();
           await docDetailsPage.clickITSChecklistTab();
           const hasControls = await docDetailsPage.hasITSControls();
@@ -399,7 +391,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
       );
 
       await test.step('Navigate to Completed DOC 273 and open ITS Checklist tab', async () => {
-        await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898');
+        await page.goto('/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898');
         await docDetailsPage.waitForOSLoad();
         await docDetailsPage.clickITSChecklistTab();
       });
@@ -435,7 +427,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
       await test.step('Navigate to Control Detail via Completed DOC 273', async () => {
         if (!completedDocControlUrl) {
           // Re-navigate when running this test in isolation
-          await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898');
+          await page.goto('/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898');
           await docDetailsPage.waitForOSLoad();
           await docDetailsPage.clickITSChecklistTab();
           const hasControls = await docDetailsPage.hasITSControls();
@@ -468,7 +460,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
 
     // Use a DOC in Risk Assessment stage with controls that have findings
     const riskAssessmentDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
     await test.step('Navigate to DOC in Risk Assessment stage and open ITS Checklist', async () => {
       await page.goto(riskAssessmentDocUrl);
@@ -511,7 +503,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
 
     // Use a DOC in Actions Closure or later stage
     const actionsClosureDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
     await test.step('Navigate to DOC and open ITS Checklist', async () => {
       await page.goto(actionsClosureDocUrl);
@@ -554,7 +546,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
 
     // Use a DOC where DOCL has access
     const doclDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
     await test.step('Navigate to DOC and open ITS Checklist', async () => {
       await page.goto(doclDocUrl);

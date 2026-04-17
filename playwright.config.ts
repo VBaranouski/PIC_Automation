@@ -8,6 +8,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 const environment = getEnvironment(process.env.TEST_ENV);
 const projectRoot = __dirname;
 
+/** Persisted auth state — written by tests/auth/auth.setup.ts, consumed by all browser projects */
+const AUTH_FILE = path.join(projectRoot, '.auth/user.json');
+
 const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const exactSpec = (...segments: string[]): RegExp => new RegExp(segments.map(escapeRegex).join('[\\\\/]') + '$');
 
@@ -34,6 +37,7 @@ export default defineConfig({
 
 	use: {
 		baseURL: process.env.BASE_URL || environment.baseUrl,
+		storageState: AUTH_FILE,
 		trace: 'retain-on-failure',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',
@@ -48,6 +52,7 @@ export default defineConfig({
 			testMatch: /.*\.setup\.ts/,
 			// Exclude the DOC-specific state setup — it has its own project with dependencies
 			testIgnore: [exactSpec('tests', 'doc', 'doc-state.setup.ts')],
+			use: { storageState: undefined },
 		},
 		{
 			name: 'release-detail-header',
@@ -136,21 +141,25 @@ export default defineConfig({
 			name: 'doc-detail-actions',
 			testMatch: exactSpec('tests', 'doc', 'doc-detail-actions.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
 		},
 		{
 			name: 'doc-detail-risk-summary',
 			testMatch: exactSpec('tests', 'doc', 'doc-detail-risk-summary.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
 		},
 		{
 			name: 'doc-detail-certification',
 			testMatch: exactSpec('tests', 'doc', 'doc-detail-certification.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
 		},
 		{
 			name: 'doc-lifecycle',
 			testMatch: exactSpec('tests', 'doc', 'doc-lifecycle.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
 		},
 		{
 			name: 'doc-release-linkage',
@@ -162,6 +171,7 @@ export default defineConfig({
 		{
 			name: 'tracker',
 			testMatch: /[\\/]tests[\\/]tracker[\\/].*\.test\.ts$/,
+			use: { storageState: undefined },
 		},
 		// ────────────────────────────────────────────────────────────────────────────────
 		{

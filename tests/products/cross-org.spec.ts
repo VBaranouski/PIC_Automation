@@ -25,7 +25,7 @@ import * as allure from 'allure-js-commons';
 async function createCrossOrgTestProduct(newProductPage: NewProductPage, page: Page): Promise<string> {
   const productName = `Cross-Org Test ${Date.now()}`;
 
-  await page.goto(`https://qa.leap.schneider-electric.com${newProductPage.url}`, {
+  await page.goto(newProductPage.url, {
     waitUntil: 'domcontentloaded',
   });
   await newProductPage.expectNewProductFormLoaded();
@@ -80,14 +80,6 @@ let testProductUrl = '';
 
 test.describe.serial('Cross-Organizational Development @regression', () => {
   test.setTimeout(360_000);
-
-  test.beforeEach(async ({ loginPage, userCredentials, page }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ─── Setup ────────────────────────────────────────────────────────────────────
 
   test('CROSS-ORG-000: Create test product for Cross-Org tests', async ({ newProductPage, page }) => {

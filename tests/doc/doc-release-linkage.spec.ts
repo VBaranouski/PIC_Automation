@@ -30,14 +30,6 @@ test.describe('DOC - Release Linkage (11.16) @regression', () => {
   test.beforeAll(() => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── ATC-11.16.1 ──────────────────────────────────────────────────────────
   test('ATC-11.16.1 — DOC Detail header shows a Release label with non-empty value', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / Release Linkage');

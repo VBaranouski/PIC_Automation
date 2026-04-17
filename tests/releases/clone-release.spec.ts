@@ -208,14 +208,6 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
 
   let productWithReleaseUrl = '';
   let cloneContext: CloneReleaseContext | null = null;
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   test('should show Clone option in My Releases actions menu', async ({ landingPage }) => {
     await allure.suite('Releases');
     await allure.severity('normal');

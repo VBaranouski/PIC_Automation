@@ -8,10 +8,8 @@ import * as allure from 'allure-js-commons';
 test.describe('Landing Page - My Products Advanced Navigation @regression', () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Products');
     await landingPage.waitForGridDataRows();
@@ -40,7 +38,7 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     });
 
     await test.step('Click the Latest Release link', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com' + latestReleaseHref!);
+      await page.goto(latestReleaseHref!);
     });
 
     await test.step('Verify navigation to Release Detail page', async () => {
@@ -139,10 +137,8 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
 test.describe('Landing Page - My Products Advanced Filters @regression', () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
     await landingPage.clickTab('My Products');
     await landingPage.waitForGridDataRows();

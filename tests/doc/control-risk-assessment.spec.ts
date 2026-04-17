@@ -18,24 +18,16 @@ import * as allure from 'allure-js-commons';
 
 // ── Seed URLs ─────────────────────────────────────────────────────────────────
 const RA_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 const SCOPING_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
 const COMPLETED_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
   test.setTimeout(180_000);
-
-  test.beforeEach(async ({ page, loginPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
-    await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
-  });
-
   // ── DOC-CTRL-RA-001 ──────────────────────────────────────────────────────
   test('should show additional RA columns (Status, Risk Level, Findings) during Risk Assessment',
     async ({ page, docDetailsPage }) => {

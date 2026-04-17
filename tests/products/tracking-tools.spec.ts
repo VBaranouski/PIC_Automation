@@ -24,15 +24,13 @@ import * as allure from 'allure-js-commons';
  */
 
 const PRODUCT_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1133';
+  '/GRC_PICASso/ProductDetail?ProductId=1133';
 
 test.describe.serial('Product Configuration — Tracking Tools @regression', () => {
   test.setTimeout(180_000);
 
-  test.beforeEach(async ({ loginPage, userCredentials, landingPage }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 

@@ -815,10 +815,8 @@ test.describe.serial('Releases - Requirement Status Updates @regression', () => 
     }
   });
 
-  test.beforeEach(async ({ loginPage, landingPage, userCredentials }) => {
-    await loginPage.goto();
-    await loginPage.waitForPageLoad();
-    await loginPage.login(userCredentials.login, userCredentials.password);
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 

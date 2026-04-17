@@ -4,6 +4,9 @@ import * as allure from 'allure-js-commons';
 test.describe('Authentication - Login @smoke', () => {
   test.setTimeout(90_000);
 
+  // Auth tests must start unauthenticated — override the global storageState
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.goto();
     await loginPage.waitForPageLoad();
