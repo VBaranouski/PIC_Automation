@@ -25,7 +25,7 @@ import * as allure from 'allure-js-commons';
 async function createCrossOrgTestProduct(newProductPage: NewProductPage, page: Page): Promise<string> {
   const productName = `Cross-Org Test ${Date.now()}`;
 
-  await page.goto(`https://qa.leap.schneider-electric.com${newProductPage.url}`, {
+  await page.goto(newProductPage.url, {
     waitUntil: 'domcontentloaded',
   });
   await newProductPage.expectNewProductFormLoaded();

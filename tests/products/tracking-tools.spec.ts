@@ -24,7 +24,7 @@ import * as allure from 'allure-js-commons';
  */
 
 const PRODUCT_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1133';
+  '/GRC_PICASso/ProductDetail?ProductId=1133';
 
 test.describe.serial('Product Configuration — Tracking Tools @regression', () => {
   test.setTimeout(180_000);

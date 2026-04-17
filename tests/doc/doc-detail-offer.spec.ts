@@ -540,7 +540,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
 
     // Use a completed DOC to verify VESTA ID is read-only
     const completedDocUrl =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
     await test.step('Navigate to a completed DOC and open Digital Offer Details', async () => {
       await page.goto(completedDocUrl);

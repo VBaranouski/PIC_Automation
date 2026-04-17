@@ -696,7 +696,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
 
     // Use a Controls Scoping DOC where Descope is available
     const SCOPING_DOC_URL =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
     await test.step('Navigate to Controls Scoping DOC and open ITS Checklist', async () => {
       await page.goto(SCOPING_DOC_URL);
@@ -766,7 +766,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
     );
 
     const SCOPING_DOC_URL =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
     await test.step('Navigate to Controls Scoping DOC and open ITS Checklist', async () => {
       await page.goto(SCOPING_DOC_URL);
@@ -807,7 +807,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
     );
 
     const COMPLETED_DOC_URL =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
     await test.step('Navigate to Completed DOC and open ITS Checklist', async () => {
       await page.goto(COMPLETED_DOC_URL);
@@ -844,7 +844,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
     );
 
     const SCOPING_DOC_URL =
-      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
+      '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
     await test.step('Navigate to Controls Scoping DOC', async () => {
       await page.goto(SCOPING_DOC_URL);

@@ -26,7 +26,7 @@ const ACTION_PLAN_STATUSES = [
  * A known-good DOC that exposes the Action Plan tab in the QA environment.
  * Used as the first candidate before falling back to grid discovery.
  */
-const KNOWN_ACTION_PLAN_DOC = 'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+const KNOWN_ACTION_PLAN_DOC = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 /** Cached result — shared across all serial tests in this file. */
 let cachedDocUrl: string | null | undefined = undefined; // undefined = not yet searched
@@ -588,7 +588,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		);
 
 		// Use the seed DOC which may have no actions in a fresh environment
-		const seedDocUrl = 'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+		const seedDocUrl = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 		await test.step('Navigate to DOC and switch to Action Plan', async () => {
 			await page.goto(seedDocUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });

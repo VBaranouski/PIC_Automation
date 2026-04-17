@@ -386,7 +386,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		);
 
 		// Use the seed DOC which may use "Other Release" (not linked to existing release)
-		const seedDocUrl = 'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+		const seedDocUrl = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 		await test.step('Navigate to DOC and switch to Risk Summary', async () => {
 			await page.goto(seedDocUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });

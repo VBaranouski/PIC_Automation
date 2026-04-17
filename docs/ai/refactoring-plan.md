@@ -49,61 +49,58 @@ Remove redundant `beforeEach` login blocks from all 49 spec files. Two patterns:
 
 ---
 
-## Phase 2 — Split `DocDetailsPage` ⬜ PENDING
+## Phase 2 — Split `DocDetailsPage` ✅ DONE
 
-`src/pages/doc-details.page.ts` is ~1,737 lines. Split into tab-specific component classes.
+`src/pages/doc-details.page.ts` was 1,738 lines. Split into 7 tab-specific component classes.
 
-### Target structure
+### Actual structure
 ```
 src/pages/doc-details/
-  index.ts                    # Re-exports DocDetailsPage (main entry)
-  doc-details.page.ts         # Header, status badge, top-level nav only (~200 lines)
   tabs/
-    offer.tab.ts              # Offer tab methods
-    roles.tab.ts              # Roles tab methods
-    its.tab.ts                # ITS tab methods
-    risk-summary.tab.ts       # Risk Summary tab methods
-    certification.tab.ts      # Certification tab methods
-    actions.tab.ts            # Actions tab methods
-    history.tab.ts            # History tab methods
-  helpers/
-    click-tab-with-retry.ts   # `clickTabWithRetry(page, tabName)` helper
-    expect-column-headers.ts  # `expectColumnHeaders(page, headers[])` helper
+    index.ts                  # Barrel re-export for all tabs
+    offer.tab.ts              # 233 lines — Digital Offer Details tab
+    roles.tab.ts              # 138 lines — Roles & Responsibilities tab
+    its.tab.ts                # 246 lines — ITS Checklist tab
+    actions.tab.ts            # 122 lines — Action Plan tab
+    risk-summary.tab.ts       #  87 lines — Risk Summary tab
+    history.tab.ts            # 221 lines — View History dialog
+    certification.tab.ts      # 284 lines — Certification Decision tab
+src/pages/doc-details.page.ts # 509 lines — core + lazy tab composition + delegation
 ```
 
 ### Tasks
-- [ ] Extract `clickTabWithRetry` and `expectColumnHeaders` into helpers
-- [ ] Create tab component classes (one per tab)
-- [ ] Update `DocDetailsPage` to compose tab classes
-- [ ] Update all spec imports (no breaking changes — re-export from index)
-- [ ] Typecheck passes after split
+- [x] Create 7 tab component classes (one per tab)
+- [x] Update `DocDetailsPage` to compose tabs via lazy getters
+- [x] Add backward-compatible delegation methods (zero test changes)
+- [x] Typecheck passes — 0 new errors introduced
 
 ---
 
-## Phase 3 — Split `src/tracker/operations.ts` ⬜ PENDING
+## Phase 3 — Split `src/tracker/operations.ts` ✅ DONE
 
-`operations.ts` is ~1,085 lines. Split into focused modules.
+Split 1084-line `operations.ts` into 6 focused modules + thin re-export shim.
 
-### Target structure
+### Actual structure
 ```
 src/tracker/
-  crud.ts           # listScenarios, getScenario, upsertScenario, deleteScenario
-  sync.ts           # syncWithSpecFiles, markStaleAsHold
-  spec-parser.ts    # parseSpecFile, extractScenarioIds, getSpecRunTargets
-  stats.ts          # getStats, getFeatureAreaStats, getAutomationSummary
-  import-export.ts  # importFromJson, exportToJson, exportToCsv
-  operations.ts     # Thin re-export shim (backwards compat)
+  helpers.ts       (73L)  — shared utilities, WORKFLOW_ORDER, normalizers
+  spec-parser.ts   (324L) — TS AST parsing, spec file scanning, import candidates
+  crud.ts          (391L) — CRUD, validation, groups, scenario details, upsert
+  sync.ts          (246L) — spec file reconciliation, detail syncing
+  stats.ts         (52L)  — aggregated statistics queries
+  import-export.ts (118L) — JSON import/export, spec-based import
+  operations.ts    (105L) — thin re-export shim (backwards compat)
 ```
 
 ### Tasks
-- [ ] Extract CRUD functions into `crud.ts`
-- [ ] Extract sync logic into `sync.ts`
-- [ ] Extract spec-parsing helpers into `spec-parser.ts`
-- [ ] Extract stats functions into `stats.ts`
-- [ ] Extract import/export into `import-export.ts`
-- [ ] Update `operations.ts` to re-export everything (no breaking changes for CLI/UI)
-- [ ] Fix `upsertScenario()` to also update `scenario_details` rows (currently inserts only)
-- [ ] Typecheck passes after split
+- [x] Extract CRUD functions into `crud.ts`
+- [x] Extract sync logic into `sync.ts`
+- [x] Extract spec-parsing helpers into `spec-parser.ts`
+- [x] Extract stats functions into `stats.ts`
+- [x] Extract import/export into `import-export.ts`
+- [x] Update `operations.ts` to re-export everything (no breaking changes for CLI/UI)
+- [x] Fix `upsertScenario()` to also update `scenario_details` rows (previously insert-only)
+- [x] Typecheck passes after split
 
 ---
 

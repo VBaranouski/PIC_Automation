@@ -460,7 +460,7 @@ test.describe('Product Details - View History @regression', () => {
     let createdProduct!: { productName: string; productId: string };
 
     await test.step('Open the New Product form directly', async () => {
-      await page.goto(`https://qa.leap.schneider-electric.com${newProductPage.url}`, { waitUntil: 'domcontentloaded' });
+      await page.goto(newProductPage.url, { waitUntil: 'domcontentloaded' });
       await newProductPage.expectNewProductFormLoaded();
     });
 

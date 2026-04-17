@@ -57,7 +57,7 @@ async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promi
     const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
     productUrl = await link.getAttribute('href') ?? null;
     if (!productUrl) throw new Error('No product links found on My Products tab');
-    if (!productUrl.startsWith('http')) productUrl = `https://qa.leap.schneider-electric.com${productUrl}`;
+    // Playwright resolves relative paths against baseURL from config
   }
 
   // Navigate to Product Detail page

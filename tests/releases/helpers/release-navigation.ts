@@ -3,7 +3,7 @@ import type { LandingPage } from '../../../src/pages';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const QA_BASE_URL = 'https://qa.leap.schneider-electric.com';
+import { buildUrl } from '../../../src/helpers/url.helper';
 
 async function waitForHealthyReleaseDetail(page: Page, timeout = 60_000): Promise<string> {
   await page.waitForURL(/ReleaseDetail/, { timeout });
@@ -105,7 +105,7 @@ async function navigateFromProductReleases(page: Page, landingPage: LandingPage)
     }
 
     if (!productUrl.startsWith('http')) {
-      productUrl = `${QA_BASE_URL}${productUrl}`;
+      productUrl = buildUrl(productUrl);
     }
   }
 
@@ -189,7 +189,7 @@ export async function findPreQuestionnaireRelease(
       continue;
     }
 
-    candidateUrls.push(href.startsWith('http') ? href : `${QA_BASE_URL}${href}`);
+    candidateUrls.push(href.startsWith('http') ? href : buildUrl(href));
   }
 
   const failures: string[] = [];
@@ -324,7 +324,7 @@ export async function findPostReviewConfirmRelease(
       continue;
     }
 
-    candidateUrls.push(href.startsWith('http') ? href : `${QA_BASE_URL}${href}`);
+    candidateUrls.push(href.startsWith('http') ? href : buildUrl(href));
   }
 
   for (const candidateUrl of candidateUrls) {
@@ -461,7 +461,7 @@ export async function findManageStageRelease(
       continue;
     }
 
-    candidateUrls.push(href.startsWith('http') ? href : `${QA_BASE_URL}${href}`);
+    candidateUrls.push(href.startsWith('http') ? href : buildUrl(href));
   }
 
   for (const candidateUrl of candidateUrls) {

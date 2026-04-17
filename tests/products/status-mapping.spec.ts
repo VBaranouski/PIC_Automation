@@ -15,7 +15,7 @@ import * as allure from 'allure-js-commons';
  * Spec file:      products/status-mapping.spec.ts
  */
 
-const PRODUCT_URL = 'https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162';
+const PRODUCT_URL = '/GRC_PICASso/ProductDetail?ProductId=1162';
 
 async function openProductDetail(page: Page, newProductPage: { expectProductDetailLoaded(): Promise<void> }): Promise<void> {
   await page.goto(PRODUCT_URL);

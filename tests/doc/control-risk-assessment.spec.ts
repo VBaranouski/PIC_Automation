@@ -18,13 +18,13 @@ import * as allure from 'allure-js-commons';
 
 // ── Seed URLs ─────────────────────────────────────────────────────────────────
 const RA_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 const SCOPING_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
 const COMPLETED_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
   test.setTimeout(180_000);

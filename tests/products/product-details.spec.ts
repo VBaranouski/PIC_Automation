@@ -710,7 +710,7 @@ test.describe('Product Details - Digital Offer Certification Tab @regression', (
     );
 
     await test.step('Navigate to Digital Offer product', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
       await newProductPage.expectProductDetailLoaded();
     });
 
@@ -730,7 +730,7 @@ test.describe('Product Details - Digital Offer Certification Tab @regression', (
     );
 
     await test.step('Navigate to Digital Offer product', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
       await newProductPage.expectProductDetailLoaded();
     });
 

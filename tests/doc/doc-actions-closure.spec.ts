@@ -13,10 +13,10 @@ import * as allure from 'allure-js-commons';
 
 // ── Seed URLs ─────────────────────────────────────────────────────────────────
 const ACTIONS_CLOSURE_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
 const COMPLETED_DOC_URL =
-  'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+  '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
 test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
   test.setTimeout(180_000);

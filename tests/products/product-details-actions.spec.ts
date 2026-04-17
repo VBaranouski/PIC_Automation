@@ -22,7 +22,7 @@ test.describe('Product Details - Actions Management @regression', () => {
     );
 
     await test.step('Navigate to product detail page', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
       await newProductPage.expectProductDetailLoaded();
     });
 
@@ -46,7 +46,7 @@ test.describe('Product Details - Actions Management @regression', () => {
     );
 
     await test.step('Navigate to product detail and click Actions Management', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com/GRC_PICASso/ProductDetail?ProductId=1162');
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
       await newProductPage.expectProductDetailLoaded();
       await newProductPage.clickActionsManagement();
     });

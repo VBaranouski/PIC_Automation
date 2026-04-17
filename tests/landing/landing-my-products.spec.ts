@@ -38,7 +38,7 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     });
 
     await test.step('Click the Latest Release link', async () => {
-      await page.goto('https://qa.leap.schneider-electric.com' + latestReleaseHref!);
+      await page.goto(latestReleaseHref!);
     });
 
     await test.step('Verify navigation to Release Detail page', async () => {
