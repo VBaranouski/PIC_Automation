@@ -10,6 +10,7 @@
  */
 import { test, expect } from '../../src/fixtures';
 import { readDocState } from '../../src/helpers/doc.helper';
+import { navigateWithSessionGuard } from '../../src/helpers/session.helper';
 import * as allure from 'allure-js-commons';
 
 test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
@@ -908,7 +909,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       const CONTROLS_SCOPING_DOC_URL = '/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162';
 
       await test.step('Navigate to Controls Scoping DOC (DOC 800)', async () => {
-        await page.goto(CONTROLS_SCOPING_DOC_URL);
+        await navigateWithSessionGuard(page, CONTROLS_SCOPING_DOC_URL);
         await docDetailsPage.waitForOSLoad();
       });
 
@@ -952,7 +953,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       );
 
       await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
-        await page.goto(docDetailsUrl);
+        await navigateWithSessionGuard(page, docDetailsUrl);
         await docDetailsPage.waitForOSLoad();
         await docDetailsPage.clickITSChecklistTab();
       });
@@ -975,6 +976,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
           .getByText(/No active ITS Controls/i)
           .or(page.getByRole('dialog').getByText(/no controls/i))
           .or(page.getByRole('dialog').getByText(/refer to the BackOffice/i))
+          .or(page.getByRole('dialog').getByText(/No results found/i))
           .first();
 
         const hasNoControlsMessage = await noControlsMessage.isVisible().catch(() => false);
@@ -1026,7 +1028,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       );
 
       await test.step('Navigate to the seed DOC ITS Checklist tab', async () => {
-        await page.goto(docDetailsUrl);
+        await navigateWithSessionGuard(page, docDetailsUrl);
         await docDetailsPage.waitForOSLoad();
         await docDetailsPage.clickITSChecklistTab();
       });
@@ -1108,7 +1110,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
 
       await test.step('Navigate to a Completed (read-only) DOC to simulate VIEW_DOC behaviour', async () => {
         // A Completed DOC is fully read-only — mimics the VIEW_DOC privilege perspective
-        await page.goto(COMPLETED_DOC_URL_STATIC);
+        await navigateWithSessionGuard(page, COMPLETED_DOC_URL_STATIC);
         await docDetailsPage.waitForOSLoad();
       });
 
