@@ -5,22 +5,22 @@
 
 ---
 
-## Phase 1a — Auth Storage State ⬜ PENDING
+## Phase 1a — Auth Storage State ✅ DONE
 
 Eliminate per-test UI login (5–10 s per test) by saving browser cookies once in a setup project and reusing them across all specs.
 
 ### Tasks
-- [ ] Create `tests/auth/auth.setup.ts` — saves `storageState` to `.auth/user.json`
-- [ ] Add `AUTH_FILE` constant to `playwright.config.ts`
-- [ ] Add `storageState: AUTH_FILE` to all 22 named projects in `playwright.config.ts`
-- [ ] Add `.auth/` to `.gitignore`
-- [ ] Add `dependencies: ['setup']` to 4 standalone DOC projects that previously had none:
+- [x] Create `tests/auth/auth.setup.ts` — saves `storageState` to `.auth/user.json`
+- [x] Add `AUTH_FILE` constant to `playwright.config.ts`
+- [x] Add `storageState: AUTH_FILE` to all 22 named projects in `playwright.config.ts`
+- [x] Add `.auth/` to `.gitignore`
+- [x] Add `dependencies: ['setup']` to 4 standalone DOC projects that previously had none:
   - `doc-detail-actions`, `doc-detail-risk-summary`, `doc-detail-certification`, `doc-lifecycle`
-- [ ] Validate: auth state file created (~30 KB), test navigates without redirect to `/Login`
+- [x] Validate: auth state file created (~30 KB), test navigates without redirect to `/Login`
 
 ---
 
-## Phase 1b — Remove Login Blocks from Spec Files ⬜ PENDING
+## Phase 1b — Remove Login Blocks from Spec Files ✅ DONE
 
 Remove redundant `beforeEach` login blocks from all 49 spec files. Two patterns:
 
@@ -38,14 +38,14 @@ Remove redundant `beforeEach` login blocks from all 49 spec files. Two patterns:
 - All `tests/releases/*.spec.ts` with landing navigation
 
 ### Tasks
-- [ ] Pattern A: Remove entire `beforeEach` block from 28 files
-- [ ] Pattern B: Strip login lines, keep `landingPage.goto()` in 21 files
-- [ ] Fix `tests/products/new-product-creation.spec.ts` — replace hardcoded URL with `newProductPage.goto()`
-- [ ] Remove leftover `userCredentials` from `beforeEach` params (16 files)
-- [ ] Keep `userCredentials` in `landing-my-tasks.spec.ts` (legitimate test-body use at line 355)
-- [ ] Remove `test.describe.configure({ mode: 'serial' })` from `doc-detail-actions.spec.ts` (read-only)
-- [ ] Remove `test.describe.configure({ mode: 'serial' })` from `doc-history.spec.ts` (read-only)
-- [ ] Set explicit `workers: 4` (with `WORKERS` env override) in `playwright.config.ts`
+- [x] Pattern A: Remove entire `beforeEach` block from 28 files
+- [x] Pattern B: Strip login lines, keep `landingPage.goto()` in 21 files
+- [x] Fix `tests/products/new-product-creation.spec.ts` — replace hardcoded URL with `newProductPage.goto()`
+- [x] Remove leftover `userCredentials` from `beforeEach` params (16 files)
+- [x] Keep `userCredentials` in `landing-my-tasks.spec.ts` (legitimate test-body use at line 355)
+- [x] Remove `test.describe.configure({ mode: 'serial' })` from `doc-detail-actions.spec.ts` (read-only)
+- [x] Remove `test.describe.configure({ mode: 'serial' })` from `doc-history.spec.ts` (read-only)
+- [x] Set explicit `workers: 4` (with `WORKERS` env override) in `playwright.config.ts`
 
 ---
 
