@@ -461,6 +461,33 @@ const WORKFLOW_ORDER = [
   'Integration: Intel DS / Informatica (Training Completion)',
 ];
 
+// ── Filter persistence (localStorage) ─────────────────────────────────────────
+const FILTER_STORAGE_KEY = 'tracker-filter-state';
+
+function saveFilterState() {
+  const state = {
+    search: document.getElementById('search').value,
+    priority: document.getElementById('filterPriority').value,
+    area: document.getElementById('filterArea').value,
+    autoState: activeStatusFilter || '',
+    execStatus: activeExecutionStatusFilter || '',
+  };
+  try { localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function restoreFilterState() {
+  try {
+    const raw = localStorage.getItem(FILTER_STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.search) document.getElementById('search').value = state.search;
+    if (state.priority) document.getElementById('filterPriority').value = state.priority;
+    if (state.area) document.getElementById('filterArea').value = state.area;
+    if (state.autoState) activeStatusFilter = state.autoState;
+    if (state.execStatus) activeExecutionStatusFilter = state.execStatus;
+  } catch {}
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
   const rawMeta = await api('/meta');
@@ -482,6 +509,7 @@ async function init() {
   existingScenarioIds = new Set(allScenarioItems.map(s => String(s.id || '').trim()).filter(Boolean));
   workflowOptions = buildWorkflowOptions(await api('/workflows'));
   populateFilterDropdowns();
+  restoreFilterState();
   updateHeaderNav();
   await refreshDashboard();
   await refreshWorkflows();
@@ -758,6 +786,7 @@ function closeSupportModal() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function refreshWorkflows() {
+  saveFilterState();
   const params = new URLSearchParams();
   const search = document.getElementById('search').value.trim();
   if (search) params.set('search', search);

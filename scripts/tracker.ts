@@ -428,8 +428,10 @@ program
   .command('sync')
   .description('Reconcile DB with actual .spec.ts files (find new IDs, detect orphans)')
   .option('--import-missing', 'Create DB rows for missing scenario IDs discovered in specs')
+  .option('--dry-run', 'Show what would change without modifying the DB')
   .action((opts) => {
     getDb();
+    if (opts.dryRun) console.log(chalk.magenta('[DRY RUN] No DB changes will be made.\n'));
     console.log(chalk.cyan('Scanning tests/**/*.spec.ts for allure.description IDs...'));
     const result = syncWithSpecFiles();
 
@@ -446,7 +448,7 @@ program
       for (const id of result.updatedSpecFiles) console.log(`  ↻ ${id}`);
     }
 
-    if (opts.importMissing && result.newIds.length) {
+    if (!opts.dryRun && opts.importMissing && result.newIds.length) {
       const imported = importMissingScenariosFromSpecs(result.newIds);
       if (imported.importedIds.length) {
         console.log(chalk.green(`\nImported missing scenarios from specs (${imported.importedIds.length}):`));

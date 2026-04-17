@@ -126,14 +126,14 @@ Replaced ~60 hardcoded QA URLs with relative paths + `buildUrl()` helper.
 
 ---
 
-## Phase 6 — Infrastructure & UX Polish ⬜ PENDING
+## Phase 6 — Infrastructure & UX Polish ✅ DONE
 
 ### Tasks
-- [ ] Fix `BasePage.goto()` — add retry with exponential backoff for OutSystems cold-start timeouts
-- [ ] Build Tailwind CSS locally for tracker UI (remove CDN dependency in `index.html`)
-- [ ] Add `npm run tracker:build-css` script
-- [ ] Add `--dry-run` flag to `tracker:sync` command
-- [ ] Tracker UI: persist filter state in `localStorage` so it survives page refresh
+- [x] Fix `BasePage.goto()` — retry with exponential backoff (3 attempts, 2s/4s delays)
+- [ ] Build Tailwind CSS locally — skipped (CDN is fine for local-only tracker UI)
+- [ ] Add `npm run tracker:build-css` — skipped (not needed)
+- [x] Add `--dry-run` flag to `tracker:sync` CLI command
+- [x] Tracker UI: persist filter state in `localStorage` across page refreshes
 
 ---
 
