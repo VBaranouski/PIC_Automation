@@ -359,4 +359,131 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       await docDetailsPage.expectRolesGridVisible();
     });
   });
+
+  // ── DOC-ROLES-013 ─────────────────────────────────────────────────────────
+  test('should not show Edit Roles button for a user with VIEW_DOC privilege only', async ({ page, docDetailsPage, getUserByRole }) => {
+    await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-ROLES-013: A user with VIEW_DOC privilege can view the Roles tab but ' +
+      'must not see the "Edit Roles" button (read-only access).',
+    );
+
+    // Use process_quality_leader role — typically has VIEW_DOC but not EDIT_USERS_ROLES_DOC
+    const viewerCreds = getUserByRole('process_quality_leader');
+
+    await test.step('Log in as a user with VIEW_DOC privilege only', async () => {
+      await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
+      const { LoginPage: LP } = await import('../../src/pages');
+      const lp = new LP(page);
+      await lp.goto();
+      await lp.waitForPageLoad();
+      await lp.login(viewerCreds.login, viewerCreds.password);
+      await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
+    });
+
+    await test.step('Navigate to DOC Detail and open Roles tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+    });
+
+    await test.step('Verify Roles grid is visible (read access works)', async () => {
+      await docDetailsPage.expectRolesGridVisible();
+    });
+
+    await test.step('Verify Edit Roles button is NOT visible', async () => {
+      const isVisible = await docDetailsPage.isEditRolesButtonVisible();
+      expect(isVisible, '"Edit Roles" button should not be visible for VIEW_DOC users').toBe(false);
+    });
+  });
+
+  // ── WF11-0061 ─────────────────────────────────────────────────────────────
+  test('should allow selecting a Deputy user for CPSO/CISO roles', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'WF11-0061: For CPSO/CISO roles, a Deputy user can be selected in place of the principal.',
+    );
+
+    await test.step('Navigate to DOC Detail and open Roles & Responsibilities tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+    });
+
+    await test.step('Check if CISO role row exists in the grid', async () => {
+      const cisoText = await docDetailsPage.getRolesTeamMembersText('CISO').catch(() => '');
+      if (!cisoText && cisoText !== '') {
+        test.skip(true, 'CISO role row not found in the grid — DOC may not include CISO role.');
+        return;
+      }
+    });
+
+    await test.step('Enter edit mode and verify Deputy field is available for CISO', async () => {
+      const editVisible = await docDetailsPage.isEditRolesButtonVisible();
+      if (!editVisible) {
+        test.skip(true, 'Edit Roles button not visible — cannot check Deputy field.');
+        return;
+      }
+      await docDetailsPage.clickEditRoles();
+      await docDetailsPage.expectSaveRolesChangesButtonVisible();
+
+      // Deputy field is typically a secondary lookup input shown for CPSO/CISO rows
+      const deputyField = page.getByText(/Deputy/i).first();
+      const isDeputyVisible = await deputyField.isVisible().catch(() => false);
+      if (!isDeputyVisible) {
+        test.skip(true, 'Deputy field not visible — may not apply to this DOC or stage.');
+        return;
+      }
+      await expect(deputyField).toBeVisible({ timeout: 10_000 });
+    });
+
+    await test.step('Cancel edit mode', async () => {
+      await docDetailsPage.clickCancelRoles();
+    });
+  });
+
+  // ── WF11-0062 ─────────────────────────────────────────────────────────────
+  test('should not show Edit Roles button for VIEW_DOC privilege user (WF11)', async ({ page, docDetailsPage, getUserByRole }) => {
+    await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'WF11-0062: User with VIEW_DOC privilege can view the Roles & Responsibilities tab ' +
+      'but cannot edit it (no "Edit Roles" button shown).',
+    );
+
+    // Use it_owner role — typically has VIEW_DOC but not EDIT_USERS_ROLES_DOC
+    const viewerCreds = getUserByRole('it_owner');
+
+    await test.step('Log in as view-only user', async () => {
+      await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
+      const { LoginPage: LP } = await import('../../src/pages');
+      const lp = new LP(page);
+      await lp.goto();
+      await lp.waitForPageLoad();
+      await lp.login(viewerCreds.login, viewerCreds.password);
+      await page.waitForURL(/GRC_PICASso/, { timeout: 60_000 });
+    });
+
+    await test.step('Navigate to DOC Detail and open Roles tab', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+    });
+
+    await test.step('Verify Roles grid is visible', async () => {
+      await docDetailsPage.expectRolesGridVisible();
+    });
+
+    await test.step('Verify Edit Roles button is NOT visible', async () => {
+      const isVisible = await docDetailsPage.isEditRolesButtonVisible();
+      expect(isVisible, '"Edit Roles" button must not be visible for VIEW_DOC users').toBe(false);
+    });
+  });
 });

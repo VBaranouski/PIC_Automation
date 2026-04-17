@@ -23,7 +23,7 @@ export const EXECUTION_STATUSES = [
 export type ExecutionStatus = (typeof EXECUTION_STATUSES)[number];
 
 // ── Priority levels ──────────────────────────────────────────────────────────
-export const PRIORITIES = ['P1', 'P2', 'P3'] as const;
+export const PRIORITIES = ['P1', 'P2', 'P3', 'Edge'] as const;
 export type Priority = (typeof PRIORITIES)[number];
 
 // ── Feature areas ────────────────────────────────────────────────────────────

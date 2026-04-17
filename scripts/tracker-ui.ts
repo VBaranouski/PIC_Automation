@@ -889,6 +889,25 @@ app.post(
   }),
 );
 
+// POST /api/scenarios/:id/priority  { priority: Priority }
+app.post(
+  '/api/scenarios/:id/priority',
+  wrap((req, res) => {
+    const id = param(req.params.id);
+    const priority = req.body?.priority;
+    if (!isValidPriority(priority)) {
+      res.status(400).json({ error: `Invalid priority: ${priority}` });
+      return;
+    }
+    const updated = updateScenario(id, { priority });
+    if (!updated) {
+      res.status(404).json({ error: `Scenario ${id} not found` });
+      return;
+    }
+    res.json(updated);
+  }),
+);
+
 // POST /api/scenarios/:id/exec-status  { status: ExecutionStatus }
 app.post(
   '/api/scenarios/:id/exec-status',

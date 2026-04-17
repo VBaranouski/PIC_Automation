@@ -95,6 +95,12 @@ tailwind.config = {
   .badge.auto-automated { background: #123e1500; color: #ffffff5e; border-color: #3fb950; }
   .badge.auto-on-hold   { background: #2b1241; color: #d2a8ff; border-color: #d2a8ff; }
 
+  /* Priority badge */
+  .badge.prio-P1   { background: rgba(196,46,9,0.18); color: #ff7b72; border-color: #ff7b72; }
+  .badge.prio-P2   { background: rgba(227,179,65,0.15); color: #e3b341; border-color: #e3b341; }
+  .badge.prio-P3   { background: rgba(129,236,255,0.10); color: #81ecff; border-color: #81ecff; }
+  .badge.prio-Edge { background: rgba(210,168,255,0.12); color: #d2a8ff; border-color: #d2a8ff; }
+
   /* Detail drawer sections */
   .detail-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border); }
   .detail-section h3 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
@@ -421,6 +427,13 @@ const ST = {
   'on-hold':     { color: '#d5d4d4', bg: 'rgba(213,212,212,0.10)', icon: 'pause_circle' },
 };
 
+const PR = {
+  'P1':   { color: '#ff7b72', bg: 'rgba(196,46,9,0.18)' },
+  'P2':   { color: '#e3b341', bg: 'rgba(227,179,65,0.15)' },
+  'P3':   { color: '#81ecff', bg: 'rgba(129,236,255,0.10)' },
+  'Edge': { color: '#d2a8ff', bg: 'rgba(210,168,255,0.12)' },
+};
+
 const RUN_DOT = { idle:'#767575', running:'#ff9157', passed:'#81ecff', failed:'#c42e09', cancelled:'#d5d4d4' };
 
 const WORKFLOW_ORDER = [
@@ -488,7 +501,8 @@ async function init() {
 
 async function api(path, opts = {}) {
   const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  const data = await res.json();
+  let data;
+  try { data = await res.json(); } catch { throw new Error(`HTTP ${res.status} — server returned non-JSON response`); }
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
@@ -949,10 +963,18 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
     : '<em class="muted detail-empty">No steps recorded.</em>';
   const sectionSteps = `<div class="detail-section"><h3>Steps</h3>${stepsHtml}</div>`;
 
+  const prioButtons = (meta.priorities.length ? meta.priorities : ['P1','P2','P3','Edge']).map(p => {
+    const isActive = p === (s.priority || 'P2');
+    const prStyle = PR[p] || PR['P2'];
+    return `<button onclick="event.stopPropagation();changePriority('${esc(s.id)}','${p}')"
+      class="text-[10px] font-bold uppercase tracking-tighter px-2 py-1 rounded transition-colors"
+      style="${isActive ? `background:${prStyle.bg};color:${prStyle.color};outline:1px solid ${prStyle.color}40` : 'color:#767575'}">${p}</button>`;
+  }).join('');
+
   const expectedHtml = hasExpected
     ? `<ol class="detail-expected">${s.expected_results.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol>`
     : '<em class="muted detail-empty">No expected results recorded.</em>';
-  const sectionExpected = `<div class="detail-section"><h3>Expected Results</h3>${expectedHtml}</div>`;
+  const sectionExpected = `<div class="detail-section"><h3 class="flex items-center justify-between gap-2"><span>Expected Results</span><span class="flex items-center gap-1">${prioButtons}</span></h3>${expectedHtml}</div>`;
 
   const notesText = buildExecutionNotesText(s);
   const notesAccent = getExecutionNotesAccentColor(effectiveExecutionStatus);
@@ -1026,6 +1048,7 @@ function renderScenarioItem(s, wfIdx, subIdx, sIdx, wfColor) {
               }).join('')}
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -1178,6 +1201,12 @@ async function changeStatus(id, status) {
     // New API uses /auto-state endpoint
     await api(`/scenarios/${encodeURIComponent(id)}/auto-state`, { method: 'POST', body: JSON.stringify({ state: status }) });
     toast(`${id} → ${status}`); refreshDashboard(); refreshWorkflows();
+  } catch (err) { toast(err.message, 'error'); }
+}
+async function changePriority(id, priority) {
+  try {
+    await api(`/scenarios/${encodeURIComponent(id)}/priority`, { method: 'POST', body: JSON.stringify({ priority }) });
+    toast(`${id} priority → ${priority}`); refreshWorkflows();
   } catch (err) { toast(err.message, 'error'); }
 }
 

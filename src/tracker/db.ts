@@ -13,7 +13,7 @@ const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 const DB_DIR = path.join(PROJECT_ROOT, 'config');
 const DB_PATH = path.join(DB_DIR, 'scenarios.db');
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS meta (
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS scenarios (
   execution_status TEXT NOT NULL DEFAULT 'not-executed'
                         CHECK (execution_status IN ('passed','not-executed','skipped','failed-defect')),
   priority         TEXT NOT NULL DEFAULT 'P2'
-                        CHECK (priority IN ('P1','P2','P3')),
+                        CHECK (priority IN ('P1','P2','P3','Edge')),
   feature_area     TEXT NOT NULL DEFAULT 'other'
                         CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
   spec_file        TEXT NOT NULL DEFAULT '',
@@ -90,8 +90,42 @@ export function getDb(): Database.Database {
   _db.transaction(() => {
     _db!.exec(SCHEMA_SQL);
     const metaRow = _db!.prepare('SELECT value FROM meta WHERE key = ?').get('schema_version') as { value?: string } | undefined;
+    const currentVersion = metaRow?.value ? Number(metaRow.value) : 0;
     if (!metaRow) {
       _db!.prepare('INSERT INTO meta (key, value) VALUES (?, ?)').run('schema_version', String(SCHEMA_VERSION));
+    } else if (currentVersion < 3) {
+      // Migration v2 → v3: widen priority CHECK constraint to include 'Edge'
+      _db!.exec(`
+        PRAGMA foreign_keys = OFF;
+        CREATE TABLE scenarios_v3 (
+          id               TEXT PRIMARY KEY,
+          title            TEXT NOT NULL,
+          description      TEXT NOT NULL DEFAULT '',
+          automation_state TEXT NOT NULL DEFAULT 'pending'
+                                CHECK (automation_state IN ('pending','automated','on-hold')),
+          execution_status TEXT NOT NULL DEFAULT 'not-executed'
+                                CHECK (execution_status IN ('passed','not-executed','skipped','failed-defect')),
+          priority         TEXT NOT NULL DEFAULT 'P2'
+                                CHECK (priority IN ('P1','P2','P3','Edge')),
+          feature_area     TEXT NOT NULL DEFAULT 'other'
+                                CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
+          spec_file        TEXT NOT NULL DEFAULT '',
+          workflow         TEXT NOT NULL DEFAULT '',
+          subsection       TEXT NOT NULL DEFAULT '',
+          created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        INSERT INTO scenarios_v3 SELECT * FROM scenarios;
+        DROP TABLE scenarios;
+        ALTER TABLE scenarios_v3 RENAME TO scenarios;
+        CREATE INDEX IF NOT EXISTS idx_scenarios_auto_state  ON scenarios(automation_state);
+        CREATE INDEX IF NOT EXISTS idx_scenarios_exec_status ON scenarios(execution_status);
+        CREATE INDEX IF NOT EXISTS idx_scenarios_priority    ON scenarios(priority);
+        CREATE INDEX IF NOT EXISTS idx_scenarios_feature     ON scenarios(feature_area);
+        CREATE INDEX IF NOT EXISTS idx_scenarios_workflow    ON scenarios(workflow);
+        PRAGMA foreign_keys = ON;
+      `);
+      _db!.prepare('UPDATE meta SET value = ? WHERE key = ?').run(String(SCHEMA_VERSION), 'schema_version');
     }
   })();
 

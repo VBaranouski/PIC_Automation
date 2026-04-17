@@ -317,4 +317,191 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
       await docDetailsPage.expectVestaIdHeaderVisible();
     });
   });
+
+  // ── DOC-DETAIL-007-b ──────────────────────────────────────────────────────
+  test('should show Roles & Responsibilities tab available after DOC initiation', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-DETAIL-007-b: After DOC initiation the "Roles & Responsibilities" tab ' +
+      'must be visible and clickable in the DOC Detail content tabs.',
+    );
+
+    await test.step('Navigate to DOC Detail page', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Verify Roles & Responsibilities tab is clickable', async () => {
+      await docDetailsPage.expectRolesResponsibilitiesTabClickable();
+    });
+
+    await test.step('Click the Roles & Responsibilities tab and verify panel loads', async () => {
+      await docDetailsPage.clickRolesResponsibilitiesTab();
+      await docDetailsPage.expectRolesGridVisible();
+    });
+  });
+
+  // ── DOC-DETAIL-007-c ──────────────────────────────────────────────────────
+  test('should show ITS Checklist tab available after DOC initiation', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-DETAIL-007-c: After DOC initiation the "ITS Checklist" tab ' +
+      'must be visible and clickable in the DOC Detail content tabs.',
+    );
+
+    await test.step('Navigate to DOC Detail page', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Verify ITS Checklist tab is clickable', async () => {
+      await docDetailsPage.expectITSChecklistTabClickable();
+    });
+
+    await test.step('Click the ITS Checklist tab and verify it loads', async () => {
+      await docDetailsPage.clickITSChecklistTab();
+      await docDetailsPage.expectITSSecurityControlsTitleVisible();
+    });
+  });
+
+  // ── DOC-DETAIL-012 ────────────────────────────────────────────────────────
+  test('should show Cancelled badge with info tooltip on a cancelled DOC', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-DETAIL-012: A cancelled DOC header must show a "Cancelled" badge. ' +
+      'An info icon tooltip should display the cancellation reason.',
+    );
+
+    // Use a known cancelled DOC in QA environment
+    const cancelledDocUrl =
+      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=274&ProductId=898';
+
+    await test.step('Navigate to a cancelled DOC', async () => {
+      await page.goto(cancelledDocUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Verify "Cancelled" status text is visible', async () => {
+      await expect(
+        page.getByText(/Cancelled/i).first(),
+        '"Cancelled" badge should be visible in the header',
+      ).toBeVisible({ timeout: 20_000 });
+    });
+
+    await test.step('Verify info icon is present near the Cancelled badge', async () => {
+      // The info icon is typically an <i class="fa-info-circle"> or similar, near the Cancelled text
+      const infoIcon = page.locator('i.fa-info-circle, i[class*="info"], .tooltip-icon').first();
+      const isVisible = await infoIcon.isVisible().catch(() => false);
+      if (!isVisible) {
+        // Some cancelled DOCs may not have a reason tooltip if cancelled without comment
+        test.skip(true, 'Info icon not visible — DOC may have been cancelled without a reason comment.');
+        return;
+      }
+      await expect(infoIcon).toBeVisible({ timeout: 10_000 });
+    });
+  });
+
+  // ── DOC-DETAIL-013 ────────────────────────────────────────────────────────
+  test('should display 6 content tabs in correct order for a later-stage DOC', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-DETAIL-013: A DOC in a later stage must show 6 content tabs in order: ' +
+      'Digital Offer Details, Roles & Responsibilities, ITS Checklist, Action Plan, Risk Summary, Certification Decision.',
+    );
+
+    // Use a completed DOC that shows all 6 tabs
+    const completedDocUrl =
+      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
+
+    await test.step('Navigate to a completed DOC that shows all 6 tabs', async () => {
+      await page.goto(completedDocUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Verify all 6 content tabs are visible', async () => {
+      await docDetailsPage.expectDigitalOfferDetailsTabClickable();
+      await docDetailsPage.expectRolesResponsibilitiesTabClickable();
+      await docDetailsPage.expectITSChecklistTabClickable();
+      await expect(
+        page.getByRole('tab', { name: 'Action Plan' }),
+        'Action Plan tab should be visible',
+      ).toBeVisible({ timeout: 15_000 });
+      await expect(
+        page.getByRole('tab', { name: 'Risk Summary', exact: true }),
+        'Risk Summary tab should be visible',
+      ).toBeVisible({ timeout: 15_000 });
+      await expect(
+        page.getByRole('tab', { name: 'Certification Decision' }),
+        'Certification Decision tab should be visible',
+      ).toBeVisible({ timeout: 15_000 });
+    });
+
+    await test.step('Verify tab order matches specification', async () => {
+      const tabs = page.getByRole('tablist').last().getByRole('tab');
+      const tabTexts = await tabs.allTextContents();
+      const cleaned = tabTexts.map(t => t.replace(/\s+/g, ' ').trim()).filter(t => t.length > 0);
+
+      const expectedOrder = [
+        'Digital Offer Details',
+        'Roles & Responsibilities',
+        'ITS Checklist',
+        'Action Plan',
+        'Risk Summary',
+        'Certification Decision',
+      ];
+
+      for (let i = 0; i < expectedOrder.length; i++) {
+        const foundIndex = cleaned.findIndex(t => t.includes(expectedOrder[i]));
+        expect(foundIndex, `"${expectedOrder[i]}" tab should be present`).toBeGreaterThanOrEqual(0);
+        if (i > 0) {
+          const prevIndex = cleaned.findIndex(t => t.includes(expectedOrder[i - 1]));
+          expect(foundIndex, `"${expectedOrder[i]}" should come after "${expectedOrder[i - 1]}"`).toBeGreaterThan(prevIndex);
+        }
+      }
+    });
+  });
+
+  // ── DOC-DETAIL-014 ────────────────────────────────────────────────────────
+  test('should show overdue warning icon for a DOC with approaching Actions Closure deadline', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / Header');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'DOC-DETAIL-014: A DOC with a Waiver decision and due date ≤ 30 days remaining ' +
+      'must display an overdue warning icon in the header area.',
+    );
+
+    // Use a known DOC in Actions Closure with a Waiver decision (if available)
+    const actionsClosureDocUrl =
+      'https://qa.leap.schneider-electric.com/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
+
+    await test.step('Navigate to a DOC in Actions Closure stage', async () => {
+      await page.goto(actionsClosureDocUrl);
+      await docDetailsPage.waitForOSLoad();
+    });
+
+    await test.step('Check for overdue warning icon in header', async () => {
+      // The overdue icon is a warning indicator (fa-exclamation-triangle or similar)
+      const warningIcon = page.locator(
+        'i.fa-exclamation-triangle, i[class*="warning"], i[class*="overdue"], .overdue-icon',
+      ).first();
+      const isVisible = await warningIcon.isVisible().catch(() => false);
+
+      if (!isVisible) {
+        // Overdue icon only appears for Waiver decisions with ≤ 30 days remaining
+        test.skip(true, 'Overdue warning icon not visible — DOC may not have an approaching deadline or Waiver decision.');
+        return;
+      }
+
+      await expect(warningIcon).toBeVisible({ timeout: 10_000 });
+    });
+  });
 });

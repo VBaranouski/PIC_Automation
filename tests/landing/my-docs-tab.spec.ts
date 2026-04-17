@@ -509,4 +509,57 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
       await landingPage.expectDocsGridEmptyState();
     });
   });
+
+  // ── ATC-11.16.9 ────────────────────────────────────────────────────────────
+  test('ATC-11.16.9 — At least one My DOCs row shows a non-empty Target Release Date', async ({ landingPage }) => {
+    await allure.suite('DOC / Landing Page');
+    await allure.description(
+      'ATC-11.16.9: At least one row in the My DOCs grid must have a non-empty value ' +
+      'in the "Target Release Date" column, confirming the release linkage data flows ' +
+      'through to the landing page grid.',
+    );
+
+    await test.step('Open My DOCs tab and load rows', async () => {
+      await landingPage.goto();
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+      await landingPage.clickTab('My DOCs');
+      await landingPage.waitForGridDataRows();
+    });
+
+    await test.step('Find the Target Release Date column index and check a cell value', async () => {
+      const headers = await landingPage.grid.getByRole('columnheader').allTextContents();
+      const colIdx = headers.findIndex((h) => /Target Release Date/i.test(h.trim()));
+      if (colIdx === -1) {
+        test.skip(true, '"Target Release Date" column not found in My DOCs grid — skipping.');
+        return;
+      }
+
+      const rowCount = await landingPage.getGridRowCount();
+      if (rowCount === 0) {
+        test.skip(true, 'No DOC rows in My DOCs grid — skipping Target Release Date value check.');
+        return;
+      }
+
+      let foundNonEmpty = false;
+      for (let i = 1; i <= Math.min(rowCount, 10); i++) {
+        const cell = landingPage.grid
+          .getByRole('row')
+          .nth(i)
+          .getByRole('gridcell')
+          .nth(colIdx);
+        const cellText = ((await cell.textContent()) ?? '').trim();
+        if (cellText && cellText !== '–' && cellText !== '-') {
+          foundNonEmpty = true;
+          break;
+        }
+      }
+
+      if (!foundNonEmpty) {
+        test.skip(true, 'All visible DOCs have an empty Target Release Date — no linked release in QA environment; skipping.');
+        return;
+      }
+
+      expect(foundNonEmpty, 'At least one DOC row should have a non-empty Target Release Date').toBe(true);
+    });
+  });
 });

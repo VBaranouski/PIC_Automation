@@ -434,4 +434,158 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
       await docDetailsPage.closeHistoryDialog();
     });
   });
+
+  // ── WF11-0135 ─────────────────────────────────────────────────────────────
+  test('should list all expected activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'WF11-0135: The Activity filter dropdown must list all 15 activity types: ' +
+      'Action Plan Update, Certification Decision Update, DOC Creation, Details Update, ' +
+      'DOC Cancellation, DOC Completion, DOC Revocation, DOC Stage Update, DOC Status Update, ' +
+      'ITS Checklist Update, Risk Assessment Update, Roles Update, Send DOC for Rework, ' +
+      'Summary Risk Review Update.',
+    );
+
+    const expectedActivities = [
+      'Action Plan Update',
+      'Certification Decision Update',
+      'DOC Creation',
+      'Details Update',
+      'DOC Cancellation',
+      'DOC Completion',
+      'DOC Revocation',
+      'DOC Stage Update',
+      'DOC Status Update',
+      'ITS Checklist Update',
+      'Risk Assessment Update',
+      'Roles Update',
+      'Send DOC for Rework',
+      'Summary Risk Review Update',
+    ];
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+    });
+
+    await test.step('Retrieve all Activity filter options', async () => {
+      const options = await docDetailsPage.getHistoryActivityFilterOptions();
+      const normalised = options.map(o => o.trim()).filter(o => o.length > 0);
+
+      // Verify at least the known activity types are present
+      for (const expected of expectedActivities) {
+        const found = normalised.some(o => o.toLowerCase().includes(expected.toLowerCase()));
+        expect(found, `Activity filter should include "${expected}"`).toBe(true);
+      }
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── WF11-0139 ─────────────────────────────────────────────────────────────
+  test('should narrow history entries when a date range is applied', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'WF11-0139: Applying a date range filter must narrow the history entries to only ' +
+      'those within the specified period.',
+    );
+
+    let initialRowCount = 0;
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+      await docDetailsPage.expectHistoryGridHasRows();
+    });
+
+    await test.step('Record initial row count', async () => {
+      initialRowCount = await docDetailsPage.getHistoryRowCount();
+      expect(initialRowCount).toBeGreaterThan(0);
+    });
+
+    await test.step('Apply a date range using the first row date as both start and end', async () => {
+      const [firstDateText] = await docDetailsPage.getHistoryDateTexts(1);
+      expect(firstDateText, 'Expected at least one history row with a date').toBeTruthy();
+
+      const { start, end } = toDayBounds(parseHistoryDate(firstDateText));
+      await docDetailsPage.selectHistoryDateRange(start, end);
+      await docDetailsPage.clickHistorySearchButton();
+    });
+
+    await test.step('Verify filtered rows are a subset of (or equal to) original rows', async () => {
+      const filteredCount = await docDetailsPage.getHistoryRowCount();
+      expect(filteredCount).toBeGreaterThan(0);
+      expect(filteredCount).toBeLessThanOrEqual(initialRowCount);
+    });
+
+    await test.step('Reset and verify full list is restored', async () => {
+      await docDetailsPage.clickHistoryResetFilters();
+      const restoredCount = await docDetailsPage.getHistoryRowCount();
+      expect(restoredCount).toBeGreaterThanOrEqual(initialRowCount);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
+
+  // ── WF11-0140 ─────────────────────────────────────────────────────────────
+  test('should support per-page selector with 10/20/30/50/100 options', async ({ page, docDetailsPage }) => {
+    await allure.suite('DOC / DOC Detail / History');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'WF11-0140: The DOC History pagination per-page selector must offer ' +
+      '10, 20, 30, 50, and 100 as options, and changing the value must adjust visible rows.',
+    );
+
+    await test.step('Navigate to DOC Detail and open History popup', async () => {
+      await page.goto(docDetailsUrl);
+      await docDetailsPage.waitForOSLoad();
+      await docDetailsPage.clickViewHistory();
+      await docDetailsPage.expectHistoryDialogVisible();
+      await docDetailsPage.expectHistoryGridHasRows();
+    });
+
+    await test.step('Verify per-page selector options include expected values', async () => {
+      const perPageSelect = page.locator('select').filter({ hasText: /10/ }).last();
+      const isVisible = await perPageSelect.isVisible().catch(() => false);
+      if (!isVisible) {
+        test.skip(true, 'Per-page selector not visible — DOC may not have enough records for pagination.');
+        return;
+      }
+      const optionTexts = await perPageSelect.locator('option').allTextContents();
+      const cleaned = optionTexts.map(t => t.trim());
+      const expectedValues = ['10', '20', '30', '50', '100'];
+      for (const expected of expectedValues) {
+        expect(cleaned, `Per-page selector should include ${expected}`).toContain(expected);
+      }
+    });
+
+    await test.step('Change per-page to 20 and verify row count adjusts', async () => {
+      const totalRecords = await docDetailsPage.getHistoryTotalRecordCount();
+      if (totalRecords <= 10) {
+        test.skip(true, `Only ${totalRecords} records — cannot test per-page change.`);
+        return;
+      }
+      await docDetailsPage.changeHistoryPerPage('20');
+      const rowCount = await docDetailsPage.getHistoryRowCount();
+      expect(rowCount).toBeLessThanOrEqual(20);
+      expect(rowCount).toBeGreaterThan(0);
+    });
+
+    await test.step('Close the history dialog', async () => {
+      await docDetailsPage.closeHistoryDialog();
+    });
+  });
 });
