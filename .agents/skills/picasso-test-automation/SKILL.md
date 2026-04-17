@@ -1,0 +1,278 @@
+---
+name: picasso-test-automation
+description: End-to-end Playwright test automation workflow for any PICASso feature area — DOC lifecycle, products, releases, landing, auth, reports, backoffice, integrations. Use whenever the user asks to create, fix, extend, or batch-automate test scenarios from the tracker DB. Also triggers for fixing test failures, updating locators after OutSystems UI changes, running headed browser validation, or updating the tracker. Covers the full 8-step process: branch → tracker query → test scripting → headed browser validation → locator fixes → headless run → tracker update → commit. Applies to any scenario ID pattern (WF*-*, DOC-PRIV-*, PRODUCT-*, RELEASE-*, AUTH-*, LANDING-*, etc.).
+---
+
+# PICASso Test Automation Workflow
+
+Proven 8-step workflow for automating any PICASso test scenarios — from tracker query to committed, passing tests.
+
+## When to Use
+
+- Creating new test specs from pending tracker scenarios (any feature area)
+- Fixing test failures (locator issues, async loading, OutSystems partial refresh)
+- Extending existing spec files with new scenarios
+- Batch-automating tracker scenarios across any workflow
+- Updating locators after OutSystems UI changes
+
+## Prerequisites
+
+Read these instruction files before starting:
+- `.github/instructions/automation-workflow.instructions.md` — master 7-step workflow
+- `.github/instructions/testing-patterns.instructions.md` — 4-layer architecture, locator priority, Allure metadata
+- `.github/instructions/outsystems-picasso.instructions.md` — OutSystems-specific patterns (OSUI selects, partial refresh, timeouts)
+- `.github/instructions/naming.instructions.md` — file and scenario ID naming conventions
+
+## Feature Areas & Project Structure
+
+| Area | Test Dir | Page Object | Locator Factory | Fixture |
+|------|----------|-------------|-----------------|---------|
+| auth | `tests/auth/` | `LoginPage` | `auth.locators.ts` | `loginPage` |
+| landing | `tests/landing/` | `LandingPage` | `landing.locators.ts` | `landingPage` |
+| products | `tests/products/` | `NewProductPage` | `new-product.locators.ts` | `newProductPage` |
+| releases | `tests/releases/` | `ReleaseDetailPage` | `release-detail.locators.ts` | `releaseDetailPage` |
+| doc | `tests/doc/` | `DocDetailsPage` | `doc-details.locators.ts` | `docDetailsPage` |
+| doc (controls) | `tests/doc/` | `ControlDetailPage` | `control-detail.locators.ts` | `controlDetailPage` |
+
+All pages extend `BasePage` (`src/pages/base.page.ts`) which provides `goto()`, `waitForOSLoad()`, and `expectUrl()`.
+
+## 8-Step Workflow
+
+### Step 1: Create Branch
+```bash
+git checkout main && git pull origin main
+git checkout -b feature/<area>-<scope>-scenarios
+```
+Use the feature area as prefix: `feature/doc-lifecycle-p1-scenarios`, `feature/releases-detail-tab`, `feature/products-history-edge`.
+
+### Step 2: Identify & Script Test Scenarios
+
+**Query tracker for pending scenarios:**
+```bash
+# By feature area and priority
+npx tsx scripts/tracker.ts list --auto-state pending -a <area> -p P1
+
+# All pending across all areas
+npx tsx scripts/tracker.ts list --auto-state pending
+
+# Available areas: auth | landing | products | releases | doc | reports | backoffice | integrations | other
+# Available priorities: P1 | P2 | P3 | Edge
+```
+
+**Explore existing specs** in the target area to match patterns:
+```bash
+ls tests/<area>/
+```
+
+**Spec file template:**
+```typescript
+import { test, expect } from '../../src/fixtures';
+import * as allure from 'allure-js-commons';
+
+// ── Seed URLs ──────────────────────────────────────────────────────────────
+const SEED_PAGE_URL = '/GRC_PICASso/<ScreenName>?<Params>';
+
+test.describe('<Area> - Feature Description (WF ref) @regression', () => {
+  test.setTimeout(180_000);
+
+  test('SCENARIO-ID — human-readable description',
+    async ({ page, <pageFixture> }) => {
+      await allure.suite('<Area> / Feature');
+      await allure.severity('critical');   // critical | major | minor | trivial
+      await allure.tag('regression');       // regression | smoke | edge
+      await allure.description('SCENARIO-ID: what is tested');
+
+      await test.step('Navigate to target page', async () => {
+        await page.goto(SEED_PAGE_URL);
+        await <pageFixture>.waitForOSLoad();
+      });
+
+      await test.step('Verify expected state', async () => {
+        // Use web-first assertions
+        await expect(page.getByRole('heading', { name: 'Title' })).toBeVisible();
+      });
+    });
+});
+```
+
+**Fixture mapping for destructured test arguments:**
+| Area | Fixture Name | POM Class |
+|------|-------------|-----------|
+| auth | `loginPage` | `LoginPage` |
+| landing | `landingPage` | `LandingPage` |
+| products | `newProductPage` | `NewProductPage` |
+| releases | `releaseDetailPage` | `ReleaseDetailPage` |
+| doc | `docDetailsPage` | `DocDetailsPage` |
+| doc (controls) | `controlDetailPage` | `ControlDetailPage` |
+
+### Step 3: Execute in Browser (Headed Mode)
+```bash
+npx playwright test tests/<area>/<spec>.spec.ts --project=<project> --headed --reporter=list --workers=1
+```
+Inspect the DOM, verify locators match live elements, walk the full user journey.
+
+### Step 4: Fix Locators Based on Live DOM
+
+After headed runs, analyze error-context.md and screenshots in `test-results/`. Common patterns:
+
+#### OutSystems Partial Refresh — Content Loads Asynchronously
+OutSystems renders containers first, then fills content via AJAX. Never use immediate `textContent()` for data that loads after navigation — use web-first assertions that auto-retry:
+
+```typescript
+// WRONG — data not loaded yet
+const text = await container.textContent() ?? '';
+expect(/expected/.test(text)).toBe(true);
+
+// CORRECT — auto-retries until content appears
+await expect(container).toContainText(/expected/, { timeout: 15_000 });
+```
+
+#### Multiple Matching Elements — Ambiguous Locators
+OutSystems pages often have duplicate ARIA roles (e.g., pipeline tabs + content tabs). Use `.first()` or exact matching:
+
+```typescript
+// Ambiguous — matches pipeline "Risk Summary Review" AND content "Risk Summary"
+page.getByRole('tab', { name: 'Risk Summary' })
+
+// Precise — exact match avoids pipeline stage collision
+page.getByRole('tab', { name: 'Risk Summary', exact: true })
+
+// When same exact name exists in two tablists, scope or use .first()
+page.locator('[role="tablist"]').first().getByRole('tab', { name: 'Name' })
+```
+
+#### Buttons Conditionally Disabled by Business Rules
+Some buttons are disabled until prerequisites are met (e.g., mandatory roles assigned). Handle both states:
+
+```typescript
+const btn = page.getByRole('button', { name: /Action Button/i });
+await expect(btn).toBeVisible({ timeout: 30_000 });
+const isDisabled = await btn.isDisabled().catch(() => false);
+if (isDisabled) {
+  // Verify prerequisite indicator is shown (expected gating)
+  await expect(prerequisiteIndicator).toBeVisible();
+} else {
+  await expect(btn).toBeEnabled();
+}
+```
+
+#### OutSystems Select Widgets Are Not Native `<select>`
+OSUI dropdowns don't work with Playwright's `selectOption()`. Use click → type → pick:
+
+```typescript
+// WRONG — OutSystems custom dropdown, not native select
+await page.selectOption('#dropdown', 'value');
+
+// CORRECT — interact with OSUI dropdown widget
+await dropdown.click();
+await dropdown.pressSequentially('Option text', { delay: 50 });
+await page.getByRole('option', { name: 'Option text' }).click();
+```
+
+#### Label/Text Spelling Variations
+OutSystems labels may vary (singular vs plural, abbreviated). Use flexible regex:
+```typescript
+page.getByRole('tab', { name: /Monitor Actions? Closure/i })
+page.getByText(/Roles?\s*&?\s*Responsibilit/i)
+```
+
+### Step 5: Terminal Run (Headless)
+```bash
+npx playwright test tests/<area>/<spec>.spec.ts --project=<project> --reporter=list --workers=1
+npx tsc --noEmit  # verify no TS errors in the project
+```
+All tests must pass. If a test fails due to a product defect (not a locator/script issue), use `test.fail()` — never weaken assertions.
+
+### Step 6: Update Tracker DB
+```bash
+# Set automation state for each scenario
+npx tsx scripts/tracker.ts auto-state <SCENARIO-ID> automated
+
+# Set execution status
+npx tsx scripts/tracker.ts exec-status <SCENARIO-ID> passed
+
+# For product defects
+npx tsx scripts/tracker.ts exec-status <SCENARIO-ID> failed-defect
+```
+
+### Step 7: Commit & Push
+```bash
+git add tests/<area>/<spec>.spec.ts playwright.config.ts
+git add src/locators/<locator-file>.ts src/pages/<page-file>.ts  # if modified
+git add -f config/scenarios.db
+git commit -m "feat(<area>): add <scope> test specs (N tests)
+
+New spec files: ...
+Tracker: N scenarios → automated/passed"
+git push origin feature/<area>-<scope>-scenarios
+```
+
+### Step 8: Add Playwright Config Projects (if needed)
+For spec files that need isolated execution or dependency chains, add a project to `playwright.config.ts`:
+```typescript
+{
+  name: '<area>-<spec-name>',
+  testMatch: /<spec-name>\.spec\.ts/,
+  dependencies: ['setup'],
+},
+```
+Also add to `chromium` project's `testIgnore` array to avoid double-running.
+
+Not all spec files need dedicated projects — only those with specific dependency chains or that should run in isolation from the main `chromium` project.
+
+## Area-Specific Reference
+
+### DOC Workflow
+
+DOC pages have a **pipeline flow** (tablist of stages) and **content tabs** (tablist of detail panels). The pipeline tablist renders first.
+
+**Seed DOC URLs:**
+| DOC | URL | Stage |
+|-----|-----|-------|
+| DOC 800 | `/GRC_PICASso_DOC/DOCDetail?DOCId=800&ProductId=1162` | Controls Scoping |
+| DOC 538 | `/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944` | Actions Closure |
+| DOC 273 | `/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898` | Completed/Certified |
+
+**Pipeline stage date verification** — dates load async inside tab children:
+```typescript
+const pipelineContainer = page.locator('[role="tablist"]').first();
+await expect(pipelineContainer).toContainText(/\d{1,2} \w{3} \d{4}/, { timeout: 15_000 });
+```
+
+**Key POM methods:**
+```typescript
+docDetailsPage.waitForOSLoad()
+docDetailsPage.clickDigitalOfferDetailsTab()
+docDetailsPage.clickITSChecklistTab()
+docDetailsPage.riskSummary.clickRiskSummaryTab()
+docDetailsPage.riskSummary.expectRiskSummarySectionsVisible()
+docDetailsPage.certification.clickCertificationDecisionTab()
+docDetailsPage.certification.expectDocApprovalsSectionVisible()
+docDetailsPage.certification.expectMonitorActionClosureStageVisible()
+```
+
+### Products Workflow
+
+```typescript
+newProductPage.waitForOSLoad()
+newProductPage.goto()
+// Use landingPage to navigate to product list first
+```
+
+### Releases Workflow
+
+```typescript
+releaseDetailPage.waitForOSLoad()
+// Navigate via URL: /GRC_PICASso/ReleaseDetail?ReleaseId=XXX
+```
+
+## Common Pitfalls
+
+1. **Never use `waitForTimeout()` or `networkidle`** — OutSystems uses partial refresh; use `waitForOSLoad()` or web-first assertions
+2. **Async content loading** — always use `toContainText()` / `toHaveText()` / `toBeVisible()` with timeout, never snapshot `textContent()` for dynamically loaded data
+3. **Duplicate ARIA roles** — scope locators to the correct container or use `.first()` / `exact: true`
+4. **OSUI dropdowns are not native selects** — use click + `pressSequentially` + option click
+5. **Buttons gated by business rules** — check disabled state before testing interactions
+6. **Import from fixtures, not @playwright/test** — always `import { test, expect } from '../../src/fixtures'`
+7. **Allure metadata is mandatory** — every test needs `suite`, `severity`, `tag`, `description`
+8. **Scenario IDs must match tracker** — use the exact `AREA-ACTION-###` or `WF##-####` format from the tracker DB

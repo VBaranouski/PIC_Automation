@@ -162,6 +162,18 @@ export default defineConfig({
 			dependencies: ['setup'],
 		},
 		{
+			name: 'doc-lifecycle-transitions',
+			testMatch: exactSpec('tests', 'doc', 'doc-lifecycle-transitions.spec.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
+		},
+		{
+			name: 'doc-certification-lifecycle',
+			testMatch: exactSpec('tests', 'doc', 'doc-certification-lifecycle.spec.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
+		},
+		{
 			name: 'doc-release-linkage',
 			testMatch: exactSpec('tests', 'doc', 'doc-release-linkage.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
@@ -193,6 +205,8 @@ export default defineConfig({
 				exactSpec('tests', 'doc', 'doc-detail-risk-summary.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-detail-certification.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-lifecycle.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-lifecycle-transitions.spec.ts'),
+				exactSpec('tests', 'doc', 'doc-certification-lifecycle.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-release-linkage.spec.ts'),
 				exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
 			],

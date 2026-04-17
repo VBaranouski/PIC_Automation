@@ -89,7 +89,7 @@ export const docDetailsLocators = (page: Page) => ({
   docPipelineTab4: page.getByRole('tab', { name: /Risk Summary/ }),
   docPipelineTab5: page.getByRole('tab', { name: /Issue Certification/ }),
   // Stage 6 — visible on DOCs that have reached the Monitor Action Closure stage
-  docPipelineTab6: page.getByRole('tab', { name: /Monitor Action Closure/i }),
+  docPipelineTab6: page.getByRole('tab', { name: /Monitor Actions? Closure/i }),
 
   // Toggle that hides / shows the 5-stage pipeline flow header
   // DOM: DIV.expandable-area--toggle containing a SPAN with 'Hide Flow' or 'Show Flow'
