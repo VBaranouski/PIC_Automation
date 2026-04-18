@@ -10,7 +10,7 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
-import { spawn, execSync, ChildProcess } from 'child_process';
+import { spawn, execFileSync, ChildProcess } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import {
   addScenario,
@@ -1231,6 +1231,15 @@ function workflowToFeatureArea(workflow: string): string | null {
   return row?.feature_area ?? null;
 }
 
+/** Validate that a workflow name exists in the DB (prevents injection of arbitrary values). */
+function isKnownWorkflow(workflow: string): boolean {
+  const db = getDb();
+  const row = db.prepare(
+    "SELECT 1 FROM scenarios WHERE workflow = ? LIMIT 1",
+  ).get(workflow);
+  return !!row;
+}
+
 /** GET /api/import-files — list .xlsx files in the input directory */
 app.get(
   '/api/import-files',
@@ -1252,6 +1261,10 @@ app.post(
       res.status(400).json({ error: 'Missing required field: workflow' });
       return;
     }
+    if (!isKnownWorkflow(workflow)) {
+      res.status(400).json({ error: `Unknown workflow: "${workflow}"` });
+      return;
+    }
 
     mkdirSync(XLSX_OUTPUT_DIR, { recursive: true });
 
@@ -1260,8 +1273,8 @@ app.post(
     const outFile = path.join(XLSX_OUTPUT_DIR, `${safeLabel}-scenarios-export.xlsx`);
 
     try {
-      execSync(
-        `npx tsx "${scriptPath}" --workflow "${workflow}" --out "${outFile}"`,
+      execFileSync(
+        'npx', ['tsx', scriptPath, '--workflow', workflow, '--out', outFile],
         { cwd: XLSX_ROOT, timeout: 30_000, stdio: 'pipe' },
       );
     } catch (err: unknown) {
@@ -1310,6 +1323,10 @@ app.post(
     }
 
     workflow = body.workflow;
+    if (!isKnownWorkflow(workflow)) {
+      res.status(400).json({ error: `Unknown workflow: "${workflow}"` });
+      return;
+    }
     const filename = path.basename(body.filename); // prevent directory traversal
     if (!filename.endsWith('.xlsx')) {
       res.status(400).json({ error: 'Only .xlsx files are accepted.' });
@@ -1332,8 +1349,8 @@ app.post(
 
     let output: string;
     try {
-      output = execSync(
-        `npx tsx "${scriptPath}" --workflow "${workflow}" --area ${area} --file "${filePath}" --write`,
+      output = execFileSync(
+        'npx', ['tsx', scriptPath, '--workflow', workflow, '--area', area, '--file', filePath, '--write'],
         { cwd: XLSX_ROOT, timeout: 60_000, stdio: 'pipe', encoding: 'utf-8' },
       );
     } catch (err: unknown) {

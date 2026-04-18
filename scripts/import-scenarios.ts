@@ -38,7 +38,7 @@ import {
   isValidPriority,
   isValidFeatureArea,
 } from '../src/tracker/crud';
-import type { Priority, FeatureArea } from '../src/tracker/models';
+import type { Priority, FeatureArea, ListFilters } from '../src/tracker/models';
 
 // ── CLI flags ──────────────────────────────────────────────────────────────────
 
@@ -335,13 +335,10 @@ for (let i = 0; i < dataRows.length; i++) {
 // ── Detect removed scenarios ─────────────────────────────────────────────────
 
 if (!NO_REMOVE) {
-  const filterOpts: Record<string, string> = {};
-  if (WORKFLOW) {
-    filterOpts.workflow = WORKFLOW;
-  } else {
-    filterOpts.feature_area = AREA!;
-  }
-  const allAreaScenarios = listScenarios(filterOpts as any);
+  const filterOpts: ListFilters = WORKFLOW
+    ? { workflow: WORKFLOW }
+    : { feature_area: AREA as FeatureArea };
+  const allAreaScenarios = listScenarios(filterOpts);
   const removedScenarios = allAreaScenarios.filter(
     (s) => !excelIds.has(s.id) && s.automation_state !== 'on-hold',
   );
