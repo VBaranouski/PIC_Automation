@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS scenarios (
   title            TEXT NOT NULL,
   description      TEXT NOT NULL DEFAULT '',
   automation_state TEXT NOT NULL DEFAULT 'pending'
-                        CHECK (automation_state IN ('pending','automated','on-hold')),
+                        CHECK (automation_state IN ('pending','automated','on-hold','updated')),
   execution_status TEXT NOT NULL DEFAULT 'not-executed'
                         CHECK (execution_status IN ('passed','not-executed','skipped','failed-defect')),
   priority         TEXT NOT NULL DEFAULT 'P2'
@@ -65,6 +65,14 @@ CREATE INDEX IF NOT EXISTS idx_scenarios_priority    ON scenarios(priority);
 CREATE INDEX IF NOT EXISTS idx_scenarios_feature     ON scenarios(feature_area);
 CREATE INDEX IF NOT EXISTS idx_scenarios_workflow    ON scenarios(workflow);
 CREATE INDEX IF NOT EXISTS idx_scenario_groups_grp   ON scenario_groups(group_name);
+
+CREATE TABLE IF NOT EXISTS scenario_merges (
+  merged_from_id  TEXT NOT NULL PRIMARY KEY,
+  merged_into_id  TEXT NOT NULL,
+  merged_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  note            TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_merges_into ON scenario_merges(merged_into_id);
 
 INSERT OR IGNORE INTO groups (name, description) VALUES
   ('smoke',       'Core happy-path tests that must pass before anything else'),

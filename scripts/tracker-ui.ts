@@ -838,7 +838,29 @@ app.put(
       return;
     }
     const id = param(req.params.id);
-    const updated = updateScenario(id, { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups });
+    const existing = getScenario(id);
+    if (!existing) {
+      res.status(404).json({ error: `Scenario ${id} not found` });
+      return;
+    }
+
+    // Detect content changes → auto-set 'updated' / 'not-executed'
+    let effectiveAutoState = automation_state;
+    let effectiveExecStatus = execution_status;
+    const existingDetails = getScenarioDetails(id);
+
+    const contentChanged =
+      (title !== undefined && title !== existing.title) ||
+      (description !== undefined && description !== existing.description) ||
+      (Array.isArray(steps) && JSON.stringify(steps) !== JSON.stringify(existingDetails?.steps ?? [])) ||
+      (Array.isArray(expected_results) && JSON.stringify(expected_results) !== JSON.stringify(existingDetails?.expected_results ?? []));
+
+    if (contentChanged && !automation_state) {
+      effectiveAutoState = 'updated';
+      effectiveExecStatus = effectiveExecStatus || 'not-executed';
+    }
+
+    const updated = updateScenario(id, { title, description, automation_state: effectiveAutoState, execution_status: effectiveExecStatus, priority, feature_area, spec_file, workflow, groups });
     if (!updated) {
       res.status(404).json({ error: `Scenario ${id} not found` });
       return;

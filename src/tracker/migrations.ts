@@ -62,6 +62,64 @@ export const MIGRATIONS: Migration[] = [
       PRAGMA foreign_keys = ON;
     `,
   },
+  {
+    version: 4,
+    description: 'Add "updated" automation state and scenario_merges table',
+    up: `
+      PRAGMA foreign_keys = OFF;
+
+      -- 1. Recreate scenarios with widened CHECK to include 'updated'
+      CREATE TABLE scenario_groups_backup_v4 AS
+        SELECT scenario_id, group_name FROM scenario_groups;
+      CREATE TABLE scenario_details_backup_v4 AS
+        SELECT scenario_id, steps, expected_results, execution_notes FROM scenario_details;
+      CREATE TABLE scenarios_v4 (
+        id               TEXT PRIMARY KEY,
+        title            TEXT NOT NULL,
+        description      TEXT NOT NULL DEFAULT '',
+        automation_state TEXT NOT NULL DEFAULT 'pending'
+                              CHECK (automation_state IN ('pending','automated','on-hold','updated')),
+        execution_status TEXT NOT NULL DEFAULT 'not-executed'
+                              CHECK (execution_status IN ('passed','not-executed','skipped','failed-defect')),
+        priority         TEXT NOT NULL DEFAULT 'P2'
+                              CHECK (priority IN ('P1','P2','P3','Edge')),
+        feature_area     TEXT NOT NULL DEFAULT 'other'
+                              CHECK (feature_area IN ('auth','landing','products','releases','doc','reports','backoffice','integrations','other')),
+        spec_file        TEXT NOT NULL DEFAULT '',
+        workflow         TEXT NOT NULL DEFAULT '',
+        subsection       TEXT NOT NULL DEFAULT '',
+        created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO scenarios_v4 SELECT * FROM scenarios;
+      DROP TABLE scenarios;
+      ALTER TABLE scenarios_v4 RENAME TO scenarios;
+      DELETE FROM scenario_groups;
+      INSERT INTO scenario_groups (scenario_id, group_name)
+      SELECT scenario_id, group_name FROM scenario_groups_backup_v4;
+      DELETE FROM scenario_details;
+      INSERT INTO scenario_details (scenario_id, steps, expected_results, execution_notes)
+      SELECT scenario_id, steps, expected_results, execution_notes FROM scenario_details_backup_v4;
+      DROP TABLE scenario_groups_backup_v4;
+      DROP TABLE scenario_details_backup_v4;
+      CREATE INDEX IF NOT EXISTS idx_scenarios_auto_state  ON scenarios(automation_state);
+      CREATE INDEX IF NOT EXISTS idx_scenarios_exec_status ON scenarios(execution_status);
+      CREATE INDEX IF NOT EXISTS idx_scenarios_priority    ON scenarios(priority);
+      CREATE INDEX IF NOT EXISTS idx_scenarios_feature     ON scenarios(feature_area);
+      CREATE INDEX IF NOT EXISTS idx_scenarios_workflow    ON scenarios(workflow);
+
+      -- 2. Create scenario_merges table
+      CREATE TABLE IF NOT EXISTS scenario_merges (
+        merged_from_id  TEXT NOT NULL PRIMARY KEY,
+        merged_into_id  TEXT NOT NULL,
+        merged_at       TEXT NOT NULL DEFAULT (datetime('now')),
+        note            TEXT NOT NULL DEFAULT ''
+      );
+      CREATE INDEX IF NOT EXISTS idx_merges_into ON scenario_merges(merged_into_id);
+
+      PRAGMA foreign_keys = ON;
+    `,
+  },
 ];
 
 /** Latest schema version (derived from last migration). */
