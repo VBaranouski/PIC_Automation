@@ -94,6 +94,7 @@ tailwind.config = {
   .badge.auto-pending   { background: #332500; color: #e3b341; border-color: #e3b341; }
   .badge.auto-automated { background: #123e1500; color: #ffffff5e; border-color: #3fb950; }
   .badge.auto-on-hold   { background: #2b1241; color: #d2a8ff; border-color: #d2a8ff; }
+  .badge.auto-updated   { background: #0a2d3d; color: #58d1f0; border-color: #58d1f0; }
 
   /* Priority badge */
   .badge.prio-P1   { background: rgba(196,46,9,0.18); color: #ff7b72; border-color: #ff7b72; }
@@ -425,6 +426,7 @@ const ST = {
   'failed':      { color: '#c42e09', bg: 'rgba(196,46,9,0.15)',  icon: 'error' },
   'skipped':     { color: '#767575', bg: 'rgba(118,117,117,0.10)', icon: 'skip_next' },
   'on-hold':     { color: '#d5d4d4', bg: 'rgba(213,212,212,0.10)', icon: 'pause_circle' },
+  'updated':     { color: '#58d1f0', bg: 'rgba(88,209,240,0.15)', icon: 'sync' },
 };
 
 const PR = {
@@ -866,9 +868,29 @@ function buildWorkflowGroups(scenarios) {
   return workflows;
 }
 
+/** Save which accordions are currently open so we can restore after re-render. */
+function saveAccordionState() {
+  const state = { wf: new Set(), sub: new Set(), sc: new Set() };
+  document.querySelectorAll('.wf-card.open').forEach(el => state.wf.add(el.id));
+  document.querySelectorAll('.sub-card.open').forEach(el => state.sub.add(el.id));
+  document.querySelectorAll('.sc-card.open').forEach(el => state.sc.add(el.id));
+  return state;
+}
+
+/** Restore open state of accordions after re-render. */
+function restoreAccordionState(state) {
+  if (!state) return;
+  state.wf.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('open'); });
+  state.sub.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('open'); });
+  state.sc.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('open'); });
+}
+
 function renderWorkflows(workflows, total) {
   const container = document.getElementById('workflows');
   window._cachedWorkflows = workflows;
+
+  // Save accordion state before re-render
+  const accordionState = saveAccordionState();
 
   if (!workflows.length) {
     container.innerHTML = '<div class="text-center py-16 text-on-surface-variant text-sm">No scenarios match your filters</div>';
@@ -924,16 +946,21 @@ function renderWorkflows(workflows, total) {
       </div>
     </div>`;
   }).join('');
+
+  // Restore accordion state after re-render
+  restoreAccordionState(accordionState);
 }
 
 function renderFlatScenarios(scenarios, total) {
   const container = document.getElementById('workflows');
   window._cachedWorkflows = [];
+  const accordionState = saveAccordionState();
   if (!scenarios.length) {
     container.innerHTML = '<div class="text-center py-16 text-on-surface-variant text-sm">No scenarios match your filters</div>';
     return;
   }
   container.innerHTML = `<div class="space-y-1">${scenarios.map((s, sIdx) => renderScenarioItem(s, 0, 0, sIdx, '#ff9157')).join('')}</div>`;
+  restoreAccordionState(accordionState);
 }
 
 function renderSubsections(wf, wfIdx, color) {
@@ -1155,16 +1182,25 @@ function openAddModal() {
   document.getElementById('modalOverlay').classList.add('open');
 }
 
+// Store original content when opening edit modal for change detection
+let _editOriginal = null;
+
 async function openEditModal(id) {
   const s = await api(`/scenarios/${encodeURIComponent(id)}`);
+  // Save original content fields for change detection on save
+  _editOriginal = {
+    title: s.title || '',
+    steps: formatMultilineList(s.steps),
+    expected_results: formatMultilineList(s.expected_results),
+  };
   document.getElementById('editMode').value = 'edit';
   document.getElementById('modalTitle').textContent = `Edit ${s.id}`;
   document.getElementById('modalSubmitBtn').textContent = 'Save';
   document.getElementById('fId').value = s.id;
   document.getElementById('fId').disabled = true;
   document.getElementById('fTitle').value = s.title;
-  document.getElementById('fSteps').value = formatMultilineList(s.steps);
-  document.getElementById('fExpectedResults').value = formatMultilineList(s.expected_results);
+  document.getElementById('fSteps').value = _editOriginal.steps;
+  document.getElementById('fExpectedResults').value = _editOriginal.expected_results;
   document.getElementById('fStatus').disabled = false;
   document.getElementById('fStatus').value = s.automation_state || s.status || 'pending';
   document.getElementById('fPriority').value = s.priority;
@@ -1180,17 +1216,37 @@ function closeModal() { document.getElementById('modalOverlay').classList.remove
 async function saveScenario(e) {
   e.preventDefault();
   const mode = document.getElementById('editMode').value;
+  const currentSteps = document.getElementById('fSteps').value;
+  const currentExpected = document.getElementById('fExpectedResults').value;
+  const currentTitle = document.getElementById('fTitle').value.trim();
+
+  // Detect content changes (title, steps, expected results)
+  const contentChanged = mode === 'edit' && _editOriginal && (
+    currentTitle !== _editOriginal.title ||
+    currentSteps !== _editOriginal.steps ||
+    currentExpected !== _editOriginal.expected_results
+  );
+
   const body = {
     id: document.getElementById('fId').value.trim(),
-    title: document.getElementById('fTitle').value.trim(),
-    automation_state: mode === 'add' ? 'pending' : document.getElementById('fStatus').value,
+    title: currentTitle,
     priority: document.getElementById('fPriority').value,
     feature_area: document.getElementById('fArea').value,
     workflow: document.getElementById('fWorkflow').value.trim(),
     groups: document.getElementById('fGroups').value.split(',').map(g => g.trim()).filter(Boolean),
-    steps: parseMultilineList(document.getElementById('fSteps').value),
-    expected_results: parseMultilineList(document.getElementById('fExpectedResults').value),
+    steps: parseMultilineList(currentSteps),
+    expected_results: parseMultilineList(currentExpected),
   };
+
+  if (mode === 'add') {
+    body.automation_state = 'pending';
+  } else if (contentChanged) {
+    // Content changed — omit automation_state so the server auto-sets 'updated'
+    // and resets execution_status to 'not-executed'
+  } else {
+    body.automation_state = document.getElementById('fStatus').value;
+  }
+
   try {
     if (mode === 'add') {
       await api('/scenarios', { method: 'POST', body: JSON.stringify(body) });
@@ -1198,8 +1254,9 @@ async function saveScenario(e) {
       toast(`Scenario ${body.id} added`, 'success');
     } else {
       await api(`/scenarios/${encodeURIComponent(body.id)}`, { method: 'PUT', body: JSON.stringify(body) });
-      toast(`Scenario ${body.id} updated`, 'success');
+      toast(contentChanged ? `${body.id} updated → automation state set to 'updated'` : `Scenario ${body.id} updated`, 'success');
     }
+    _editOriginal = null;
     closeModal();
     refreshDashboard();
     refreshWorkflows();

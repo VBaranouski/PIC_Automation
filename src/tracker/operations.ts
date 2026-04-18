@@ -77,7 +77,11 @@ export {
   getAllScenarioDetails,
   upsertScenario,
   getDistinctWorkflows,
+  mergeScenarios,
+  listMerges,
+  getMergedInto,
 } from './crud';
+export type { MergeRecord } from './crud';
 
 // Sync operations
 export type {

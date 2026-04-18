@@ -10,6 +10,7 @@ export const AUTOMATION_STATES = [
   'pending',   // Not yet automated — needs implementation
   'automated', // Automated test exists
   'on-hold',   // Paused — will be auto-skipped during test runs
+  'updated',   // Scenario content changed — automated script needs updating
 ] as const;
 export type AutomationState = (typeof AUTOMATION_STATES)[number];
 

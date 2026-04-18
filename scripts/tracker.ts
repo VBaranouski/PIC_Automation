@@ -56,6 +56,9 @@ import {
   isValidExecutionStatus,
   isValidPriority,
   isValidFeatureArea,
+  mergeScenarios,
+  listMerges,
+  getMergedInto,
 } from '../src/tracker/operations';
 import {
   AUTOMATION_STATES,
@@ -75,6 +78,7 @@ const autoStateColor: Record<AutomationState, (s: string) => string> = {
   pending:   chalk.yellow,
   automated: chalk.green,
   'on-hold': chalk.magenta,
+  updated:   chalk.cyan,
 };
 const execStatusColor: Record<ExecutionStatus, (s: string) => string> = {
   passed:          chalk.cyan,
@@ -86,6 +90,7 @@ const priorityColor: Record<Priority, (s: string) => string> = {
   P1: chalk.red.bold,
   P2: chalk.yellow,
   P3: chalk.gray,
+  Edge: chalk.dim,
 };
 
 function colorAuto(s: AutomationState): string { return (autoStateColor[s] || chalk.white)(s); }
@@ -592,6 +597,62 @@ program
     if (opts.dryRun) {
       console.log(chalk.gray('(dry-run mode — add --dry-run flag to the seed script)'));
     }
+    closeDb();
+  });
+
+// ── merge ─────────────────────────────────────────────────────────────────────
+
+program
+  .command('merge')
+  .description('Merge one or more scenarios into a target scenario')
+  .argument('<fromIds...>', 'Scenario IDs to merge (absorbed)')
+  .option('--into <id>', 'Target scenario ID (surviving)')
+  .option('--note <note>', 'Optional note describing the merge reason')
+  .action((fromIds: string[], opts) => {
+    if (!opts.into) {
+      console.log(chalk.red('--into <id> is required'));
+      closeDb();
+      process.exit(1);
+    }
+    getDb();
+    try {
+      const records = mergeScenarios(fromIds, opts.into, opts.note);
+      for (const r of records) {
+        console.log(chalk.green(`✓ ${r.merged_from_id} → merged into ${r.merged_into_id}`));
+      }
+      console.log(chalk.cyan(`  Target ${opts.into} set to automation_state = 'updated'`));
+    } catch (err: any) {
+      console.log(chalk.red(err.message));
+      process.exitCode = 1;
+    }
+    closeDb();
+  });
+
+// ── merges ────────────────────────────────────────────────────────────────────
+
+program
+  .command('merges')
+  .description('List all scenario merges')
+  .option('--into <id>', 'Filter merges into a specific target scenario')
+  .action((opts) => {
+    getDb();
+    const records = listMerges(opts.into);
+    if (!records.length) {
+      console.log(chalk.gray('No merge records found.'));
+      closeDb();
+      return;
+    }
+    const table = new Table({
+      head: ['Merged From', 'Merged Into', 'Merged At', 'Note'],
+      style: { head: ['cyan'] },
+      colWidths: [22, 22, 22, 40],
+      wordWrap: true,
+    });
+    for (const r of records) {
+      table.push([r.merged_from_id, r.merged_into_id, r.merged_at, r.note || '']);
+    }
+    console.log(table.toString());
+    console.log(chalk.gray(`\n${records.length} merge record(s)`));
     closeDb();
   });
 

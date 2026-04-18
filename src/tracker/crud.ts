@@ -389,3 +389,61 @@ export function getDistinctWorkflows(): string[] {
       return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
     });
 }
+
+// ── Merge operations ──────────────────────────────────────────────────────────
+
+export interface MergeRecord {
+  merged_from_id: string;
+  merged_into_id: string;
+  merged_at: string;
+  note: string;
+}
+
+export function mergeScenarios(fromIds: string[], intoId: string, note?: string): MergeRecord[] {
+  const db = getDb();
+  const ts = now();
+  const records: MergeRecord[] = [];
+
+  if (!scenarioExists(intoId)) throw new Error(`Target scenario ${intoId} does not exist`);
+  for (const fromId of fromIds) {
+    if (!scenarioExists(fromId)) throw new Error(`Source scenario ${fromId} does not exist`);
+  }
+
+  const insert = db.prepare(`
+    INSERT OR REPLACE INTO scenario_merges (merged_from_id, merged_into_id, merged_at, note)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  const runMerge = db.transaction(() => {
+    for (const fromId of fromIds) {
+      insert.run(fromId, intoId, ts, note ?? '');
+      updateScenario(fromId, { automation_state: 'on-hold' });
+      setScenarioDetails(fromId, {
+        steps: [],
+        expected_results: [],
+        execution_notes: `Merged into ${intoId}${note ? `: ${note}` : ''}`,
+      });
+      records.push({ merged_from_id: fromId, merged_into_id: intoId, merged_at: ts, note: note ?? '' });
+    }
+
+    // Mark target as updated so the script gets refreshed
+    updateScenario(intoId, { automation_state: 'updated', execution_status: 'not-executed' });
+  });
+
+  runMerge();
+  return records;
+}
+
+export function listMerges(intoId?: string): MergeRecord[] {
+  const db = getDb();
+  if (intoId) {
+    return db.prepare('SELECT * FROM scenario_merges WHERE merged_into_id = ? ORDER BY merged_at DESC').all(intoId) as MergeRecord[];
+  }
+  return db.prepare('SELECT * FROM scenario_merges ORDER BY merged_at DESC').all() as MergeRecord[];
+}
+
+export function getMergedInto(fromId: string): string | null {
+  const db = getDb();
+  const row = db.prepare('SELECT merged_into_id FROM scenario_merges WHERE merged_from_id = ?').get(fromId) as { merged_into_id: string } | undefined;
+  return row?.merged_into_id ?? null;
+}
