@@ -405,27 +405,32 @@ export function mergeScenarios(fromIds: string[], intoId: string, note?: string)
   const records: MergeRecord[] = [];
 
   if (!scenarioExists(intoId)) throw new Error(`Target scenario ${intoId} does not exist`);
+  for (const fromId of fromIds) {
+    if (!scenarioExists(fromId)) throw new Error(`Source scenario ${fromId} does not exist`);
+  }
 
   const insert = db.prepare(`
     INSERT OR REPLACE INTO scenario_merges (merged_from_id, merged_into_id, merged_at, note)
     VALUES (?, ?, ?, ?)
   `);
 
-  for (const fromId of fromIds) {
-    if (!scenarioExists(fromId)) throw new Error(`Source scenario ${fromId} does not exist`);
-    insert.run(fromId, intoId, ts, note ?? '');
-    updateScenario(fromId, { automation_state: 'on-hold' });
-    setScenarioDetails(fromId, {
-      steps: [],
-      expected_results: [],
-      execution_notes: `Merged into ${intoId}${note ? `: ${note}` : ''}`,
-    });
-    records.push({ merged_from_id: fromId, merged_into_id: intoId, merged_at: ts, note: note ?? '' });
-  }
+  const runMerge = db.transaction(() => {
+    for (const fromId of fromIds) {
+      insert.run(fromId, intoId, ts, note ?? '');
+      updateScenario(fromId, { automation_state: 'on-hold' });
+      setScenarioDetails(fromId, {
+        steps: [],
+        expected_results: [],
+        execution_notes: `Merged into ${intoId}${note ? `: ${note}` : ''}`,
+      });
+      records.push({ merged_from_id: fromId, merged_into_id: intoId, merged_at: ts, note: note ?? '' });
+    }
 
-  // Mark target as updated so the script gets refreshed
-  updateScenario(intoId, { automation_state: 'updated', execution_status: 'not-executed' });
+    // Mark target as updated so the script gets refreshed
+    updateScenario(intoId, { automation_state: 'updated', execution_status: 'not-executed' });
+  });
 
+  runMerge();
   return records;
 }
 

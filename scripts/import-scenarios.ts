@@ -60,6 +60,11 @@ if (!AREA) {
   console.error('Areas: auth, landing, products, releases, doc, reports, backoffice, integrations, other');
   process.exit(1);
 }
+if (!isValidFeatureArea(AREA)) {
+  console.error(chalk.red(`Invalid feature area: "${AREA}"`));
+  console.error('Valid areas: auth, landing, products, releases, doc, reports, backoffice, integrations, other');
+  process.exit(1);
+}
 
 const DEFAULT_FILE = path.join(PROJECT_ROOT, 'docs', 'ai', 'test-cases', 'input', `${AREA}-scenarios-for-import.xlsx`);
 const INPUT_FILE   = getArg('--file') ?? DEFAULT_FILE;
@@ -326,7 +331,7 @@ for (let i = 0; i < dataRows.length; i++) {
 // ── Detect removed scenarios ─────────────────────────────────────────────────
 
 if (!NO_REMOVE) {
-  const allAreaScenarios = listScenarios({ feature_area: AREA } as any);
+  const allAreaScenarios = listScenarios({ feature_area: AREA as FeatureArea });
   const removedScenarios = allAreaScenarios.filter(
     (s) => !excelIds.has(s.id) && s.automation_state !== 'on-hold',
   );

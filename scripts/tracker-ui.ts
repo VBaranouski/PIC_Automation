@@ -854,6 +854,7 @@ app.put(
       (description !== undefined && description !== existing.description) ||
       (Array.isArray(steps) && JSON.stringify(steps) !== JSON.stringify(existingDetails?.steps ?? [])) ||
       (Array.isArray(expected_results) && JSON.stringify(expected_results) !== JSON.stringify(existingDetails?.expected_results ?? []));
+    // Note: all comparisons are guarded with !== undefined to avoid false positives from missing body fields
 
     if (contentChanged && !automation_state) {
       effectiveAutoState = 'updated';

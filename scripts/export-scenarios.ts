@@ -14,6 +14,7 @@ import path from 'path';
 import fs from 'fs';
 import * as XLSX from 'xlsx';
 import Database from 'better-sqlite3';
+import { FEATURE_AREAS } from '../src/tracker/models';
 
 // ── CLI ────────────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,11 @@ const AREA = getArg('--area');
 if (!AREA) {
   console.error('Usage: npx tsx scripts/export-scenarios.ts --area <feature_area>');
   console.error('Areas: auth, landing, products, releases, doc, reports, backoffice, integrations, other');
+  process.exit(1);
+}
+if (!(FEATURE_AREAS as readonly string[]).includes(AREA)) {
+  console.error(`Invalid feature area: "${AREA}"`);
+  console.error(`Valid areas: ${FEATURE_AREAS.join(', ')}`);
   process.exit(1);
 }
 
