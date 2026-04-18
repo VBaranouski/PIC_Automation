@@ -23,13 +23,14 @@ test.describe('Authentication - Login @smoke', () => {
     });
   });
 
-  test('should redirect to landing page when logging in with valid credentials', async ({ loginPage, landingPage, userCredentials }) => {
+  // AUTH-LOGIN-002: Valid credentials redirect to the Landing Page
+  test('should redirect to Landing Page when logging in with valid credentials', async ({ loginPage, landingPage, userCredentials }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
-    await allure.tag('smoke');
-    await allure.description('AUTH-LOGIN-002: Verify successful login with valid username and password redirects to PICASso Landing Page');
+    await allure.tag('regression');
+    await allure.description('AUTH-LOGIN-002: Verify that entering valid username and password and clicking Login redirects the user to the PICASso Landing Page (HomePage)');
 
-    await test.step('Fill in login credentials', async () => {
+    await test.step('Fill in valid login credentials', async () => {
       await loginPage.fillUsername(userCredentials.login);
       await loginPage.fillPassword(userCredentials.password);
     });
@@ -38,19 +39,73 @@ test.describe('Authentication - Login @smoke', () => {
       await loginPage.clickLogin();
     });
 
-    await test.step('Verify redirect to Landing Page', async () => {
+    await test.step('Verify redirect to Landing Page (HomePage)', async () => {
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+    });
+  });
+
+  // AUTH-LOGIN-002-b: Logged-in username is visible in the page header after login
+  test('should display logged-in username in page header after successful login', async ({ loginPage, landingPage, userCredentials }) => {
+    await allure.suite('Authentication');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description('AUTH-LOGIN-002-b: Verify that the logged-in user\'s display name / username is visible in the page header after a successful credentials login');
+
+    await test.step('Fill in valid credentials and log in', async () => {
+      await loginPage.fillUsername(userCredentials.login);
+      await loginPage.fillPassword(userCredentials.password);
+      await loginPage.clickLogin();
+    });
+
+    await test.step('Wait for Landing Page to load', async () => {
       await landingPage.expectPageLoaded({ timeout: 60_000 });
     });
 
-    await test.step('Verify user name is displayed in header', async () => {
+    await test.step('Verify username is displayed in the page header', async () => {
       await landingPage.expectUserDisplayed(userCredentials.login);
+    });
+  });
+
+  // AUTH-LOGIN-002-c: Navigation menu is visible after login
+  test('should display navigation menu after successful login', async ({ loginPage, landingPage, userCredentials }) => {
+    await allure.suite('Authentication');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description('AUTH-LOGIN-002-c: Verify that the application navigation menu is visible and accessible after a successful credentials login');
+
+    await test.step('Fill in valid credentials and log in', async () => {
+      await loginPage.fillUsername(userCredentials.login);
+      await loginPage.fillPassword(userCredentials.password);
+      await loginPage.clickLogin();
+    });
+
+    await test.step('Wait for Landing Page to load', async () => {
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
     });
 
     await test.step('Verify navigation menu is visible', async () => {
       await landingPage.expectNavigationMenuVisible();
     });
+  });
 
-    await test.step('Verify landing page tabs are present', async () => {
+  // AUTH-LOGIN-002-d: Landing page tabs are visible after login
+  test('should display Landing Page tabs after successful login', async ({ loginPage, landingPage, userCredentials }) => {
+    await allure.suite('Authentication');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description('AUTH-LOGIN-002-d: Verify that all Landing Page tabs (My Tasks, My Products, My Releases, My DOCs, Reports & Dashboards) are visible after a successful credentials login');
+
+    await test.step('Fill in valid credentials and log in', async () => {
+      await loginPage.fillUsername(userCredentials.login);
+      await loginPage.fillPassword(userCredentials.password);
+      await loginPage.clickLogin();
+    });
+
+    await test.step('Wait for Landing Page to load', async () => {
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+    });
+
+    await test.step('Verify all landing page tabs are present', async () => {
       await landingPage.expectTabsPresent();
     });
   });
@@ -123,6 +178,16 @@ test.describe('Authentication - Login @smoke', () => {
       await loginPage.expectSsoRedirectToPingId();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // WF01-0003: Login via SSO with a valid identity → OUT OF AUTOMATION SCOPE
+  // Clicking Login SSO redirects to the external Ping identity provider
+  // (ping-sso-uat.schneider-electric.com). Completing the flow requires live
+  // Ping credentials that are not available in the automated test environment.
+  // The verifiable portion (SSO redirect to Ping) is covered by AUTH-SSO-002.
+  // Full end-to-end SSO login with a valid identity is covered by manual /
+  // exploratory testing only. Tracker state: on-hold (out of automation scope).
+  // ---------------------------------------------------------------------------
 
   // ---------------------------------------------------------------------------
   // AUTH-FPW-001: Forgot Password link – KNOWN DEFECT
