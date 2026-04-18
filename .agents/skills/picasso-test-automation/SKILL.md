@@ -17,6 +17,9 @@ Proven 8-step workflow for automating any PICASso test scenarios — from tracke
 
 ## Prerequisites
 
+**Also load this skill before generating any test code:**
+- `.agents/skills/playwright-best-practices/SKILL.md` — canonical Playwright patterns (locators, assertions, POM, flaky-test prevention, CI/CD)
+
 Read these instruction files before starting:
 - `.github/instructions/automation-workflow.instructions.md` — master 7-step workflow
 - `.github/instructions/testing-patterns.instructions.md` — 4-layer architecture, locator priority, Allure metadata
@@ -105,11 +108,31 @@ test.describe('<Area> - Feature Description (WF ref) @regression', () => {
 | doc | `docDetailsPage` | `DocDetailsPage` |
 | doc (controls) | `controlDetailPage` | `ControlDetailPage` |
 
-### Step 3: Execute in Browser (Headed Mode)
+### Step 3: Validate Locators in Browser (Playwright CLI / Codegen)
+
+**This step uses the interactive Playwright CLI browser — not a test run.** Open the target environment, walk the full user journey manually, and verify every locator against the live DOM before running the test suite.
+
+```bash
+# Open interactive browser session (logs in with configured test user)
+npm run inspect        # general pages
+npm run inspect:doc    # DOC detail pages
+npm run codegen        # record interactions → auto-generate locator suggestions
+```
+
+While in the browser session:
+- Navigate to each page used by the test
+- Inspect ARIA roles, accessible names, and element structure for every locator in the spec
+- Confirm whether dropdowns are native `<select>` or OSUI custom widgets
+- Confirm whether duplicate ARIA roles require `.first()`, `exact: true`, or container scoping
+- Walk the full scenario flow step-by-step and observe DOM changes after each action
+- Update spec locators and POM methods based on what you find
+
+**After** browser validation, run headed to watch the full test execute:
 ```bash
 npx playwright test tests/<area>/<spec>.spec.ts --project=<project> --headed --reporter=list --workers=1
 ```
-Inspect the DOM, verify locators match live elements, walk the full user journey.
+
+Never finalize locators by guesswork — always inspect live before treating the spec as done.
 
 ### Step 4: Fix Locators Based on Live DOM
 
