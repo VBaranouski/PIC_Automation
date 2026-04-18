@@ -28,18 +28,22 @@ function getArg(flag: string): string | undefined {
 }
 
 const AREA = getArg('--area');
-if (!AREA) {
-  console.error('Usage: npx tsx scripts/export-scenarios.ts --area <feature_area>');
+const WORKFLOW = getArg('--workflow');
+
+if (!AREA && !WORKFLOW) {
+  console.error('Usage: npx tsx scripts/export-scenarios.ts --area <feature_area> [--workflow <name>]');
+  console.error('       npx tsx scripts/export-scenarios.ts --workflow <name>');
   console.error('Areas: auth, landing, products, releases, doc, reports, backoffice, integrations, other');
   process.exit(1);
 }
-if (!(FEATURE_AREAS as readonly string[]).includes(AREA)) {
+if (AREA && !(FEATURE_AREAS as readonly string[]).includes(AREA)) {
   console.error(`Invalid feature area: "${AREA}"`);
   console.error(`Valid areas: ${FEATURE_AREAS.join(', ')}`);
   process.exit(1);
 }
 
-const DEFAULT_OUT = path.join(PROJECT_ROOT, 'docs', 'ai', 'test-cases', 'output', `${AREA}-scenarios-export.xlsx`);
+const fileLabel = WORKFLOW ? WORKFLOW.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '') : AREA!;
+const DEFAULT_OUT = path.join(PROJECT_ROOT, 'docs', 'ai', 'test-cases', 'output', `${fileLabel}-scenarios-export.xlsx`);
 const OUTPUT_PATH = getArg('--out') ?? DEFAULT_OUT;
 
 // ── DB query ───────────────────────────────────────────────────────────────────
@@ -89,21 +93,23 @@ const rows = db.prepare<[string], ScenarioRow>(`
   LEFT JOIN scenario_groups sg ON sg.scenario_id = s.id
   LEFT JOIN scenario_details sd ON sd.scenario_id = s.id
   LEFT JOIN scenario_merges sm ON sm.merged_from_id = s.id
-  WHERE s.feature_area = ?
+  WHERE ${WORKFLOW ? 's.workflow = ?' : 's.feature_area = ?'}
   GROUP BY s.id
   ORDER BY
     CASE s.priority WHEN 'P1' THEN 1 WHEN 'P2' THEN 2 WHEN 'P3' THEN 3 ELSE 4 END,
     s.id
-`).all(AREA);
+`).all(WORKFLOW ?? AREA!);
 
 db.close();
 
 if (!rows.length) {
-  console.error(`No scenarios found for feature_area = '${AREA}'`);
+  const filterDesc = WORKFLOW ? `workflow = '${WORKFLOW}'` : `feature_area = '${AREA}'`;
+  console.error(`No scenarios found for ${filterDesc}`);
   process.exit(1);
 }
 
-console.log(`Found ${rows.length} "${AREA}" scenarios.`);
+const filterLabel = WORKFLOW ?? AREA!;
+console.log(`Found ${rows.length} "${filterLabel}" scenarios.`);
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -140,7 +146,7 @@ const HEADERS = [
   'Updated At',
 ];
 
-const SHEET_NAME = `${AREA.charAt(0).toUpperCase() + AREA.slice(1)} Scenarios`;
+const SHEET_NAME = `${fileLabel.charAt(0).toUpperCase() + fileLabel.slice(1)} Scenarios`;
 
 const dataRows = rows.map((r) => [
   r.id,
@@ -208,7 +214,7 @@ for (const r of rows) {
 }
 
 const summaryData: (string | number)[][] = [
-  [`${AREA.toUpperCase()} Scenarios Export Summary`],
+  [`${filterLabel.toUpperCase()} Scenarios Export Summary`],
   [`Generated: ${new Date().toISOString()}`],
   [],
   ['Total scenarios', rows.length],

@@ -38,7 +38,7 @@ import {
   isValidPriority,
   isValidFeatureArea,
 } from '../src/tracker/crud';
-import type { Priority, FeatureArea } from '../src/tracker/models';
+import type { Priority, FeatureArea, ListFilters } from '../src/tracker/models';
 
 // ── CLI flags ──────────────────────────────────────────────────────────────────
 
@@ -55,22 +55,26 @@ const NO_REMOVE = args.includes('--no-remove');
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 const AREA = getArg('--area');
-if (!AREA) {
-  console.error('Usage: npx tsx scripts/import-scenarios.ts --area <feature_area> [--file <path>] [--write] [--no-remove]');
+const WORKFLOW = getArg('--workflow');
+
+if (!AREA && !WORKFLOW) {
+  console.error('Usage: npx tsx scripts/import-scenarios.ts --area <feature_area> [--workflow <name>] [--file <path>] [--write] [--no-remove]');
+  console.error('       npx tsx scripts/import-scenarios.ts --workflow <name> --file <path> [--write] [--no-remove]');
   console.error('Areas: auth, landing, products, releases, doc, reports, backoffice, integrations, other');
   process.exit(1);
 }
-if (!isValidFeatureArea(AREA)) {
+if (AREA && !isValidFeatureArea(AREA)) {
   console.error(chalk.red(`Invalid feature area: "${AREA}"`));
   console.error('Valid areas: auth, landing, products, releases, doc, reports, backoffice, integrations, other');
   process.exit(1);
 }
 
-const DEFAULT_FILE = path.join(PROJECT_ROOT, 'docs', 'ai', 'test-cases', 'input', `${AREA}-scenarios-for-import.xlsx`);
+const fileLabel = WORKFLOW ? WORKFLOW.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '') : AREA!;
+const DEFAULT_FILE = path.join(PROJECT_ROOT, 'docs', 'ai', 'test-cases', 'input', `${fileLabel}-scenarios-for-import.xlsx`);
 const INPUT_FILE   = getArg('--file') ?? DEFAULT_FILE;
 
-// Sheet name convention: "<Area> Scenarios" (matches export-scenarios.ts)
-const SHEET_NAME = `${AREA.charAt(0).toUpperCase() + AREA.slice(1)} Scenarios`;
+// Sheet name convention: "<Label> Scenarios" (matches export-scenarios.ts)
+const SHEET_NAME = `${fileLabel.charAt(0).toUpperCase() + fileLabel.slice(1)} Scenarios`;
 
 // ── Column index map (matches export-scenarios.ts HEADERS order) ───────────────
 
@@ -331,7 +335,10 @@ for (let i = 0; i < dataRows.length; i++) {
 // ── Detect removed scenarios ─────────────────────────────────────────────────
 
 if (!NO_REMOVE) {
-  const allAreaScenarios = listScenarios({ feature_area: AREA as FeatureArea });
+  const filterOpts: ListFilters = WORKFLOW
+    ? { workflow: WORKFLOW }
+    : { feature_area: AREA as FeatureArea };
+  const allAreaScenarios = listScenarios(filterOpts);
   const removedScenarios = allAreaScenarios.filter(
     (s) => !excelIds.has(s.id) && s.automation_state !== 'on-hold',
   );
@@ -349,7 +356,7 @@ if (!NO_REMOVE) {
         setScenarioDetails(s.id, {
           steps: existingDetails?.steps ?? [],
           expected_results: existingDetails?.expected_results ?? [],
-          execution_notes: `Removed from ${AREA} import on ${today}. Previous state: ${s.automation_state}`,
+          execution_notes: `Removed from ${fileLabel} import on ${today}. Previous state: ${s.automation_state}`,
         });
         console.log(chalk.red(`  FLAGGED ON-HOLD: ${s.id}`));
       }

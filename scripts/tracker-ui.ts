@@ -10,8 +10,8 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
-import { spawn, ChildProcess } from 'child_process';
-import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'fs';
+import { spawn, execFileSync, ChildProcess } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import {
   addScenario,
   getScenario,
@@ -46,7 +46,7 @@ import {
   DEFAULT_GROUPS,
 } from '../src/tracker/models';
 import type { ListFilters, TrackerExport, AutomationState, ExecutionStatus } from '../src/tracker/models';
-import { getDbPath, closeDb } from '../src/tracker/db';
+import { getDb, getDbPath, closeDb } from '../src/tracker/db';
 
 // ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -1212,6 +1212,183 @@ app.get(
       default_groups: DEFAULT_GROUPS,
     });
   }),
+);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// XLSX EXPORT / IMPORT — spawn export-scenarios.ts / import-scenarios.ts
+// ══════════════════════════════════════════════════════════════════════════════
+
+const XLSX_ROOT = path.resolve(__dirname, '..');
+const XLSX_INPUT_DIR = path.resolve(XLSX_ROOT, 'docs', 'ai', 'test-cases', 'input');
+const XLSX_OUTPUT_DIR = path.resolve(XLSX_ROOT, 'docs', 'ai', 'test-cases', 'output');
+
+/** Map a workflow name to its feature_area by querying the DB. */
+function workflowToFeatureArea(workflow: string): string | null {
+  const db = getDb();
+  const row = db.prepare(
+    "SELECT DISTINCT feature_area FROM scenarios WHERE workflow = ? LIMIT 1",
+  ).get(workflow) as { feature_area: string } | undefined;
+  return row?.feature_area ?? null;
+}
+
+/** Validate that a workflow name exists in the DB (prevents injection of arbitrary values). */
+function isKnownWorkflow(workflow: string): boolean {
+  const db = getDb();
+  const row = db.prepare(
+    "SELECT 1 FROM scenarios WHERE workflow = ? LIMIT 1",
+  ).get(workflow);
+  return !!row;
+}
+
+/** GET /api/import-files — list .xlsx files in the input directory */
+app.get(
+  '/api/import-files',
+  wrap((_req, res) => {
+    mkdirSync(XLSX_INPUT_DIR, { recursive: true });
+    const files = readdirSync(XLSX_INPUT_DIR)
+      .filter((f) => f.endsWith('.xlsx'))
+      .sort();
+    res.json({ files });
+  }),
+);
+
+/** POST /api/xlsx-export — export scenarios for a workflow to xlsx and stream the file back */
+app.post(
+  '/api/xlsx-export',
+  wrap((req, res) => {
+    const { workflow } = req.body as { workflow?: string };
+    if (!workflow) {
+      res.status(400).json({ error: 'Missing required field: workflow' });
+      return;
+    }
+    if (!isKnownWorkflow(workflow)) {
+      res.status(400).json({ error: `Unknown workflow: "${workflow}"` });
+      return;
+    }
+
+    mkdirSync(XLSX_OUTPUT_DIR, { recursive: true });
+
+    const scriptPath = path.resolve(XLSX_ROOT, 'scripts', 'export-scenarios.ts');
+    const safeLabel = workflow.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+    const outFile = path.join(XLSX_OUTPUT_DIR, `${safeLabel}-scenarios-export.xlsx`);
+
+    try {
+      execFileSync(
+        'npx', ['tsx', scriptPath, '--workflow', workflow, '--out', outFile],
+        { cwd: XLSX_ROOT, timeout: 30_000, stdio: 'pipe' },
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: `Export script failed: ${msg}` });
+      return;
+    }
+
+    if (!existsSync(outFile)) {
+      res.status(500).json({ error: 'Export script completed but output file not found.' });
+      return;
+    }
+
+    const filename = path.basename(outFile);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(readFileSync(outFile));
+  }),
+);
+
+/** POST /api/xlsx-import — import scenarios from an xlsx file for a workflow */
+app.post(
+  '/api/xlsx-import',
+  wrap((req, res) => {
+    const contentType = req.headers['content-type'] || '';
+
+    let workflow: string;
+    let filePath: string;
+
+    if (contentType.includes('multipart/form-data')) {
+      // ── Manual multipart parsing for file upload (no multer) ───────────────
+      // Expect fields: workflow, file (binary)
+      res.status(400).json({ error: 'Multipart upload not supported. Use JSON body with { workflow, filename } to import an existing file from the input folder, or upload via the upload endpoint first.' });
+      return;
+    }
+
+    // ── JSON body: { workflow, filename } — use existing file ────────────────
+    const body = req.body as { workflow?: string; filename?: string };
+    if (!body.workflow) {
+      res.status(400).json({ error: 'Missing required field: workflow' });
+      return;
+    }
+    if (!body.filename) {
+      res.status(400).json({ error: 'Missing required field: filename' });
+      return;
+    }
+
+    workflow = body.workflow;
+    if (!isKnownWorkflow(workflow)) {
+      res.status(400).json({ error: `Unknown workflow: "${workflow}"` });
+      return;
+    }
+    const filename = path.basename(body.filename); // prevent directory traversal
+    if (!filename.endsWith('.xlsx')) {
+      res.status(400).json({ error: 'Only .xlsx files are accepted.' });
+      return;
+    }
+
+    filePath = path.join(XLSX_INPUT_DIR, filename);
+    if (!existsSync(filePath)) {
+      res.status(404).json({ error: `File not found: ${filename}` });
+      return;
+    }
+
+    const area = workflowToFeatureArea(workflow);
+    if (!area) {
+      res.status(400).json({ error: `No feature area found for workflow: "${workflow}"` });
+      return;
+    }
+
+    const scriptPath = path.resolve(XLSX_ROOT, 'scripts', 'import-scenarios.ts');
+
+    let output: string;
+    try {
+      output = execFileSync(
+        'npx', ['tsx', scriptPath, '--workflow', workflow, '--area', area, '--file', filePath, '--write'],
+        { cwd: XLSX_ROOT, timeout: 60_000, stdio: 'pipe', encoding: 'utf-8' },
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as { stdout?: string }).stdout || err.message : String(err);
+      res.status(500).json({ error: `Import script failed`, details: msg });
+      return;
+    }
+
+    res.json({ success: true, output });
+  }),
+);
+
+/** POST /api/xlsx-upload — upload an xlsx file to the input directory */
+app.post(
+  '/api/xlsx-upload',
+  express.raw({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', limit: '20mb' }),
+  (req: Request, res: Response) => {
+    try {
+      const filename = req.headers['x-filename'];
+      if (!filename || typeof filename !== 'string') {
+        res.status(400).json({ error: 'Missing X-Filename header' });
+        return;
+      }
+      const safeName = path.basename(filename);
+      if (!safeName.endsWith('.xlsx')) {
+        res.status(400).json({ error: 'Only .xlsx files are accepted.' });
+        return;
+      }
+
+      mkdirSync(XLSX_INPUT_DIR, { recursive: true });
+      const dest = path.join(XLSX_INPUT_DIR, safeName);
+      writeFileSync(dest, req.body as Buffer);
+      res.json({ success: true, filename: safeName });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: msg });
+    }
+  },
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
