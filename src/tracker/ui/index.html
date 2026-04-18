@@ -147,10 +147,10 @@ tailwind.config = {
       <span class="material-symbols-outlined" id="nav-reports-icon">folder_open</span>
       <span class="uppercase tracking-wider text-xs font-body">Test Reports</span>
     </a>
-    <div class="flex items-center gap-3 px-4 py-3 text-neutral-500 opacity-70 cursor-default">
-      <span class="material-symbols-outlined">account_tree</span>
+    <a href="#" onclick="event.preventDefault();openScenariosModal()" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">import_export</span>
       <span class="uppercase tracking-wider text-xs font-body">Scenarios</span>
-    </div>
+    </a>
     <a href="#" onclick="event.preventDefault();toggleRunnerPanel()" class="flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
       <span class="material-symbols-outlined">history</span>
       <span class="uppercase tracking-wider text-xs font-body">Execution Logs</span>
@@ -370,6 +370,90 @@ tailwind.config = {
       <button type="button" onclick="startRunFromDialog()" class="bg-tertiary text-on-tertiary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform flex items-center gap-1.5">
         <span class="material-symbols-outlined text-base">play_arrow</span> Run
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCENARIOS EXPORT / IMPORT MODAL ═══════════════ -->
+<div class="modal-overlay" id="scenariosModalOverlay">
+  <div class="bg-surface-container-high border border-outline-variant/10 rounded-xl w-[560px] max-w-[95vw] p-6">
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <h2 class="text-lg font-bold font-headline text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">import_export</span> Scenarios
+        </h2>
+        <p class="text-xs text-on-surface-variant mt-1">Export or import test scenarios as XLSX files.</p>
+      </div>
+      <button type="button" onclick="closeScenariosModal()" class="text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 mb-6 bg-surface-container-lowest rounded-lg p-1">
+      <button id="tabExport" onclick="switchScenariosTab('export')"
+        class="flex-1 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all text-on-primary bg-primary">
+        Export
+      </button>
+      <button id="tabImport" onclick="switchScenariosTab('import')"
+        class="flex-1 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all text-on-surface-variant hover:text-on-surface">
+        Import
+      </button>
+    </div>
+
+    <!-- Export Tab Content -->
+    <div id="scenariosExportTab">
+      <div class="mb-4">
+        <label for="exportWorkflow" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Workflow</label>
+        <select id="exportWorkflow"
+          class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent">
+          <option value="">Select a workflow…</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-outline-variant/10">
+        <button type="button" onclick="closeScenariosModal()"
+          class="text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg hover:bg-surface-container transition-colors">Cancel</button>
+        <button type="button" id="exportBtn" onclick="handleExport()"
+          class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">download</span> Export XLSX
+        </button>
+      </div>
+    </div>
+
+    <!-- Import Tab Content -->
+    <div id="scenariosImportTab" style="display:none">
+      <div class="mb-4">
+        <label for="importWorkflow" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Workflow</label>
+        <select id="importWorkflow"
+          class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent">
+          <option value="">Select a workflow…</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label for="importFile" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Select Existing File</label>
+        <select id="importFile"
+          class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-transparent">
+          <option value="">No files available</option>
+        </select>
+        <p class="text-[10px] text-on-surface-variant mt-1.5">Files from <code class="text-primary">docs/ai/test-cases/input/</code></p>
+      </div>
+      <div class="mb-4">
+        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Or Upload New File</p>
+        <label for="importUpload"
+          class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-outline-variant/30 rounded-lg cursor-pointer hover:border-primary/50 hover:bg-surface-container transition-all">
+          <span class="material-symbols-outlined text-2xl text-on-surface-variant mb-1">upload_file</span>
+          <span id="uploadLabel" class="text-xs text-on-surface-variant">Click to select .xlsx file</span>
+          <input id="importUpload" type="file" accept=".xlsx" class="hidden" onchange="onImportFileSelected(this)" />
+        </label>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-outline-variant/10">
+        <button type="button" onclick="closeScenariosModal()"
+          class="text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-lg hover:bg-surface-container transition-colors">Cancel</button>
+        <button type="button" id="importBtn" onclick="handleImport()"
+          class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">upload</span> Import XLSX
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -781,6 +865,222 @@ function openSupportModal() {
 
 function closeSupportModal() {
   document.getElementById('supportModalOverlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SCENARIOS EXPORT / IMPORT MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+let scenariosWorkflowsLoaded = false;
+
+async function openScenariosModal() {
+  document.getElementById('scenariosModalOverlay').classList.add('open');
+  if (!scenariosWorkflowsLoaded) {
+    await loadWorkflowDropdowns();
+    scenariosWorkflowsLoaded = true;
+  }
+  await loadImportFiles();
+}
+
+function closeScenariosModal() {
+  document.getElementById('scenariosModalOverlay').classList.remove('open');
+}
+
+function switchScenariosTab(tab) {
+  const exportTab = document.getElementById('scenariosExportTab');
+  const importTab = document.getElementById('scenariosImportTab');
+  const tabExportBtn = document.getElementById('tabExport');
+  const tabImportBtn = document.getElementById('tabImport');
+
+  const activeClasses = 'text-on-primary bg-primary';
+  const inactiveClasses = 'text-on-surface-variant hover:text-on-surface';
+
+  if (tab === 'export') {
+    exportTab.style.display = '';
+    importTab.style.display = 'none';
+    tabExportBtn.className = tabExportBtn.className.replace(inactiveClasses, '').trim() + ' ' + activeClasses;
+    tabImportBtn.className = tabImportBtn.className.replace(activeClasses, '').trim() + ' ' + inactiveClasses;
+  } else {
+    exportTab.style.display = 'none';
+    importTab.style.display = '';
+    tabImportBtn.className = tabImportBtn.className.replace(inactiveClasses, '').trim() + ' ' + activeClasses;
+    tabExportBtn.className = tabExportBtn.className.replace(activeClasses, '').trim() + ' ' + inactiveClasses;
+  }
+}
+
+function workflowDisplayLabel(name) {
+  const idx = WORKFLOW_ORDER.findIndex(e => e.toLowerCase() === name.toLowerCase());
+  return idx >= 0 ? `WF ${idx + 1}. ${name}` : name;
+}
+
+async function loadWorkflowDropdowns() {
+  try {
+    const workflows = await api('/workflows');
+    const exportSel = document.getElementById('exportWorkflow');
+    const importSel = document.getElementById('importWorkflow');
+    const options = '<option value="">Select a workflow…</option>' +
+      workflows.map(w => `<option value="${esc(w)}">${esc(workflowDisplayLabel(w))}</option>`).join('');
+    exportSel.innerHTML = options;
+    importSel.innerHTML = options;
+  } catch (err) {
+    toast('Failed to load workflows: ' + err.message, 'error');
+  }
+}
+
+async function loadImportFiles() {
+  try {
+    const data = await api('/import-files');
+    const sel = document.getElementById('importFile');
+    if (data.files && data.files.length) {
+      sel.innerHTML = '<option value="">Select a file…</option>' +
+        data.files.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+    } else {
+      sel.innerHTML = '<option value="">No files available</option>';
+    }
+  } catch (err) {
+    toast('Failed to load import files: ' + err.message, 'error');
+  }
+}
+
+function onImportFileSelected(input) {
+  const label = document.getElementById('uploadLabel');
+  if (input.files && input.files.length) {
+    const file = input.files[0];
+    if (!file.name.endsWith('.xlsx')) {
+      toast('Only .xlsx files are accepted.', 'error');
+      input.value = '';
+      label.textContent = 'Click to select .xlsx file';
+      return;
+    }
+    label.textContent = file.name;
+    // Clear the dropdown selection since user chose upload
+    document.getElementById('importFile').value = '';
+  } else {
+    label.textContent = 'Click to select .xlsx file';
+  }
+}
+
+function setExportImportLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (loading) {
+    btn.disabled = true;
+    btn.dataset.origHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span> Working…';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+  }
+}
+
+async function handleExport() {
+  const workflow = document.getElementById('exportWorkflow').value;
+  if (!workflow) {
+    toast('Please select a workflow.', 'error');
+    return;
+  }
+
+  setExportImportLoading('exportBtn', true);
+
+  try {
+    const res = await fetch(API + '/xlsx-export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workflow }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Export failed');
+    }
+
+    const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : 'scenarios-export.xlsx';
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast('Export successful — ' + filename);
+  } catch (err) {
+    toast('Export failed: ' + err.message, 'error');
+  } finally {
+    setExportImportLoading('exportBtn', false);
+  }
+}
+
+async function handleImport() {
+  const workflow = document.getElementById('importWorkflow').value;
+  if (!workflow) {
+    toast('Please select a workflow.', 'error');
+    return;
+  }
+
+  const fileInput = document.getElementById('importUpload');
+  const selectedFile = document.getElementById('importFile').value;
+  const uploadedFile = fileInput.files && fileInput.files.length ? fileInput.files[0] : null;
+
+  if (!selectedFile && !uploadedFile) {
+    toast('Please select an existing file or upload a new one.', 'error');
+    return;
+  }
+
+  setExportImportLoading('importBtn', true);
+
+  try {
+    let filename = selectedFile;
+
+    // If user uploaded a file, send it to the upload endpoint first
+    if (uploadedFile) {
+      const uploadRes = await fetch(API + '/xlsx-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'X-Filename': uploadedFile.name,
+        },
+        body: uploadedFile,
+      });
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err.error || 'Upload failed');
+      }
+
+      const uploadData = await uploadRes.json();
+      filename = uploadData.filename;
+    }
+
+    // Now trigger the import
+    const importRes = await fetch(API + '/xlsx-import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workflow, filename }),
+    });
+
+    if (!importRes.ok) {
+      const err = await importRes.json();
+      throw new Error(err.error || err.details || 'Import failed');
+    }
+
+    const result = await importRes.json();
+    toast('Import successful');
+    closeScenariosModal();
+    refreshDashboard();
+    refreshWorkflows();
+
+    // Reset upload input
+    fileInput.value = '';
+    document.getElementById('uploadLabel').textContent = 'Click to select .xlsx file';
+    await loadImportFiles();
+  } catch (err) {
+    toast('Import failed: ' + err.message, 'error');
+  } finally {
+    setExportImportLoading('importBtn', false);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
