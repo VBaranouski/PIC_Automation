@@ -47,6 +47,8 @@ npm run tracker:list -- --auto-state=pending
 npm run tracker:list -- --feature-area=doc
 npm run tracker:sync                        # Sync DB with spec files
 npm run tracker:export
+npx tsx scripts/export-scenarios.ts --workflow "Authentication"
+npx tsx scripts/import-scenarios.ts --workflow "Authentication" --area auth --file docs/ai/test-cases/input/authentication-scenarios-for-import.xlsx --write
 npm run tracker -- auto-state SCENARIO-ID automated
 npm run tracker -- hold SCENARIO-ID
 npm run tracker -- group SCENARIO-ID add smoke critical
@@ -169,6 +171,23 @@ The SQLite tracker (`config/scenarios.db`) tracks two independent dimensions:
 | `feature_area` | `auth` \| `landing` \| `products` \| `releases` \| `doc` \| `reports` \| `backoffice` \| `integrations` \| `other` |
 
 `on-hold` scenarios are auto-skipped during test runs.
+
+### Tracker UI XLSX Workflow
+
+The tracker UI now includes a `Scenarios` sidebar link that opens a modal with `Export` and `Import` tabs.
+
+- Export is workflow-scoped and generates `.xlsx` files via `scripts/export-scenarios.ts`.
+- Import is workflow-scoped and can use either an uploaded file or an existing file from `docs/ai/test-cases/input/`.
+- UI workflow dropdowns show canonical numbering like `WF 1. Authentication`.
+- When scripting exports/imports, prefer `--workflow` over area-only filtering because multiple workflows can share one `feature_area`.
+- The tracker UI validates workflow names against the DB before running import/export scripts.
+
+Relevant tracker UI endpoints:
+
+- `GET /api/import-files`
+- `POST /api/xlsx-export`
+- `POST /api/xlsx-import`
+- `POST /api/xlsx-upload`
 
 ---
 

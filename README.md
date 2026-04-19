@@ -75,6 +75,22 @@ npm run test:smoke              # smoke suite
 | `npm run tracker -- sync --import-missing` | Reconcile mappings and create missing tracker rows from spec metadata |
 | `npm run tracker:export` | Export tracker data to `config/scenarios-export.json` |
 
+## Tracker UI Capabilities
+
+The tracker UI includes a `Scenarios` sidebar entry with a tabbed XLSX modal for workflow-scoped scenario management.
+
+- `Export` tab: exports scenarios for the selected workflow as an `.xlsx` file.
+- `Import` tab: imports scenarios for the selected workflow from an existing file in `docs/ai/test-cases/input/` or from a newly uploaded `.xlsx` file.
+- Workflow selectors use canonical numbering in the UI, for example `WF 1. Authentication`, `WF 2. Landing Page & Home Navigation`.
+- Export/import is scoped by `workflow`, not just `feature_area`, which prevents cross-workflow leakage for shared areas like `other`.
+
+The tracker UI backend exposes these endpoints:
+
+- `GET /api/import-files`
+- `POST /api/xlsx-export`
+- `POST /api/xlsx-import`
+- `POST /api/xlsx-upload`
+
 ## Tracker Workflow
 
 The tracker is the current operational source for scenario execution status and spec-file linking.
@@ -90,11 +106,19 @@ npm run tracker -- sync
 # import new scenario IDs that already exist in allure.description(...) but are missing in the DB
 npm run tracker -- sync --import-missing
 
+# export scenarios for a specific workflow
+npx tsx scripts/export-scenarios.ts --workflow "Authentication"
+
+# import scenarios for a specific workflow from an xlsx file
+npx tsx scripts/import-scenarios.ts --workflow "Authentication" --area auth --file docs/ai/test-cases/input/authentication-scenarios-for-import.xlsx --write
+
 # export the normalized tracker dataset
 npm run tracker:export
 ```
 
 Use `sync --import-missing` after splitting specs or introducing new canonical scenario IDs in tests so the UI can display and run them immediately.
+
+Use the workflow-scoped XLSX commands when multiple workflows share the same `feature_area`; this is the safe default for `Smoke / Seed`, `Maintenance Mode`, and similar cases.
 
 ## Test Projects (Playwright Config)
 
