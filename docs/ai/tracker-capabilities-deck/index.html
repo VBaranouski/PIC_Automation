@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PICASso: AI Test Automation — Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Kinetic Observatory dark theme
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --surface:                 #0e0e0e;
+  --surface-container-low:   #131313;
+  --surface-container:       #1a1a1a;
+  --surface-container-high:  #20201f;
+  --surface-container-highest:#262626;
+  --surface-bright:          #2c2c2c;
+  --primary:                 #ff9157;
+  --primary-dim:             #ff7520;
+  --on-primary:              #531e00;
+  --tertiary:                #81ecff;
+  --error:                   #ff7351;
+  --secondary:               #e3e2e2;
+  --secondary-fixed-dim:     #d5d4d4;
+  --on-surface:              #ffffff;
+  --on-surface-variant:      #adaaaa;
+  --outline-variant:         #484847;
+  --success:                 #3fb950;
+  --warning:                 #e3b341;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--surface);
+  color: var(--secondary-fixed-dim);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--primary); color: var(--on-primary); }
+h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); line-height: 1.2; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════════════ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(14,14,14,0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(72,72,71,0.15);
+}
+.nav-inner {
+  max-width: 1120px; margin: 0 auto; padding: 0 32px;
+  display: flex; align-items: center; height: 56px; gap: 32px;
+}
+.nav-brand {
+  font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.92rem;
+  color: var(--on-surface); text-decoration: none; white-space: nowrap;
+}
+.nav-brand span { color: var(--primary); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 500; color: var(--on-surface-variant);
+  text-decoration: none; transition: background 0.15s, color 0.15s;
+}
+.nav-links a:hover { background: var(--surface-container); color: var(--on-surface); }
+.nav-links a.active { background: rgba(255,145,87,0.1); color: var(--primary); }
+.nav-links .material-symbols-outlined { font-size: 18px; width: 18px; height: 18px; overflow: hidden; display: inline-block; vertical-align: middle; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════════════ */
+.page { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════════════════════════════════════ */
+.hero { padding: 80px 0 64px; text-align: center; }
+.hero-eyebrow {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--primary); background: rgba(255,145,87,0.08);
+  padding: 6px 18px; border-radius: 9999px; margin-bottom: 28px;
+}
+.hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; }
+.hero h1 .accent { color: var(--primary); }
+.hero-sub { font-size: 1.1rem; color: var(--on-surface-variant); max-width: 680px; margin: 0 auto 40px; }
+.hero-meta { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+.hero-meta-item { text-align: center; }
+.hero-meta-val { font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; color: var(--on-surface); }
+.hero-meta-val.orange { color: var(--primary); }
+.hero-meta-val.cyan { color: var(--tertiary); }
+.hero-meta-val.green { color: var(--success); }
+.hero-meta-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-surface-variant); margin-top: 4px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SECTIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+.section { padding: 72px 0; }
+.section + .section { padding-top: 0; }
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); margin-bottom: 12px; }
+.section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+.section-desc { color: var(--on-surface-variant); max-width: 640px; margin-bottom: 40px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PROBLEM CARDS
+   ═══════════════════════════════════════════════════════════════════════ */
+.problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+.problem-card { background: var(--surface-container-low); border-radius: 12px; padding: 28px 24px; border-top: 3px solid var(--error); }
+.problem-card.solution { border-top-color: var(--success); }
+.problem-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.problem-card h3 .material-symbols-outlined { font-size: 20px; }
+.problem-card:not(.solution) h3 .material-symbols-outlined { color: var(--error); }
+.problem-card.solution h3 .material-symbols-outlined { color: var(--success); }
+.problem-stat { font-family: 'Manrope', sans-serif; font-size: 2.8rem; font-weight: 800; color: var(--error); margin-bottom: 8px; line-height: 1; }
+.problem-card.solution .problem-stat { color: var(--success); }
+.problem-stat-label { font-size: 0.85rem; color: var(--on-surface-variant); margin-bottom: 16px; }
+.problem-list { list-style: none; padding: 0; }
+.problem-list li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 0.85rem; line-height: 1.5; color: var(--secondary-fixed-dim); }
+.problem-list li::before { content: '•'; position: absolute; left: 0; color: var(--on-surface-variant); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPARISON
+   ═══════════════════════════════════════════════════════════════════════ */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 32px; }
+.compare-col { border-radius: 12px; padding: 28px 24px; }
+.compare-col.before { background: var(--surface-container-low); }
+.compare-col.after  { background: var(--surface-container); border-left: 2px solid var(--primary); }
+.compare-col h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+.compare-col.before h4 { color: var(--on-surface-variant); }
+.compare-col.after h4 { color: var(--primary); }
+.compare-col ul { list-style: none; padding: 0; }
+.compare-col li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 0.85rem; line-height: 1.5; color: var(--secondary-fixed-dim); }
+.compare-col.before li::before { content: '✗'; position: absolute; left: 0; color: var(--error); font-weight: 700; }
+.compare-col.after  li::before { content: '✓'; position: absolute; left: 0; color: var(--success); font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VALUE CARDS
+   ═══════════════════════════════════════════════════════════════════════ */
+.value-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; margin-top: 40px; }
+.value-card { background: var(--surface-container); border-radius: 12px; padding: 32px 24px; text-align: center; }
+.value-num { font-family: 'Manrope', sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 10px; }
+.value-num.cyan { color: var(--tertiary); }
+.value-num.green { color: var(--success); }
+.value-label { font-size: 0.82rem; color: var(--on-surface-variant); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CAPABILITY CARDS
+   ═══════════════════════════════════════════════════════════════════════ */
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.cap-card {
+  background: var(--surface-container-low); border-radius: 12px; padding: 28px 24px;
+  position: relative; transition: background 0.2s;
+}
+.cap-card:hover { background: var(--surface-container); }
+.cap-card::before {
+  content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 2px;
+  border-radius: 1px; background: var(--primary); opacity: 0; transition: opacity 0.2s;
+}
+.cap-card:hover::before { opacity: 1; }
+.cap-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(255,145,87,0.08); color: var(--primary); margin-bottom: 16px; font-size: 22px;
+}
+.cap-icon.cyan { background: rgba(129,236,255,0.08); color: var(--tertiary); }
+.cap-icon.green { background: rgba(63,185,80,0.08); color: var(--success); }
+.cap-icon.warn { background: rgba(227,179,65,0.08); color: var(--warning); }
+.cap-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.cap-card p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CTA
+   ═══════════════════════════════════════════════════════════════════════ */
+.cta-row { display: flex; justify-content: center; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
+.cta-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 600;
+  text-decoration: none; transition: background 0.15s, transform 0.1s;
+}
+.cta-link:active { transform: scale(0.97); }
+.cta-link.primary { background: var(--primary); color: var(--on-primary); }
+.cta-link.primary:hover { background: var(--primary-dim); }
+.cta-link.ghost { background: transparent; color: var(--tertiary); border: 1px solid rgba(129,236,255,0.2); }
+.cta-link.ghost:hover { background: rgba(129,236,255,0.06); }
+.cta-link .material-symbols-outlined { font-size: 20px; }
+
+/* FOOTER */
+.footer { padding: 48px 0; text-align: center; font-size: 0.78rem; color: var(--on-surface-variant); border-top: 1px solid rgba(72,72,71,0.15); margin-top: 72px; }
+
+@media (max-width: 768px) {
+  .page { padding: 0 20px; }
+  .nav-inner { padding: 0 20px; gap: 16px; }
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 2rem; }
+  .hero-meta { gap: 24px; }
+  .compare-grid, .problem-grid { grid-template-columns: 1fr; }
+  .cap-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">PICASso: <span>AI Test Automation</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active"><span class="material-symbols-outlined">home</span> Overview</a></li>
+      <li><a href="ai-workflow.html"><span class="material-symbols-outlined">psychology</span> AI Workflow</a></li>
+      <li><a href="platform.html"><span class="material-symbols-outlined">code</span> Platform</a></li>
+      <li><a href="pitfalls.html"><span class="material-symbols-outlined">warning</span> Pitfalls</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page">
+<section class="hero">
+  <div class="hero-eyebrow">PICASso GRC Automation</div>
+    <h1>From 4,220 Manual Cases<br/>to <span class="accent">Automation-Ready</span> Scenarios</h1>
+  <p class="hero-sub">
+    The Test Scenario Tracker bridges the gap between Jira/Xray manual test cases and executable
+    Playwright automation — using AI to analyze, transform, and track every scenario through
+    its full automation lifecycle.
+  </p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="hero-meta-val orange">4,220+</div>
+      <div class="hero-meta-label">Xray Test Cases to Transform</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-val">~50%</div>
+      <div class="hero-meta-label">Outdated & Need Updates</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-val cyan">AI-Driven</div>
+      <div class="hero-meta-label">Test Case & Script Generation</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-val green">1-Click</div>
+      <div class="hero-meta-label">Execute → Report → Jira</div>
+    </div>
+  </div>
+</section>
+
+<!-- THE PROBLEM -->
+<section class="section">
+  <div class="section-label">The Problem</div>
+  <h2 class="section-title">Why Existing Test Cases Can't Drive Automation</h2>
+  <p class="section-desc">
+    PICASso is a complex GRC platform built on OutSystems with 78 roles, 157 privileges,
+    and multi-stage document lifecycle workflows spanning products, releases, questionnaires,
+    requirements, and more. It includes deep integrations with third-party systems — JAMA, Jira,
+    and SAST tools like BDBA — as well as its own Ingestion and Extraction APIs and complex
+    back-office business logic. The existing Xray/Jira test inventory was built for manual testers
+    and fundamentally cannot be used for automation as-is.
+  </p>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <h3><span class="material-symbols-outlined">error</span> 4,220+ Xray Test Cases</h3>
+      <div class="problem-stat">~50%</div>
+      <div class="problem-stat-label">are outdated and require updates before any use</div>
+      <ul class="problem-list">
+        <li>Written for manual testers — steps like "verify the page looks correct" are untestable by code</li>
+        <li>No structured locator hints, no DOM references, no automation-ready assertions</li>
+        <li>Many reference features or flows that have been redesigned since writing</li>
+        <li>Missing important automation steps, or expected results are too broad to assert programmatically</li>
+        <li>Some test cases are too generic — verifying multiple scenarios at once, violating the automation rule: one test case = one check</li>
+      </ul>
+    </div>
+
+    <div class="problem-card solution">
+      <h3><span class="material-symbols-outlined">check_circle</span> The Tracker Solution</h3>
+      <div class="problem-stat">AI</div>
+      <div class="problem-stat-label">analyzes, updates, and migrates test cases into automation-ready scenarios</div>
+      <ul class="problem-list">
+        <li>AI ingests manual test cases, identifies outdated steps, and rewrites them with precise, automatable assertions</li>
+        <li>Each migrated scenario gets structured test steps, expected results, and scenario metadata</li>
+        <li>Deduplication and normalization happen during import — no more scattered duplicates</li>
+        <li>Every scenario in the tracker is immediately linked to its Playwright spec file</li>
+        <li>Automation state tracks the full journey: pending → scripted → executed → reported</li>
+        <li>Failed tests create a Jira defect in 1 click — with steps to reproduce and screenshots attached</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT IT IS -->
+<section class="section">
+  <div class="section-label">What It Is</div>
+  <h2 class="section-title">Not Test Case Storage — An Automation Command Center</h2>
+  <p class="section-desc">
+    The tracker is not a replacement for Xray or a generic test case repository. It is a purpose-built
+    operational platform that stores <strong>automation-ready scenarios</strong> and tracks their lifecycle
+    from pending through automated, executed, and reported — all the way to Jira defect submission.
+  </p>
+
+  <div class="cap-grid">
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">track_changes</span></div>
+      <h3>Automation Lifecycle Tracking</h3>
+      <p>
+        Every scenario has a dual-status model: <strong>automation state</strong> (pending → automated → on-hold)
+        and <strong>execution status</strong> (passed / failed / skipped). Know exactly what's been automated,
+        what's pending, and what's broken — at a glance.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">play_circle</span></div>
+      <h3>One-Click Test Execution</h3>
+      <p>
+        Run any scenario, subsection, or full spec directly from the dashboard.
+        Live terminal output streams to the built-in panel. No context-switching
+        to terminal or IDE required.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon green"><span class="material-symbols-outlined">bar_chart</span></div>
+      <h3>Instant Report Navigation</h3>
+      <p>
+        After each run, Allure reports are auto-generated and served via a single sidebar link.
+        View detailed pass/fail breakdown, failure screenshots, execution traces —
+        without manual report generation steps.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon warn"><span class="material-symbols-outlined">bug_report</span></div>
+      <h3>One-Click Jira Submission</h3>
+      <p>
+        Found a defect? The Allure report contains full failure context — screenshots, trace, assertion details.
+        Submit a Jira ticket with all the information pre-populated from the report in one click.
+        No manual copy-paste of error details.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">sync</span></div>
+      <h3>Automatic Status Sync</h3>
+      <p>
+        After each test run, the tracker parses Playwright's JSON report and updates
+        every matched scenario's execution status. Pass, fail, skip, and timeout
+        are detected automatically — no manual status updates needed.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">import_export</span></div>
+      <h3>XLSX Exchange with Stakeholders</h3>
+      <p>
+        Export scenarios to Excel for stakeholder review in a familiar format.
+        Import updated or new scenarios from Excel — workflow-scoped, validated,
+        and deduplicated automatically.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- BEFORE / AFTER -->
+<section class="section">
+  <div class="section-label">Transformation</div>
+  <h2 class="section-title">Before vs. After</h2>
+  <p class="section-desc">
+    The shift from manual test management to an AI-driven automation pipeline.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-col before">
+      <h4>Before — Manual World</h4>
+      <ul>
+        <li>4,220+ Xray test cases written for manual execution — unusable for automation scripts</li>
+        <li>~50% of test cases outdated with no systematic way to identify which ones</li>
+        <li>No visibility into automation coverage — "which scenarios actually have scripts?"</li>
+        <li>Test results communicated via email or chat — no single source of truth</li>
+        <li>Defect submission requires manual screenshots, copy-paste of error logs to Jira</li>
+        <li>Engineers rediscover which tests cover which features every sprint</li>
+      </ul>
+    </div>
+    <div class="compare-col after">
+      <h4>After — Tracker + AI Pipeline</h4>
+      <ul>
+        <li>AI analyzes Xray cases, updates outdated steps, migrates into automation-ready format</li>
+        <li>Every scenario validated, deduplicated, and linked to its executable test code</li>
+        <li>Real-time dashboard shows automation state, execution status, and priority per scenario</li>
+        <li>One-click: run the test or suite from the UI → view Allure report with results</li>
+        <li>AI writes test scripts following best practices, then self-validates via Playwright MCP</li>
+        <li>Failed tests are marked in the tracker — one click creates a Jira defect with all steps to reproduce and screenshots attached</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- BUSINESS VALUE -->
+<section class="section">
+  <div class="section-label">Business Value</div>
+  <h2 class="section-title">Impact & ROI</h2>
+  <p class="section-desc">
+    Measurable outcomes from deploying the tracker alongside PICASso test automation.
+  </p>
+
+  <div class="value-row">
+    <div class="value-card">
+      <div class="value-num">4,220+</div>
+      <div class="value-label">Manual test cases transformed into automation-ready scenarios</div>
+    </div>
+    <div class="value-card">
+      <div class="value-num cyan">~80%</div>
+      <div class="value-label">Reduction in manual test tracking and reporting overhead</div>
+    </div>
+    <div class="value-card">
+      <div class="value-num green">Real‑time</div>
+      <div class="value-label">Automation coverage & execution visibility — no waiting</div>
+    </div>
+    <div class="value-card">
+      <div class="value-num" style="font-size:1.8rem;">1‑Click</div>
+      <div class="value-label">Run → Report → Jira defect — complete loop, zero friction</div>
+    </div>
+  </div>
+
+  <div class="value-row" style="margin-top: 16px;">
+    <div class="value-card">
+      <div class="value-num" style="font-size:1.8rem; color: var(--primary);">AI-Powered</div>
+      <div class="value-label">Script generation with self-validation and locator fixing</div>
+    </div>
+    <div class="value-card">
+      <div class="value-num cyan" style="font-size:1.8rem;">Auto-Sync</div>
+      <div class="value-label">Test results flow back to tracker — no manual status updates</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align: center; padding-bottom: 0;">
+  <div class="cta-row">
+    <a href="ai-workflow.html" class="cta-link primary">
+      <span class="material-symbols-outlined">psychology</span> See the AI Workflow
+    </a>
+    <a href="platform.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">code</span> Explore the Platform
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  PICASso: AI Test Automation — Capabilities Deck &middot; April 2026<br/>
+  Internal use only
+</footer>
+</div>
+</body>
+</html>

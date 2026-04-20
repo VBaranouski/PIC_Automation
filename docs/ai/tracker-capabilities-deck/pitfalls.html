@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PICASso: AI Test Automation — Known Pitfalls & Constraints</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --surface:                 #0e0e0e;
+  --surface-container-low:   #131313;
+  --surface-container:       #1a1a1a;
+  --surface-container-high:  #20201f;
+  --surface-container-highest:#262626;
+  --surface-bright:          #2c2c2c;
+  --primary:                 #ff9157;
+  --primary-dim:             #ff7520;
+  --on-primary:              #531e00;
+  --tertiary:                #81ecff;
+  --error:                   #ff7351;
+  --secondary:               #e3e2e2;
+  --secondary-fixed-dim:     #d5d4d4;
+  --on-surface:              #ffffff;
+  --on-surface-variant:      #adaaaa;
+  --outline-variant:         #484847;
+  --success:                 #3fb950;
+  --warning:                 #e3b341;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--surface); color: var(--secondary-fixed-dim);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--primary); color: var(--on-primary); }
+h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); line-height: 1.2; }
+
+/* NAV */
+.nav { position: sticky; top: 0; z-index: 100; background: rgba(14,14,14,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(72,72,71,0.15); }
+.nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; height: 56px; gap: 32px; }
+.nav-brand { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.92rem; color: var(--on-surface); text-decoration: none; white-space: nowrap; }
+.nav-brand span { color: var(--primary); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: var(--on-surface-variant); text-decoration: none; transition: background 0.15s, color 0.15s; }
+.nav-links a:hover { background: var(--surface-container); color: var(--on-surface); }
+.nav-links a.active { background: rgba(255,145,87,0.1); color: var(--primary); }
+.nav-links .material-symbols-outlined { font-size: 18px; width: 18px; height: 18px; overflow: hidden; display: inline-block; vertical-align: middle; }
+
+/* LAYOUT */
+.page { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+
+/* HERO */
+.hero { padding: 80px 0 64px; text-align: center; }
+.hero-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--error); background: rgba(255,115,81,0.08); padding: 6px 18px; border-radius: 9999px; margin-bottom: 28px; }
+.hero h1 { font-size: clamp(2.2rem, 4.5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; }
+.hero h1 .accent { color: var(--primary); }
+.hero h1 .accent-r { color: var(--error); }
+.hero-sub { font-size: 1.05rem; color: var(--on-surface-variant); max-width: 720px; margin: 0 auto; }
+
+/* SECTIONS */
+.section { padding: 72px 0; }
+.section + .section { padding-top: 0; }
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); margin-bottom: 12px; }
+.section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+.section-desc { color: var(--on-surface-variant); max-width: 680px; margin-bottom: 40px; }
+
+/* PITFALL CARDS */
+.pitfall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+.pitfall-card {
+  background: var(--surface-container-low);
+  border-radius: 14px;
+  padding: 32px 28px;
+  position: relative;
+  border: 1px solid rgba(72,72,71,0.12);
+  transition: background 0.2s, border-color 0.2s;
+}
+.pitfall-card:hover { background: var(--surface-container); border-color: rgba(255,115,81,0.18); }
+.pitfall-card::before {
+  content: ''; position: absolute; left: 0; top: 20px; bottom: 20px;
+  width: 3px; border-radius: 2px; background: var(--error);
+}
+.pitfall-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(255,115,81,0.1); color: var(--error);
+  margin-bottom: 18px; font-size: 24px;
+}
+.pitfall-icon.warn { background: rgba(227,179,65,0.1); color: var(--warning); }
+.pitfall-icon.cyan { background: rgba(129,236,255,0.08); color: var(--tertiary); }
+.pitfall-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--on-surface); }
+.pitfall-card p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.65; margin-bottom: 16px; }
+.pitfall-card p:last-child { margin-bottom: 0; }
+.pitfall-detail {
+  margin-top: 16px; padding: 14px 18px; border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  font-size: 0.82rem; color: var(--secondary-fixed-dim); line-height: 1.7;
+  border-left: 2px solid rgba(255,115,81,0.2);
+}
+.pitfall-detail.warn { border-left-color: rgba(227,179,65,0.25); }
+.pitfall-detail.cyan { border-left-color: rgba(129,236,255,0.2); }
+.pitfall-detail strong { color: var(--on-surface); font-weight: 600; }
+.pitfall-detail code {
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, monospace;
+  font-size: 0.78rem; background: rgba(255,255,255,0.05);
+  padding: 2px 6px; border-radius: 4px; color: var(--tertiary);
+}
+
+/* STATUS BADGE */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 3px 10px; border-radius: 9999px; margin-bottom: 12px;
+}
+.status-badge.known { background: rgba(255,115,81,0.1); color: var(--error); }
+.status-badge.mitigated { background: rgba(63,185,80,0.1); color: var(--success); }
+.status-badge.partial { background: rgba(227,179,65,0.1); color: var(--warning); }
+.status-badge .material-symbols-outlined { font-size: 14px; }
+
+/* CALLOUT BOX */
+.callout {
+  max-width: 880px; margin-top: 48px; padding: 24px 28px; border-radius: 12px;
+  background: var(--surface-container-low);
+  border-left: 3px solid var(--tertiary);
+}
+.callout-title { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--tertiary); margin-bottom: 8px; }
+.callout p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.65; }
+
+/* CTA */
+.cta-row { display: flex; justify-content: center; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
+.cta-link { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.15s, transform 0.1s; }
+.cta-link:active { transform: scale(0.97); }
+.cta-link.ghost { background: transparent; color: var(--tertiary); border: 1px solid rgba(129,236,255,0.2); }
+.cta-link.ghost:hover { background: rgba(129,236,255,0.06); }
+.cta-link .material-symbols-outlined { font-size: 20px; }
+
+/* FOOTER */
+.footer { padding: 48px 0; text-align: center; font-size: 0.78rem; color: var(--on-surface-variant); border-top: 1px solid rgba(72,72,71,0.15); margin-top: 72px; }
+
+@media (max-width: 768px) {
+  .page { padding: 0 20px; }
+  .nav-inner { padding: 0 20px; gap: 16px; }
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 2rem; }
+  .pitfall-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">PICASso: <span>AI Test Automation</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="material-symbols-outlined">home</span> Overview</a></li>
+      <li><a href="ai-workflow.html"><span class="material-symbols-outlined">psychology</span> AI Workflow</a></li>
+      <li><a href="platform.html"><span class="material-symbols-outlined">code</span> Platform</a></li>
+      <li><a href="pitfalls.html" class="active"><span class="material-symbols-outlined">warning</span> Pitfalls</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page">
+<section class="hero">
+  <div class="hero-eyebrow">Honest Engineering Assessment</div>
+  <h1>Known <span class="accent-r">Pitfalls</span> &amp;<br/><span class="accent">Constraints</span></h1>
+  <p class="hero-sub">
+    AI-driven test automation at this scale isn't without friction. Here's an honest account of
+    the real challenges — how they surface, why they exist, and how we're working around them.
+  </p>
+</section>
+
+<!-- PITFALLS -->
+<section class="section">
+  <div class="section-label">Known Constraints</div>
+  <h2 class="section-title">Three Structural Challenges</h2>
+  <p class="section-desc">
+    These aren't gaps in the tool — they're constraints imposed by the AI infrastructure,
+    the application environment, and the network architecture. All are acknowledged and actively mitigated.
+  </p>
+
+  <div class="pitfall-grid">
+
+    <!-- Pitfall 1: Token Consumption -->
+    <div class="pitfall-card">
+      <div class="pitfall-icon"><span class="material-symbols-outlined">memory</span></div>
+      <div class="status-badge partial">
+        <span class="material-symbols-outlined">construction</span> Actively Managed
+      </div>
+      <h3>AI Token Consumption</h3>
+      <p>
+        PICASso's complexity means working with large data volumes — 4,220+ test cases,
+        multi-layer page objects, OutSystems DOM snapshots, Playwright traces, and
+        multi-file spec contexts. Complex prompts that load all of this simultaneously
+        exhaust AI quotas rapidly.
+      </p>
+      <div class="pitfall-detail">
+        <strong>Where it bites:</strong> batch scenario analysis, large spec-file generation,
+        multi-scenario exploratory runs with Playwright MCP, and sessions involving
+        both test writing and locator validation in a single context window.<br/><br/>
+        <strong>Current mitigation:</strong> scope work per workflow or feature area rather than
+        full-suite sessions; use targeted queries (<code>--workflow</code>, <code>--area</code>)
+        to keep context minimal; split preparation and scripting into separate AI sessions.
+      </div>
+    </div>
+
+    <!-- Pitfall 2: Environment Stability -->
+    <div class="pitfall-card">
+      <div class="pitfall-icon warn"><span class="material-symbols-outlined">hourglass_empty</span></div>
+      <div class="status-badge partial">
+        <span class="material-symbols-outlined">construction</span> Partially Mitigated
+      </div>
+      <h3>Environment Performance & Stability</h3>
+      <p>
+        The QA environment runs on OutSystems, which can be slow under load.
+        Response times are unpredictable — page transitions, partial refreshes,
+        and data-heavy screens can stall for several seconds, causing otherwise
+        correct tests to fail on timeouts rather than logic.
+      </p>
+      <div class="pitfall-detail warn">
+        <strong>Root cause:</strong> OutSystems server-side rendering and partial-refresh
+        patterns don't expose reliable network-idle events, making standard "wait for load"
+        strategies insufficient. Heavy GRC data (documents, roles, release histories)
+        amplifies the problem.<br/><br/>
+        <strong>Current mitigation:</strong> custom <code>waitForOSScreenLoad()</code> and
+        <code>waitForTableData()</code> helpers replace generic timeouts; flaky tests are
+        annotated with <code>test.slow()</code> and investigated for environment-side
+        root causes before weakening assertions.
+      </div>
+    </div>
+
+    <!-- Pitfall 3: Network Access -->
+    <div class="pitfall-card">
+      <div class="pitfall-icon cyan"><span class="material-symbols-outlined">lock</span></div>
+      <div class="status-badge known">
+        <span class="material-symbols-outlined">block</span> Structural Constraint
+      </div>
+      <h3>SE Network Access — No External Reachability</h3>
+      <p>
+        The PICASso application is only accessible from within the SE internal network.
+        There is no pathway for external services — cloud CI runners, hosted web apps,
+        or external AI agents — to reach the application directly.
+      </p>
+      <div class="pitfall-detail cyan">
+        <strong>Impact:</strong> the tracker tool cannot be deployed as a hosted web application
+        accessible to external team members, because any test execution triggered from outside
+        the SE network would have no access to the platform under test.<br/><br/>
+        <strong>Current approach:</strong> the tracker runs as a local development server
+        within the SE network; CI execution is scoped to SE-hosted runners or
+        engineer workstations with VPN access. Web deployment is planned for
+        when network access is resolved.
+      </div>
+    </div>
+
+  </div><!-- .pitfall-grid -->
+
+  <div class="callout">
+    <div class="callout-title">Transparency Over Perfection</div>
+    <p>
+      These constraints are real and have shaped how the automation pipeline is designed.
+      The token budget drives the decision to work per-workflow rather than full-suite.
+      Environment instability drives the investment in OutSystems-specific wait helpers.
+      Network access drives the local-first deployment model.
+      Each pitfall has an engineering response — and each response is encoded directly
+      into the <strong>picasso-test-automation</strong> skill so AI agents handle them automatically.
+    </p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align: center; padding-bottom: 0;">
+  <div class="cta-row">
+    <a href="platform.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">arrow_back</span> Platform
+    </a>
+    <a href="index.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">home</span> Back to Overview
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  PICASso: AI Test Automation — Capabilities Deck &middot; April 2026<br/>
+  Internal use only
+</footer>
+</div>
+</body>
+</html>

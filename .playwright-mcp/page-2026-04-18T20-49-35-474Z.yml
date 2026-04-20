@@ -1,0 +1,70 @@
+- generic [active] [ref=e1]:
+  - complementary [ref=e2]:
+    - generic [ref=e3]:
+      - heading "PICASso Automation" [level=1] [ref=e4]
+      - paragraph [ref=e5]: Test Scenario tracker v0.10
+    - navigation [ref=e6]:
+      - link "dashboard Dashboard" [ref=e7] [cursor=pointer]:
+        - /url: /ui/index.html
+        - generic [ref=e8]: dashboard
+        - generic [ref=e9]: Dashboard
+      - link "folder_open Test Reports" [ref=e10] [cursor=pointer]:
+        - /url: /allure-report/index.html
+        - generic [ref=e11]: folder_open
+        - generic [ref=e12]: Test Reports
+      - link "import_export Scenarios" [ref=e13] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e14]: import_export
+        - generic [ref=e15]: Scenarios
+      - link "history Execution Logs" [ref=e16] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e17]: history
+        - generic [ref=e18]: Execution Logs
+      - generic [ref=e19]:
+        - generic [ref=e20]: insights
+        - generic [ref=e21]: Analytics
+    - generic [ref=e22]:
+      - button "add New Scenario" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: add
+        - text: New Scenario
+      - button "help Support" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]: help
+        - generic [ref=e27]: Support
+  - banner [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]: Test Coverage Explorer
+      - navigation
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - generic [ref=e33]: search
+        - searchbox "Search test cases..." [ref=e34]
+      - generic [ref=e35]:
+        - button "unfold_more" [ref=e36] [cursor=pointer]:
+          - generic [ref=e37]: unfold_more
+        - button "sync" [ref=e38] [cursor=pointer]:
+          - generic [ref=e39]: sync
+        - button "download" [ref=e40] [cursor=pointer]:
+          - generic [ref=e41]: download
+      - button "Run All Tests" [ref=e42] [cursor=pointer]
+  - main [ref=e43]:
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading "Overview" [level=2] [ref=e47]
+          - paragraph [ref=e48]: Real-time automation metrics for PICASso GRC test infrastructure.
+        - generic [ref=e49]:
+          - combobox [ref=e50] [cursor=pointer]:
+            - option "All Priorities" [selected]
+          - combobox [ref=e51] [cursor=pointer]:
+            - option "All Areas" [selected]
+      - generic [ref=e53]: Loading stats…
+    - generic [ref=e54]:
+      - heading "Active Workflows & Integrity Mapping" [level=3] [ref=e56]
+      - generic [ref=e58]: Loading workflows…
+  - generic [ref=e60] [cursor=pointer]:
+    - generic [ref=e62]: Test Runner
+    - generic [ref=e63]:
+      - button "delete_sweep" [ref=e64]:
+        - generic [ref=e65]: delete_sweep
+      - button "expand_more" [ref=e66]:
+        - generic [ref=e67]: expand_more

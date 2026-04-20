@@ -6,6 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 E2E test suite for **PICASso** — an OutSystems GRC application. Uses Playwright + TypeScript with Page Object Models, a SQLite-backed test scenario tracker, and Allure reporting.
 
+## Instruction Files
+
+- Use [.github/instructions/system-design-automation.instructions.md](.github/instructions/system-design-automation.instructions.md) as the design-system reference when creating or updating tracker UI, internal dashboards, generated HTML summaries, or requested documentation pages.
+
+## Git Workflow
+
+- Before creating a new branch from `main`, pull the latest changes from `main` first.
+- After finishing the work on that branch, create a pull request.
+
 ---
 
 ## Commands
@@ -66,7 +75,7 @@ npm run codegen:doc
 
 The `playwright.config.ts` defines **named projects** for the DOC workflow chain — tests that must run in sequence because each step creates state consumed by the next:
 
-```
+```text
 setup (auth/*.setup.ts)
   └→ doc-product-setup   (new-product-creation-digital-offer.spec.ts)
        └→ doc-initiation   (initiate-doc.spec.ts)
@@ -114,7 +123,7 @@ await waitForPageReady(page, 'Heading Text');
 
 ### Path Aliases (tsconfig.json)
 
-```
+```text
 @pages/*    → src/pages/*
 @locators/* → src/locators/*
 @fixtures/* → src/fixtures/*
@@ -164,7 +173,7 @@ Scenario IDs follow `AREA-ACTION-###` format and must match tracker IDs.
 The SQLite tracker (`config/scenarios.db`) tracks two independent dimensions:
 
 | Field | Values |
-|---|---|
+| --- | --- |
 | `automation_state` | `pending` \| `automated` \| `on-hold` |
 | `execution_status` | `passed` \| `not-executed` \| `skipped` \| `failed-defect` |
 | `priority` | `P1` \| `P2` \| `P3` \| `Edge` |
@@ -195,7 +204,7 @@ Relevant tracker UI endpoints:
 
 Copy `.env.example` → `.env`. Key variables:
 
-```
+```bash
 TEST_ENV=qa          # qa | dev | ppr
 BASE_URL=            # optional override
 ```

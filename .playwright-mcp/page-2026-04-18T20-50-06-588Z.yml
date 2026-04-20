@@ -1,0 +1,522 @@
+- generic [ref=e1]:
+  - complementary [ref=e2]:
+    - generic [ref=e3]:
+      - heading "PICASso Automation" [level=1] [ref=e4]
+      - paragraph [ref=e5]: Test Scenario tracker v0.10
+    - navigation [ref=e6]:
+      - link "dashboard Dashboard" [ref=e7] [cursor=pointer]:
+        - /url: /ui/index.html
+        - generic [ref=e8]: dashboard
+        - generic [ref=e9]: Dashboard
+      - link "folder_open Test Reports" [ref=e10] [cursor=pointer]:
+        - /url: /allure-report/index.html
+        - generic [ref=e11]: folder_open
+        - generic [ref=e12]: Test Reports
+      - link "import_export Scenarios" [active] [ref=e13] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e14]: import_export
+        - generic [ref=e15]: Scenarios
+      - link "history Execution Logs" [ref=e16] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e17]: history
+        - generic [ref=e18]: Execution Logs
+      - generic [ref=e19]:
+        - generic [ref=e20]: insights
+        - generic [ref=e21]: Analytics
+    - generic [ref=e22]:
+      - button "add New Scenario" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: add
+        - text: New Scenario
+      - button "help Support" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]: help
+        - generic [ref=e27]: Support
+  - banner [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]: Test Coverage Explorer
+      - navigation [ref=e69]:
+        - generic [ref=e70] [cursor=pointer]: Global View
+        - generic [ref=e71] [cursor=pointer]: Automated
+        - generic [ref=e72] [cursor=pointer]: Failed
+        - generic [ref=e73] [cursor=pointer]: Pending
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - generic [ref=e33]: search
+        - searchbox "Search test cases..." [ref=e34]
+      - generic [ref=e35]:
+        - button "unfold_more" [ref=e36] [cursor=pointer]:
+          - generic [ref=e37]: unfold_more
+        - button "sync" [ref=e38] [cursor=pointer]:
+          - generic [ref=e39]: sync
+        - button "download" [ref=e40] [cursor=pointer]:
+          - generic [ref=e41]: download
+      - button "Run All Tests" [ref=e42] [cursor=pointer]
+  - main [ref=e43]:
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading "Overview" [level=2] [ref=e47]
+          - paragraph [ref=e48]: Real-time automation metrics for PICASso GRC test infrastructure.
+        - generic [ref=e49]:
+          - combobox [ref=e50] [cursor=pointer]:
+            - option "All Priorities" [selected]
+            - option "P1"
+            - option "P2"
+            - option "P3"
+            - option "Edge"
+          - combobox [ref=e51] [cursor=pointer]:
+            - option "All Areas" [selected]
+            - option "auth"
+            - option "landing"
+            - option "products"
+            - option "releases"
+            - option "doc"
+            - option "reports"
+            - option "backoffice"
+            - option "integrations"
+            - option "other"
+      - generic [ref=e52]:
+        - generic [ref=e74] [cursor=pointer]:
+          - generic [ref=e75]:
+            - paragraph [ref=e76]: Total Test Cases
+            - generic [ref=e78]: fact_check
+          - generic [ref=e79]:
+            - generic [ref=e80]: 1,454
+            - generic [ref=e81]: analytics
+        - generic [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]:
+            - paragraph [ref=e86]: Automated Coverage
+            - generic [ref=e88]: robot_2
+          - generic [ref=e90]: "605"
+        - generic [ref=e91] [cursor=pointer]:
+          - generic [ref=e92]:
+            - paragraph [ref=e93]: Failed Test Scenarios
+            - generic [ref=e94]: error
+          - generic [ref=e95]:
+            - generic [ref=e96]: "28"
+            - img [ref=e97]
+        - generic [ref=e99] [cursor=pointer]:
+          - generic [ref=e100]:
+            - paragraph [ref=e101]: Not Automated (Pending)
+            - generic [ref=e103]: pending_actions
+          - generic [ref=e105]: "849"
+          - generic [ref=e106]:
+            - generic [ref=e107]: ON-HOLD 30
+            - generic [ref=e108]: SKIPPED 112
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - heading "Active Workflows & Integrity Mapping" [level=3] [ref=e56]
+        - generic [ref=e109]: "Refreshed: 11:49:57 PM"
+      - generic [ref=e57]:
+        - generic [ref=e111] [cursor=pointer]:
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]: expand_more
+              - heading "1. Authentication" [level=4] [ref=e116]
+            - generic [ref=e118]:
+              - generic [ref=e119]: Automation Progress
+              - generic [ref=e120]:
+                - generic [ref=e121]: "10"
+                - generic [ref=e122]: /
+                - generic [ref=e123]: 11 Scenarios
+          - generic [ref=e126]:
+            - generic [ref=e127]: ALERTS
+            - button "play_arrow" [ref=e128]:
+              - generic [ref=e129]: play_arrow
+        - generic [ref=e131] [cursor=pointer]:
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: expand_more
+              - heading "2. Landing Page & Home Navigation" [level=4] [ref=e136]
+            - generic [ref=e138]:
+              - generic [ref=e139]: Automation Progress
+              - generic [ref=e140]:
+                - generic [ref=e141]: "72"
+                - generic [ref=e142]: /
+                - generic [ref=e143]: 95 Scenarios
+          - generic [ref=e146]:
+            - generic [ref=e147]: ALERTS
+            - button "play_arrow" [ref=e148]:
+              - generic [ref=e149]: play_arrow
+        - generic [ref=e151] [cursor=pointer]:
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - generic [ref=e154]: expand_more
+              - heading "3. Product Management" [level=4] [ref=e156]
+            - generic [ref=e158]:
+              - generic [ref=e159]: Automation Progress
+              - generic [ref=e160]:
+                - generic [ref=e161]: "76"
+                - generic [ref=e162]: /
+                - generic [ref=e163]: 104 Scenarios
+          - generic [ref=e166]:
+            - generic [ref=e167]: ALERTS
+            - button "play_arrow" [ref=e168]:
+              - generic [ref=e169]: play_arrow
+        - generic [ref=e171] [cursor=pointer]:
+          - generic [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: expand_more
+              - 'heading "4. Release — Stage 1: Creation & Scoping" [level=4] [ref=e176]'
+            - generic [ref=e178]:
+              - generic [ref=e179]: Automation Progress
+              - generic [ref=e180]:
+                - generic [ref=e181]: "82"
+                - generic [ref=e182]: /
+                - generic [ref=e183]: 204 Scenarios
+          - generic [ref=e186]:
+            - generic [ref=e187]: ALERTS
+            - button "play_arrow" [ref=e188]:
+              - generic [ref=e189]: play_arrow
+        - generic [ref=e191] [cursor=pointer]:
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - generic [ref=e194]: expand_more
+              - 'heading "5. Release — Stage 2: Review & Confirm" [level=4] [ref=e196]'
+            - generic [ref=e198]:
+              - generic [ref=e199]: Automation Progress
+              - generic [ref=e200]:
+                - generic [ref=e201]: "38"
+                - generic [ref=e202]: /
+                - generic [ref=e203]: 82 Scenarios
+          - generic [ref=e206]:
+            - generic [ref=e207]: ALERTS
+            - button "play_arrow" [ref=e208]:
+              - generic [ref=e209]: play_arrow
+        - generic [ref=e211] [cursor=pointer]:
+          - generic [ref=e212]:
+            - generic [ref=e213]:
+              - generic [ref=e214]: expand_more
+              - 'heading "6. Release — Stage 3: Manage" [level=4] [ref=e216]'
+            - generic [ref=e218]:
+              - generic [ref=e219]: Automation Progress
+              - generic [ref=e220]:
+                - generic [ref=e221]: "12"
+                - generic [ref=e222]: /
+                - generic [ref=e223]: 100 Scenarios
+          - generic [ref=e226]:
+            - generic [ref=e227]: ALERTS
+            - button "play_arrow" [ref=e228]:
+              - generic [ref=e229]: play_arrow
+        - generic [ref=e231] [cursor=pointer]:
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: expand_more
+              - 'heading "7. Release — Stage 4: SA & PQL Sign Off" [level=4] [ref=e236]'
+            - generic [ref=e238]:
+              - generic [ref=e239]: Automation Progress
+              - generic [ref=e240]:
+                - generic [ref=e241]: "0"
+                - generic [ref=e242]: /
+                - generic [ref=e243]: 25 Scenarios
+          - generic [ref=e245]:
+            - generic [ref=e246]: PENDING
+            - button "play_arrow" [ref=e247]:
+              - generic [ref=e248]: play_arrow
+        - generic [ref=e250] [cursor=pointer]:
+          - generic [ref=e251]:
+            - generic [ref=e252]:
+              - generic [ref=e253]: expand_more
+              - 'heading "8. Release — Stage 5: FCSR Review" [level=4] [ref=e255]'
+            - generic [ref=e257]:
+              - generic [ref=e258]: Automation Progress
+              - generic [ref=e259]:
+                - generic [ref=e260]: "0"
+                - generic [ref=e261]: /
+                - generic [ref=e262]: 82 Scenarios
+          - generic [ref=e264]:
+            - generic [ref=e265]: PENDING
+            - button "play_arrow" [ref=e266]:
+              - generic [ref=e267]: play_arrow
+        - generic [ref=e269] [cursor=pointer]:
+          - generic [ref=e270]:
+            - generic [ref=e271]:
+              - generic [ref=e272]: expand_more
+              - 'heading "9. Release — Stage 6: Post FCSR Actions" [level=4] [ref=e274]'
+            - generic [ref=e276]:
+              - generic [ref=e277]: Automation Progress
+              - generic [ref=e278]:
+                - generic [ref=e279]: "0"
+                - generic [ref=e280]: /
+                - generic [ref=e281]: 17 Scenarios
+          - generic [ref=e283]:
+            - generic [ref=e284]: PENDING
+            - button "play_arrow" [ref=e285]:
+              - generic [ref=e286]: play_arrow
+        - generic [ref=e288] [cursor=pointer]:
+          - generic [ref=e289]:
+            - generic [ref=e290]:
+              - generic [ref=e291]: expand_more
+              - 'heading "10. Release — Stage 7: Final Acceptance" [level=4] [ref=e293]'
+            - generic [ref=e295]:
+              - generic [ref=e296]: Automation Progress
+              - generic [ref=e297]:
+                - generic [ref=e298]: "0"
+                - generic [ref=e299]: /
+                - generic [ref=e300]: 17 Scenarios
+          - generic [ref=e302]:
+            - generic [ref=e303]: PENDING
+            - button "play_arrow" [ref=e304]:
+              - generic [ref=e305]: play_arrow
+        - generic [ref=e307] [cursor=pointer]:
+          - generic [ref=e308]:
+            - generic [ref=e309]:
+              - generic [ref=e310]: expand_more
+              - heading "11. Digital Offer Certification (DOC)" [level=4] [ref=e312]
+            - generic [ref=e314]:
+              - generic [ref=e315]: Automation Progress
+              - generic [ref=e316]:
+                - generic [ref=e317]: "281"
+                - generic [ref=e318]: /
+                - generic [ref=e319]: 363 Scenarios
+          - generic [ref=e322]:
+            - generic [ref=e323]: ALERTS
+            - button "play_arrow" [ref=e324]:
+              - generic [ref=e325]: play_arrow
+        - generic [ref=e327] [cursor=pointer]:
+          - generic [ref=e328]:
+            - generic [ref=e329]:
+              - generic [ref=e330]: expand_more
+              - heading "12. Roles Delegation" [level=4] [ref=e332]
+            - generic [ref=e334]:
+              - generic [ref=e335]: Automation Progress
+              - generic [ref=e336]:
+                - generic [ref=e337]: "0"
+                - generic [ref=e338]: /
+                - generic [ref=e339]: 52 Scenarios
+          - generic [ref=e341]:
+            - generic [ref=e342]: PENDING
+            - button "play_arrow" [ref=e343]:
+              - generic [ref=e344]: play_arrow
+        - generic [ref=e346] [cursor=pointer]:
+          - generic [ref=e347]:
+            - generic [ref=e348]:
+              - generic [ref=e349]: expand_more
+              - heading "13. Actions Management" [level=4] [ref=e351]
+            - generic [ref=e353]:
+              - generic [ref=e354]: Automation Progress
+              - generic [ref=e355]:
+                - generic [ref=e356]: "2"
+                - generic [ref=e357]: /
+                - generic [ref=e358]: 89 Scenarios
+          - generic [ref=e361]:
+            - generic [ref=e362]: ACTIVE
+            - button "play_arrow" [ref=e363]:
+              - generic [ref=e364]: play_arrow
+        - generic [ref=e366] [cursor=pointer]:
+          - generic [ref=e367]:
+            - generic [ref=e368]:
+              - generic [ref=e369]: expand_more
+              - heading "14. Release History" [level=4] [ref=e371]
+            - generic [ref=e373]:
+              - generic [ref=e374]: Automation Progress
+              - generic [ref=e375]:
+                - generic [ref=e376]: "1"
+                - generic [ref=e377]: /
+                - generic [ref=e378]: 19 Scenarios
+          - generic [ref=e381]:
+            - generic [ref=e382]: ACTIVE
+            - button "play_arrow" [ref=e383]:
+              - generic [ref=e384]: play_arrow
+        - generic [ref=e386] [cursor=pointer]:
+          - generic [ref=e387]:
+            - generic [ref=e388]:
+              - generic [ref=e389]: expand_more
+              - heading "15. Stage Sidebar & Responsible Users" [level=4] [ref=e391]
+            - generic [ref=e393]:
+              - generic [ref=e394]: Automation Progress
+              - generic [ref=e395]:
+                - generic [ref=e396]: "0"
+                - generic [ref=e397]: /
+                - generic [ref=e398]: 13 Scenarios
+          - generic [ref=e400]:
+            - generic [ref=e401]: PENDING
+            - button "play_arrow" [ref=e402]:
+              - generic [ref=e403]: play_arrow
+        - generic [ref=e405] [cursor=pointer]:
+          - generic [ref=e406]:
+            - generic [ref=e407]:
+              - generic [ref=e408]: expand_more
+              - heading "16. Data Protection & Privacy (DPP) Review" [level=4] [ref=e410]
+            - generic [ref=e412]:
+              - generic [ref=e413]: Automation Progress
+              - generic [ref=e414]:
+                - generic [ref=e415]: "0"
+                - generic [ref=e416]: /
+                - generic [ref=e417]: 49 Scenarios
+          - generic [ref=e419]:
+            - generic [ref=e420]: PENDING
+            - button "play_arrow" [ref=e421]:
+              - generic [ref=e422]: play_arrow
+        - generic [ref=e424] [cursor=pointer]:
+          - generic [ref=e425]:
+            - generic [ref=e426]:
+              - generic [ref=e427]: expand_more
+              - heading "17. Reports & Dashboards (Tableau Integration)" [level=4] [ref=e429]
+            - generic [ref=e431]:
+              - generic [ref=e432]: Automation Progress
+              - generic [ref=e433]:
+                - generic [ref=e434]: "0"
+                - generic [ref=e435]: /
+                - generic [ref=e436]: 25 Scenarios
+          - generic [ref=e438]:
+            - generic [ref=e439]: PENDING
+            - button "play_arrow" [ref=e440]:
+              - generic [ref=e441]: play_arrow
+        - generic [ref=e443] [cursor=pointer]:
+          - generic [ref=e444]:
+            - generic [ref=e445]:
+              - generic [ref=e446]: expand_more
+              - heading "18. Maintenance Mode" [level=4] [ref=e448]
+            - generic [ref=e450]:
+              - generic [ref=e451]: Automation Progress
+              - generic [ref=e452]:
+                - generic [ref=e453]: "0"
+                - generic [ref=e454]: /
+                - generic [ref=e455]: 21 Scenarios
+          - generic [ref=e457]:
+            - generic [ref=e458]: PENDING
+            - button "play_arrow" [ref=e459]:
+              - generic [ref=e460]: play_arrow
+        - generic [ref=e462] [cursor=pointer]:
+          - generic [ref=e463]:
+            - generic [ref=e464]:
+              - generic [ref=e465]: expand_more
+              - 'heading "19. Requirements Versioning: BackOffice Administration" [level=4] [ref=e467]'
+            - generic [ref=e469]:
+              - generic [ref=e470]: Automation Progress
+              - generic [ref=e471]:
+                - generic [ref=e472]: "0"
+                - generic [ref=e473]: /
+                - generic [ref=e474]: 30 Scenarios
+          - generic [ref=e476]:
+            - generic [ref=e477]: PENDING
+            - button "play_arrow" [ref=e478]:
+              - generic [ref=e479]: play_arrow
+        - generic [ref=e481] [cursor=pointer]:
+          - generic [ref=e482]:
+            - generic [ref=e483]:
+              - generic [ref=e484]: expand_more
+              - 'heading "20. Integration: Data Extraction API" [level=4] [ref=e486]'
+            - generic [ref=e488]:
+              - generic [ref=e489]: Automation Progress
+              - generic [ref=e490]:
+                - generic [ref=e491]: "0"
+                - generic [ref=e492]: /
+                - generic [ref=e493]: 12 Scenarios
+          - generic [ref=e495]:
+            - generic [ref=e496]: PENDING
+            - button "play_arrow" [ref=e497]:
+              - generic [ref=e498]: play_arrow
+        - generic [ref=e500] [cursor=pointer]:
+          - generic [ref=e501]:
+            - generic [ref=e502]:
+              - generic [ref=e503]: expand_more
+              - 'heading "21. Integration: Data Ingestion API" [level=4] [ref=e505]'
+            - generic [ref=e507]:
+              - generic [ref=e508]: Automation Progress
+              - generic [ref=e509]:
+                - generic [ref=e510]: "0"
+                - generic [ref=e511]: /
+                - generic [ref=e512]: 19 Scenarios
+          - generic [ref=e514]:
+            - generic [ref=e515]: PENDING
+            - button "play_arrow" [ref=e516]:
+              - generic [ref=e517]: play_arrow
+        - generic [ref=e519] [cursor=pointer]:
+          - generic [ref=e520]:
+            - generic [ref=e521]:
+              - generic [ref=e522]: expand_more
+              - 'heading "22. Integration: Intel DS / Informatica (Training Completion)" [level=4] [ref=e524]'
+            - generic [ref=e526]:
+              - generic [ref=e527]: Automation Progress
+              - generic [ref=e528]:
+                - generic [ref=e529]: "0"
+                - generic [ref=e530]: /
+                - generic [ref=e531]: 22 Scenarios
+          - generic [ref=e533]:
+            - generic [ref=e534]: PENDING
+            - button "play_arrow" [ref=e535]:
+              - generic [ref=e536]: play_arrow
+        - generic [ref=e538] [cursor=pointer]:
+          - generic [ref=e539]:
+            - generic [ref=e540]:
+              - generic [ref=e541]: expand_more
+              - heading "Smoke / Seed" [level=4] [ref=e543]
+            - generic [ref=e545]:
+              - generic [ref=e546]: Automation Progress
+              - generic [ref=e547]:
+                - generic [ref=e548]: "1"
+                - generic [ref=e549]: /
+                - generic [ref=e550]: 1 Scenarios
+          - generic [ref=e553]:
+            - generic [ref=e554]: PASS
+            - button "play_arrow" [ref=e555]:
+              - generic [ref=e556]: play_arrow
+        - generic [ref=e558] [cursor=pointer]:
+          - generic [ref=e559]:
+            - generic [ref=e560]:
+              - generic [ref=e561]: expand_more
+              - heading "Uncategorized" [level=4] [ref=e563]
+            - generic [ref=e565]:
+              - generic [ref=e566]: Automation Progress
+              - generic [ref=e567]:
+                - generic [ref=e568]: "0"
+                - generic [ref=e569]: /
+                - generic [ref=e570]: 2 Scenarios
+          - generic [ref=e572]:
+            - generic [ref=e573]: PENDING
+            - button "play_arrow" [ref=e574]:
+              - generic [ref=e575]: play_arrow
+  - generic [ref=e577]:
+    - generic [ref=e578]:
+      - generic [ref=e579]:
+        - heading "import_export Scenarios" [level=2] [ref=e580]:
+          - generic [ref=e581]: import_export
+          - text: Scenarios
+        - paragraph [ref=e582]: Export or import test scenarios as XLSX files.
+      - button "close" [ref=e583] [cursor=pointer]:
+        - generic [ref=e584]: close
+    - generic [ref=e585]:
+      - button "Export" [ref=e586] [cursor=pointer]
+      - button "Import" [ref=e587] [cursor=pointer]
+    - generic [ref=e588]:
+      - generic [ref=e589]:
+        - generic [ref=e590]: Workflow
+        - combobox "Workflow" [ref=e591]:
+          - option "Select a workflow…" [selected]
+          - option "WF 1. Authentication"
+          - option "WF 2. Landing Page & Home Navigation"
+          - option "WF 3. Product Management"
+          - 'option "WF 4. Release — Stage 1: Creation & Scoping"'
+          - 'option "WF 5. Release — Stage 2: Review & Confirm"'
+          - 'option "WF 6. Release — Stage 3: Manage"'
+          - 'option "WF 7. Release — Stage 4: SA & PQL Sign Off"'
+          - 'option "WF 8. Release — Stage 5: FCSR Review"'
+          - 'option "WF 9. Release — Stage 6: Post FCSR Actions"'
+          - 'option "WF 10. Release — Stage 7: Final Acceptance"'
+          - option "WF 11. Digital Offer Certification (DOC)"
+          - option "WF 12. Roles Delegation"
+          - option "WF 13. Actions Management"
+          - option "WF 14. Release History"
+          - option "WF 15. Stage Sidebar & Responsible Users"
+          - option "WF 16. Data Protection & Privacy (DPP) Review"
+          - option "WF 17. Reports & Dashboards (Tableau Integration)"
+          - option "WF 18. Maintenance Mode"
+          - 'option "WF 19. Requirements Versioning: BackOffice Administration"'
+          - 'option "WF 20. Integration: Data Extraction API"'
+          - 'option "WF 21. Integration: Data Ingestion API"'
+          - 'option "WF 22. Integration: Intel DS / Informatica (Training Completion)"'
+          - option "Smoke / Seed"
+          - option "Uncategorized"
+      - generic [ref=e592]:
+        - button "Cancel" [ref=e593] [cursor=pointer]
+        - button "download Export XLSX" [ref=e594] [cursor=pointer]:
+          - generic [ref=e595]: download
+          - text: Export XLSX
+  - generic [ref=e60] [cursor=pointer]:
+    - generic [ref=e62]: Test Runner
+    - generic [ref=e63]:
+      - button "delete_sweep" [ref=e64]:
+        - generic [ref=e65]: delete_sweep
+      - button "expand_more" [ref=e66]:
+        - generic [ref=e67]: expand_more

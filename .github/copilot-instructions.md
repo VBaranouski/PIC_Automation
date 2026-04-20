@@ -36,6 +36,7 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 - `.github/instructions/automation-workflow.instructions.md` ← **MASTER WORKFLOW — read first for any test creation task**
 - `.github/instructions/pw-autotest.instructions.md`
 - `.github/instructions/automation-scripts.instructions.md`
+- `.github/instructions/system-design-automation.instructions.md` ← UI system design reference for tracker screens, new frontend functionality, and requested documentation pages
 - `.github/instructions/browser-cli.instructions.md`
 - `.github/instructions/naming.instructions.md`
 - `.github/instructions/outsystems-picasso.instructions.md` ← PICASso/OutSystems-specific patterns (select vs OSUI, user lookup, partial refresh, timeouts)
@@ -58,6 +59,8 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 ## Core rules
 
 - Prefer semantic locators and verify them in-browser with Playwright CLI when available.
+- Use `.github/instructions/system-design-automation.instructions.md` when creating tracker UI, internal dashboards, generated HTML summaries, or requested documentation with visual structure.
+- Before creating a new branch from `main`, pull the latest `main` changes first; after implementation, create a pull request.
 - Never use `waitForTimeout()` or `networkidle` for the OutSystems app.
 - Use web-first assertions (`expect(locator)`) instead of snapshot reads.
 - For new or changed test scripts, validate the full UI path in a headed Playwright CLI session before treating the code as done.

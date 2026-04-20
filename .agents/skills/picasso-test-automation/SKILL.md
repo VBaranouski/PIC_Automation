@@ -207,15 +207,21 @@ npx tsc --noEmit  # verify no TS errors in the project
 All tests must pass. If a test fails due to a product defect (not a locator/script issue), use `test.fail()` — never weaken assertions.
 
 ### Step 6: Update Tracker DB
-```bash
-# Set automation state for each scenario
-npx tsx scripts/tracker.ts auto-state <SCENARIO-ID> automated
 
-# Set execution status
+> **CRITICAL:** `automation_state` and `execution_status` are **two independent fields** — both must always be updated together. Setting only `auto-state automated` leaves `execution_status` as `not-executed`, which misrepresents the actual test result in reports.
+
+```bash
+# Always set BOTH fields for every scenario — never just one
+npx tsx scripts/tracker.ts auto-state <SCENARIO-ID> automated
 npx tsx scripts/tracker.ts exec-status <SCENARIO-ID> passed
 
-# For product defects
+# For product defects (test marked test.fail())
+npx tsx scripts/tracker.ts auto-state <SCENARIO-ID> automated
 npx tsx scripts/tracker.ts exec-status <SCENARIO-ID> failed-defect
+
+# For scenarios that cannot be automated (out of scope)
+npx tsx scripts/tracker.ts auto-state <SCENARIO-ID> on-hold
+# exec-status stays not-executed — correct for on-hold
 ```
 
 ### Step 7: Commit & Push
@@ -299,3 +305,4 @@ releaseDetailPage.waitForOSLoad()
 6. **Import from fixtures, not @playwright/test** — always `import { test, expect } from '../../src/fixtures'`
 7. **Allure metadata is mandatory** — every test needs `suite`, `severity`, `tag`, `description`
 8. **Scenario IDs must match tracker** — use the exact `AREA-ACTION-###` or `WF##-####` format from the tracker DB
+9. **Both tracker fields must be updated together** — after every passing run, set both `auto-state automated` AND `exec-status passed` for each scenario. The Playwright reporters (list, HTML, Allure, JSON) write to files only — they never update `scenarios.db`. Forgetting `exec-status` leaves the scenario as `automated / not-executed`, which is a false state.

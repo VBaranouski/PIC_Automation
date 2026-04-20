@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PICASso: AI Test Automation — AI-Powered Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --surface:                 #0e0e0e;
+  --surface-container-low:   #131313;
+  --surface-container:       #1a1a1a;
+  --surface-container-high:  #20201f;
+  --surface-container-highest:#262626;
+  --surface-bright:          #2c2c2c;
+  --primary:                 #ff9157;
+  --primary-dim:             #ff7520;
+  --on-primary:              #531e00;
+  --tertiary:                #81ecff;
+  --error:                   #ff7351;
+  --secondary:               #e3e2e2;
+  --secondary-fixed-dim:     #d5d4d4;
+  --on-surface:              #ffffff;
+  --on-surface-variant:      #adaaaa;
+  --outline-variant:         #484847;
+  --success:                 #3fb950;
+  --warning:                 #e3b341;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--surface); color: var(--secondary-fixed-dim);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--primary); color: var(--on-primary); }
+h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); line-height: 1.2; }
+
+/* NAV */
+.nav { position: sticky; top: 0; z-index: 100; background: rgba(14,14,14,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(72,72,71,0.15); }
+.nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; height: 56px; gap: 32px; }
+.nav-brand { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.92rem; color: var(--on-surface); text-decoration: none; white-space: nowrap; }
+.nav-brand span { color: var(--primary); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: var(--on-surface-variant); text-decoration: none; transition: background 0.15s, color 0.15s; }
+.nav-links a:hover { background: var(--surface-container); color: var(--on-surface); }
+.nav-links a.active { background: rgba(255,145,87,0.1); color: var(--primary); }
+.nav-links .material-symbols-outlined { font-size: 18px; width: 18px; height: 18px; overflow: hidden; display: inline-block; vertical-align: middle; }
+
+/* LAYOUT */
+.page { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+
+/* HERO */
+.hero { padding: 80px 0 64px; text-align: center; }
+.hero-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary); background: rgba(255,145,87,0.08); padding: 6px 18px; border-radius: 9999px; margin-bottom: 28px; }
+.hero h1 { font-size: clamp(2.2rem, 4.5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; }
+.hero h1 .accent { color: var(--primary); }
+.hero h1 .accent-t { color: var(--tertiary); }
+.hero-sub { font-size: 1.05rem; color: var(--on-surface-variant); max-width: 720px; margin: 0 auto; }
+
+/* SECTIONS */
+.section { padding: 72px 0; }
+.section + .section { padding-top: 0; }
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); margin-bottom: 12px; }
+.section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+.section-desc { color: var(--on-surface-variant); max-width: 640px; margin-bottom: 40px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PIPELINE FLOW — visual step-by-step
+   ═══════════════════════════════════════════════════════════════════════ */
+.pipeline { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 32px; max-width: 880px; }
+.pipe-step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0 24px;
+  position: relative;
+  padding-bottom: 4px;
+}
+.pipe-step:last-child .pipe-line { display: none; }
+
+/* Number circle + vertical line */
+.pipe-num-col { display: flex; flex-direction: column; align-items: center; }
+.pipe-num {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.1rem;
+  background: var(--surface-container); color: var(--primary);
+  border: 2px solid var(--primary);
+  position: relative; z-index: 2;
+  flex-shrink: 0;
+}
+.pipe-num.cyan { border-color: var(--tertiary); color: var(--tertiary); }
+.pipe-num.green { border-color: var(--success); color: var(--success); }
+.pipe-num.warn { border-color: var(--warning); color: var(--warning); }
+.pipe-line {
+  width: 2px; flex: 1; min-height: 24px;
+  background: linear-gradient(180deg, var(--outline-variant) 0%, transparent 100%);
+}
+
+/* Step content */
+.pipe-content { padding: 8px 0 40px; }
+.pipe-tag {
+  display: inline-block; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 3px 10px; border-radius: 9999px; margin-bottom: 10px;
+}
+.pipe-tag.ai { background: rgba(255,145,87,0.12); color: var(--primary); }
+.pipe-tag.system { background: rgba(129,236,255,0.1); color: var(--tertiary); }
+.pipe-tag.human { background: rgba(63,185,80,0.1); color: var(--success); }
+.pipe-tag.auto { background: rgba(227,179,65,0.1); color: var(--warning); }
+
+.pipe-content h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+.pipe-content p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.65; max-width: 600px; }
+
+.pipe-detail {
+  margin-top: 16px; padding: 16px 20px; border-radius: 10px;
+  background: var(--surface-container-low);
+  font-size: 0.82rem; color: var(--secondary-fixed-dim); line-height: 1.7;
+}
+.pipe-detail code {
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, monospace;
+  font-size: 0.78rem; background: rgba(255,255,255,0.05);
+  padding: 2px 6px; border-radius: 4px; color: var(--tertiary);
+}
+.pipe-detail strong { color: var(--on-surface); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LOOP DIAGRAM
+   ═══════════════════════════════════════════════════════════════════════ */
+.loop-container {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; margin: 48px auto; max-width: 900px; flex-wrap: wrap;
+  row-gap: 20px;
+}
+.loop-box {
+  padding: 16px 22px; border-radius: 10px; text-align: center;
+  font-size: 0.82rem; font-weight: 600; white-space: nowrap;
+  min-width: 120px;
+}
+.loop-box.surface { background: var(--surface-container-low); color: var(--secondary-fixed-dim); }
+.loop-box.primary { background: rgba(255,145,87,0.1); color: var(--primary); border: 1px solid rgba(255,145,87,0.2); }
+.loop-box.cyan { background: rgba(129,236,255,0.08); color: var(--tertiary); border: 1px solid rgba(129,236,255,0.15); }
+.loop-box.green { background: rgba(63,185,80,0.08); color: var(--success); border: 1px solid rgba(63,185,80,0.15); }
+.loop-box.warn { background: rgba(227,179,65,0.08); color: var(--warning); border: 1px solid rgba(227,179,65,0.15); }
+.loop-arrow {
+  font-size: 1.2rem; color: var(--outline-variant); padding: 0 8px;
+  font-family: 'Manrope', sans-serif; font-weight: 800;
+}
+.loop-arrow.return { color: var(--error); }
+.loop-sub { font-size: 0.7rem; font-weight: 400; display: block; margin-top: 2px; opacity: 0.7; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CAPABILITY CARDS
+   ═══════════════════════════════════════════════════════════════════════ */
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.cap-card {
+  background: var(--surface-container-low); border-radius: 12px; padding: 28px 24px;
+  position: relative; transition: background 0.2s;
+}
+.cap-card:hover { background: var(--surface-container); }
+.cap-card::before {
+  content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 2px;
+  border-radius: 1px; background: var(--primary); opacity: 0; transition: opacity 0.2s;
+}
+.cap-card:hover::before { opacity: 1; }
+.cap-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(255,145,87,0.08); color: var(--primary); margin-bottom: 16px; font-size: 22px;
+}
+.cap-icon.cyan { background: rgba(129,236,255,0.08); color: var(--tertiary); }
+.cap-icon.green { background: rgba(63,185,80,0.08); color: var(--success); }
+.cap-icon.warn { background: rgba(227,179,65,0.08); color: var(--warning); }
+.cap-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.cap-card p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.6; }
+
+/* CTA */
+.cta-row { display: flex; justify-content: center; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
+.cta-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 600;
+  text-decoration: none; transition: background 0.15s, transform 0.1s;
+}
+.cta-link:active { transform: scale(0.97); }
+.cta-link.primary { background: var(--primary); color: var(--on-primary); }
+.cta-link.primary:hover { background: var(--primary-dim); }
+.cta-link.ghost { background: transparent; color: var(--tertiary); border: 1px solid rgba(129,236,255,0.2); }
+.cta-link.ghost:hover { background: rgba(129,236,255,0.06); }
+.cta-link .material-symbols-outlined { font-size: 20px; }
+
+/* FOOTER */
+.footer { padding: 48px 0; text-align: center; font-size: 0.78rem; color: var(--on-surface-variant); border-top: 1px solid rgba(72,72,71,0.15); margin-top: 72px; }
+
+@media (max-width: 768px) {
+  .page { padding: 0 20px; }
+  .nav-inner { padding: 0 20px; gap: 16px; }
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 2rem; }
+  .cap-grid { grid-template-columns: 1fr; }
+  .pipe-step { grid-template-columns: 48px 1fr; gap: 0 16px; }
+  .pipe-num { width: 40px; height: 40px; font-size: 0.95rem; }
+  .loop-container { flex-direction: column; gap: 8px; }
+  .loop-arrow { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">PICASso: <span>AI Test Automation</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="material-symbols-outlined">home</span> Overview</a></li>
+      <li><a href="ai-workflow.html" class="active"><span class="material-symbols-outlined">psychology</span> AI Workflow</a></li>
+      <li><a href="platform.html"><span class="material-symbols-outlined">code</span> Platform</a></li>
+      <li><a href="pitfalls.html"><span class="material-symbols-outlined">warning</span> Pitfalls</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page">
+<section class="hero">
+  <div class="hero-eyebrow">End-to-End AI Pipeline</div>
+  <h1>From Xray Case to <span class="accent">Passing Test</span><br/>in <span class="accent-t">One Flow</span></h1>
+  <p class="hero-sub">
+    The full lifecycle of a test scenario — from manual Xray case to AI-analyzed, automation-ready scenario,
+    through AI-written Playwright test script, browser-validated execution, and one-click Jira defect reporting.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PHASE 0 — SCENARIO PREPARATION
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Phase 0 — Before Automation</div>
+  <h2 class="section-title">Preparing Automation-Ready Scenarios</h2>
+  <p class="section-desc">
+    Before any test script is written, scenarios must be structured, validated, and approved.
+    AI synthesizes knowledge from five independent sources, then a human gives the final sign-off.
+  </p>
+
+  <div class="pipeline">
+
+    <!-- Source 1 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num cyan">1</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag system">Knowledge Source</span>
+        <h3>Confluence Documentation & User Guides</h3>
+        <p>
+          AI reads feature documentation, process flows, and user guides from Confluence
+          to understand the intended behavior, business rules, and edge cases for each feature area.
+        </p>
+        <div class="pipe-detail">
+          <strong>What it extracts:</strong> field validation rules, workflow state machines,
+          role-based access constraints, UI layout expectations, and cross-feature dependencies.
+          This forms the <em>ground truth</em> of what the application should do.
+        </div>
+      </div>
+    </div>
+
+    <!-- Source 2 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num cyan">2</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag system">Knowledge Source</span>
+        <h3>Jira User Stories & Acceptance Criteria</h3>
+        <p>
+          AI parses user stories and their acceptance criteria from Jira to capture
+          the exact conditions that define "done" for each feature increment —
+          including boundary conditions and negative scenarios.
+        </p>
+        <div class="pipe-detail">
+          <strong>What it extracts:</strong> Given/When/Then acceptance criteria,
+          business-critical validation rules, permission boundaries,
+          error-state expectations, and cross-story dependencies.
+        </div>
+      </div>
+    </div>
+
+    <!-- Source 3 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num warn">3</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag auto">Legacy Data</span>
+        <h3>Existing Test Cases (Xray / Manual)</h3>
+        <p>
+          AI analyzes the existing 5,000+ manual test cases from Xray — identifying
+          outdated steps, vague assertions ("verify page looks correct"), and
+          duplicates. Reusable logic is preserved; the rest is rewritten.
+        </p>
+        <div class="pipe-detail">
+          <strong>What it does:</strong> deduplicates overlapping cases across workflows →
+          flags ~50% as outdated or untestable → rewrites vague steps into precise,
+          DOM-aware assertions → carries forward valid preconditions and data requirements.
+        </div>
+      </div>
+    </div>
+
+    <!-- Source 4 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num">4</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag ai">AI Exploration</span>
+        <h3>Exploratory Testing via Playwright CLI</h3>
+        <p>
+          AI launches a real browser session through Playwright CLI and explores the live application —
+          discovering actual page structures, element states, dynamic behaviors,
+          and edge cases that documentation alone doesn't capture.
+        </p>
+        <div class="pipe-detail">
+          <strong>What it discovers:</strong> actual DOM structure and ARIA roles →
+          OutSystems-specific widget patterns (OSUI dropdowns, partial refresh) →
+          loading states and timing characteristics → hidden validation messages →
+          real data values and format patterns → responsive layout breakpoints.
+        </div>
+      </div>
+    </div>
+
+    <!-- Source 5 — Human Review -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num green">5</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag human">Human Gate</span>
+        <h3>Human Review & Approval</h3>
+        <p>
+          A test engineer reviews the AI-prepared scenarios — verifying business logic accuracy,
+          checking priority assignments, and confirming that the structured steps
+          match real user workflows. Only approved scenarios enter the tracker.
+        </p>
+        <div class="pipe-detail">
+          <strong>Review checklist:</strong> business rule correctness ✓ →
+          step-by-step completeness ✓ → expected results are assertion-ready ✓ →
+          priority and feature area assignments ✓ → no duplicate coverage ✓ →
+          <strong>approved → import to tracker via XLSX or API</strong>.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .pipeline -->
+
+  <div class="pipe-detail" style="max-width: 880px; margin-top: 8px; border-left: 2px solid var(--tertiary); padding-left: 20px;">
+    <strong style="color: var(--tertiary);">Continuous Improvement:</strong>
+    Every step in this pipeline is built on best practices and proven techniques —
+    and each one can be enhanced at any time with new inputs. New Confluence pages, updated acceptance criteria,
+    fresh exploratory findings, or refined test patterns are fed back into the process,
+    making every subsequent batch of scenarios more accurate and complete than the last.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     VISUAL LOOP DIAGRAM
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Phase 1 — Automation Pipeline</div>
+  <h2 class="section-title">The Automation Pipeline</h2>
+  <p class="section-desc">
+    Once scenarios are approved and imported, each follows this cycle. The AI self-corrects
+    locator issues using Playwright MCP, re-runs until green, then updates the tracker automatically.
+  </p>
+
+  <div class="loop-container">
+    <div class="loop-box surface">Ready for Automation<span class="loop-sub">approved scenarios</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box primary">AI Analyze<span class="loop-sub">update & migrate</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box warn">Pending<span class="loop-sub">in tracker</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box primary">AI Script<span class="loop-sub">Playwright test</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box cyan">Execute<span class="loop-sub">headed run</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box cyan">MCP Check<span class="loop-sub">validate DOM</span></div>
+    <div class="loop-arrow return">⟲</div>
+    <div class="loop-box primary">Fix<span class="loop-sub">locators/logic</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box green">Pass<span class="loop-sub">headless run</span></div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-box green">Automated ✓<span class="loop-sub">status synced</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     FULL PIPELINE — step by step
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Phase 1 — Step-by-Step</div>
+  <h2 class="section-title">How Every Scenario Gets Automated</h2>
+  <p class="section-desc">
+    The 8-step process, powered by the <code style="font-family:'SF Mono',monospace;font-size:0.82rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;color:var(--tertiary);">picasso-test-automation</code> AI skill.
+  </p>
+
+  <div class="pipeline">
+
+    <!-- Step 1 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num">1</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag ai">AI + System</span>
+        <h3>Scenario Ingestion & Migration</h3>
+        <p>
+          Manual test cases from Xray/Jira are exported and fed to the AI. The AI analyzes each case,
+          identifies outdated or untestable steps (e.g. "verify the page looks correct"), and rewrites them
+          as structured, automation-ready scenarios with precise assertions and DOM-aware steps.
+        </p>
+        <div class="pipe-detail">
+          <strong>What happens:</strong> AI reads the manual case → identifies outdated flow references →
+          rewrites steps with specific locator strategies and expected values →
+          assigns priority, workflow, and feature area →
+          imports into tracker via XLSX or direct API.
+          Result: scenario appears in tracker with state <code>pending</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num warn">2</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag auto">Tracker</span>
+        <h3>Scenario Marked Pending</h3>
+        <p>
+          The scenario lands in the tracker with <code style="font-family:monospace;font-size:0.82rem;color:var(--warning);">automation_state: pending</code>.
+          The dashboard shows it in the pending count. It's visible in workflow accordions,
+          filterable by priority and area. Ready for the AI to pick up and script.
+        </p>
+        <div class="pipe-detail">
+          <strong>Dual-status model:</strong> <code>automation_state = pending</code>,
+          <code>execution_status = not-executed</code>.
+          The scenario has structured test steps and expected results already filled in from step 1.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num">3</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag ai">AI Agent</span>
+        <h3>AI Writes Playwright Test Script</h3>
+        <p>
+          The AI agent (using the <strong>picasso-test-automation</strong> skill) queries the tracker for pending
+          scenarios, reads the structured steps and expected results, then generates a complete
+          Playwright TypeScript test following the project's four-layer architecture.
+        </p>
+        <div class="pipe-detail">
+          <strong>Four-layer output:</strong><br/>
+          1. <strong>Locator factory</strong> — semantic locators using <code>getByRole()</code>, <code>getByText()</code><br/>
+          2. <strong>Page Object method</strong> — reusable actions on <code>BasePage</code> subclass<br/>
+          3. <strong>Fixture integration</strong> — scenario uses custom fixtures for auth, navigation<br/>
+          4. <strong>Test with Allure metadata</strong> — <code>test.step()</code> blocks, severity, tags, suite
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num cyan">4</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag system">Playwright MCP</span>
+        <h3>Browser Validation via Playwright MCP</h3>
+        <p>
+          The AI opens a headed Playwright browser session and walks the full user journey
+          defined by the test scenario. Using Playwright MCP (Model Context Protocol), the AI
+          inspects each page element, verifies locators against the live DOM, and identifies
+          mismatches before the test even runs.
+        </p>
+        <div class="pipe-detail">
+          <strong>What the AI checks:</strong> ARIA roles, accessible names, element visibility,
+          OutSystems OSUI custom widget types (native <code>&lt;select&gt;</code> vs. OSUI dropdown),
+          duplicate role collisions, partial-refresh content loading patterns, and
+          conditional element states (disabled buttons, loading spinners).
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num">5</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag ai">AI Self-Correction</span>
+        <h3>Fix Locators & Script Issues</h3>
+        <p>
+          When the browser validation or headed test run reveals issues — wrong locator,
+          timing problem, OutSystems partial-refresh race condition — the AI analyzes the
+          failure context (screenshots, error traces, DOM snapshots) and fixes the script.
+        </p>
+        <div class="pipe-detail">
+          <strong>Common fixes:</strong><br/>
+          • Replace <code>textContent()</code> snapshot reads with web-first <code>expect(locator).toContainText()</code><br/>
+          • Switch from <code>selectOption()</code> to click → type → pick for OSUI dropdowns<br/>
+          • Add <code>exact: true</code> or container scoping for ambiguous ARIA roles<br/>
+          • Add <code>waitForOSLoad()</code> after actions that trigger OutSystems screen reload<br/>
+          • This loop (steps 4–5) repeats until all locators are verified against live DOM.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num cyan">6</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag system">Execution</span>
+        <h3>Headless Test Run</h3>
+        <p>
+          After browser validation passes, the AI triggers a full headless Playwright run —
+          either from the tracker UI (one-click) or via CLI. The test runs against the
+          real QA environment with the correct Playwright project and dependencies.
+        </p>
+        <div class="pipe-detail">
+          <strong>Run options:</strong> per-scenario (grep), per-subsection, per-spec-file, or full suite.
+          The tracker auto-resolves the correct Playwright project (e.g., <code>doc-detail-offer</code>,
+          <code>chromium</code>) based on spec-to-project mapping. TypeScript compilation check
+          (<code>tsc --noEmit</code>) runs alongside to catch type errors.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num green">7</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag auto">Auto-Sync</span>
+        <h3>Status Update — Automated + Passed/Failed/Skipped</h3>
+        <p>
+          The tracker automatically parses the Playwright JSON report and updates the scenario:
+          <code style="font-family:monospace;font-size:0.82rem;color:var(--success);">automation_state → automated</code>,
+          <code style="font-family:monospace;font-size:0.82rem;color:var(--success);">execution_status → passed</code>.
+          If the test fails due to a product defect, it's marked
+          <code style="font-family:monospace;font-size:0.82rem;color:var(--error);">failed-defect</code>
+          with the failure message captured in execution notes.
+        </p>
+        <div class="pipe-detail">
+          <strong>Auto-sync logic:</strong> Fuzzy scenario-to-test matching links tracker scenario IDs
+          to Playwright test titles. Timeout errors are detected and annotated. Execution notes
+          are enriched with runtime failure messages. Spec-file mappings are updated if they changed.
+          On-hold scenarios are automatically skipped.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 8 -->
+    <div class="pipe-step">
+      <div class="pipe-num-col">
+        <div class="pipe-num green">8</div>
+        <div class="pipe-line"></div>
+      </div>
+      <div class="pipe-content">
+        <span class="pipe-tag human">Report + Action</span>
+        <h3>Allure Report → One-Click Jira</h3>
+        <p>
+          The Allure report is auto-generated and accessible from the tracker sidebar.
+          View pass/fail details, screenshots, execution traces. If a defect is found,
+          submit a Jira ticket with all context pre-populated — screenshots, assertion details,
+          environment info — in one click. No manual copy-paste.
+        </p>
+        <div class="pipe-detail">
+          <strong>Report contains:</strong> test name, scenario ID, step-by-step breakdown,
+          failure assertion with expected vs. actual, screenshot at failure point,
+          execution trace, duration, environment details, and Allure tags.
+          All of this flows into the Jira ticket automatically.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .pipeline -->
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     AI SKILL DETAILS
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">AI Skill</div>
+  <h2 class="section-title">The picasso-test-automation Skill</h2>
+  <p class="section-desc">
+    A purpose-built AI skill that encodes PICASso-specific automation best practices,
+    OutSystems DOM patterns, and the project's four-layer architecture.
+  </p>
+
+  <div class="cap-grid">
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">schema</span></div>
+      <h3>OutSystems-Aware Locators</h3>
+      <p>
+        Knows that OSUI dropdowns aren't native <code>&lt;select&gt;</code>, that partial refresh replaces
+        DOM subtrees, that CSS-generated asterisks indicate mandatory fields, and how to handle
+        user lookup widgets. No generic tool has this knowledge.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">auto_fix_high</span></div>
+      <h3>Self-Correcting Execution</h3>
+      <p>
+        Uses Playwright MCP to open a real browser, inspect elements, and fix locators
+        before running the test. The fix-and-retry loop continues until the script passes
+        or a genuine product defect is identified.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon green"><span class="material-symbols-outlined">layers</span></div>
+      <h3>Four-Layer Code Generation</h3>
+      <p>
+        Every generated test follows the project architecture: locator factory →
+        page object method → custom fixture → test with Allure metadata and <code>test.step()</code> blocks.
+        Consistent, maintainable code from the start.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon warn"><span class="material-symbols-outlined">batch_prediction</span></div>
+      <h3>Batch Automation</h3>
+      <p>
+        Automate 3+ scenarios at once. The skill queries the tracker for pending scenarios
+        by feature area and priority, scripts them in sequence, validates each in-browser,
+        and updates the tracker in bulk after all pass.
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">build</span></div>
+      <h3>Failure Diagnosis</h3>
+      <p>
+        When a test fails, the AI analyzes <code>test-results/</code> artifacts — error context,
+        screenshots, traces — and categorizes the failure as a locator issue (fix it),
+        a timing issue (add proper waits), or a product defect (mark <code>test.fail()</code>).
+      </p>
+    </div>
+
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">security</span></div>
+      <h3>Role-Aware Testing</h3>
+      <p>
+        Maps scenarios to PICASso's 78 roles and 157 privileges.
+        Generates permission-boundary tests automatically — ensuring the right users
+        can access the right features, and unauthorized access is properly blocked.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align: center; padding-bottom: 0;">
+  <div class="cta-row">
+    <a href="index.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">arrow_back</span> Back to Overview
+    </a>
+    <a href="platform.html" class="cta-link primary">
+      <span class="material-symbols-outlined">code</span> Explore the Platform
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  PICASso: AI Test Automation — Capabilities Deck &middot; April 2026<br/>
+  Internal use only
+</footer>
+</div>
+</body>
+</html>

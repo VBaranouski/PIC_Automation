@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PICASso: AI Test Automation — Platform & Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --surface:                 #0e0e0e;
+  --surface-container-low:   #131313;
+  --surface-container:       #1a1a1a;
+  --surface-container-high:  #20201f;
+  --surface-container-highest:#262626;
+  --surface-bright:          #2c2c2c;
+  --primary:                 #ff9157;
+  --primary-dim:             #ff7520;
+  --on-primary:              #531e00;
+  --tertiary:                #81ecff;
+  --error:                   #ff7351;
+  --secondary:               #e3e2e2;
+  --secondary-fixed-dim:     #d5d4d4;
+  --on-surface:              #ffffff;
+  --on-surface-variant:      #adaaaa;
+  --outline-variant:         #484847;
+  --success:                 #3fb950;
+  --warning:                 #e3b341;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--surface); color: var(--secondary-fixed-dim);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--primary); color: var(--on-primary); }
+h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); line-height: 1.2; }
+
+/* NAV */
+.nav { position: sticky; top: 0; z-index: 100; background: rgba(14,14,14,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(72,72,71,0.15); }
+.nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; height: 56px; gap: 32px; }
+.nav-brand { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.92rem; color: var(--on-surface); text-decoration: none; white-space: nowrap; }
+.nav-brand span { color: var(--primary); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: var(--on-surface-variant); text-decoration: none; transition: background 0.15s, color 0.15s; }
+.nav-links a:hover { background: var(--surface-container); color: var(--on-surface); }
+.nav-links a.active { background: rgba(255,145,87,0.1); color: var(--primary); }
+.nav-links .material-symbols-outlined { font-size: 18px; width: 18px; height: 18px; overflow: hidden; display: inline-block; vertical-align: middle; }
+
+/* LAYOUT */
+.page { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+
+/* HERO */
+.hero { padding: 80px 0 64px; text-align: center; }
+.hero-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary); background: rgba(255,145,87,0.08); padding: 6px 18px; border-radius: 9999px; margin-bottom: 28px; }
+.hero h1 { font-size: clamp(2.2rem, 4.5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; }
+.hero h1 .accent { color: var(--primary); }
+.hero h1 .accent-t { color: var(--tertiary); }
+.hero-sub { font-size: 1.05rem; color: var(--on-surface-variant); max-width: 720px; margin: 0 auto; }
+
+/* SECTIONS */
+.section { padding: 72px 0; }
+.section + .section { padding-top: 0; }
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); margin-bottom: 12px; }
+.section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+.section-desc { color: var(--on-surface-variant); max-width: 640px; margin-bottom: 40px; }
+
+/* CAPABILITY CARDS */
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.cap-card { background: var(--surface-container-low); border-radius: 12px; padding: 28px 24px; position: relative; transition: background 0.2s; }
+.cap-card:hover { background: var(--surface-container); }
+.cap-card::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 2px; border-radius: 1px; background: var(--primary); opacity: 0; transition: opacity 0.2s; }
+.cap-card:hover::before { opacity: 1; }
+.cap-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: rgba(255,145,87,0.08); color: var(--primary); margin-bottom: 16px; font-size: 22px; }
+.cap-icon.cyan { background: rgba(129,236,255,0.08); color: var(--tertiary); }
+.cap-icon.green { background: rgba(63,185,80,0.08); color: var(--success); }
+.cap-icon.warn { background: rgba(227,179,65,0.08); color: var(--warning); }
+.cap-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.cap-card p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.6; }
+
+/* ARCHITECTURE LAYERS */
+.arch-layers { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.arch-layer { display: grid; grid-template-columns: 160px 1fr; align-items: center; gap: 20px; padding: 18px 24px; border-radius: 10px; background: var(--surface-container-low); }
+.arch-layer:nth-child(odd) { background: var(--surface-container); }
+.arch-layer-name { font-family: 'Manrope', sans-serif; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--primary); }
+.arch-layer-desc { font-size: 0.85rem; color: var(--secondary-fixed-dim); }
+.arch-layer-desc code { font-family: 'SF Mono', SFMono-Regular, ui-monospace, monospace; font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--tertiary); }
+
+/* FEATURE TABLE */
+.feat-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; margin-top: 24px; }
+.feat-table th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-surface-variant); padding: 8px 16px; }
+.feat-table td { padding: 12px 16px; font-size: 0.85rem; background: var(--surface-container-low); vertical-align: top; }
+.feat-table tr td:first-child { border-radius: 8px 0 0 8px; font-weight: 600; color: var(--on-surface); white-space: nowrap; }
+.feat-table tr td:last-child { border-radius: 0 8px 8px 0; }
+.feat-table code { font-family: 'SF Mono', SFMono-Regular, ui-monospace, monospace; font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--tertiary); }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 36px; }
+.timeline::before { content: ''; position: absolute; left: 12px; top: 6px; bottom: 6px; width: 2px; background: var(--surface-container-high); }
+.tl-item { position: relative; padding-bottom: 32px; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-dot { position: absolute; left: -30px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
+.tl-dot.done { background: var(--success); }
+.tl-dot.next { background: var(--tertiary); box-shadow: 0 0 0 4px rgba(129,236,255,0.15); }
+.tl-title { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--on-surface); margin-bottom: 4px; }
+.tl-desc { font-size: 0.85rem; color: var(--on-surface-variant); }
+
+/* BADGE ROW */
+.badge-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.badge-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; background: var(--surface-container); color: var(--secondary); border: 1px solid rgba(72,72,71,0.15); }
+.badge-pill .material-symbols-outlined { font-size: 18px; color: var(--primary); }
+
+/* CTA */
+.cta-row { display: flex; justify-content: center; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
+.cta-link { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.15s, transform 0.1s; }
+.cta-link:active { transform: scale(0.97); }
+.cta-link.ghost { background: transparent; color: var(--tertiary); border: 1px solid rgba(129,236,255,0.2); }
+.cta-link.ghost:hover { background: rgba(129,236,255,0.06); }
+.cta-link .material-symbols-outlined { font-size: 20px; }
+
+/* FOOTER */
+.footer { padding: 48px 0; text-align: center; font-size: 0.78rem; color: var(--on-surface-variant); border-top: 1px solid rgba(72,72,71,0.15); margin-top: 72px; }
+
+@media (max-width: 768px) {
+  .page { padding: 0 20px; }
+  .nav-inner { padding: 0 20px; gap: 16px; }
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 2rem; }
+  .cap-grid { grid-template-columns: 1fr; }
+  .arch-layer { grid-template-columns: 1fr; gap: 4px; }
+  .feat-table { font-size: 0.8rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">PICASso: <span>AI Test Automation</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="material-symbols-outlined">home</span> Overview</a></li>
+      <li><a href="ai-workflow.html"><span class="material-symbols-outlined">psychology</span> AI Workflow</a></li>
+      <li><a href="platform.html" class="active"><span class="material-symbols-outlined">code</span> Platform</a></li>
+      <li><a href="pitfalls.html"><span class="material-symbols-outlined">warning</span> Pitfalls</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page">
+<section class="hero">
+  <div class="hero-eyebrow">Technical Deep Dive</div>
+  <h1>Platform <span class="accent">&</span> Architecture</h1>
+  <p class="hero-sub">
+    A lightweight, zero-cloud-dependency stack purpose-built for PICASso automation operations —
+    from the SQLite data layer through the REST API to the dark-mode dashboard and CLI tooling.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SYSTEM ARCHITECTURE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Architecture</div>
+  <h2 class="section-title">System Layers</h2>
+  <p class="section-desc">
+    Each layer is independently testable and scriptable. The entire stack starts in under 2 seconds.
+  </p>
+
+  <div class="arch-layers">
+    <div class="arch-layer">
+      <div class="arch-layer-name">Frontend</div>
+      <div class="arch-layer-desc">
+        Single-page dark-mode dashboard — Tailwind CSS + vanilla JS.
+        Search, filters, workflow accordion, detail drawer, run dialog, XLSX modal.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">REST API</div>
+      <div class="arch-layer-desc">
+        Express 5 server with <code>30+</code> endpoints — CRUD, status shortcuts, run control,
+        stats, sync, import/export, Allure data, project resolution.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Tracker Core</div>
+      <div class="arch-layer-desc">
+        Modular TypeScript library: <code>crud.ts</code>, <code>sync.ts</code>,
+        <code>stats.ts</code>, <code>import-export.ts</code>, <code>spec-parser.ts</code>,
+        <code>helpers.ts</code>, <code>migrations.ts</code>.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Database</div>
+      <div class="arch-layer-desc">
+        SQLite via <code>better-sqlite3</code> — WAL mode, foreign keys, versioned schema
+        with migration support. Tables: <code>scenarios</code>, <code>scenario_details</code>,
+        <code>scenario_groups</code>, <code>groups</code>, <code>scenario_merges</code>, <code>meta</code>.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Test Layer</div>
+      <div class="arch-layer-desc">
+        Playwright + TypeScript — 15+ named projects with dependency chains.
+        Four-layer architecture: locators → page objects → fixtures → tests.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">CLI</div>
+      <div class="arch-layer-desc">
+        <code>npm run tracker</code> — list, sync, hold, group, export, import.
+        Scriptable for CI pipelines and batch operations.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DASHBOARD UI
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">User Interface</div>
+  <h2 class="section-title">Dashboard Experience</h2>
+  <p class="section-desc">
+    A dark-mode, mission-control-style interface designed for sustained operational use
+    by test engineers and QA leads.
+  </p>
+
+  <div class="cap-grid">
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">tune</span></div>
+      <h3>Multi-Dimension Filtering</h3>
+      <p>Filter by priority, feature area, automation state, execution status, or free-text search. Filters are persistent and combinable.</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">view_list</span></div>
+      <h3>Workflow Accordion View</h3>
+      <p>Scenarios grouped by workflow in collapsible accordions with subsection nesting. Expand/collapse all. Active workflow highlighted with a left accent bar.</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon green"><span class="material-symbols-outlined">info</span></div>
+      <h3>Scenario Detail Drawer</h3>
+      <p>Click any scenario to open a slide-out panel showing test steps, expected results, execution notes, metadata, and inline edit capabilities.</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">terminal</span></div>
+      <h3>Execution Log Panel</h3>
+      <p>Fixed-bottom terminal panel with ANSI color output from Playwright runs. Minimize, expand, or auto-scroll. Includes run history with duration and summary.</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon warn"><span class="material-symbols-outlined">add_circle</span></div>
+      <h3>Scenario CRUD Modal</h3>
+      <p>Add or edit scenarios with full metadata, test steps, expected results, execution notes, priority, group tags, and spec file linkage — all from a single form.</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">upload_file</span></div>
+      <h3>XLSX Import / Export Modal</h3>
+      <p>Tabbed modal for workflow-scoped Excel import and export. Upload new files or select from existing repository files. Validated against known workflows.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     API SURFACE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">API Surface</div>
+  <h2 class="section-title">REST Endpoints</h2>
+  <p class="section-desc">
+    Every tracker operation is exposed as a REST call — enabling CI integration, external tooling, and AI agent automation.
+  </p>
+
+  <table class="feat-table">
+    <thead>
+      <tr><th>Endpoint</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>GET /api/scenarios</code></td><td>List scenarios with filters — pagination, area, priority, workflow, status, group, search</td></tr>
+      <tr><td><code>POST /api/scenarios</code></td><td>Create a new test scenario with metadata, steps, and group tags</td></tr>
+      <tr><td><code>PUT /api/scenarios/:id</code></td><td>Update any scenario field — auto-detects content changes and sets "updated" state</td></tr>
+      <tr><td><code>DELETE /api/scenarios/:id</code></td><td>Remove scenario with cascading group and detail cleanup</td></tr>
+      <tr><td><code>POST /api/scenarios/:id/auto-state</code></td><td>Set automation lifecycle state (pending → automated → on-hold → updated)</td></tr>
+      <tr><td><code>POST /api/scenarios/:id/exec-status</code></td><td>Set execution result (passed, not-executed, skipped, failed-defect)</td></tr>
+      <tr><td><code>POST /api/run</code></td><td>Start a Playwright test run — spec files, project, grep, headed mode</td></tr>
+      <tr><td><code>GET /api/run/status</code></td><td>Poll run state with incremental line output (supports since-based streaming)</td></tr>
+      <tr><td><code>POST /api/run/cancel</code></td><td>Cancel an active test run with graceful SIGTERM → SIGKILL fallback</td></tr>
+      <tr><td><code>POST /api/run/sync-results</code></td><td>Sync scenario statuses from the latest Playwright JSON report</td></tr>
+      <tr><td><code>GET /api/run/history</code></td><td>Recent test run history with duration, summary, and status</td></tr>
+      <tr><td><code>POST /api/sync</code></td><td>Reconcile tracker DB with on-disk spec files — detect orphans and new IDs</td></tr>
+      <tr><td><code>GET /api/stats</code></td><td>Aggregated statistics by automation state, execution status, priority, area, group</td></tr>
+      <tr><td><code>POST /api/xlsx-export</code></td><td>Export workflow-scoped scenarios to Excel for stakeholder review</td></tr>
+      <tr><td><code>POST /api/xlsx-import</code></td><td>Import scenarios from an Excel file — workflow-scoped, validated against DB</td></tr>
+      <tr><td><code>POST /api/xlsx-upload</code></td><td>Upload an XLSX file to the import directory</td></tr>
+      <tr><td><code>GET /api/workflows</code></td><td>Distinct workflow names for dropdown population</td></tr>
+      <tr><td><code>GET /api/allure/summary</code></td><td>Parsed Allure report summary and per-test results</td></tr>
+      <tr><td><code>POST /api/run/resolve-project</code></td><td>Resolve the correct Playwright project for a given spec file</td></tr>
+      <tr><td><code>POST /api/run/resolve-scenario</code></td><td>Resolve a single scenario to an exact grep target for test execution</td></tr>
+      <tr><td><code>GET /api/spec-files</code></td><td>List all spec files on disk for the run dialog dropdown</td></tr>
+      <tr><td><code>GET /api/meta</code></td><td>Enum values for all dropdowns (states, statuses, priorities, areas, groups)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DATA MODEL
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Data Model</div>
+  <h2 class="section-title">Scenario Tracking Dimensions</h2>
+  <p class="section-desc">
+    Each scenario carries structured metadata enabling precise filtering, reporting,
+    and AI-driven batch operations across the entire test inventory.
+  </p>
+
+  <table class="feat-table">
+    <thead>
+      <tr><th>Dimension</th><th>Values</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Automation State</td><td><code>pending</code> · <code>automated</code> · <code>on-hold</code> · <code>updated</code></td></tr>
+      <tr><td>Execution Status</td><td><code>passed</code> · <code>not-executed</code> · <code>skipped</code> · <code>failed-defect</code></td></tr>
+      <tr><td>Priority</td><td><code>P1</code> · <code>P2</code> · <code>P3</code> · <code>Edge</code></td></tr>
+      <tr><td>Feature Area</td><td><code>auth</code> · <code>landing</code> · <code>products</code> · <code>releases</code> · <code>doc</code> · <code>reports</code> · <code>backoffice</code> · <code>integrations</code> · <code>other</code></td></tr>
+      <tr><td>Group Tags</td><td><code>smoke</code> · <code>critical</code> · <code>regression</code> · <code>integration</code> · <code>edge-case</code> · <code>destructive</code> · <code>manual-only</code> — extensible</td></tr>
+      <tr><td>Workflow</td><td>Canonical workflow name (e.g., "WF 1. Authentication", "WF 11.14 DOC Certification")</td></tr>
+      <tr><td>Spec File</td><td>Mapped Playwright spec path — auto-resolved via sync engine</td></tr>
+      <tr><td>Scenario Details</td><td>Structured test steps, expected results, and execution notes (JSON-backed sidecar table)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CLI QUICK REFERENCE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Developer Experience</div>
+  <h2 class="section-title">CLI Quick Reference</h2>
+  <p class="section-desc">
+    Every tracker operation is scriptable for CI pipelines and batch automation.
+  </p>
+
+  <table class="feat-table">
+    <thead>
+      <tr><th>Command</th><th>Effect</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>npm run tracker:ui</code></td><td>Start the web dashboard at <code>http://localhost:3005</code></td></tr>
+      <tr><td><code>npm run tracker:list</code></td><td>List scenarios with optional filters (state, area, priority, workflow)</td></tr>
+      <tr><td><code>npm run tracker:sync</code></td><td>Reconcile DB with spec files — detect orphans, update mappings</td></tr>
+      <tr><td><code>npm run tracker:export</code></td><td>Export all scenarios to JSON</td></tr>
+      <tr><td><code>npm run tracker -- auto-state ID automated</code></td><td>Mark a scenario as automated</td></tr>
+      <tr><td><code>npm run tracker -- hold ID</code></td><td>Put a scenario on hold (auto-skipped in runs)</td></tr>
+      <tr><td><code>npm run tracker -- group ID add smoke</code></td><td>Tag a scenario with a group label</td></tr>
+      <tr><td><code>npx tsx scripts/export-scenarios.ts --workflow "Authentication"</code></td><td>Export workflow-scoped scenarios to XLSX</td></tr>
+      <tr><td><code>npx tsx scripts/import-scenarios.ts --workflow "Auth" --area auth --file input.xlsx --write</code></td><td>Import scenarios from XLSX for a specific workflow</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     INTEGRATION ECOSYSTEM
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Integration Ecosystem</div>
+  <h2 class="section-title">Connected Toolchain</h2>
+  <p class="section-desc">
+    The tracker operates at the center of the PICASso automation infrastructure,
+    connecting test planning, execution, reporting, and defect management.
+  </p>
+
+  <div class="badge-row">
+    <div class="badge-pill"><span class="material-symbols-outlined">smart_toy</span> Playwright</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">code</span> TypeScript</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">storage</span> SQLite</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">bar_chart</span> Allure</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">table_chart</span> XLSX</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">terminal</span> CLI</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">api</span> REST API</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">cloud</span> GitHub Actions CI</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">bug_report</span> Jira</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">fact_check</span> Xray</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">psychology</span> AI Agents</div>
+    <div class="badge-pill"><span class="material-symbols-outlined">connected_tv</span> Playwright MCP</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DIFFERENTIATORS
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Technical Differentiators</div>
+  <h2 class="section-title">Why This, Not Off-the-Shelf</h2>
+  <p class="section-desc">
+    Generic test management tools lack the deep OutSystems integration, real-time
+    execution coupling, and AI-augmented workflow that PICASso demands.
+  </p>
+
+  <div class="cap-grid">
+    <div class="cap-card">
+      <div class="cap-icon"><span class="material-symbols-outlined">precision_manufacturing</span></div>
+      <h3>OutSystems-Native Patterns</h3>
+      <p>
+        Built-in handling of OSUI custom dropdowns, partial-refresh DOM replacement,
+        CSS-generated asterisks, user lookup widgets, and cascading select elements — none of which
+        generic tools understand.
+      </p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">psychology</span></div>
+      <h3>AI-Assisted Test Generation</h3>
+      <p>
+        The picasso-test-automation skill integrates AI agents for scenario analysis,
+        test code generation, Playwright MCP browser validation, and self-correcting locator fixes —
+        with human-in-the-loop verification at every stage.
+      </p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon green"><span class="material-symbols-outlined">speed</span></div>
+      <h3>Zero-Latency Local Stack</h3>
+      <p>
+        No cloud round-trips. SQLite provides sub-millisecond queries. The entire
+        tracker starts in under 2 seconds. Tests execute on local Chromium with
+        full DOM access for debugging.
+      </p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon warn"><span class="material-symbols-outlined">security</span></div>
+      <h3>Role-Aware Test Design</h3>
+      <p>
+        Test scenarios are mapped to PICASso's 78 roles and 157 privileges.
+        The tracker stores role codes and access-based preconditions alongside
+        each scenario for precise coverage of permission boundaries.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ROADMAP
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Operational Maturity</div>
+  <h2 class="section-title">Platform Evolution</h2>
+  <p class="section-desc">
+    Iterative, test-driven expansion alongside the PICASso automation suite.
+  </p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 1 — Core Tracker (Delivered)</div>
+      <div class="tl-desc">SQLite schema, CRUD operations, CLI commands, scenario lifecycle model, group tagging.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 2 — Web Dashboard (Delivered)</div>
+      <div class="tl-desc">Express REST API, single-page dark-mode UI, workflow accordion, search, filters, bento stats.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 3 — Test Runner Integration (Delivered)</div>
+      <div class="tl-desc">In-UI test execution, live terminal output, automatic status sync from Playwright JSON reports.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 4 — XLSX Workflow Exchange (Delivered)</div>
+      <div class="tl-desc">Workflow-scoped Excel import/export, file upload, UI modal with validation.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 5 — Spec-File Sync Engine (Delivered)</div>
+      <div class="tl-desc">AST-based spec parsing, orphan detection, detail syncing, scenario merge tracking.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 6 — Allure + Jira Integration (Delivered)</div>
+      <div class="tl-desc">Auto-generated Allure reports, embedded viewer, parsed summary API, one-click Jira defect submission.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done"></div>
+      <div class="tl-title">Phase 7 — AI Automation Pipeline (Delivered)</div>
+      <div class="tl-desc">AI skill for test script generation, Playwright MCP browser validation, self-correcting locator fixes, batch scenario automation.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot next"></div>
+      <div class="tl-title">Phase 8 — Jira Defect Integration (Planned)</div>
+      <div class="tl-desc">One-click Jira defect creation for failed tests — pre-populated with test steps, screenshots, assertion details, and environment info — directly from the tracker UI.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot next"></div>
+      <div class="tl-title">Phase 9 — Authorization & User Management (Planned)</div>
+      <div class="tl-desc">Role-based access control for the tracker tool itself — viewer, editor, admin roles with scoped permissions for scenario management, test execution, and configuration.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot next"></div>
+      <div class="tl-title">Phase 10 — Web Deployment (Planned)</div>
+      <div class="tl-desc">Deploy the tracker as a hosted web application accessible to the full team — replacing the local-only development server with a production-grade deployment.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align: center; padding-bottom: 0;">
+  <div class="cta-row">
+    <a href="ai-workflow.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">arrow_back</span> AI Workflow
+    </a>
+    <a href="index.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">home</span> Back to Overview
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  PICASso: AI Test Automation — Capabilities Deck &middot; April 2026<br/>
+  Internal use only
+</footer>
+</div>
+</body>
+</html>

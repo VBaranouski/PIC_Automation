@@ -24,6 +24,11 @@ npm run test:chromium           # chromium only
 npm run test:smoke              # smoke suite
 ```
 
+## Project Rules
+
+- Use [.github/instructions/system-design-automation.instructions.md](.github/instructions/system-design-automation.instructions.md) as the visual and documentation reference for tracker UI screens, internal dashboards, generated HTML summaries, and requested documentation pages.
+- Before creating a new branch from `main`, pull the latest changes from `main` first. After the work is complete, open a pull request instead of pushing unreviewed changes directly.
+
 ## Project Structure
 
 ```text
@@ -146,6 +151,7 @@ Set `TEST_ENV=qa` (or `dev`/`ppr`) in `.env` or as an environment variable.
 - [Coverage Matrix](docs/ai/current-automation-coverage-matrix.md) — current automation coverage
 - [Application Map](docs/ai/application-map.html) — PICASso application structure
 - [Pipeline](docs/ai/pipeline.md) — automation pipeline description
+- [System Design Automation Instruction](.github/instructions/system-design-automation.instructions.md) — design-system reference for tracker UI, automation tooling screens, and requested documentation
 - [Tracker Migration Completion](docs/ai/tracker-migration-completion.md) — compact completion note for plan-to-tracker migration
 - [Stable Tracker DB Rollback Plan](docs/ai/backups/tracker-db-rollback-plan-stable-2026-04-16.md) — restore point and rollback steps before scenario porting updates
 
