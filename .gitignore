@@ -32,13 +32,13 @@ diagnose-*.mjs
 diagnose-*.ts
 tmp/
 
-# Tracker DB (SQLite — rebuild via `npm run tracker:seed`)
+# Tracker DB (SQLite — rebuild via `npm run tracker:sync`)
 config/scenarios.db
 config/scenarios.db-wal
 config/scenarios.db-shm
 
 # IDE & OS
-.DS_Store
+**/.DS_Store
 .vscode/
 
 # Lock file (optional — uncomment to track)
