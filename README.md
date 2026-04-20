@@ -45,8 +45,7 @@ npm run test:smoke              # smoke suite
 │   ├── doc/                    # DOC lifecycle, details, history, actions, risk, certification
 │   ├── landing/                # Landing page and My DOCs tab
 │   ├── products/               # Product CRUD, details, history, releases
-│   ├── releases/               # Release management
-│   └── tracker/                # Tracker utility unit tests
+│   └── releases/               # Release management
 ├── config/
 │   ├── environments/           # Environment configs (qa, dev, ppr)
 │   └── users/                  # User credential files (gitignored)
