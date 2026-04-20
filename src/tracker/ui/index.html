@@ -2204,6 +2204,11 @@ document.addEventListener('click', (e) => {
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-init().then(() => { checkRunnerState(); loadUserInfo(); }).catch(err => { console.error('Init failed:', err); toast('Failed to load tracker data', 'error'); });
+// loadUserInfo must complete first so _currentUser.role is set before
+// init() renders scenario cards (which conditionally show admin buttons)
+loadUserInfo()
+  .then(() => init())
+  .then(() => checkRunnerState())
+  .catch(err => { console.error('Init failed:', err); toast('Failed to load tracker data', 'error'); });
 </script>
 </body></html>
