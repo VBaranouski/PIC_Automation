@@ -9,6 +9,7 @@
  */
 
 import express, { Request, Response, NextFunction } from 'express';
+import session from 'express-session';
 import path from 'path';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
@@ -47,6 +48,25 @@ import {
 } from '../src/tracker/models';
 import type { ListFilters, TrackerExport, AutomationState, ExecutionStatus } from '../src/tracker/models';
 import { getDb, getDbPath, closeDb } from '../src/tracker/db';
+import {
+  createUser,
+  deleteUser,
+  getUserById,
+  listUsers,
+  seedAdminIfNone,
+  verifyPassword,
+  getUserByUsername,
+} from '../src/tracker/auth';
+
+// ── Session type augmentation ─────────────────────────────────────────────────
+
+declare module 'express-session' {
+  interface SessionData {
+    userId: string;
+    username: string;
+    role: string;
+  }
+}
 
 // ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -54,20 +74,156 @@ const app = express();
 const PORT = Number(process.env.TRACKER_PORT) || 3005;
 
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false }));
+
+// ── Session ───────────────────────────────────────────────────────────────────
+
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  console.warn(
+    '[Tracker Auth] WARNING: SESSION_SECRET is not set. Using an insecure fallback.\n' +
+    '               Set SESSION_SECRET in your .env file before deploying to production.'
+  );
+}
+app.use(
+  session({
+    secret: SESSION_SECRET || 'tracker-dev-secret-do-not-use-in-prod',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      // Set secure:true only when behind HTTPS (e.g. Railway, Fly.io)
+      secure: process.env.NODE_ENV === 'production' && process.env.TRUST_PROXY === '1',
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
+    },
+  })
+);
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
+
+function authGuard(req: Request, res: Response, next: NextFunction): void {
+  if (req.session?.userId) return next();
+  // API calls → 401 JSON; browser navigation → redirect to login
+  const wantsJson = req.headers.accept?.includes('application/json') || req.path.startsWith('/api/');
+  if (wantsJson) {
+    res.status(401).json({ error: 'Unauthorized' });
+  } else {
+    res.redirect('/auth/login');
+  }
+}
+
+// ── Auth routes (public) ──────────────────────────────────────────────────────
+
+const LOGIN_PAGE = path.resolve(__dirname, '..', 'src', 'tracker', 'ui', 'login.html');
+
+app.get('/auth/login', (_req: Request, res: Response) => {
+  res.sendFile(LOGIN_PAGE);
+});
+
+app.post('/auth/login', wrap(async (req: Request, res: Response) => {
+  const { username, password } = req.body as { username?: string; password?: string };
+  if (!username || !password) {
+    return void res.redirect('/auth/login?error=missing');
+  }
+  const user = getUserByUsername(username);
+  if (!user || !(await verifyPassword(password, user.password_hash))) {
+    return void res.redirect('/auth/login?error=invalid');
+  }
+  req.session.regenerate((err) => {
+    if (err) { res.redirect('/auth/login?error=session'); return; }
+    req.session.userId   = user.id;
+    req.session.username = user.username;
+    req.session.role     = user.role;
+    req.session.save((saveErr) => {
+      if (saveErr) { res.redirect('/auth/login?error=session'); return; }
+      res.redirect('/ui/index.html');
+    });
+  });
+}));
+
+app.post('/auth/logout', (req: Request, res: Response) => {
+  req.session.destroy(() => {
+    res.redirect('/auth/login');
+  });
+});
+
+// ── User management routes (admin only) ───────────────────────────────────────
+
+app.get(
+  '/auth/users',
+  authGuard,
+  wrap((_req: Request, res: Response) => {
+    res.json(listUsers());
+  }),
+);
+
+app.post(
+  '/auth/users',
+  authGuard,
+  wrap(async (req: Request, res: Response) => {
+    if (req.session.role !== 'admin') {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+    const { username, password, role } = req.body as { username?: string; password?: string; role?: string };
+    if (!username || !password) {
+      res.status(400).json({ error: 'username and password are required' });
+      return;
+    }
+    const validRole = role === 'viewer' ? 'viewer' : 'admin';
+    const existing = getUserByUsername(username);
+    if (existing) {
+      res.status(409).json({ error: `User "${username}" already exists` });
+      return;
+    }
+    const user = await createUser(username, password, validRole);
+    res.status(201).json(user);
+  }),
+);
+
+app.delete(
+  '/auth/users/:id',
+  authGuard,
+  wrap((req: Request, res: Response) => {
+    if (req.session.role !== 'admin') {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+    const id = param(req.params['id']);
+    if (id === req.session.userId) {
+      res.status(400).json({ error: 'Cannot delete your own account' });
+      return;
+    }
+    const deleted = deleteUser(id);
+    if (!deleted) { res.status(404).json({ error: 'User not found' }); return; }
+    res.json({ ok: true });
+  }),
+);
+
+app.get(
+  '/auth/me',
+  authGuard,
+  wrap((req: Request, res: Response) => {
+    const user = getUserById(req.session.userId!);
+    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+    res.json({ id: user.id, username: user.username, role: user.role, created_at: user.created_at });
+  }),
+);
 
 // Express 5 types params as string | string[]; our routes always have single-value params
 const param = (v: string | string[] | undefined): string => Array.isArray(v) ? v[0] : String(v ?? '');
 
-// Serve the SPA
+// Serve the SPA (protected)
 const UI_DIR = path.resolve(__dirname, '..', 'src', 'tracker', 'ui');
-app.use('/ui', express.static(UI_DIR));
+app.use('/ui', authGuard, express.static(UI_DIR));
 
 // Serve allure-report static files (so the embedded Allure report works)
 const ALLURE_REPORT_DIR = path.resolve(__dirname, '..', 'allure-report');
 const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
 const ALLURE_GENERATE_ARGS = ['allure', 'generate', 'allure-results', '-o', 'allure-report', '--config', 'config/allure.config.ts'];
 const JSON_REPORT_PATH = path.resolve(__dirname, '..', 'test-results', 'results.json');
-app.use('/allure-report', express.static(ALLURE_REPORT_DIR, {
+app.use('/allure-report', authGuard, express.static(ALLURE_REPORT_DIR, {
   setHeaders: (res) => {
     res.setHeader('Cache-Control', 'no-store, max-age=0');
   },
@@ -95,8 +251,8 @@ code{background:#1a1a1a;padding:4px 10px;border-radius:4px;color:#ff9157;font-si
 </html>`);
 });
 
-// Root redirect → SPA
-app.get('/', (_req: Request, res: Response) => {
+// Root redirect → SPA (protected)
+app.get('/', authGuard, (_req: Request, res: Response) => {
   res.redirect('/ui/index.html');
 });
 
@@ -1925,11 +2081,19 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`\n  🧪 Tracker UI running at  http://localhost:${PORT}`);
-  console.log(`     API base:              http://localhost:${PORT}/api`);
-  console.log(`     Database:              ${getDbPath()}\n`);
-});
+seedAdminIfNone()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n  🧪 Tracker UI running at  http://localhost:${PORT}`);
+      console.log(`     API base:              http://localhost:${PORT}/api`);
+      console.log(`     Auth:                  http://localhost:${PORT}/auth/login`);
+      console.log(`     Database:              ${getDbPath()}\n`);
+    });
+  })
+  .catch((err: Error) => {
+    console.error('[Tracker Auth] Startup failed:', err.message);
+    process.exit(1);
+  });
 
 // Graceful shutdown
 process.on('SIGINT', () => {

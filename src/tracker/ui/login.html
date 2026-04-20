@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PICASso Tracker — Sign in</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface":              "#0e0e0e",
+            "surface-container":    "#1a1a1a",
+            "surface-container-high": "#20201f",
+            "surface-bright":       "#2c2c2c",
+            "outline-variant":      "#484847",
+            "outline":              "#767575",
+            "on-surface":           "#ffffff",
+            "on-surface-variant":   "#adaaaa",
+            "primary":              "#ff9157",
+            "primary-dim":          "#ff7520",
+            "on-primary":           "#531e00",
+            "error":                "#ff7351",
+            "error-dim":            "#d53d18",
+          },
+          fontFamily: { headline: ["Manrope"], body: ["Inter"] },
+          borderRadius: { DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem" },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { background: #0e0e0e; font-family: Inter, sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    input:-webkit-autofill,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+      -webkit-text-fill-color: #ffffff !important;
+      caret-color: #ffffff;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Logo / Brand -->
+    <div class="mb-8 text-center">
+      <div class="inline-flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-primary text-3xl">science</span>
+        <span class="font-headline font-bold text-xl text-on-surface tracking-tight">PICASso</span>
+      </div>
+      <p class="text-on-surface-variant text-sm">Test Scenario Tracker</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-surface-container rounded-xl border border-outline-variant/30 p-8">
+
+      <h1 class="font-headline font-bold text-on-surface text-lg mb-6">Sign in</h1>
+
+      <!-- Error banner -->
+      <div id="errorBanner" class="hidden mb-5 flex items-center gap-2 rounded-lg bg-error-dim/10 border border-error-dim/30 px-3 py-2.5 text-error text-sm">
+        <span class="material-symbols-outlined text-base">error</span>
+        <span id="errorText">Invalid username or password.</span>
+      </div>
+
+      <form method="POST" action="/auth/login" class="space-y-4">
+
+        <!-- Username -->
+        <div class="space-y-1.5">
+          <label for="username" class="block text-xs font-medium text-on-surface-variant uppercase tracking-wider">
+            Username
+          </label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            autocomplete="username"
+            required
+            autofocus
+            class="w-full bg-surface-container-high border border-outline-variant rounded-lg px-3 py-2.5
+                   text-on-surface text-sm placeholder-outline
+                   focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
+                   transition-colors"
+            placeholder="your-username"
+          />
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-1.5">
+          <label for="password" class="block text-xs font-medium text-on-surface-variant uppercase tracking-wider">
+            Password
+          </label>
+          <div class="relative">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              class="w-full bg-surface-container-high border border-outline-variant rounded-lg px-3 py-2.5
+                     text-on-surface text-sm placeholder-outline pr-10
+                     focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
+                     transition-colors"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onclick="togglePassword()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors"
+              aria-label="Toggle password visibility"
+            >
+              <span id="eyeIcon" class="material-symbols-outlined text-base">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full mt-2 bg-primary hover:bg-primary-dim text-on-primary font-semibold text-sm
+                 py-2.5 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2
+                 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-container"
+        >
+          Sign in
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <p class="mt-6 text-center text-xs text-outline">
+      PICASso Automation &mdash; Internal tool
+    </p>
+  </div>
+
+  <script>
+    // Show error message from query param
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const error  = params.get('error');
+      if (!error) return;
+      const banner  = document.getElementById('errorBanner');
+      const errText = document.getElementById('errorText');
+      if (!banner || !errText) return;
+      const messages = {
+        invalid:  'Invalid username or password. Please try again.',
+        missing:  'Username and password are required.',
+        session:  'Session error — please try again.',
+      };
+      errText.textContent = messages[error] ?? 'Sign-in failed. Please try again.';
+      banner.classList.remove('hidden');
+      banner.classList.add('flex');
+    })();
+
+    // Toggle password visibility
+    function togglePassword() {
+      const input   = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      if (!input || !eyeIcon) return;
+      if (input.type === 'password') {
+        input.type       = 'text';
+        eyeIcon.textContent = 'visibility_off';
+      } else {
+        input.type       = 'password';
+        eyeIcon.textContent = 'visibility';
+      }
+    }
+  </script>
+</body>
+</html>
