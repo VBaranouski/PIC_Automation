@@ -38,9 +38,10 @@ npm run test:smoke              # smoke suite
 │   ├── locators/               # Locator factory functions per feature area
 │   ├── pages/                  # Page Object Models (extend BasePage)
 │   ├── reporters/              # Custom Playwright reporters
+│   ├── tracker/                # SQLite tracker backend (DB, CRUD, sync, UI)
 │   └── types/                  # TypeScript type definitions
 ├── tests/
-│   ├── auth/                   # Authentication tests
+│   ├── auth/                   # Authentication setup & login tests
 │   ├── doc/                    # DOC lifecycle, details, history, actions, risk, certification
 │   ├── landing/                # Landing page and My DOCs tab
 │   ├── products/               # Product CRUD, details, history, releases
@@ -48,8 +49,11 @@ npm run test:smoke              # smoke suite
 ├── config/
 │   ├── environments/           # Environment configs (qa, dev, ppr)
 │   └── users/                  # User credential files (gitignored)
+├── scripts/                    # CLI utilities (tracker, codegen, inspect, import/export)
 ├── specs/                      # Human-readable test specifications (Markdown)
-├── docs/ai/                    # Automation testing plans, coverage matrices, app maps
+├── docs/
+│   ├── ai/                     # Automation testing plans, exploration notes, app overview
+│   └── api/                    # Tracker REST API spec (swagger.json)
 ├── .github/
 │   ├── instructions/           # Copilot coding instructions
 │   ├── prompts/                # Copilot prompt templates
@@ -148,12 +152,11 @@ Set `TEST_ENV=qa` (or `dev`/`ppr`) in `.env` or as an environment variable.
 ## Documentation
 
 - [Automation Testing Plan](docs/ai/automation-testing-plan.html) — interactive test plan with coverage status
-- [Coverage Matrix](docs/ai/current-automation-coverage-matrix.md) — current automation coverage
-- [Application Map](docs/ai/application-map.html) — PICASso application structure
-- [Pipeline](docs/ai/pipeline.md) — automation pipeline description
-- [System Design Automation Instruction](.github/instructions/system-design-automation.instructions.md) — design-system reference for tracker UI, automation tooling screens, and requested documentation
-- [Tracker Migration Completion](docs/ai/tracker-migration-completion.md) — compact completion note for plan-to-tracker migration
-- [Stable Tracker DB Rollback Plan](docs/ai/backups/tracker-db-rollback-plan-stable-2026-04-16.md) — restore point and rollback steps before scenario porting updates
+- [PICASso Overview](docs/ai/picasso-overview.md) — application overview, roles, technical notes
+- [Branching Strategy](docs/ai/branching-strategy.md) — Git workflow, PR rules, commit format
+- [Exploration Plan](docs/ai/exploration-plan.md) — application mapping progress tracker
+- [Tracker REST API](docs/api/swagger.json) — OpenAPI 3.0.3 spec for the tracker backend
+- [System Design Reference](.github/instructions/system-design-automation.instructions.md) — design-system for tracker UI, dashboards, and documentation pages
 
 ## CI/CD
 
