@@ -77,6 +77,12 @@ declare module 'express-session' {
 const app = express();
 const PORT = Number(process.env.TRACKER_PORT) || 3005;
 
+// Trust the first proxy (Railway, Fly.io, Caddy, etc.) so req.protocol
+// reflects the real scheme and secure cookies work behind HTTPS termination.
+if (process.env.TRUST_PROXY === '1') {
+  app.set('trust proxy', 1);
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
 
@@ -162,7 +168,7 @@ app.post('/auth/logout', (req: Request, res: Response) => {
 
 app.get(
   '/auth/users',
-  authGuard,
+  authGuard, adminGuard,
   wrap((_req: Request, res: Response) => {
     res.json(listUsers());
   }),
@@ -170,15 +176,15 @@ app.get(
 
 app.post(
   '/auth/users',
-  authGuard,
+  authGuard, adminGuard,
   wrap(async (req: Request, res: Response) => {
-    if (req.session.role !== 'admin') {
-      res.status(403).json({ error: 'Admin access required' });
-      return;
-    }
     const { username, password, role } = req.body as { username?: string; password?: string; role?: string };
     if (!username || !password) {
       res.status(400).json({ error: 'username and password are required' });
+      return;
+    }
+    if (password.length < 8) {
+      res.status(400).json({ error: 'Password must be at least 8 characters' });
       return;
     }
     const validRole = role === 'viewer' ? 'viewer' : 'admin';
@@ -194,12 +200,8 @@ app.post(
 
 app.delete(
   '/auth/users/:id',
-  authGuard,
+  authGuard, adminGuard,
   wrap((req: Request, res: Response) => {
-    if (req.session.role !== 'admin') {
-      res.status(403).json({ error: 'Admin access required' });
-      return;
-    }
     const id = param(req.params['id']);
     if (id === req.session.userId) {
       res.status(400).json({ error: 'Cannot delete your own account' });
