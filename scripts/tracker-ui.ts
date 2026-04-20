@@ -8,8 +8,13 @@
  * Opens:  http://localhost:3005
  */
 
-import express, { Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
 import path from 'path';
+// Load .env before anything else reads process.env
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+
+import express, { Request, Response, NextFunction } from 'express';
+import session from 'express-session';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import {
@@ -47,27 +52,190 @@ import {
 } from '../src/tracker/models';
 import type { ListFilters, TrackerExport, AutomationState, ExecutionStatus } from '../src/tracker/models';
 import { getDb, getDbPath, closeDb } from '../src/tracker/db';
+import {
+  createUser,
+  deleteUser,
+  getUserById,
+  listUsers,
+  seedAdminIfNone,
+  verifyPassword,
+  getUserByUsername,
+} from '../src/tracker/auth';
+
+// ── Session type augmentation ─────────────────────────────────────────────────
+
+declare module 'express-session' {
+  interface SessionData {
+    userId: string;
+    username: string;
+    role: string;
+  }
+}
 
 // ── App setup ─────────────────────────────────────────────────────────────────
 
 const app = express();
 const PORT = Number(process.env.TRACKER_PORT) || 3005;
 
+// Trust the first proxy (Railway, Fly.io, Caddy, etc.) so req.protocol
+// reflects the real scheme and secure cookies work behind HTTPS termination.
+if (process.env.TRUST_PROXY === '1') {
+  app.set('trust proxy', 1);
+}
+
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false }));
+
+// ── Session ───────────────────────────────────────────────────────────────────
+
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  console.warn(
+    '[Tracker Auth] WARNING: SESSION_SECRET is not set. Using an insecure fallback.\n' +
+    '               Set SESSION_SECRET in your .env file before deploying to production.'
+  );
+}
+app.use(
+  session({
+    secret: SESSION_SECRET || 'tracker-dev-secret-do-not-use-in-prod',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      // Set secure:true only when behind HTTPS (e.g. Railway, Fly.io)
+      secure: process.env.NODE_ENV === 'production' && process.env.TRUST_PROXY === '1',
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours
+    },
+  })
+);
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
+
+function authGuard(req: Request, res: Response, next: NextFunction): void {
+  if (req.session?.userId) return next();
+  // API calls → 401 JSON; browser navigation → redirect to login
+  const wantsJson = req.headers.accept?.includes('application/json') || req.path.startsWith('/api/');
+  if (wantsJson) {
+    res.status(401).json({ error: 'Unauthorized' });
+  } else {
+    res.redirect('/auth/login');
+  }
+}
+
+// Admin-only guard — must be used after authGuard
+function adminGuard(req: Request, res: Response, next: NextFunction): void {
+  if (req.session?.role === 'admin') return next();
+  res.status(403).json({ error: 'Admin access required' });
+}
+
+// ── Auth routes (public) ──────────────────────────────────────────────────────
+
+const LOGIN_PAGE = path.resolve(__dirname, '..', 'src', 'tracker', 'ui', 'login.html');
+
+app.get('/auth/login', (_req: Request, res: Response) => {
+  res.sendFile(LOGIN_PAGE);
+});
+
+app.post('/auth/login', wrap(async (req: Request, res: Response) => {
+  const { username, password } = req.body as { username?: string; password?: string };
+  if (!username || !password) {
+    return void res.redirect('/auth/login?error=missing');
+  }
+  const user = getUserByUsername(username);
+  if (!user || !(await verifyPassword(password, user.password_hash))) {
+    return void res.redirect('/auth/login?error=invalid');
+  }
+  req.session.regenerate((err) => {
+    if (err) { res.redirect('/auth/login?error=session'); return; }
+    req.session.userId   = user.id;
+    req.session.username = user.username;
+    req.session.role     = user.role;
+    req.session.save((saveErr) => {
+      if (saveErr) { res.redirect('/auth/login?error=session'); return; }
+      res.redirect('/ui/index.html');
+    });
+  });
+}));
+
+app.post('/auth/logout', (req: Request, res: Response) => {
+  req.session.destroy(() => {
+    res.redirect('/auth/login');
+  });
+});
+
+// ── User management routes (admin only) ───────────────────────────────────────
+
+app.get(
+  '/auth/users',
+  authGuard, adminGuard,
+  wrap((_req: Request, res: Response) => {
+    res.json(listUsers());
+  }),
+);
+
+app.post(
+  '/auth/users',
+  authGuard, adminGuard,
+  wrap(async (req: Request, res: Response) => {
+    const { username, password, role } = req.body as { username?: string; password?: string; role?: string };
+    if (!username || !password) {
+      res.status(400).json({ error: 'username and password are required' });
+      return;
+    }
+    if (password.length < 8) {
+      res.status(400).json({ error: 'Password must be at least 8 characters' });
+      return;
+    }
+    const validRole = role === 'viewer' ? 'viewer' : 'admin';
+    const existing = getUserByUsername(username);
+    if (existing) {
+      res.status(409).json({ error: `User "${username}" already exists` });
+      return;
+    }
+    const user = await createUser(username, password, validRole);
+    res.status(201).json(user);
+  }),
+);
+
+app.delete(
+  '/auth/users/:id',
+  authGuard, adminGuard,
+  wrap((req: Request, res: Response) => {
+    const id = param(req.params['id']);
+    if (id === req.session.userId) {
+      res.status(400).json({ error: 'Cannot delete your own account' });
+      return;
+    }
+    const deleted = deleteUser(id);
+    if (!deleted) { res.status(404).json({ error: 'User not found' }); return; }
+    res.json({ ok: true });
+  }),
+);
+
+app.get(
+  '/auth/me',
+  authGuard,
+  wrap((req: Request, res: Response) => {
+    const user = getUserById(req.session.userId!);
+    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+    res.json({ id: user.id, username: user.username, role: user.role, created_at: user.created_at });
+  }),
+);
 
 // Express 5 types params as string | string[]; our routes always have single-value params
 const param = (v: string | string[] | undefined): string => Array.isArray(v) ? v[0] : String(v ?? '');
 
-// Serve the SPA
+// Serve the SPA (protected)
 const UI_DIR = path.resolve(__dirname, '..', 'src', 'tracker', 'ui');
-app.use('/ui', express.static(UI_DIR));
+app.use('/ui', authGuard, express.static(UI_DIR));
 
 // Serve allure-report static files (so the embedded Allure report works)
 const ALLURE_REPORT_DIR = path.resolve(__dirname, '..', 'allure-report');
 const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
 const ALLURE_GENERATE_ARGS = ['allure', 'generate', 'allure-results', '-o', 'allure-report', '--config', 'config/allure.config.ts'];
 const JSON_REPORT_PATH = path.resolve(__dirname, '..', 'test-results', 'results.json');
-app.use('/allure-report', express.static(ALLURE_REPORT_DIR, {
+app.use('/allure-report', authGuard, express.static(ALLURE_REPORT_DIR, {
   setHeaders: (res) => {
     res.setHeader('Cache-Control', 'no-store, max-age=0');
   },
@@ -95,8 +263,8 @@ code{background:#1a1a1a;padding:4px 10px;border-radius:4px;color:#ff9157;font-si
 </html>`);
 });
 
-// Root redirect → SPA
-app.get('/', (_req: Request, res: Response) => {
+// Root redirect → SPA (protected)
+app.get('/', authGuard, (_req: Request, res: Response) => {
   res.redirect('/ui/index.html');
 });
 
@@ -767,6 +935,7 @@ app.get(
 /** POST /api/scenarios — add new scenario */
 app.post(
   '/api/scenarios',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups, steps, expected_results, execution_notes } = req.body;
     if (!id || !title) {
@@ -819,6 +988,7 @@ app.post(
 /** PUT /api/scenarios/:id — update scenario */
 app.put(
   '/api/scenarios/:id',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups, steps, expected_results, execution_notes } = req.body;
     if (automation_state && !isValidAutomationState(automation_state)) {
@@ -880,6 +1050,7 @@ app.put(
 /** DELETE /api/scenarios/:id — remove scenario */
 app.delete(
   '/api/scenarios/:id',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const removed = removeScenario(id);
@@ -896,6 +1067,7 @@ app.delete(
 // POST /api/scenarios/:id/auto-state  { state: AutomationState }
 app.post(
   '/api/scenarios/:id/auto-state',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const state = req.body?.state;
@@ -915,6 +1087,7 @@ app.post(
 // POST /api/scenarios/:id/priority  { priority: Priority }
 app.post(
   '/api/scenarios/:id/priority',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const priority = req.body?.priority;
@@ -934,6 +1107,7 @@ app.post(
 // POST /api/scenarios/:id/exec-status  { status: ExecutionStatus }
 app.post(
   '/api/scenarios/:id/exec-status',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const status = req.body?.status;
@@ -953,6 +1127,7 @@ app.post(
 /** POST /api/scenarios/:id/hold — put on hold */
 app.post(
   '/api/scenarios/:id/hold',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const updated = holdScenario(id);
@@ -967,6 +1142,7 @@ app.post(
 /** POST /api/scenarios/:id/unhold — remove from hold */
 app.post(
   '/api/scenarios/:id/unhold',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const updated = unholdScenario(id);
@@ -991,6 +1167,7 @@ app.get(
 /** POST /api/groups — create a new group label */
 app.post(
   '/api/groups',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { name, description } = req.body;
     if (!name) {
@@ -1005,6 +1182,7 @@ app.post(
 /** POST /api/scenarios/:id/groups — add group to scenario */
 app.post(
   '/api/scenarios/:id/groups',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { group } = req.body;
     if (!group) {
@@ -1025,6 +1203,7 @@ app.post(
 /** DELETE /api/scenarios/:id/groups/:group — remove group from scenario */
 app.delete(
   '/api/scenarios/:id/groups/:group',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const groupName = param(req.params.group);
@@ -1170,6 +1349,7 @@ app.get(
 /** POST /api/sync — sync with spec files */
 app.post(
   '/api/sync',
+  authGuard, adminGuard,
   wrap((_req, res) => {
     const result = syncWithSpecFiles();
     res.json(result);
@@ -1179,6 +1359,7 @@ app.post(
 /** GET /api/export — export all data as JSON */
 app.get(
   '/api/export',
+  authGuard, adminGuard,
   wrap((_req, res) => {
     const data = exportToJson();
     res.setHeader('Content-Disposition', 'attachment; filename=tracker-export.json');
@@ -1189,6 +1370,7 @@ app.get(
 /** POST /api/import — import scenarios from JSON */
 app.post(
   '/api/import',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const data = req.body as TrackerExport;
     if (!data?.scenarios?.length) {
@@ -1255,6 +1437,7 @@ app.get(
 /** POST /api/xlsx-export — export scenarios for a workflow to xlsx and stream the file back */
 app.post(
   '/api/xlsx-export',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { workflow } = req.body as { workflow?: string };
     if (!workflow) {
@@ -1298,6 +1481,7 @@ app.post(
 /** POST /api/xlsx-import — import scenarios from an xlsx file for a workflow */
 app.post(
   '/api/xlsx-import',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const contentType = req.headers['content-type'] || '';
 
@@ -1366,6 +1550,7 @@ app.post(
 /** POST /api/xlsx-upload — upload an xlsx file to the input directory */
 app.post(
   '/api/xlsx-upload',
+  authGuard, adminGuard,
   express.raw({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', limit: '20mb' }),
   (req: Request, res: Response) => {
     try {
@@ -1925,11 +2110,19 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`\n  🧪 Tracker UI running at  http://localhost:${PORT}`);
-  console.log(`     API base:              http://localhost:${PORT}/api`);
-  console.log(`     Database:              ${getDbPath()}\n`);
-});
+seedAdminIfNone()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n  🧪 Tracker UI running at  http://localhost:${PORT}`);
+      console.log(`     API base:              http://localhost:${PORT}/api`);
+      console.log(`     Auth:                  http://localhost:${PORT}/auth/login`);
+      console.log(`     Database:              ${getDbPath()}\n`);
+    });
+  })
+  .catch((err: Error) => {
+    console.error('[Tracker Auth] Startup failed:', err.message);
+    process.exit(1);
+  });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
