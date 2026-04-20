@@ -136,7 +136,7 @@ tailwind.config = {
 <aside class="bg-[#0e0e0e] h-screen w-64 fixed left-0 top-0 flex flex-col py-6 z-50 border-r border-white/5">
   <div class="px-6 mb-10">
     <h1 class="text-xl font-bold tracking-tighter text-white font-headline">PICASso Automation</h1>
-    <p class="text-[10px] uppercase tracking-wider text-neutral-500 mt-1 font-body">Test Scenario tracker v0.10</p>
+    <p class="text-[10px] uppercase tracking-wider text-neutral-500 mt-1 font-body">Test Automation Tracker v0.10</p>
   </div>
   <nav class="flex-1 space-y-1">
     <a href="/ui/index.html" class="flex items-center gap-3 px-4 py-3 text-[#ff9157] bg-[#1a1a1a] border-l-2 border-[#ff9157]">
@@ -159,6 +159,10 @@ tailwind.config = {
       <span class="material-symbols-outlined">insights</span>
       <span class="uppercase tracking-wider text-xs font-body">Analytics</span>
     </div>
+    <a href="#" id="nav-manage-users" onclick="event.preventDefault();openUsersModal()" class="hidden items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all">
+      <span class="material-symbols-outlined">manage_accounts</span>
+      <span class="uppercase tracking-wider text-xs font-body">Manage Users</span>
+    </a>
   </nav>
   <div class="mt-auto px-4 space-y-1">
     <button onclick="openAddModal()" class="w-full bg-primary-container text-on-primary py-2 rounded-lg font-bold mb-6 flex items-center justify-center gap-2 active:scale-90 duration-200 text-sm">
@@ -307,6 +311,61 @@ tailwind.config = {
         <button type="submit" id="modalSubmitBtn" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform">Add</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ═══════════════ SUPPORT MODAL ═══════════════ -->
+<!-- ═══════════════ MANAGE USERS MODAL ═══════════════ -->
+<div class="modal-overlay" id="usersModalOverlay">
+  <div class="bg-surface-container-high border border-outline-variant/10 rounded-xl w-[560px] max-w-[95vw] p-6">
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <h2 class="text-lg font-bold font-headline text-on-surface">Manage Users</h2>
+        <p class="text-xs text-on-surface-variant mt-1">Add or remove tracker accounts. Admin only.</p>
+      </div>
+      <button type="button" onclick="closeUsersModal()" class="text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <!-- Existing users list -->
+    <div id="userListContainer" class="mb-5 space-y-2 max-h-48 overflow-y-auto"></div>
+    <!-- Add user form -->
+    <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Add New User</p>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Username</label>
+          <input id="newUsername" type="text" autocomplete="off"
+            class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 outline-none"
+            placeholder="username" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Role</label>
+          <select id="newUserRole"
+            class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 outline-none">
+            <option value="viewer">viewer</option>
+            <option value="admin">admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Password</label>
+        <input id="newUserPassword" type="password" autocomplete="new-password"
+          class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 outline-none"
+          placeholder="••••••••" />
+      </div>
+      <div id="addUserError" class="hidden text-error text-xs mb-2"></div>
+      <button type="button" onclick="addUserFromModal()"
+        class="bg-primary text-on-primary px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform">
+        Add User
+      </button>
+    </div>
+    <div class="flex justify-end mt-5 pt-4 border-t border-outline-variant/10">
+      <button type="button" onclick="closeUsersModal()"
+        class="bg-surface-container text-on-surface-variant px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform hover:text-on-surface">
+        Close
+      </button>
+    </div>
   </div>
 </div>
 
@@ -2019,16 +2078,111 @@ async function checkRunnerState() {
 
 // ── User menu ─────────────────────────────────────────────────────────────────
 
+let _currentUser = null;
+
 async function loadUserInfo() {
   try {
     const res = await fetch('/auth/me');
     if (!res.ok) return;
     const user = await res.json();
+    _currentUser = user;
     const sidebar = document.getElementById('sidebarUsername');
     const menuName = document.getElementById('userMenuName');
     if (sidebar) sidebar.textContent = user.username;
     if (menuName) menuName.textContent = user.username;
+    // Show admin-only nav items
+    if (user.role === 'admin') {
+      document.getElementById('nav-manage-users')?.classList.replace('hidden', 'flex');
+    }
   } catch { /* silently ignore */ }
+}
+
+// ── User management modal ──────────────────────────────────────────────────────
+
+function openUsersModal() {
+  document.getElementById('usersModalOverlay').classList.add('open');
+  loadUsersForModal();
+}
+function closeUsersModal() {
+  document.getElementById('usersModalOverlay').classList.remove('open');
+  document.getElementById('addUserError').classList.add('hidden');
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newUserPassword').value = '';
+  document.getElementById('newUserRole').value = 'viewer';
+}
+
+async function loadUsersForModal() {
+  const container = document.getElementById('userListContainer');
+  container.innerHTML = '<p class="text-xs text-on-surface-variant px-1">Loading…</p>';
+  try {
+    const res = await fetch('/auth/users', { headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) throw new Error('Failed to load users');
+    const users = await res.json();
+    if (!users.length) {
+      container.innerHTML = '<p class="text-xs text-on-surface-variant px-1">No users found.</p>';
+      return;
+    }
+    container.innerHTML = users.map(u => `
+      <div class="flex items-center justify-between bg-surface-container-low rounded-lg border border-outline-variant/10 px-4 py-2.5">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-base text-on-surface-variant">person</span>
+          <div>
+            <p class="text-sm text-on-surface font-medium">${esc(u.username)}</p>
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest">${esc(u.role)}</p>
+          </div>
+        </div>
+        ${u.id !== (_currentUser?.id ?? '') ? `
+          <button type="button" onclick="deleteUserFromModal('${esc(u.id)}', '${esc(u.username)}')"
+            class="text-error hover:text-red-400 transition-colors p-1 rounded" title="Delete user">
+            <span class="material-symbols-outlined text-base">delete</span>
+          </button>` : `<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">you</span>`}
+      </div>`).join('');
+  } catch (e) {
+    container.innerHTML = `<p class="text-xs text-error px-1">${esc(e.message)}</p>`;
+  }
+}
+
+async function addUserFromModal() {
+  const username = document.getElementById('newUsername').value.trim();
+  const password = document.getElementById('newUserPassword').value;
+  const role = document.getElementById('newUserRole').value;
+  const errorEl = document.getElementById('addUserError');
+  errorEl.classList.add('hidden');
+  if (!username || !password) {
+    errorEl.textContent = 'Username and password are required.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  try {
+    const res = await fetch('/auth/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, role }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('newUserRole').value = 'viewer';
+    toast(`User "${username}" added`, 'success');
+    await loadUsersForModal();
+  } catch (e) {
+    errorEl.textContent = e.message;
+    errorEl.classList.remove('hidden');
+  }
+}
+
+async function deleteUserFromModal(id, username) {
+  if (!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/auth/users/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    toast(`User "${username}" deleted`);
+    await loadUsersForModal();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
 }
 
 function toggleUserMenu() {
