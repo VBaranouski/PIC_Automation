@@ -95,18 +95,31 @@ export function deleteUser(id: string): boolean {
  *   TRACKER_ADMIN_PASSWORD — admin password
  */
 export async function seedAdminIfNone(): Promise<void> {
-  if (userCount() > 0) return;
-
   const username = process.env.TRACKER_ADMIN_USER;
   const password = process.env.TRACKER_ADMIN_PASSWORD;
 
-  if (!username || !password) {
-    throw new Error(
-      '[Tracker Auth] No users in DB and TRACKER_ADMIN_USER / TRACKER_ADMIN_PASSWORD are not set. ' +
-      'Set them in your .env file to create the initial admin account.'
-    );
+  if (userCount() === 0) {
+    // First run — must have env vars to create the initial admin
+    if (!username || !password) {
+      throw new Error(
+        '[Tracker Auth] No users in DB and TRACKER_ADMIN_USER / TRACKER_ADMIN_PASSWORD are not set. ' +
+        'Set them in your .env file to create the initial admin account.'
+      );
+    }
+    await createUser(username, password, 'admin');
+    console.log(`[Tracker Auth] Seeded initial admin user: "${username}"`);
+    return;
   }
 
-  await createUser(username, password, 'admin');
-  console.log(`[Tracker Auth] Seeded initial admin user: "${username}"`);
+  // Users already exist — sync the admin password from env vars if provided.
+  // This lets you rotate the admin password by updating .env and restarting.
+  if (username && password) {
+    const existing = getUserByUsername(username);
+    if (existing) {
+      const password_hash = await hashPassword(password);
+      getDb().prepare('UPDATE users SET password_hash = ? WHERE username = ?')
+        .run(password_hash, username.trim().toLowerCase());
+      console.log(`[Tracker Auth] Synced password for admin user: "${username}"`);
+    }
+  }
 }

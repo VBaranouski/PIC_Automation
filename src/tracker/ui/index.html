@@ -168,6 +168,25 @@ tailwind.config = {
       <span class="material-symbols-outlined">help</span>
       <span class="uppercase tracking-wider text-xs font-body">Support</span>
     </button>
+    <!-- User widget -->
+    <div class="relative" id="userMenuContainer">
+      <button type="button" onclick="toggleUserMenu()" class="w-full flex items-center gap-3 px-4 py-3 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] transition-all rounded-lg text-left">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span class="uppercase tracking-wider text-xs font-body truncate" id="sidebarUsername">...</span>
+      </button>
+      <div id="userMenuDropdown" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-[#1a1a1a] border border-white/10 rounded-lg overflow-hidden shadow-xl">
+        <div class="px-4 py-3 border-b border-white/10">
+          <p class="text-[10px] text-neutral-500 uppercase tracking-wider mb-0.5">Signed in as</p>
+          <p class="text-sm text-white font-medium truncate" id="userMenuName">...</p>
+        </div>
+        <form method="POST" action="/auth/logout">
+          <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-neutral-400 hover:text-white hover:bg-[#262626] transition-all text-left">
+            <span class="material-symbols-outlined text-base">logout</span>
+            <span class="uppercase tracking-wider text-xs font-body">Sign out</span>
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </aside>
 
@@ -1998,7 +2017,33 @@ async function checkRunnerState() {
   } catch (e) { /* ignore */ }
 }
 
+// ── User menu ─────────────────────────────────────────────────────────────────
+
+async function loadUserInfo() {
+  try {
+    const res = await fetch('/auth/me');
+    if (!res.ok) return;
+    const user = await res.json();
+    const sidebar = document.getElementById('sidebarUsername');
+    const menuName = document.getElementById('userMenuName');
+    if (sidebar) sidebar.textContent = user.username;
+    if (menuName) menuName.textContent = user.username;
+  } catch { /* silently ignore */ }
+}
+
+function toggleUserMenu() {
+  const dropdown = document.getElementById('userMenuDropdown');
+  if (dropdown) dropdown.classList.toggle('hidden');
+}
+
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('userMenuContainer');
+  if (container && !container.contains(e.target)) {
+    document.getElementById('userMenuDropdown')?.classList.add('hidden');
+  }
+});
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
-init().then(() => checkRunnerState()).catch(err => { console.error('Init failed:', err); toast('Failed to load tracker data', 'error'); });
+init().then(() => { checkRunnerState(); loadUserInfo(); }).catch(err => { console.error('Init failed:', err); toast('Failed to load tracker data', 'error'); });
 </script>
 </body></html>

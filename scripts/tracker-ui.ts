@@ -8,9 +8,13 @@
  * Opens:  http://localhost:3005
  */
 
+import dotenv from 'dotenv';
+import path from 'path';
+// Load .env before anything else reads process.env
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+
 import express, { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
-import path from 'path';
 import { spawn, execFileSync, ChildProcess } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import {
