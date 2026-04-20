@@ -117,6 +117,12 @@ function authGuard(req: Request, res: Response, next: NextFunction): void {
   }
 }
 
+// Admin-only guard — must be used after authGuard
+function adminGuard(req: Request, res: Response, next: NextFunction): void {
+  if (req.session?.role === 'admin') return next();
+  res.status(403).json({ error: 'Admin access required' });
+}
+
 // ── Auth routes (public) ──────────────────────────────────────────────────────
 
 const LOGIN_PAGE = path.resolve(__dirname, '..', 'src', 'tracker', 'ui', 'login.html');
@@ -927,6 +933,7 @@ app.get(
 /** POST /api/scenarios — add new scenario */
 app.post(
   '/api/scenarios',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { id, title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups, steps, expected_results, execution_notes } = req.body;
     if (!id || !title) {
@@ -979,6 +986,7 @@ app.post(
 /** PUT /api/scenarios/:id — update scenario */
 app.put(
   '/api/scenarios/:id',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { title, description, automation_state, execution_status, priority, feature_area, spec_file, workflow, groups, steps, expected_results, execution_notes } = req.body;
     if (automation_state && !isValidAutomationState(automation_state)) {
@@ -1040,6 +1048,7 @@ app.put(
 /** DELETE /api/scenarios/:id — remove scenario */
 app.delete(
   '/api/scenarios/:id',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const removed = removeScenario(id);
@@ -1056,6 +1065,7 @@ app.delete(
 // POST /api/scenarios/:id/auto-state  { state: AutomationState }
 app.post(
   '/api/scenarios/:id/auto-state',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const state = req.body?.state;
@@ -1075,6 +1085,7 @@ app.post(
 // POST /api/scenarios/:id/priority  { priority: Priority }
 app.post(
   '/api/scenarios/:id/priority',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const priority = req.body?.priority;
@@ -1094,6 +1105,7 @@ app.post(
 // POST /api/scenarios/:id/exec-status  { status: ExecutionStatus }
 app.post(
   '/api/scenarios/:id/exec-status',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const status = req.body?.status;
@@ -1113,6 +1125,7 @@ app.post(
 /** POST /api/scenarios/:id/hold — put on hold */
 app.post(
   '/api/scenarios/:id/hold',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const updated = holdScenario(id);
@@ -1127,6 +1140,7 @@ app.post(
 /** POST /api/scenarios/:id/unhold — remove from hold */
 app.post(
   '/api/scenarios/:id/unhold',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const updated = unholdScenario(id);
@@ -1151,6 +1165,7 @@ app.get(
 /** POST /api/groups — create a new group label */
 app.post(
   '/api/groups',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { name, description } = req.body;
     if (!name) {
@@ -1165,6 +1180,7 @@ app.post(
 /** POST /api/scenarios/:id/groups — add group to scenario */
 app.post(
   '/api/scenarios/:id/groups',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { group } = req.body;
     if (!group) {
@@ -1185,6 +1201,7 @@ app.post(
 /** DELETE /api/scenarios/:id/groups/:group — remove group from scenario */
 app.delete(
   '/api/scenarios/:id/groups/:group',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const id = param(req.params.id);
     const groupName = param(req.params.group);
@@ -1330,6 +1347,7 @@ app.get(
 /** POST /api/sync — sync with spec files */
 app.post(
   '/api/sync',
+  authGuard, adminGuard,
   wrap((_req, res) => {
     const result = syncWithSpecFiles();
     res.json(result);
@@ -1339,6 +1357,7 @@ app.post(
 /** GET /api/export — export all data as JSON */
 app.get(
   '/api/export',
+  authGuard, adminGuard,
   wrap((_req, res) => {
     const data = exportToJson();
     res.setHeader('Content-Disposition', 'attachment; filename=tracker-export.json');
@@ -1349,6 +1368,7 @@ app.get(
 /** POST /api/import — import scenarios from JSON */
 app.post(
   '/api/import',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const data = req.body as TrackerExport;
     if (!data?.scenarios?.length) {
@@ -1415,6 +1435,7 @@ app.get(
 /** POST /api/xlsx-export — export scenarios for a workflow to xlsx and stream the file back */
 app.post(
   '/api/xlsx-export',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const { workflow } = req.body as { workflow?: string };
     if (!workflow) {
@@ -1458,6 +1479,7 @@ app.post(
 /** POST /api/xlsx-import — import scenarios from an xlsx file for a workflow */
 app.post(
   '/api/xlsx-import',
+  authGuard, adminGuard,
   wrap((req, res) => {
     const contentType = req.headers['content-type'] || '';
 
@@ -1526,6 +1548,7 @@ app.post(
 /** POST /api/xlsx-upload — upload an xlsx file to the input directory */
 app.post(
   '/api/xlsx-upload',
+  authGuard, adminGuard,
   express.raw({ type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', limit: '20mb' }),
   (req: Request, res: Response) => {
     try {
