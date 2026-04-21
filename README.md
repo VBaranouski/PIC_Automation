@@ -5,23 +5,34 @@ Playwright + TypeScript E2E test automation suite for the **PICASso** OutSystems
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-npm install
+# 1. Clone the repo and run the one-time setup script
+git clone <repo-url> && cd PIC_Automation
+bash setup.sh
+```
 
-# 2. Install Playwright browsers
-npx playwright install --with-deps
+`setup.sh` handles everything automatically:
+- installs npm dependencies and Playwright browsers
+- copies `.env.example` → `.env` and generates `SESSION_SECRET`
+- scaffolds `config/users/*.users.ts` credential stubs
 
-# 3. Create your environment file
-cp .env.example .env
-# Edit .env with your target environment settings
+After the script finishes, two manual steps remain:
 
-# 4. Add user credentials
-# Create config/users/qa.users.ts (see config/users/user.types.ts for the shape)
+```bash
+# 2. Edit .env — set TEST_ENV and (optionally) BASE_URL
+#    Default TEST_ENV=qa; BASE_URL falls back to config/environments/<env>.ts
 
-# 5. Run tests
-npm test                        # all projects
-npm run test:chromium           # chromium only
-npm run test:smoke              # smoke suite
+# 3. Fill in real credentials in config/users/qa.users.ts
+#    Replace every TODO value with the actual login/password for that role.
+#    Repeat for dev.users.ts / ppr.users.ts if you run against those envs.
+```
+
+Then start the project:
+
+```bash
+npm run tracker:ui              # Tracker web UI — http://localhost:3005
+npm test                        # Full E2E suite
+npm run test:smoke              # Smoke suite only
+npm run test:chromium           # Chromium only
 ```
 
 ## Project Rules
