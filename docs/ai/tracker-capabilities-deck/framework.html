@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PICASso: AI Test Automation — Framework & Engineering Choices</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --surface:                 #0e0e0e;
+  --surface-container-low:   #131313;
+  --surface-container:       #1a1a1a;
+  --surface-container-high:  #20201f;
+  --surface-container-highest:#262626;
+  --surface-bright:          #2c2c2c;
+  --primary:                 #ff9157;
+  --primary-dim:             #ff7520;
+  --on-primary:              #531e00;
+  --tertiary:                #81ecff;
+  --error:                   #ff7351;
+  --secondary:               #e3e2e2;
+  --secondary-fixed-dim:     #d5d4d4;
+  --on-surface:              #ffffff;
+  --on-surface-variant:      #adaaaa;
+  --outline-variant:         #484847;
+  --success:                 #3fb950;
+  --warning:                 #e3b341;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--surface); color: var(--secondary-fixed-dim);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--primary); color: var(--on-primary); }
+h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); line-height: 1.2; }
+
+/* NAV */
+.nav { position: sticky; top: 0; z-index: 100; background: rgba(14,14,14,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(72,72,71,0.15); }
+.nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; height: 56px; gap: 32px; }
+.nav-brand { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.92rem; color: var(--on-surface); text-decoration: none; white-space: nowrap; }
+.nav-brand span { color: var(--primary); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: var(--on-surface-variant); text-decoration: none; transition: background 0.15s, color 0.15s; }
+.nav-links a:hover { background: var(--surface-container); color: var(--on-surface); }
+.nav-links a.active { background: rgba(255,145,87,0.1); color: var(--primary); }
+.nav-links .material-symbols-outlined { font-size: 18px; width: 18px; height: 18px; overflow: hidden; display: inline-block; vertical-align: middle; }
+
+/* LAYOUT */
+.page { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+
+/* HERO */
+.hero { padding: 80px 0 64px; text-align: center; }
+.hero-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary); background: rgba(255,145,87,0.08); padding: 6px 18px; border-radius: 9999px; margin-bottom: 28px; }
+.hero h1 { font-size: clamp(2.2rem, 4.5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; }
+.hero h1 .accent { color: var(--primary); }
+.hero h1 .accent-t { color: var(--tertiary); }
+.hero-sub { font-size: 1.05rem; color: var(--on-surface-variant); max-width: 780px; margin: 0 auto; }
+
+/* SECTIONS */
+.section { padding: 72px 0; }
+.section + .section { padding-top: 0; }
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); margin-bottom: 12px; }
+.section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; }
+.section-desc { color: var(--on-surface-variant); max-width: 720px; margin-bottom: 40px; }
+
+/* STACK GRID (why Playwright + TS) */
+.stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.stack-card {
+  background: var(--surface-container-low); border-radius: 12px; padding: 28px 24px;
+  position: relative; transition: background 0.2s, border-color 0.2s;
+  border: 1px solid rgba(72,72,71,0.12);
+}
+.stack-card:hover { background: var(--surface-container); border-color: rgba(255,145,87,0.18); }
+.stack-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 10px;
+  background: rgba(255,145,87,0.08); color: var(--primary);
+  margin-bottom: 16px; font-size: 22px;
+}
+.stack-icon.cyan { background: rgba(129,236,255,0.08); color: var(--tertiary); }
+.stack-icon.green { background: rgba(63,185,80,0.08); color: var(--success); }
+.stack-icon.warn { background: rgba(227,179,65,0.08); color: var(--warning); }
+.stack-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; }
+.stack-card p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.65; }
+.stack-card p + p { margin-top: 10px; }
+.stack-card code { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--tertiary); }
+
+/* FOLDER TREE */
+.tree-container {
+  background: var(--surface-container-low); border-radius: 12px;
+  padding: 28px 32px; border: 1px solid rgba(72,72,71,0.12);
+  overflow-x: auto;
+}
+.tree {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 0.82rem; line-height: 1.9;
+  color: var(--secondary-fixed-dim);
+  white-space: pre;
+}
+.tree .dir { color: var(--primary); font-weight: 600; }
+.tree .file { color: var(--tertiary); }
+.tree .note { color: var(--on-surface-variant); font-family: 'Inter', sans-serif; font-style: italic; font-size: 0.78rem; }
+
+/* FOUR-LAYER DIAGRAM */
+.layer-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.layer-row {
+  display: grid; grid-template-columns: 200px 1fr; align-items: center;
+  gap: 24px; padding: 20px 24px; border-radius: 10px;
+  background: var(--surface-container-low);
+  border-left: 3px solid var(--primary);
+}
+.layer-row:nth-child(2) { border-left-color: var(--tertiary); }
+.layer-row:nth-child(3) { border-left-color: var(--success); }
+.layer-row:nth-child(4) { border-left-color: var(--warning); }
+.layer-name {
+  font-family: 'Manrope', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: var(--on-surface); letter-spacing: 0.02em;
+}
+.layer-name small {
+  display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+  font-weight: 400; color: var(--on-surface-variant); margin-top: 3px;
+}
+.layer-desc { font-size: 0.86rem; color: var(--secondary-fixed-dim); line-height: 1.6; }
+.layer-desc code { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--tertiary); }
+
+/* CODE BLOCK */
+.code {
+  background: var(--surface-container-low); border-radius: 10px;
+  padding: 20px 24px; overflow-x: auto; margin-top: 16px;
+  border: 1px solid rgba(72,72,71,0.12);
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 0.78rem; line-height: 1.65;
+  color: var(--secondary-fixed-dim);
+}
+.code .kw { color: #d279ff; }
+.code .str { color: #7ee787; }
+.code .fn { color: var(--tertiary); }
+.code .cm { color: var(--on-surface-variant); font-style: italic; }
+.code .cl { color: var(--primary); }
+
+/* RULE TABLE */
+.rule-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; margin-top: 24px; }
+.rule-table th {
+  text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--on-surface-variant); padding: 8px 16px;
+}
+.rule-table td {
+  padding: 12px 16px; font-size: 0.85rem;
+  background: var(--surface-container-low); vertical-align: top;
+}
+.rule-table tr td:first-child {
+  border-radius: 8px 0 0 8px; font-weight: 600;
+  color: var(--on-surface); white-space: nowrap; width: 180px;
+}
+.rule-table tr td:last-child { border-radius: 0 8px 8px 0; }
+.rule-table code {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+  background: rgba(255,255,255,0.05); padding: 2px 6px;
+  border-radius: 4px; color: var(--tertiary);
+}
+.rule-table .priority {
+  display: inline-block; min-width: 22px; text-align: center;
+  font-family: 'Manrope', sans-serif; font-weight: 700;
+  background: rgba(255,145,87,0.1); color: var(--primary);
+  border-radius: 4px; padding: 1px 6px; font-size: 0.78rem;
+}
+.rule-table .ban {
+  color: var(--error); font-weight: 600; text-transform: uppercase;
+  font-size: 0.72rem; letter-spacing: 0.06em;
+}
+
+/* COMPARISON TABLE (TS vs Python) */
+.compare-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; margin-top: 24px; }
+.compare-table thead th {
+  font-family: 'Manrope', sans-serif; font-size: 0.82rem; font-weight: 700;
+  text-transform: none; letter-spacing: 0;
+  color: var(--on-surface); padding: 12px 16px;
+  background: var(--surface-container); border-radius: 8px 8px 0 0;
+}
+.compare-table thead th:first-child { text-align: left; color: var(--on-surface-variant); background: transparent; }
+.compare-table thead th.ts { color: var(--primary); }
+.compare-table thead th.py { color: var(--on-surface-variant); }
+.compare-table td {
+  padding: 12px 16px; font-size: 0.85rem;
+  background: var(--surface-container-low); vertical-align: top;
+}
+.compare-table td:first-child {
+  border-radius: 8px 0 0 8px; font-weight: 600;
+  color: var(--on-surface); white-space: nowrap; width: 200px;
+}
+.compare-table td:last-child { border-radius: 0 8px 8px 0; color: var(--on-surface-variant); }
+.compare-table td.good { color: var(--success); }
+.compare-table td.meh { color: var(--warning); }
+
+/* ALLURE FEATURE LIST */
+.feature-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 20px; }
+.feature-item {
+  display: flex; gap: 12px; padding: 14px 16px;
+  background: var(--surface-container-low); border-radius: 8px;
+  border-left: 2px solid var(--tertiary);
+}
+.feature-item .ic {
+  flex-shrink: 0; width: 22px; height: 22px; display: inline-flex;
+  align-items: center; justify-content: center;
+  color: var(--tertiary);
+}
+.feature-item .txt { font-size: 0.83rem; line-height: 1.55; }
+.feature-item .txt strong { color: var(--on-surface); font-weight: 600; display: block; margin-bottom: 2px; }
+
+/* CALLOUT */
+.callout {
+  margin-top: 40px; padding: 24px 28px; border-radius: 12px;
+  background: var(--surface-container-low);
+  border-left: 3px solid var(--primary);
+}
+.callout-title {
+  font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.95rem;
+  color: var(--primary); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.callout-title .material-symbols-outlined { font-size: 20px; }
+.callout p { font-size: 0.87rem; color: var(--on-surface-variant); line-height: 1.65; }
+.callout p + p { margin-top: 8px; }
+
+/* CTA */
+.cta-row { display: flex; justify-content: center; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
+.cta-link { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.15s, transform 0.1s; }
+.cta-link:active { transform: scale(0.97); }
+.cta-link.ghost { background: transparent; color: var(--tertiary); border: 1px solid rgba(129,236,255,0.2); }
+.cta-link.ghost:hover { background: rgba(129,236,255,0.06); }
+.cta-link.primary { background: var(--primary); color: var(--on-primary); }
+.cta-link.primary:hover { background: var(--primary-dim); }
+.cta-link .material-symbols-outlined { font-size: 20px; }
+
+/* FOOTER */
+.footer { padding: 48px 0; text-align: center; font-size: 0.78rem; color: var(--on-surface-variant); border-top: 1px solid rgba(72,72,71,0.15); margin-top: 72px; }
+
+@media (max-width: 768px) {
+  .page { padding: 0 20px; }
+  .nav-inner { padding: 0 20px; gap: 16px; overflow-x: auto; }
+  .hero { padding: 64px 0 48px; }
+  .hero h1 { font-size: 2rem; }
+  .stack-grid { grid-template-columns: 1fr; }
+  .layer-row { grid-template-columns: 1fr; gap: 8px; }
+  .rule-table tr td:first-child { width: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">PICASso: <span>AI Test Automation</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html"><span class="material-symbols-outlined">home</span> Overview</a></li>
+      <li><a href="ai-workflow.html"><span class="material-symbols-outlined">psychology</span> AI Workflow</a></li>
+      <li><a href="platform.html"><span class="material-symbols-outlined">code</span> Platform</a></li>
+      <li><a href="framework.html" class="active"><span class="material-symbols-outlined">account_tree</span> Framework</a></li>
+      <li><a href="pitfalls.html"><span class="material-symbols-outlined">warning</span> Pitfalls</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page">
+<section class="hero">
+  <div class="hero-eyebrow">For Senior Automation Engineers</div>
+  <h1>The <span class="accent">Test Automation</span><br/><span class="accent-t">Framework</span></h1>
+  <p class="hero-sub">
+    Engineering choices, folder structure, naming conventions, and best practices behind the PICASso
+    automation suite. Built on Playwright + TypeScript, with a four-layer architecture and Allure reporting
+    — designed for scale, maintainability, and AI-driven extension.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     THE STACK — WHY PLAYWRIGHT + TYPESCRIPT
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">The Stack</div>
+  <h2 class="section-title">Playwright + TypeScript + Allure</h2>
+  <p class="section-desc">
+    Three deliberate choices — each one solves a specific problem that alternatives don't.
+  </p>
+
+  <div class="stack-grid">
+
+    <div class="stack-card">
+      <div class="stack-icon"><span class="material-symbols-outlined">stadia_controller</span></div>
+      <h3>Playwright — The Runtime</h3>
+      <p>
+        A single library that drives Chromium, Firefox, and WebKit through the browser's own
+        CDP / DevTools protocol. No WebDriver proxy, no flaky JSON-over-HTTP bridge.
+      </p>
+      <p>
+        <strong style="color: var(--on-surface);">What it does:</strong> auto-waiting web-first
+        assertions, <code>getByRole</code> / ARIA-aware locators, network interception,
+        headed/headless execution, trace viewer with DOM snapshots, video recording on failure,
+        parallel worker execution, and a first-class TypeScript API.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon cyan"><span class="material-symbols-outlined">code_blocks</span></div>
+      <h3>TypeScript — The Language</h3>
+      <p>
+        Strict-mode TypeScript with path aliases (<code>@pages/</code>, <code>@locators/</code>,
+        <code>@fixtures/</code>, <code>@helpers/</code>), union types for test data, and
+        <code>ReturnType&lt;typeof fn&gt;</code> for locator factories.
+      </p>
+      <p>
+        <strong style="color: var(--on-surface);">Why it matters:</strong> compile-time catches
+        for locator typos, refactor-safe page objects, IDE autocomplete for every POM method,
+        and one language for tests, fixtures, tracker UI, and backend scripts.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon green"><span class="material-symbols-outlined">analytics</span></div>
+      <h3>Allure — The Reporting</h3>
+      <p>
+        Rich HTML reports with suites, severity, tags, step-by-step breakdowns,
+        screenshots, traces, and trend history across runs.
+      </p>
+      <p>
+        <strong style="color: var(--on-surface);">Why Allure:</strong> the built-in
+        <code>allure-playwright</code> reporter plus every test requiring
+        <code>allure.suite()</code>, <code>allure.severity()</code>, <code>allure.tag()</code>,
+        and <code>test.step()</code> blocks → reports read like a narrative,
+        and the tracker parses the summary JSON to sync execution status automatically.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     REPO STRUCTURE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Repository Structure</div>
+  <h2 class="section-title">Folder Layout</h2>
+  <p class="section-desc">
+    Every folder has a single purpose. Cross-folder imports use TypeScript path aliases,
+    never relative paths that climb more than one level.
+  </p>
+
+  <div class="tree-container">
+<pre class="tree"><span class="dir">PIC_Automation/</span>
+├── <span class="dir">src/</span>                        <span class="note">// Framework source — everything except specs</span>
+│   ├── <span class="dir">fixtures/</span>               <span class="note">// Custom Playwright fixtures + auth state</span>
+│   ├── <span class="dir">locators/</span>               <span class="note">// Selector factories — zero logic</span>
+│   │   └── <span class="file">*.locators.ts</span>
+│   ├── <span class="dir">pages/</span>                  <span class="note">// Page Object Models — extend BasePage</span>
+│   │   ├── <span class="file">base.page.ts</span>
+│   │   ├── <span class="file">*.page.ts</span>
+│   │   └── <span class="file">index.ts</span>           <span class="note">// Barrel export for all POMs</span>
+│   ├── <span class="dir">components/</span>             <span class="note">// Reusable UI components (dropdowns, modals)</span>
+│   ├── <span class="dir">helpers/</span>                <span class="note">// OS wait helpers, doc helpers, utility fns</span>
+│   ├── <span class="dir">types/</span>                  <span class="note">// Shared TypeScript types</span>
+│   └── <span class="dir">tracker/</span>                <span class="note">// Tracker DB models & services</span>
+│
+├── <span class="dir">tests/</span>                      <span class="note">// Specs only — zero locators, zero business logic</span>
+│   ├── <span class="dir">auth/</span>                   <span class="note">// Login, logout, auth.setup.ts</span>
+│   ├── <span class="dir">landing/</span>
+│   ├── <span class="dir">products/</span>
+│   ├── <span class="dir">releases/</span>
+│   └── <span class="dir">doc/</span>                    <span class="note">// Digital Offer Certification lifecycle</span>
+│
+├── <span class="dir">config/</span>
+│   ├── <span class="dir">environments/</span>           <span class="note">// qa, dev, ppr base URLs</span>
+│   ├── <span class="dir">users/</span>                  <span class="note">// Role → credentials (gitignored)</span>
+│   ├── <span class="file">allure.config.ts</span>
+│   ├── <span class="file">eslint.config.ts</span>
+│   └── <span class="file">prettier.config.ts</span>
+│
+├── <span class="dir">specs/</span>                      <span class="note">// Human-readable Markdown test specs</span>
+├── <span class="dir">docs/ai/</span>                    <span class="note">// Automation plans, coverage matrices, AI maps</span>
+├── <span class="dir">scripts/</span>                    <span class="note">// Tracker CLI, import/export, sync tools</span>
+├── <span class="dir">.github/</span>
+│   ├── <span class="dir">instructions/</span>           <span class="note">// Framework rules consumed by AI skills</span>
+│   └── <span class="dir">prompts/</span>                <span class="note">// AI entry-point prompts</span>
+│
+├── <span class="file">playwright.config.ts</span>        <span class="note">// Projects, reporters, timeouts, global setup</span>
+├── <span class="file">tsconfig.json</span>               <span class="note">// Strict mode + path aliases</span>
+└── <span class="file">package.json</span>
+</pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     FOUR-LAYER ARCHITECTURE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Four-Layer Rule</div>
+  <h2 class="section-title">Separation of Concerns</h2>
+  <p class="section-desc">
+    The strict layering prevents the two classic Playwright antipatterns: locators leaking into tests,
+    and page objects containing raw <code style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;color:var(--tertiary);font-size:0.82rem;">page.locator()</code> strings.
+  </p>
+
+  <div class="layer-grid">
+    <div class="layer-row">
+      <div class="layer-name">Locator Factory<small>src/locators/*.locators.ts</small></div>
+      <div class="layer-desc">
+        Pure selector functions. Each file exports a factory that takes a <code>Page</code>
+        and returns a typed bag of locators. <strong>Zero logic</strong> — no waits, no clicks,
+        no assertions. Type derived via <code>ReturnType&lt;typeof fn&gt;</code>.
+      </div>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-name">Page Object<small>src/pages/*.page.ts</small></div>
+      <div class="layer-desc">
+        Extends <code>BasePage</code>. Holds the locator bag as <code>private readonly l</code>.
+        Exposes semantic actions (<code>login()</code>, <code>selectProduct()</code>) and
+        assertion helpers (<code>expectLoggedIn()</code>). <strong>Never</strong> contains a raw
+        <code>page.locator()</code> call.
+      </div>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-name">Fixture<small>src/fixtures/*.fixture.ts</small></div>
+      <div class="layer-desc">
+        Composable test fixtures that instantiate page objects and inject shared state
+        (auth storage, user credentials, DOC-state). Tests import <code>test</code> from
+        <code>@fixtures/index</code>, not from <code>@playwright/test</code>.
+      </div>
+    </div>
+
+    <div class="layer-row">
+      <div class="layer-name">Spec File<small>tests/&lt;area&gt;/*.spec.ts</small></div>
+      <div class="layer-desc">
+        <code>describe</code> blocks, <code>test()</code> cases, <code>test.step()</code> narrative,
+        and Allure metadata. <strong>No</strong> inline locators, <strong>no</strong> raw
+        <code>expect()</code> on page elements — all verification flows through POM assertion methods.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">
+      <span class="material-symbols-outlined">check_circle</span> Why this matters at scale
+    </div>
+    <p>
+      With 4,220+ scenarios and an evolving OutSystems UI, a single locator change (e.g. a role
+      rename on a button) must propagate through the codebase without touching tests. The locator-factory
+      layer means one edit in one file cascades to every spec that uses it — a property no flat structure delivers.
+    </p>
+    <p>
+      This is also what makes the AI reliable: when the <strong>picasso-test-automation</strong>
+      skill generates tests, it's producing code into four well-defined slots, not freeform scripts.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     EXAMPLE CODE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Example</div>
+  <h2 class="section-title">One Scenario, Four Files</h2>
+  <p class="section-desc">
+    A minimal login test — showing exactly where each piece of code lives.
+  </p>
+
+<pre class="code"><span class="cm">// 1. src/locators/auth.locators.ts — selectors only</span>
+<span class="kw">import</span> { <span class="cl">Page</span> } <span class="kw">from</span> <span class="str">'@playwright/test'</span>;
+
+<span class="kw">export const</span> <span class="fn">authLocators</span> = (<span class="cl">page</span>: <span class="cl">Page</span>) =&gt; ({
+  emailInput:    page.<span class="fn">getByLabel</span>(<span class="str">'Email'</span>),
+  passwordInput: page.<span class="fn">getByLabel</span>(<span class="str">'Password'</span>),
+  submitButton:  page.<span class="fn">getByRole</span>(<span class="str">'button'</span>, { name: <span class="str">'Sign In'</span> }),
+  errorAlert:    page.<span class="fn">getByRole</span>(<span class="str">'alert'</span>),
+});
+<span class="kw">export type</span> <span class="cl">AuthLocators</span> = <span class="cl">ReturnType</span>&lt;<span class="kw">typeof</span> authLocators&gt;;</pre>
+
+<pre class="code"><span class="cm">// 2. src/pages/login.page.ts — actions & assertions</span>
+<span class="kw">import</span> { <span class="cl">Page</span>, <span class="fn">expect</span> } <span class="kw">from</span> <span class="str">'@playwright/test'</span>;
+<span class="kw">import</span> { <span class="cl">BasePage</span> } <span class="kw">from</span> <span class="str">'@pages/base.page'</span>;
+<span class="kw">import</span> { authLocators } <span class="kw">from</span> <span class="str">'@locators/auth.locators'</span>;
+
+<span class="kw">export class</span> <span class="cl">LoginPage</span> <span class="kw">extends</span> <span class="cl">BasePage</span> {
+  <span class="kw">readonly</span> url = <span class="str">'/login'</span>;
+  <span class="kw">private readonly</span> l;
+
+  <span class="fn">constructor</span>(<span class="cl">page</span>: <span class="cl">Page</span>) { <span class="kw">super</span>(page); <span class="kw">this</span>.l = <span class="fn">authLocators</span>(page); }
+
+  <span class="kw">async</span> <span class="fn">login</span>(<span class="cl">email</span>: string, <span class="cl">password</span>: string): <span class="cl">Promise</span>&lt;<span class="kw">void</span>&gt; {
+    <span class="kw">await this</span>.l.emailInput.<span class="fn">fill</span>(email);
+    <span class="kw">await this</span>.l.passwordInput.<span class="fn">fill</span>(password);
+    <span class="kw">await this</span>.l.submitButton.<span class="fn">click</span>();
+  }
+
+  <span class="kw">async</span> <span class="fn">expectErrorMessage</span>(<span class="cl">message</span>: string): <span class="cl">Promise</span>&lt;<span class="kw">void</span>&gt; {
+    <span class="kw">await</span> <span class="fn">expect</span>(<span class="kw">this</span>.l.errorAlert).<span class="fn">toContainText</span>(message);
+  }
+}</pre>
+
+<pre class="code"><span class="cm">// 3. src/fixtures/index.ts — inject POM into tests</span>
+<span class="kw">import</span> { <span class="fn">test</span> <span class="kw">as</span> base } <span class="kw">from</span> <span class="str">'@playwright/test'</span>;
+<span class="kw">import</span> { <span class="cl">LoginPage</span> } <span class="kw">from</span> <span class="str">'@pages/login.page'</span>;
+
+<span class="kw">export const</span> <span class="fn">test</span> = base.<span class="fn">extend</span>&lt;{ loginPage: <span class="cl">LoginPage</span> }&gt;({
+  loginPage: <span class="kw">async</span> ({ page }, use) =&gt; { <span class="kw">await</span> <span class="fn">use</span>(<span class="kw">new</span> <span class="cl">LoginPage</span>(page)); },
+});
+<span class="kw">export</span> { <span class="fn">expect</span> } <span class="kw">from</span> <span class="str">'@playwright/test'</span>;</pre>
+
+<pre class="code"><span class="cm">// 4. tests/auth/login.spec.ts — narrative only</span>
+<span class="kw">import</span> { <span class="fn">test</span>, <span class="fn">expect</span> } <span class="kw">from</span> <span class="str">'@fixtures/index'</span>;
+<span class="kw">import</span> * <span class="kw">as</span> allure <span class="kw">from</span> <span class="str">'allure-js-commons'</span>;
+
+test.<span class="fn">describe</span>(<span class="str">'Authentication @smoke'</span>, () =&gt; {
+  <span class="fn">test</span>(<span class="str">'AUTH-LOGIN-001 — invalid credentials show error'</span>, <span class="kw">async</span> ({ loginPage }) =&gt; {
+    <span class="kw">await</span> allure.<span class="fn">suite</span>(<span class="str">'Authentication'</span>);
+    <span class="kw">await</span> allure.<span class="fn">severity</span>(<span class="str">'critical'</span>);
+    <span class="kw">await</span> allure.<span class="fn">tag</span>(<span class="str">'smoke'</span>);
+
+    <span class="kw">await</span> test.<span class="fn">step</span>(<span class="str">'Attempt login with wrong password'</span>, <span class="kw">async</span> () =&gt; {
+      <span class="kw">await</span> loginPage.<span class="fn">goto</span>();
+      <span class="kw">await</span> loginPage.<span class="fn">login</span>(<span class="str">'user@sequoia.com'</span>, <span class="str">'wrong-password'</span>);
+    });
+
+    <span class="kw">await</span> test.<span class="fn">step</span>(<span class="str">'Verify error is shown'</span>, <span class="kw">async</span> () =&gt; {
+      <span class="kw">await</span> loginPage.<span class="fn">expectErrorMessage</span>(<span class="str">'Invalid credentials'</span>);
+    });
+  });
+});</pre>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     NAMING CONVENTIONS
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Conventions</div>
+  <h2 class="section-title">Naming Rules</h2>
+  <p class="section-desc">
+    Consistent naming is the contract between the AI, the tracker, and every engineer on the team.
+    Every artifact follows these rules — no exceptions.
+  </p>
+
+  <table class="rule-table">
+    <thead>
+      <tr><th>Entity</th><th>Convention</th><th>Example</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Classes</td><td>PascalCase</td><td><code>LoginPage</code>, <code>OSDropdown</code>, <code>DocDetailsPage</code></td></tr>
+      <tr><td>Methods</td><td>camelCase</td><td><code>clickSubmit()</code>, <code>selectOrgLevel()</code></td></tr>
+      <tr><td>Types / Interfaces</td><td>PascalCase</td><td><code>UserRole</code>, <code>AutomationState</code></td></tr>
+      <tr><td>Constants</td><td>UPPER_SNAKE_CASE</td><td><code>MAX_TIMEOUT</code>, <code>AUTH_FILE</code></td></tr>
+      <tr><td>Files</td><td>kebab-case</td><td><code>login.page.ts</code>, <code>os-dropdown.component.ts</code></td></tr>
+      <tr><td>Spec files</td><td>kebab-case + <code>.spec.ts</code></td><td><code>product-details-history.spec.ts</code></td></tr>
+      <tr><td>Page Objects</td><td><code>&lt;area&gt;.page.ts</code></td><td><code>login.page.ts</code>, <code>doc-details.page.ts</code></td></tr>
+      <tr><td>Locator files</td><td><code>&lt;area&gt;.locators.ts</code></td><td><code>auth.locators.ts</code>, <code>product.locators.ts</code></td></tr>
+      <tr><td>Scenario IDs</td><td><code>AREA-ACTION-###</code></td><td><code>AUTH-LOGIN-001</code>, <code>DOC-CERT-014</code></td></tr>
+      <tr><td>Test tags</td><td><code>@tag</code></td><td><code>@smoke</code>, <code>@regression</code>, <code>@critical</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     LOCATOR PRIORITY
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Selectors</div>
+  <h2 class="section-title">Locator Priority</h2>
+  <p class="section-desc">
+    Always use the first option that works. Semantic accessibility locators come first
+    — they mirror how users actually find elements on the page.
+  </p>
+
+  <table class="rule-table">
+    <thead><tr><th>#</th><th>Locator</th><th>Use For</th></tr></thead>
+    <tbody>
+      <tr><td><span class="priority">1</span></td><td><code>getByRole('button', { name: 'Submit' })</code></td><td>Buttons, links, headings, form elements</td></tr>
+      <tr><td><span class="priority">2</span></td><td><code>getByLabel('Email address')</code></td><td>Form fields with associated labels</td></tr>
+      <tr><td><span class="priority">3</span></td><td><code>getByText('Welcome back')</code></td><td>Non-interactive text content</td></tr>
+      <tr><td><span class="priority">4</span></td><td><code>getByPlaceholder('Search...')</code></td><td>Inputs with placeholder text</td></tr>
+      <tr><td><span class="priority">5</span></td><td><code>getByAltText('Company logo')</code></td><td>Images with alt text</td></tr>
+      <tr><td><span class="priority">6</span></td><td><code>getByTestId('checkout-summary')</code></td><td>When no semantic option exists</td></tr>
+      <tr><td><span class="priority">7</span></td><td><code>page.locator('.osui-widget')</code></td><td>OutSystems custom widgets only — last resort</td></tr>
+      <tr><td><span class="ban">Banned</span></td><td><code>XPath</code>, <code>:nth-child()</code>, index CSS</td><td>Brittle — forbidden across the codebase</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     WAIT STRATEGY
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Timing</div>
+  <h2 class="section-title">Wait Strategy — OutSystems-Aware</h2>
+  <p class="section-desc">
+    OutSystems keeps WebSockets alive, so <code>networkidle</code> never fires.
+    Arbitrary sleeps are forbidden. Every wait must key off an observable DOM readiness signal.
+  </p>
+
+  <table class="rule-table">
+    <thead><tr><th>Signal</th><th>When to Use</th></tr></thead>
+    <tbody>
+      <tr><td>Heading visible</td><td>After navigation — the heading is the page-ready contract</td></tr>
+      <tr><td>OSUI overlay gone</td><td>After screen navigation or data fetch — <code>waitForOSScreenLoad()</code></td></tr>
+      <tr><td>Table headers visible</td><td>Pages that render data asynchronously — <code>waitForTableData()</code></td></tr>
+      <tr><td>Control becomes enabled</td><td>Forms that disable inputs until dependency loads</td></tr>
+      <tr><td>Save button appears</td><td>After submit — wait for "Edit Product" to appear, not URL change</td></tr>
+      <tr><td><span class="ban">Banned</span> <code>waitForTimeout()</code></td><td>Use explicit element assertions</td></tr>
+      <tr><td><span class="ban">Banned</span> <code>networkidle</code></td><td>OutSystems WebSocket keeps it alive forever</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ALLURE INTEGRATION
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Reporting</div>
+  <h2 class="section-title">Allure Integration</h2>
+  <p class="section-desc">
+    Every test includes four Allure annotations. The tracker parses the generated
+    <code>summary.json</code> to sync execution status back automatically — no manual status updates.
+  </p>
+
+<pre class="code"><span class="kw">import</span> * <span class="kw">as</span> allure <span class="kw">from</span> <span class="str">'allure-js-commons'</span>;
+
+<span class="fn">test</span>(<span class="str">'DOC-CERT-014 — approver can reject certification'</span>, <span class="kw">async</span> ({ docDetailsPage }) =&gt; {
+  <span class="kw">await</span> allure.<span class="fn">suite</span>(<span class="str">'DOC Certification'</span>);
+  <span class="kw">await</span> allure.<span class="fn">severity</span>(<span class="str">'critical'</span>);   <span class="cm">// critical | normal | minor</span>
+  <span class="kw">await</span> allure.<span class="fn">tag</span>(<span class="str">'smoke'</span>);
+  <span class="kw">await</span> allure.<span class="fn">description</span>(<span class="str">'DOC-CERT-014: approver rejects certification with reason'</span>);
+
+  <span class="kw">await</span> test.<span class="fn">step</span>(<span class="str">'Open DOC in review state'</span>, <span class="kw">async</span> () =&gt; { <span class="cm">/* ... */</span> });
+  <span class="kw">await</span> test.<span class="fn">step</span>(<span class="str">'Click Reject and enter reason'</span>, <span class="kw">async</span> () =&gt; { <span class="cm">/* ... */</span> });
+  <span class="kw">await</span> test.<span class="fn">step</span>(<span class="str">'Verify status is Rejected'</span>,   <span class="kw">async</span> () =&gt; { <span class="cm">/* ... */</span> });
+});</pre>
+
+  <div class="feature-list">
+    <div class="feature-item">
+      <div class="ic"><span class="material-symbols-outlined">folder_open</span></div>
+      <div class="txt"><strong>Suites</strong>Group tests by feature area — DOC, Products, Releases, Auth.</div>
+    </div>
+    <div class="feature-item">
+      <div class="ic"><span class="material-symbols-outlined">priority_high</span></div>
+      <div class="txt"><strong>Severity</strong>Critical / Normal / Minor → drives triage priority in reports.</div>
+    </div>
+    <div class="feature-item">
+      <div class="ic"><span class="material-symbols-outlined">sell</span></div>
+      <div class="txt"><strong>Tags</strong>@smoke, @regression, @critical — also used by <code>--grep</code> filters.</div>
+    </div>
+    <div class="feature-item">
+      <div class="ic"><span class="material-symbols-outlined">list_alt</span></div>
+      <div class="txt"><strong>Steps</strong><code>test.step()</code> blocks produce a readable narrative in the report.</div>
+    </div>
+    <div class="feature-item">
+      <div class="ic"><span class="material-symbols-outlined">image</span></div>
+      <div class="txt"><strong>Screenshots & Traces</strong>Auto-captured on failure — embedded directly in the report.</div>
+    </div>
+    <div class="feature-item">
+      <div class="ic"><span class="material-symbols-outlined">sync</span></div>
+      <div class="txt"><strong>Tracker Sync</strong>Tracker parses <code>summary.json</code> and updates <code>execution_status</code> automatically.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TYPESCRIPT vs PYTHON
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Engineering Choice</div>
+  <h2 class="section-title">Why TypeScript, Not Python</h2>
+  <p class="section-desc">
+    Both Playwright Python and Playwright TypeScript exist. For a project the scale of PICASso
+    — 4,220+ scenarios, an AI-generated codebase, and a custom tracker UI — TypeScript wins on
+    every axis that matters.
+  </p>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th></th><th class="ts">TypeScript</th><th class="py">Python</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Type safety</td>
+        <td class="good">Native, strict mode, compile-time errors before run</td>
+        <td class="meh">Runtime type hints only — catches errors at test-time</td>
+      </tr>
+      <tr>
+        <td>Playwright API parity</td>
+        <td class="good">First-class — every feature ships in TS first</td>
+        <td class="meh">Port — features can lag Node API by weeks</td>
+      </tr>
+      <tr>
+        <td>Async model</td>
+        <td class="good">Native <code>async/await</code> — matches browser event loop</td>
+        <td class="meh">Requires <code>asyncio</code> ceremony; sync API exists but is slower</td>
+      </tr>
+      <tr>
+        <td>Language of web</td>
+        <td class="good">Same language as the app under test, fixtures, tools, tracker UI</td>
+        <td class="meh">Context switch between Python tests and TypeScript frontend</td>
+      </tr>
+      <tr>
+        <td>IDE refactoring</td>
+        <td class="good">Rename-across-codebase, find-all-references, safe inline</td>
+        <td class="meh">Dynamic typing limits IDE certainty on refactors</td>
+      </tr>
+      <tr>
+        <td>Locator typing</td>
+        <td class="good"><code>ReturnType&lt;typeof fn&gt;</code> derives a typed locator bag</td>
+        <td class="meh">No equivalent pattern — dicts or dataclasses</td>
+      </tr>
+      <tr>
+        <td>AI code generation</td>
+        <td class="good">Strong type signatures guide the model — fewer hallucinations</td>
+        <td class="meh">Duck typing lets the model invent method names silently</td>
+      </tr>
+      <tr>
+        <td>Allure support</td>
+        <td class="good"><code>allure-playwright</code> reporter + <code>allure-js-commons</code></td>
+        <td class="meh"><code>allure-pytest</code> works but with a different API surface</td>
+      </tr>
+      <tr>
+        <td>Tracker / tooling</td>
+        <td class="good">Single language — tracker, scripts, specs, fixtures all TS</td>
+        <td class="meh">Would require a second language for the tracker UI</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-title">
+      <span class="material-symbols-outlined">lightbulb</span> The deciding factor
+    </div>
+    <p>
+      This is an <strong>AI-generated codebase</strong>. Strong static types make the AI skill
+      dramatically more reliable — the compiler rejects invented methods, mistyped parameters,
+      and incorrect locator signatures <em>before</em> a test ever runs. Python's runtime typing
+      would push the same errors to test-time, where they manifest as flakes.
+    </p>
+    <p>
+      Additionally, the tracker UI (Express + TypeScript), the scripts (tsx), and the tests
+      share one toolchain. One install, one type system, one mental model.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     BEST PRACTICES SUMMARY
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Non-Negotiables</div>
+  <h2 class="section-title">Framework Best Practices</h2>
+  <p class="section-desc">
+    Every test generated or reviewed must pass this checklist. These rules are encoded in the
+    <strong>picasso-test-automation</strong> AI skill — and verified manually in code review.
+  </p>
+
+  <div class="stack-grid">
+    <div class="stack-card">
+      <div class="stack-icon"><span class="material-symbols-outlined">rule</span></div>
+      <h3>Strict Four-Layer Separation</h3>
+      <p>
+        Locators in <code>src/locators/</code>, actions in <code>src/pages/</code>,
+        setup in <code>src/fixtures/</code>, narrative in <code>tests/</code>.
+        Cross-layer leakage blocks PR merge.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon cyan"><span class="material-symbols-outlined">accessibility_new</span></div>
+      <h3>Semantic Locators First</h3>
+      <p>
+        <code>getByRole</code>, <code>getByLabel</code>, <code>getByText</code> — in that order.
+        CSS and XPath are banned except for OutSystems OSUI widgets where no semantic option exists.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon green"><span class="material-symbols-outlined">verified</span></div>
+      <h3>Web-First Assertions</h3>
+      <p>
+        Always <code>expect(locator).toBeVisible()</code> — never <code>locator.isVisible()</code>
+        followed by an <code>expect(bool)</code>. Web-first assertions auto-retry and respect timeouts.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon warn"><span class="material-symbols-outlined">hourglass_empty</span></div>
+      <h3>No Arbitrary Waits</h3>
+      <p>
+        <code>waitForTimeout()</code> and <code>networkidle</code> are banned for OutSystems.
+        Wait on observable DOM state: heading visible, overlay gone, control enabled.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon"><span class="material-symbols-outlined">label</span></div>
+      <h3>Allure Metadata Required</h3>
+      <p>
+        Every test has <code>suite</code>, <code>severity</code>, <code>tag</code>, and
+        <code>test.step()</code> blocks. Tests without complete metadata fail lint.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon cyan"><span class="material-symbols-outlined">do_not_disturb_on</span></div>
+      <h3>No Cross-Test Coupling</h3>
+      <p>
+        Every test is independent. Shared state flows through setup projects and storage-state files,
+        never through <code>describe.serial</code> unless explicitly designed.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon green"><span class="material-symbols-outlined">bug_report</span></div>
+      <h3>Classify Failures Correctly</h3>
+      <p>
+        An expectation mismatch is never "fixed" by weakening the assertion.
+        Genuine product defects are marked <code>test.fail()</code> and escalated —
+        the automation must reflect reality, not the bug.
+      </p>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-icon warn"><span class="material-symbols-outlined">account_tree</span></div>
+      <h3>Path Aliases Only</h3>
+      <p>
+        Imports use <code>@pages/</code>, <code>@locators/</code>, <code>@fixtures/</code>,
+        <code>@helpers/</code>. Relative paths climbing more than one level are forbidden.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align: center; padding-bottom: 0;">
+  <div class="cta-row">
+    <a href="platform.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">arrow_back</span> Platform
+    </a>
+    <a href="pitfalls.html" class="cta-link primary">
+      <span class="material-symbols-outlined">warning</span> Known Pitfalls
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  PICASso: AI Test Automation — Capabilities Deck &middot; April 2026<br/>
+  Internal use only
+</footer>
+</div>
+</body>
+</html>

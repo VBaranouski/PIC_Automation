@@ -230,6 +230,10 @@ const param = (v: string | string[] | undefined): string => Array.isArray(v) ? v
 const UI_DIR = path.resolve(__dirname, '..', 'src', 'tracker', 'ui');
 app.use('/ui', authGuard, express.static(UI_DIR));
 
+// Serve capabilities deck documentation (protected)
+const DOCS_DECK_DIR = path.resolve(__dirname, '..', 'docs', 'ai', 'tracker-capabilities-deck');
+app.use('/docs', authGuard, express.static(DOCS_DECK_DIR));
+
 // Serve allure-report static files (so the embedded Allure report works)
 const ALLURE_REPORT_DIR = path.resolve(__dirname, '..', 'allure-report');
 const ALLURE_RESULTS_DIR = path.resolve(__dirname, '..', 'allure-results');
