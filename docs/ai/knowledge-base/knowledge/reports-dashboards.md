@@ -88,4 +88,4 @@
 - **Confluence:** 440200506 (10. [NEW] Data Privacy Reports in Tableau, v10, FR Status = Finalized).
 - **User Guide:** (no dedicated UG section yet — feature is [NEW]).
 - **Exploration:** `exploration-findings.md` §Landing → Reports & Dashboards (2026-04-22).
-- **Tracker:** LANDING-HOME-020 (Access Tableau visible), WF19-0001 (Access Tableau button role-dependent), DOC-REPORTS-016 (no-access user cannot view reports).
+- **Tracker:** LANDING-HOME-020 (Access Tableau visible), REPORT-TABLEAU-ACCESS-001 (Access Tableau button role-dependent), DOC-REPORTS-016 (no-access user cannot view reports).

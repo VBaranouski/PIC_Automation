@@ -22,6 +22,8 @@
 | — | PIC-2026-RC-11.0 | releases | releases.sca.component-management | NEW | Scan-to-Component data model + Add Scan Results modal (BDBA import, manual scan, CVSS severity from BackOffice) | knowledge/product-requirements.md | RELEASE-SCA-* | pending |
 | — | PIC-2026-RC-11.0 | releases | releases.data-protection.privacy-by-design | NEW | Privacy Sections maturity, Recommendation, PCC Decision (High-risk gated), Data Extraction API update | knowledge/data-protection.md | RELEASE-DPP-* | pending |
 | — | PIC-2026-RC-11.0 | reports | reports.tableau.data-privacy | NEW | 4 Master Data reports + Top Privacy Gaps + Crown Jewels matrix with RLS drill-down (Org L1→L2→L3) | knowledge/reports-dashboards.md | REPORT-DPP-* | pending |
+| — | — | releases | releases.signoff.privacy | NEW | Privacy Reviewer workflow at SA & PQL Sign Off — N/A marking, maturity levels, evidence rating, FCSR recommendation, PCC Decision | knowledge/data-protection.md | RELEASE-DPP-PRIVACY-001–RELEASE-DPP-PRIVACY-007 | pending |
+| — | — | releases | releases.fcsr.exception | NEW | FCSR Exception path — CISO and/or SVP LOB review and approval for exception decisions | — | RELEASE-FCSR-EXCEPTION-001–RELEASE-FCSR-EXCEPTION-003 | pending |
 
 ## Rolling rules
 

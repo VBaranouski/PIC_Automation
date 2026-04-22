@@ -10,11 +10,11 @@ The **Data Protection & Privacy (DP&P) Review** is a release-level workflow that
 ## Key UI Elements
 
 ### Entry points
-- **Product Details form** → Product Related Details → `Data Protection & Privacy` toggle (WF16-0001).
+- **Product Details form** → Product Related Details → `Data Protection & Privacy` toggle (RELEASE-DPP-ACTIVATION-001).
 - **Release Detail** → `Data Protection and Privacy Review` sub-tab (confirmed in exploration-findings.md).
-- **Product Team** tab → `Dedicated Privacy Advisor` lookup field (visible only when DP&P = Yes, WF16-0005).
+- **Product Team** tab → `Dedicated Privacy Advisor` lookup field (visible only when DP&P = Yes, RELEASE-DPP-ACTIVATION-005).
 
-### Toggle confirmation dialog (WF16-0002/0004)
+### Toggle confirmation dialog (RELEASE-DPP-ACTIVATION-002/0004)
 - Saving Product with DP&P newly ON opens a confirmation: _"Please note that you toggled on 'Data Protection & Privacy' and this will activate the Data protection and privacy tasks in new release."_
 - Buttons: **OK** (persist) / **Cancel** (revert toggle to OFF).
 
@@ -80,4 +80,4 @@ Based on UG sections 3.x:
 - **Confluence:** 483816813 (Privacy by design — changes, v2, last 2025-04-07) · 457062708 (Data Privacy Updates Based on Content - Part 2) · 467663710 (Data Privacy Process changes) · 431747813 (Data Extraction API update).
 - **User Guide:** `Self-Help - PICASso - Data Protection & Privacy User Guide - Copy.md` lines 165–519 (Triggers, Stages, Review flow 3.x).
 - **Exploration:** `exploration-findings.md` §Release Detail (2026-04-22) confirms `Data Protection and Privacy Review` sub-tab.
-- **Tracker:** WF16-0001/0002/0004/0005 (DPP toggle scenarios, existing).
+- **Tracker:** RELEASE-DPP-ACTIVATION-001/0002/0004/0005 (DPP toggle scenarios, existing).
