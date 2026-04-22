@@ -881,26 +881,26 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
     });
   });
 
-  // ── WF11-0068 ─────────────────────────────────────────────────────────────
-  test.fixme('WF11-0068 — Lazy loading: additional ITS controls load as user scrolls', async ({ page, docDetailsPage }) => {
+  // ── DOC-ITS-023 ─────────────────────────────────────────────────────────────
+  test.fixme('DOC-ITS-023 — Lazy loading: additional ITS controls load as user scrolls', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('minor');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0068: When the ITS Checklist grid has more controls than the visible viewport, ' +
+      'DOC-ITS-023: When the ITS Checklist grid has more controls than the visible viewport, ' +
       'additional controls load as the user scrolls down (lazy / incremental loading). ' +
       'Deferred: requires a DOC with a large number of ITS controls to trigger incremental loading.',
     );
   });
 
-  // ── WF11-0073 ─────────────────────────────────────────────────────────────
-  test('WF11-0073 — "No ITS Controls added yet" empty state shown on Controls Scoping DOC',
+  // ── DOC-ITS-024 ─────────────────────────────────────────────────────────────
+  test('DOC-ITS-024 — "No ITS Controls added yet" empty state shown on Controls Scoping DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / DOC Detail / ITS Checklist');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0073: When no ITS controls have been added to the DOC\'s ITS Checklist, ' +
+        'DOC-ITS-024: When no ITS controls have been added to the DOC\'s ITS Checklist, ' +
         'the tab must display an empty-state message: "No ITS Controls added yet." ' +
         'Verified on DOC 800 (Controls Scoping stage with no controls added), ' +
         'falling back to any Controls Scoping DOC with no controls.',
@@ -939,14 +939,14 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       });
     });
 
-  // ── WF11-0074 ─────────────────────────────────────────────────────────────
-  test('WF11-0074 — "No active ITS Controls for this product" message in Add Control popup',
+  // ── DOC-ITS-025 ─────────────────────────────────────────────────────────────
+  test('DOC-ITS-025 — "No active ITS Controls for this product" message in Add Control popup',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / DOC Detail / ITS Checklist');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0074: When there are no active ITS controls configured for the product in BackOffice, ' +
+        'DOC-ITS-025: When there are no active ITS controls configured for the product in BackOffice, ' +
         'the Add Control popup (or the ITS Checklist itself) must display ' +
         '"No active ITS Controls for this product — refer to the BackOffice configuration." ' +
         'This is verified by opening the Add Control popup and checking for the message.',
@@ -1002,27 +1002,27 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       });
     });
 
-  // ── WF11-0081 ─────────────────────────────────────────────────────────────
-  test.fixme('WF11-0081 — Adding selected controls appends them to the ITS Checklist table',
+  // ── DOC-ITS-026 ─────────────────────────────────────────────────────────────
+  test.fixme('DOC-ITS-026 — Adding selected controls appends them to the ITS Checklist table',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / DOC Detail / ITS Checklist');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0081: Selecting controls in the Add Control popup and clicking "Add Selected" must ' +
+        'DOC-ITS-026: Selecting controls in the Add Control popup and clicking "Add Selected" must ' +
         'append those controls to the ITS Checklist table. The control count increases accordingly. ' +
         'Deferred: requires a dedicated Controls Scoping DOC to avoid mutating shared QA seed data.',
       );
     });
 
-  // ── WF11-0082 ─────────────────────────────────────────────────────────────
-  test('WF11-0082 — Previously descoped controls appear greyed out in Add Control popup',
+  // ── DOC-ITS-027 ─────────────────────────────────────────────────────────────
+  test('DOC-ITS-027 — Previously descoped controls appear greyed out in Add Control popup',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / DOC Detail / ITS Checklist');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0082: Controls that were previously descoped (unscoped) from the ITS Checklist ' +
+        'DOC-ITS-027: Controls that were previously descoped (unscoped) from the ITS Checklist ' +
         'must appear greyed out / disabled in the Add Control popup, indicating they can be re-scoped ' +
         'but are visually differentiated from never-added controls.',
       );
@@ -1080,28 +1080,28 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
       });
     });
 
-  // ── WF11-0085 ─────────────────────────────────────────────────────────────
-  test.fixme('WF11-0085 — Confirming descope removes the control from the ITS Checklist',
+  // ── DOC-ITS-028 ─────────────────────────────────────────────────────────────
+  test.fixme('DOC-ITS-028 — Confirming descope removes the control from the ITS Checklist',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / DOC Detail / ITS Checklist');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0085: After confirming the "Unscope ITS Control" popup, the descoped control ' +
+        'DOC-ITS-028: After confirming the "Unscope ITS Control" popup, the descoped control ' +
         'must be removed from the ITS Checklist table. ' +
         'Deferred: requires a dedicated Controls Scoping DOC to avoid permanently removing ' +
         'controls from shared QA seed data.',
       );
     });
 
-  // ── WF11-0087 ─────────────────────────────────────────────────────────────
-  test('WF11-0087 — User with VIEW_DOC privilege can view the ITS Checklist tab',
+  // ── DOC-ITS-029 ─────────────────────────────────────────────────────────────
+  test('DOC-ITS-029 — User with VIEW_DOC privilege can view the ITS Checklist tab',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / DOC Detail / ITS Checklist');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0087: A user with VIEW_DOC (read-only) privilege must be able to open the ' +
+        'DOC-ITS-029: A user with VIEW_DOC (read-only) privilege must be able to open the ' +
         'ITS Checklist tab and see the controls table, but must not see the Add Control button ' +
         'or Descope action links (edit operations are restricted to SCOPE_IT_SECURITY_CONTROLS).',
       );

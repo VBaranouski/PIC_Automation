@@ -86,4 +86,4 @@ Each Component belongs to **exactly one** Scan; deleting a Scan removes all its 
 - **Confluence:** 688765053 (Software Composition Details Scan & Component Management, v6).
 - **User Guide:** `Self-Help - PICASso - User Guide - Copy.md` §Product Requirements, §Software Composition Analysis.
 - **Exploration:** `exploration-findings.md` §Release Detail (2026-04-22) — confirms "Included SE Components" + "Part of SE Products" buttons on Release Detail.
-- **Jira:** WF20-0011 (tracker integrations area) — related API-level test.
+- **Jira:** INT-INGEST-API-007 (tracker integrations area) — related API-level test.

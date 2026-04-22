@@ -2,24 +2,24 @@
  * Spec 11.14a — DOC Certification Lifecycle
  *
  * Covers P1 + P2 scenarios for DOC certification stages:
- *   WF11-0147: Completing Risk Summary Review advances to Issue Certification
- *   WF11-0148: Completing Issue Certification marks DOC as Completed
- *   WF11-0149: Submit for Actions Closure button for CwE/Waiver decisions
+ *   DOC-LIFECYCLE-035: Completing Risk Summary Review advances to Issue Certification
+ *   DOC-LIFECYCLE-036: Completing Issue Certification marks DOC as Completed
+ *   DOC-LIFECYCLE-037: Submit for Actions Closure button for CwE/Waiver decisions
  *   DOC-PRIV-012: SUBMIT_DOC_ISSUE_CERTIFICATION allows submitting to Issue Cert
- *   WF11-0116: Actions Closure stage appears for CwE/Waiver decisions
- *   WF11-0120: Send for Rework shows rework indicator on pipeline
- *   WF11-0124: Approver rejection reverts to Decision Proposal
- *   WF11-0125: Provide Signature disabled after rejection
- *   WF11-0127: Risk Summary data frozen after Issue Certification
- *   WF11-0150: Submit for Actions Closure disabled until all approvals
- *   WF11-0154: Revoking Completed DOC (fixme — destructive)
+ *   DOC-CERT-028: Actions Closure stage appears for CwE/Waiver decisions
+ *   DOC-CERT-029: Send for Rework shows rework indicator on pipeline
+ *   DOC-CERT-030: Approver rejection reverts to Decision Proposal
+ *   DOC-CERT-031: Provide Signature disabled after rejection
+ *   DOC-CERT-032: Risk Summary data frozen after Issue Certification
+ *   DOC-LIFECYCLE-038: Submit for Actions Closure disabled until all approvals
+ *   DOC-LIFECYCLE-039: Revoking Completed DOC (fixme — destructive)
  *
  * Non-destructive: tests verify tab presence, button visibility, and stage state
  * without mutating DOC data. Dynamic DOC discovery used for state-specific testsection reverts to Decision Proposal
- *   WF11-0125: Provide Signature disabled after rejection
- *   WF11-0127: Risk Summary data frozen after Issue Certification
- *   WF11-0150: Submit for Actions Closure disabled until all approvals
- *   WF11-0154: Revoking Completed DOC (fixme — destructive)
+ *   DOC-CERT-031: Provide Signature disabled after rejection
+ *   DOC-CERT-032: Risk Summary data frozen after Issue Certification
+ *   DOC-LIFECYCLE-038: Submit for Actions Closure disabled until all approvals
+ *   DOC-LIFECYCLE-039: Revoking Completed DOC (fixme — destructive)
  *
  * Non-destructive: tests verify tab presence, button visibility, and stage state
  * without mutating DOC data. Dynamic DOC discovery used for state-specific tests.
@@ -41,14 +41,14 @@ const COMPLETED_DOC_URL =
 test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
   test.setTimeout(180_000);
 
-  // ── WF11-0147 ─────────────────────────────────────────────────────────────
-  test('WF11-0147 — Risk Summary Review stage completion leads to Issue Certification',
+  // ── DOC-LIFECYCLE-035 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-035 — Risk Summary Review stage completion leads to Issue Certification',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0147: Verify that a DOC that has passed Risk Summary Review shows the ' +
+        'DOC-LIFECYCLE-035: Verify that a DOC that has passed Risk Summary Review shows the ' +
         'Issue Certification stage as completed or current. Verified on DOC 538 ' +
         '(Actions Closure — past Issue Certification) and DOC 273 (Completed).',
       );
@@ -79,14 +79,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0148 ─────────────────────────────────────────────────────────────
-  test('WF11-0148 — Completed DOC shows Certification Decision with approved status',
+  // ── DOC-LIFECYCLE-036 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-036 — Completed DOC shows Certification Decision with approved status',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0148: Verify that a Completed DOC (DOC 273) shows the full certification ' +
+        'DOC-LIFECYCLE-036: Verify that a Completed DOC (DOC 273) shows the full certification ' +
         'lifecycle as completed, with the Certification Decision tab showing the approved ' +
         'decision and DOC Approvals section.',
       );
@@ -133,14 +133,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0149 ─────────────────────────────────────────────────────────────
-  test('WF11-0149 — Actions Closure DOC shows Monitor Action Closure pipeline stage',
+  // ── DOC-LIFECYCLE-037 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-037 — Actions Closure DOC shows Monitor Action Closure pipeline stage',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0149: Verify that a DOC in Actions Closure stage (DOC 538) shows ' +
+        'DOC-LIFECYCLE-037: Verify that a DOC in Actions Closure stage (DOC 538) shows ' +
         'the Monitor Action Closure (6th) pipeline stage, indicating the DOC had ' +
         'a Certified with Exception or Waiver decision that required actions closure. ' +
         'Also verifies Certification Decision tab access.',
@@ -177,14 +177,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0149 (Completed DOC without Actions Closure) ─────────────────────
-  test('WF11-0149 — Completed/Certified DOC may not show Monitor Action Closure stage',
+  // ── DOC-LIFECYCLE-037 (Completed DOC without Actions Closure) ─────────────────────
+  test('DOC-LIFECYCLE-037 — Completed/Certified DOC may not show Monitor Action Closure stage',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0149 (negative): A Completed DOC with a straight "Certified" decision ' +
+        'DOC-LIFECYCLE-037 (negative): A Completed DOC with a straight "Certified" decision ' +
         '(not CwE or Waiver) should NOT show the Monitor Action Closure (6th) pipeline stage.',
       );
 
@@ -291,14 +291,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0116 ─────────────────────────────────────────────────────────────
-  test('WF11-0116 — Actions Closure pipeline stage visible on CwE/Waiver decision DOC',
+  // ── DOC-CERT-028 ─────────────────────────────────────────────────────────────
+  test('DOC-CERT-028 — Actions Closure pipeline stage visible on CwE/Waiver decision DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0116: When the Proposed Decision is "Certified with Exception" or "Waiver", ' +
+        'DOC-CERT-028: When the Proposed Decision is "Certified with Exception" or "Waiver", ' +
         'the "Actions Closure" (Monitor Action Closure) stage must appear as the 6th stage ' +
         'in the DOC header pipeline. Verified on DOC 538 (in Actions Closure stage, ' +
         'which implies a CwE or Waiver decision was made).',
@@ -335,14 +335,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0120 ─────────────────────────────────────────────────────────────
-  test('WF11-0120 — Confirming Send for Rework shows orange rework indicator on pipeline stage',
+  // ── DOC-CERT-029 ─────────────────────────────────────────────────────────────
+  test('DOC-CERT-029 — Confirming Send for Rework shows orange rework indicator on pipeline stage',
     async ({ page, landingPage, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0120: After DOC is sent for rework, the DOC stage/status updates to ' +
+        'DOC-CERT-029: After DOC is sent for rework, the DOC stage/status updates to ' +
         '"Risk Summary Review" and the pipeline stage shows an orange "!" rework indicator ' +
         'with a tooltip showing the rework justification. ' +
         'Test discovers a DOC in "Risk Summary Review" rework state from My DOCs grid.',
@@ -406,14 +406,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0124 ─────────────────────────────────────────────────────────────
-  test('WF11-0124 — Rejected approval reverts DOC to Decision Proposal with rejection indicator',
+  // ── DOC-CERT-030 ─────────────────────────────────────────────────────────────
+  test('DOC-CERT-030 — Rejected approval reverts DOC to Decision Proposal with rejection indicator',
     async ({ page, landingPage, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0124: When an approver rejects the proposed decision, DOC status reverts to ' +
+        'DOC-CERT-030: When an approver rejects the proposed decision, DOC status reverts to ' +
         '"Decision Proposal" and an orange "!" icon with tooltip appears on the DOC Approvals section. ' +
         'Tooltip text: "The proposed certification decision has been rejected by one of the approvers." ' +
         'Test discovers a DOC in "Decision Proposal" status to check approval section.',
@@ -497,14 +497,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0125 ─────────────────────────────────────────────────────────────
-  test('WF11-0125 — Provide Signature button disabled after approver rejection',
+  // ── DOC-CERT-031 ─────────────────────────────────────────────────────────────
+  test('DOC-CERT-031 — Provide Signature button disabled after approver rejection',
     async ({ page, landingPage, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0125: After a rejection, the "Provide Signature" button is disabled for all other ' +
+        'DOC-CERT-031: After a rejection, the "Provide Signature" button is disabled for all other ' +
         'approvers. Tooltip: "The proposed certification decision has already been rejected by one ' +
         'of the approvers." Test discovers a DOC in "Certification Approval" state and verifies ' +
         'the Provide Signature button behavior.',
@@ -600,14 +600,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0127 ─────────────────────────────────────────────────────────────
-  test('WF11-0127 — Risk Summary data is not updated after DOC enters Issue Certification',
+  // ── DOC-CERT-032 ─────────────────────────────────────────────────────────────
+  test('DOC-CERT-032 — Risk Summary data is not updated after DOC enters Issue Certification',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0127: After a DOC enters the Issue Certification stage, ' +
+        'DOC-CERT-032: After a DOC enters the Issue Certification stage, ' +
         'the Risk Summary data (SDL FCSR and Data Protection) is frozen and no longer updated. ' +
         'Verified on DOC 538 (Actions Closure — past Issue Certification) and DOC 273 (Completed). ' +
         'Test verifies Risk Summary tab is accessible and shows content in read-only mode.',
@@ -650,14 +650,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       }
     });
 
-  // ── WF11-0150 ─────────────────────────────────────────────────────────────
-  test('WF11-0150 — Submit for Actions Closure disabled until all approvers have signed',
+  // ── DOC-LIFECYCLE-038 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-038 — Submit for Actions Closure disabled until all approvers have signed',
     async ({ page, landingPage, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0150: The "Submit for Actions Closure" button is disabled until all required ' +
+        'DOC-LIFECYCLE-038: The "Submit for Actions Closure" button is disabled until all required ' +
         'approvers have provided their approval signature. Tooltip shows: ' +
         '"DOC can be moved to Actions Closure when all required approvals are provided." ' +
         'Test discovers a DOC in "Certification Approval" status from My DOCs.',
@@ -755,14 +755,14 @@ test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
       });
     });
 
-  // ── WF11-0154 ─────────────────────────────────────────────────────────────
-  test.fixme('WF11-0154 — Revoking a Completed DOC changes DOC status to "Revoked"',
+  // ── DOC-LIFECYCLE-039 ─────────────────────────────────────────────────────────────
+  test.fixme('DOC-LIFECYCLE-039 — Revoking a Completed DOC changes DOC status to "Revoked"',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Certification Lifecycle');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0154: Clicking "Revoke DOC" on a Completed DOC and confirming must change ' +
+        'DOC-LIFECYCLE-039: Clicking "Revoke DOC" on a Completed DOC and confirming must change ' +
         'the DOC status to "Revoked". Deferred: requires a dedicated Completed DOC that ' +
         'can be safely revoked without impacting shared QA test data.',
       );

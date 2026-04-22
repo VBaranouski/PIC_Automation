@@ -426,13 +426,13 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
     });
   });
 
-  // ── WF11-0135 ─────────────────────────────────────────────────────────────
+  // ── DOC-HISTORY-012 ─────────────────────────────────────────────────────────────
   test('should list all expected activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.severity('minor');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0135: The Activity filter dropdown must list all 15 activity types: ' +
+      'DOC-HISTORY-012: The Activity filter dropdown must list all 15 activity types: ' +
       'Action Plan Update, Certification Decision Update, DOC Creation, Details Update, ' +
       'DOC Cancellation, DOC Completion, DOC Revocation, DOC Stage Update, DOC Status Update, ' +
       'ITS Checklist Update, Risk Assessment Update, Roles Update, Send DOC for Rework, ' +
@@ -479,13 +479,13 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
     });
   });
 
-  // ── WF11-0139 ─────────────────────────────────────────────────────────────
+  // ── DOC-HISTORY-013 ─────────────────────────────────────────────────────────────
   test('should narrow history entries when a date range is applied', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.severity('minor');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0139: Applying a date range filter must narrow the history entries to only ' +
+      'DOC-HISTORY-013: Applying a date range filter must narrow the history entries to only ' +
       'those within the specified period.',
     );
 
@@ -530,13 +530,13 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
     });
   });
 
-  // ── WF11-0140 ─────────────────────────────────────────────────────────────
+  // ── DOC-HISTORY-014 ─────────────────────────────────────────────────────────────
   test('should support per-page selector with 10/20/30/50/100 options', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.severity('minor');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0140: The DOC History pagination per-page selector must offer ' +
+      'DOC-HISTORY-014: The DOC History pagination per-page selector must offer ' +
       '10, 20, 30, 50, and 100 as options, and changing the value must adjust visible rows.',
     );
 

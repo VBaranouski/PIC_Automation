@@ -2,20 +2,20 @@
  * Spec 11.17 — DOC My Tasks
  *
  * Covers P2 scenarios for DOC lifecycle task creation and closure:
- *   WF11-0161: "Provide DOC Details" task after DOC creation
- *   WF11-0162: "Initiate DOC" task after DOC creation
- *   WF11-0163: Both tasks closed when DOC is initiated or cancelled
- *   WF11-0164: "Define controls scope for DOC" task after DOC initiation
- *   WF11-0165: "Provide control's details for ITS Risk Assessment" task after RA launch
- *   WF11-0166: "Evaluate control submitted to ITS Risk Assessment" task after first submission
- *   WF11-0167: "Review completed ITS Risk Assessment" task after submitting to Risk Summary Review
- *   WF11-0168: "Update the ITS Risk Assessment data" tasks after rework to Risk Assessment
- *   WF11-0169: Task for Digital Risk Lead after Issue Certification (Decision Proposal)
- *   WF11-0170: "Provide signature for DOC Decision" task for BU Security Officer
- *   WF11-0171: "Update DOC Decision Proposal" task after proposal update rework
- *   WF11-0172: "Update the ITS Risk Summary" task after rework to Risk Summary Review
- *   WF11-0173: Role change closes old task and creates new task for new user
- *   WF11-0178: Task assignment verified after DOC event trigger
+ *   DOC-TASKS-006: "Provide DOC Details" task after DOC creation
+ *   DOC-TASKS-007: "Initiate DOC" task after DOC creation
+ *   DOC-TASKS-008: Both tasks closed when DOC is initiated or cancelled
+ *   DOC-TASKS-009: "Define controls scope for DOC" task after DOC initiation
+ *   DOC-TASKS-010: "Provide control's details for ITS Risk Assessment" task after RA launch
+ *   DOC-TASKS-011: "Evaluate control submitted to ITS Risk Assessment" task after first submission
+ *   DOC-TASKS-012: "Review completed ITS Risk Assessment" task after submitting to Risk Summary Review
+ *   DOC-TASKS-013: "Update the ITS Risk Assessment data" tasks after rework to Risk Assessment
+ *   DOC-TASKS-014: Task for Digital Risk Lead after Issue Certification (Decision Proposal)
+ *   DOC-TASKS-015: "Provide signature for DOC Decision" task for BU Security Officer
+ *   DOC-TASKS-016: "Update DOC Decision Proposal" task after proposal update rework
+ *   DOC-TASKS-017: "Update the ITS Risk Summary" task after rework to Risk Summary Review
+ *   DOC-TASKS-018: Role change closes old task and creates new task for new user
+ *   DOC-TASKS-022: Task assignment verified after DOC event trigger
  *
  * Test strategy:
  *   - Navigate to My Tasks on the Landing page using the test user's credentials
@@ -26,7 +26,7 @@
  *     • DOC 538 / ProductId=944  — Actions Closure (past Risk Assessment, Issue Cert, etc.)
  *     • DOC 273 / ProductId=898  — Completed / Certified
  *
- * Note: WF11-0179, WF11-0180, WF11-0182, WF11-0183, WF11-0184 (email notification tests)
+ * Note: DOC-TASKS-023, DOC-TASKS-024, DOC-TASKS-026, DOC-TASKS-027, DOC-TASKS-028 (email notification tests)
  * require external email verification infrastructure and are put on-hold.
  */
 import { test, expect } from '../../src/fixtures';
@@ -54,14 +54,14 @@ const COMPLETED_DOC_URL        = '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId
 test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
   test.setTimeout(240_000);
 
-  // ── WF11-0161 ───────────────────────────────────────────────────────────────
-  test('WF11-0161 — "Provide DOC Details" task appears in My Tasks after DOC creation',
+  // ── DOC-TASKS-006 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-006 — "Provide DOC Details" task appears in My Tasks after DOC creation',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0161: After a DOC is created (pending initiation), a "Provide DOC Details" task ' +
+        'DOC-TASKS-006: After a DOC is created (pending initiation), a "Provide DOC Details" task ' +
         'appears in My Tasks for the DO Team (IT Owner, PM, PO, Security Manager). ' +
         'Test searches My Tasks for this task name and verifies it exists for at least one DOC.',
       );
@@ -103,14 +103,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0162 ───────────────────────────────────────────────────────────────
-  test('WF11-0162 — "Initiate DOC" task appears in My Tasks for DOCL after DOC creation',
+  // ── DOC-TASKS-007 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-007 — "Initiate DOC" task appears in My Tasks for DOCL after DOC creation',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0162: After a DOC is created (pending initiation), an "Initiate DOC" task appears ' +
+        'DOC-TASKS-007: After a DOC is created (pending initiation), an "Initiate DOC" task appears ' +
         'in My Tasks for the DOCL (DOC Lead). ' +
         'Test searches My Tasks for this task name.',
       );
@@ -151,14 +151,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0163 ───────────────────────────────────────────────────────────────
-  test('WF11-0163 — "Provide DOC Details" and "Initiate DOC" tasks closed when DOC is initiated',
+  // ── DOC-TASKS-008 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-008 — "Provide DOC Details" and "Initiate DOC" tasks closed when DOC is initiated',
     async ({ page, landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0163: Both "Provide DOC Details" and "Initiate DOC" tasks are closed when the DOC ' +
+        'DOC-TASKS-008: Both "Provide DOC Details" and "Initiate DOC" tasks are closed when the DOC ' +
         'is initiated (moves to Scope ITS Controls). ' +
         'Test verifies that tasks for DOC 800 (Controls Scoping — already past initiation) ' +
         'are in closed state by checking the DOC pipeline and task search results.',
@@ -215,14 +215,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0164 ───────────────────────────────────────────────────────────────
-  test('WF11-0164 — "Define controls scope for DOC" task visible for DOCL after DOC initiation',
+  // ── DOC-TASKS-009 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-009 — "Define controls scope for DOC" task visible for DOCL after DOC initiation',
     async ({ page, landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0164: After DOC is initiated (Scope ITS Controls stage), a ' +
+        'DOC-TASKS-009: After DOC is initiated (Scope ITS Controls stage), a ' +
         '"Define controls scope for DOC" task appears in My Tasks for DOCL. ' +
         'The task is closed when the DOC moves to Risk Assessment or is cancelled. ' +
         'Test verifies this task exists (open or closed) via My Tasks search.',
@@ -266,14 +266,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0165 ───────────────────────────────────────────────────────────────
-  test('WF11-0165 — "Provide control\'s details for ITS Risk Assessment" task after RA launch',
+  // ── DOC-TASKS-010 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-010 — "Provide control\'s details for ITS Risk Assessment" task after RA launch',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0165: After Risk Assessment is launched ("Start ITS Risk Assessment" clicked), ' +
+        'DOC-TASKS-010: After Risk Assessment is launched ("Start ITS Risk Assessment" clicked), ' +
         'a "Provide control\'s details for ITS Risk Assessment" task appears for the DO Team. ' +
         'Closed when DOC moves to Risk Summary Review or is cancelled.',
       );
@@ -310,14 +310,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0166 ───────────────────────────────────────────────────────────────
-  test('WF11-0166 — "Evaluate control submitted to ITS Risk Assessment" task after first submission',
+  // ── DOC-TASKS-011 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-011 — "Evaluate control submitted to ITS Risk Assessment" task after first submission',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0166: After a control is first submitted for Risk Assessment (status → Under Review), ' +
+        'DOC-TASKS-011: After a control is first submitted for Risk Assessment (status → Under Review), ' +
         'an "Evaluate control submitted to ITS Risk Assessment" task appears for DOCL.',
       );
 
@@ -353,14 +353,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0167 ───────────────────────────────────────────────────────────────
-  test('WF11-0167 — "Review completed ITS Risk Assessment" task for Digital Risk Lead',
+  // ── DOC-TASKS-012 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-012 — "Review completed ITS Risk Assessment" task for Digital Risk Lead',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0167: After DOC is submitted to Risk Summary Review, a ' +
+        'DOC-TASKS-012: After DOC is submitted to Risk Summary Review, a ' +
         '"Review completed ITS Risk Assessment" task appears for Digital Risk Lead. ' +
         'Closed on moving to Issue Certification, rework, or cancellation.',
       );
@@ -397,14 +397,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0168 ───────────────────────────────────────────────────────────────
-  test('WF11-0168 — "Update the ITS Risk Assessment data" tasks appear after rework to Risk Assessment',
+  // ── DOC-TASKS-013 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-013 — "Update the ITS Risk Assessment data" tasks appear after rework to Risk Assessment',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0168: After DOC is returned for rework to Risk Assessment, ' +
+        'DOC-TASKS-013: After DOC is returned for rework to Risk Assessment, ' +
         '"Update the ITS Risk Assessment data" tasks appear for DO Team and DOCL. ' +
         'Closed on moving to Risk Summary Review or cancellation.',
       );
@@ -441,14 +441,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0169 ───────────────────────────────────────────────────────────────
-  test('WF11-0169 — Issue Certification task created for Digital Risk Lead after DOC stage change',
+  // ── DOC-TASKS-014 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-014 — Issue Certification task created for Digital Risk Lead after DOC stage change',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0169: After DOC moves to Issue Certification (Decision Proposal status), ' +
+        'DOC-TASKS-014: After DOC moves to Issue Certification (Decision Proposal status), ' +
         'a task is created for Digital Risk Lead. ' +
         'Closed on move to Certification Approval, rework to Risk Summary Review, or cancellation.',
       );
@@ -485,14 +485,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0170 ───────────────────────────────────────────────────────────────
-  test('WF11-0170 — "Provide signature for DOC Decision" task appears for BU Security Officer',
+  // ── DOC-TASKS-015 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-015 — "Provide signature for DOC Decision" task appears for BU Security Officer',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0170: After DOC moves to Certification Approval (Certified decision), ' +
+        'DOC-TASKS-015: After DOC moves to Certification Approval (Certified decision), ' +
         'a "Provide signature for DOC Decision" task appears for BU Security Officer. ' +
         'Closed on DOC completion, proposal update, or revocation.',
       );
@@ -529,14 +529,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0171 ───────────────────────────────────────────────────────────────
-  test('WF11-0171 — "Update DOC Decision Proposal" task for Digital Risk Lead after proposal update rework',
+  // ── DOC-TASKS-016 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-016 — "Update DOC Decision Proposal" task for Digital Risk Lead after proposal update rework',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0171: After DOC is returned for proposal update (Decision Proposal status), ' +
+        'DOC-TASKS-016: After DOC is returned for proposal update (Decision Proposal status), ' +
         'an "Update DOC Decision Proposal" task appears for Digital Risk Lead. ' +
         'Closed on move to Certification Approval, rework, or cancellation.',
       );
@@ -573,14 +573,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0172 ───────────────────────────────────────────────────────────────
-  test('WF11-0172 — "Update the ITS Risk Summary" task for Digital Risk Lead after rework',
+  // ── DOC-TASKS-017 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-017 — "Update the ITS Risk Summary" task for Digital Risk Lead after rework',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0172: After DOC is returned to Risk Summary Review (rework), ' +
+        'DOC-TASKS-017: After DOC is returned to Risk Summary Review (rework), ' +
         'an "Update the ITS Risk Summary" task appears for Digital Risk Lead. ' +
         'Closed on move to Issue Certification, rework to Risk Assessment, or cancellation.',
       );
@@ -617,14 +617,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0173 ───────────────────────────────────────────────────────────────
-  test('WF11-0173 — Role change closes old task and creates new task for new user',
+  // ── DOC-TASKS-018 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-018 — Role change closes old task and creates new task for new user',
     async ({ page, landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0173: When a role is changed (Product Owner or PM updated on Product Details), ' +
+        'DOC-TASKS-018: When a role is changed (Product Owner or PM updated on Product Details), ' +
         'the task for the previous user is closed and a new task is created for the new user. ' +
         'Test verifies the My Tasks grid shows the task for the current test user (new role holder), ' +
         'confirming dynamic task reassignment.',
@@ -664,14 +664,14 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
       });
     });
 
-  // ── WF11-0178 ───────────────────────────────────────────────────────────────
-  test('WF11-0178 — Task assignment after DOC event trigger: My Tasks grid is accessible',
+  // ── DOC-TASKS-022 ───────────────────────────────────────────────────────────────
+  test('DOC-TASKS-022 — Task assignment after DOC event trigger: My Tasks grid is accessible',
     async ({ landingPage }) => {
       await allure.suite('DOC / My Tasks');
       await allure.severity('major');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0178: Verify task assignment after a DOC event trigger (auto-created or manual). ' +
+        'DOC-TASKS-022: Verify task assignment after a DOC event trigger (auto-created or manual). ' +
         'Test verifies the My Tasks grid loads correctly and tasks have the expected columns: ' +
         'Task Name, Product, Release (if applicable), Due Date, Status/Priority.',
       );

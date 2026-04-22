@@ -575,7 +575,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
   });
 
-  // ── WF11-0098 ─────────────────────────────────────────────────────────────
+  // ── DOC-CONTROL-020 ─────────────────────────────────────────────────────────────
   test('should remove Descope button and show justification tooltip after descoping', async ({
     page, docDetailsPage, controlDetailPage,
   }) => {
@@ -583,7 +583,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0098: After descoping from Control Detail, the Descope button must be removed ' +
+      'DOC-CONTROL-020: After descoping from Control Detail, the Descope button must be removed ' +
       'and a tooltip icon must appear next to the Control ID showing the justification.',
     );
 

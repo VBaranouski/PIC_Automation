@@ -180,7 +180,7 @@ test.describe('Authentication - Login @smoke', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // WF01-0003: Login via SSO with a valid identity → OUT OF AUTOMATION SCOPE
+  // AUTH-LOGIN-005: Login via SSO with a valid identity → OUT OF AUTOMATION SCOPE
   // Clicking Login SSO redirects to the external Ping identity provider
   // (ping-sso-uat.schneider-electric.com). Completing the flow requires live
   // Ping credentials that are not available in the automated test environment.

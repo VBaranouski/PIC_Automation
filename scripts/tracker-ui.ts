@@ -2114,27 +2114,51 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-seedAdminIfNone()
-  .then(() => {
-    app.listen(PORT, () => {
+// Under tsx + Node ≥ 25 the event loop can drain before the HTTP server's
+// TCP handle is fully registered, causing the process to exit 0 immediately.
+// A keepalive interval ensures the event loop stays active until the server
+// is up, at which point the TCP listener keeps it alive on its own.
+const _keepAlive = setInterval(() => {/* keepalive for tsx + Node 25+ */}, 30_000);
+
+let server: ReturnType<typeof app.listen> | undefined;
+
+(async () => {
+  try {
+    await seedAdminIfNone();
+    server = app.listen(PORT, () => {
       console.log(`\n  🧪 Tracker UI running at  http://localhost:${PORT}`);
       console.log(`     API base:              http://localhost:${PORT}/api`);
       console.log(`     Auth:                  http://localhost:${PORT}/auth/login`);
       console.log(`     Database:              ${getDbPath()}\n`);
     });
-  })
-  .catch((err: Error) => {
-    console.error('[Tracker Auth] Startup failed:', err.message);
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`\n  ❌ Port ${PORT} is already in use.`);
+        console.error(`     Run: lsof -i :${PORT} | grep LISTEN   to find the process, then kill it.\n`);
+      } else {
+        console.error('[Tracker Server] Error:', err.message);
+      }
+      clearInterval(_keepAlive);
+      process.exit(1);
+    });
+  } catch (err) {
+    console.error('[Tracker Auth] Startup failed:', (err as Error).message);
+    clearInterval(_keepAlive);
     process.exit(1);
-  });
+  }
+})();
 
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\nShutting down…');
+  clearInterval(_keepAlive);
+  server?.close();
   closeDb();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
+  clearInterval(_keepAlive);
+  server?.close();
   closeDb();
   process.exit(0);
 });
