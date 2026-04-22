@@ -1592,5 +1592,15 @@
       }
     ]
   },
-  "confluenceLastIndexed": "2026-04-22T05:08:55.157Z"
+  "confluenceLastIndexed": "2026-04-22T05:08:55.157Z",
+  "jiraStories": {
+    "jql": "project = PIC AND issuetype = Story AND status NOT IN (\"On-hold\", \"Rejected\") ORDER BY updated DESC",
+    "count": 896,
+    "lastIndexed": "2026-04-22T05:15:47.906Z"
+  },
+  "jiraTests": {
+    "jql": "project = PIC AND issuetype = Test ORDER BY updated DESC",
+    "count": 4251,
+    "lastIndexed": "2026-04-22T05:16:41.733Z"
+  }
 }
