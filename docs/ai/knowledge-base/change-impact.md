@@ -24,6 +24,17 @@
 | — | PIC-2026-RC-11.0 | reports | reports.tableau.data-privacy | NEW | 4 Master Data reports + Top Privacy Gaps + Crown Jewels matrix with RLS drill-down (Org L1→L2→L3) | knowledge/reports-dashboards.md | REPORT-DPP-* | pending |
 | — | — | releases | releases.signoff.privacy | NEW | Privacy Reviewer workflow at SA & PQL Sign Off — N/A marking, maturity levels, evidence rating, FCSR recommendation, PCC Decision | knowledge/data-protection.md | RELEASE-DPP-PRIVACY-001–RELEASE-DPP-PRIVACY-007 | pending |
 | — | — | releases | releases.fcsr.exception | NEW | FCSR Exception path — CISO and/or SVP LOB review and approval for exception decisions | — | RELEASE-FCSR-EXCEPTION-001–RELEASE-FCSR-EXCEPTION-003 | pending |
+| — | — | integrations | integrations.data-extraction | NEW | Data Extraction API — 17 scenarios with steps, 5 new gap-filling scenarios | knowledge/data-protection.md | INT-EXTRACT-* | done |
+| — | — | integrations | integrations.data-ingestion | NEW | Data Ingestion API — 22 scenarios with steps, 3 new gap-filling scenarios | — | INT-INGEST-* | done |
+| — | — | integrations | integrations.intel-ds | NEW | Intel DS / Informatica training completion — 26 scenarios with steps, 4 new gap-filling scenarios | — | INT-INTELDS-* | done |
+| — | — | other | other.email-notifications | NEW | Email Notifications & Task Triggers — 29 new scenarios covering 17 UG email types + tasks | — | NOTIF-* | done |
+| — | — | other | other.maintenance-mode | NEW | Maintenance Mode — 24 scenarios with steps, 3 new gap-filling scenarios | — | MAINTENANCE-* | done |
+| — | — | reports | reports.tableau | NEW | Reports & Dashboards — 28 scenarios with steps, 3 new gap-filling scenarios | knowledge/reports-dashboards.md | REPORT-TABLEAU-* | done |
+| — | — | backoffice | backoffice.requirements-versioning | NEW | Requirements Versioning BackOffice — 32 scenarios with steps, 2 new gap-filling scenarios | — | BACKOFFICE-VERSION-* | done |
+| — | — | releases | releases.data-protection | IMPROVEMENT | DPP Review — 54 scenarios with steps, 5 new gap-filling scenarios | knowledge/data-protection.md | RELEASE-DPP-* | done |
+| — | — | releases | releases.details.history | IMPROVEMENT | Release History — 22 scenarios with steps, 2 new role-based scenarios | — | RELEASE-HISTORY-* | done |
+| — | — | releases | releases.stage-sidebar | IMPROVEMENT | Stage Sidebar — 19 scenarios with steps, 3 new gap-filling scenarios | — | STAGE-SIDEBAR-* | done |
+| — | — | integrations | — | REMOVAL | Deleted `user-guides/Picasso API Doc.md` (534-line API & CI/CD design doc); superseded by `user-guides/PICASso Data Extraction API.md` and the Data Ingestion API knowledge files added in PR #10 | knowledge/data-ingestion-api.md | — | done |
 
 ## Rolling rules
 

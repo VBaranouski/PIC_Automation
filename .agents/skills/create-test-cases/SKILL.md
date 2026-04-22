@@ -341,6 +341,85 @@ Every test case must pass ALL 13 checks before moving to automation:
 
 > **BLOCKING:** Checks 11–13 are non-negotiable gates. If any fail, do NOT report the task as complete.
 
+### Step 9: Mandatory Tracker DB Update (EXECUTE — Do Not Skip)
+
+> **This step is part of the skill, not an afterthought. You MUST execute these commands yourself — do not just print them for the user to run.**
+
+After the spec file is written and all review gate checks pass, execute the following sequence:
+
+#### 9a. Insert every new scenario into the tracker DB
+
+For each new scenario minted in Step 4, run:
+
+```bash
+npx tsx scripts/tracker.ts add \
+  -i <ID> \
+  -t "<title>" \
+  -p <priority> \
+  -a <area> \
+  -w "<workflow>" \
+  --subsection "<subsection>"
+```
+
+**Rules:**
+- `--subsection` is mandatory. Never insert a scenario without it.
+- Use the subsection values assigned in Step 6a.
+- Insert scenarios in ID order (sequential within each prefix).
+
+#### 9b. Backfill steps from the spec file
+
+```bash
+npx tsx scripts/backfill-scenario-details-from-specs.ts --write
+```
+
+This parses every `| Step | Action | Expected Result |` table in the spec and writes it to `scenario_details`.
+
+#### 9c. Backfill subsections for all newly inserted scenarios
+
+Verify subsections are populated for every scenario you inserted:
+
+```bash
+sqlite3 config/scenarios.db "
+SELECT id FROM scenarios
+WHERE workflow = '<workflow>'
+  AND (subsection IS NULL OR subsection = '')
+ORDER BY id
+"
+```
+
+If any rows return, fix them:
+
+```bash
+sqlite3 config/scenarios.db \
+  "UPDATE scenarios SET subsection = '<subsection>' WHERE id IN ('<ID1>', '<ID2>')"
+```
+
+#### 9d. Run the mandatory audit queries — ALL must return 0 rows
+
+```bash
+# 1. Missing steps
+sqlite3 config/scenarios.db "
+SELECT s.id FROM scenarios s
+LEFT JOIN scenario_details sd ON s.id = sd.scenario_id
+WHERE s.workflow = '<workflow>'
+  AND (sd.steps IS NULL OR sd.steps = '' OR sd.steps = '[]')
+"
+
+# 2. Missing subsections
+sqlite3 config/scenarios.db "
+SELECT id FROM scenarios
+WHERE workflow = '<workflow>'
+  AND (subsection IS NULL OR subsection = '')
+"
+
+# 3. Legacy ID format
+sqlite3 config/scenarios.db "
+SELECT id FROM scenarios WHERE id GLOB 'WF*' AND workflow = '<workflow>'
+"
+```
+
+If any query returns rows, **fix before reporting done**. The skill is not complete until all three return 0 rows.
+
 ## Output Format
 
 The skill produces a structured markdown document with:
@@ -351,7 +430,7 @@ The skill produces a structured markdown document with:
 4. **Test Case Specifications** — detailed step tables for ALL scenarios (existing + new) grouped by subsection (Steps 4d + 7)
 5. **Subsection Assignment Map** — which scenarios belong to which subsection (Step 6)
 6. **Review Gate Checklist** — all 10 checks marked (Step 8)
-7. **Tracker Actions** — CLI commands to import new scenarios + remove duplicates (Step 6)
+7. **DB Update Confirmation** — confirmation that all new scenarios were inserted, steps backfilled, and 3 audit queries returned 0 rows (Step 9)
 8. **Summary** — total counts (existing + new), priority breakdown, zero-regression assessment
 
 Save to: `specs/<area>-<workflow-slug>-test-cases.md`
@@ -360,7 +439,7 @@ Save to: `specs/<area>-<workflow-slug>-test-cases.md`
 
 When the test cases are approved:
 
-1. **Verify tracker state:** Run the Step 6c audit query to confirm every scenario has steps + expected results + subsection assigned.
+1. **Tracker DB already updated:** Step 9 was executed as part of this skill — all new scenarios have IDs, titles, priorities, subsections, steps, and expected results in the DB.
 2. **Export for review (optional):** Use the `tracker-scenario-import-export` skill to export to xlsx for stakeholder review.
 3. **Automate:** Use the `create-auto-tests` skill to convert test case specs into Playwright code.
 4. **Update registry:** Add any new feature IDs or prefixes to `docs/ai/knowledge-base/feature-registry/<area>.md`.

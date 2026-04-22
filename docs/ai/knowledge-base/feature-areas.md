@@ -23,4 +23,5 @@
 - `doc`, `digital offer`, `certification`, `its control`, `control detail` → **doc**
 - `report`, `dashboard`, `tableau`                 → **reports**
 - `admin`, `backoffice`, `role`, `delegation`, `privilege` → **backoffice**
-- `jira`, `jama`, `azure devops`, `integration`, `webhook` → **integrations**
+- `jira`, `jama`, `azure devops`, `integration`, `webhook`, `data extraction`, `data ingestion`, `intel ds`, `informatica` → **integrations**
+- `email`, `notification`, `task trigger`, `maintenance`, `banner` → **other**
