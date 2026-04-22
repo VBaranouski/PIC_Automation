@@ -1,6 +1,6 @@
 # WF 18. Maintenance Mode — Test Case Specifications
 
-> **Generated:** 2026-04-22 · **Feature Area:** `backoffice` · **Workflow:** Maintenance Mode
+> **Generated:** 2026-04-22 · **Feature Area:** `other` · **Workflow:** Maintenance Mode
 > **Skill:** `create-test-cases` v2
 
 ---

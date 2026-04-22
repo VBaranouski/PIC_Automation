@@ -34,6 +34,7 @@
 | — | — | releases | releases.data-protection | IMPROVEMENT | DPP Review — 54 scenarios with steps, 5 new gap-filling scenarios | knowledge/data-protection.md | RELEASE-DPP-* | done |
 | — | — | releases | releases.details.history | IMPROVEMENT | Release History — 22 scenarios with steps, 2 new role-based scenarios | — | RELEASE-HISTORY-* | done |
 | — | — | releases | releases.stage-sidebar | IMPROVEMENT | Stage Sidebar — 19 scenarios with steps, 3 new gap-filling scenarios | — | STAGE-SIDEBAR-* | done |
+| — | — | integrations | — | REMOVAL | Deleted `user-guides/Picasso API Doc.md` (534-line API & CI/CD design doc); superseded by `user-guides/PICASso Data Extraction API.md` and the Data Ingestion API knowledge files added in PR #10 | knowledge/data-ingestion-api.md | — | done |
 
 ## Rolling rules
 
