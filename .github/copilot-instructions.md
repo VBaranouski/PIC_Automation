@@ -42,6 +42,7 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 - `.github/instructions/outsystems-picasso.instructions.md` ← PICASso/OutSystems-specific patterns (select vs OSUI, user lookup, partial refresh, timeouts)
 - `.github/instructions/typescript.instructions.md` ← TypeScript conventions, class order, type safety, import aliases
 - `.github/instructions/testing-patterns.instructions.md` ← Four-layer architecture, locator priority, web-first assertions, fixtures, Allure metadata
+- `.github/instructions/test-case-design.instructions.md` ← Agent-compatible test case language, measurable assertions, exploratory testing, zero-regression coverage strategy
 - `.github/instructions/quality-checklist.instructions.md` ← Pre-commit checklist, common pitfalls, flaky-test prevention
 - `.github/instructions/picasso-roles-and-access.md` ← Role codes, privilege names, and access-based test scenarios (78 roles, 157 privileges)
 
