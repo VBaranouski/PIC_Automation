@@ -29,21 +29,25 @@
 | **State Transitions** | ⚠️ Partial | Show Active Only toggle tested; but no tab-switch-while-loading test |
 | **Data Integrity** | ⚠️ Partial | Read-back after filter; but no cross-tab data consistency |
 
-### Duplicate / Overlapping Scenarios to Consolidate
+### Duplicate / Overlapping Scenarios — Removed
 
-| Existing (automated) | Pending (duplicate) | Action |
+The following duplicates were **deleted** from the tracker DB (not on-hold — fully removed):
+
+| Existing (automated) | Deleted Duplicate | Reason |
 |---|---|---|
-| `LANDING-TASKS-REL-001` (Release filter) | `WF02-0015` (Release filter narrows task list) | Mark WF02-0015 as duplicate → on-hold |
-| `LANDING-TASKS-PROD-001` (Product filter) | `WF02-0016` (Product filter narrows task list) | Mark WF02-0016 as duplicate → on-hold |
-| `LANDING-TASKS-DATE-001` (Date range visible) | `WF02-0017` (Date range filters results) | Different: 001 is visibility, 0017 is functional → keep both |
-| `LANDING-TASKS-ASSIGNEE-001` (Assignee visible) | `WF02-0018` (Assignee changes list) | Different: 001 is visibility, 0018 is functional → keep both |
-| `LANDING-TASKS-TYPE-001` (PROCESS TYPE values) | `WF02-0008` (PROCESS TYPE correct values) | Duplicate → mark WF02-0008 as on-hold |
-| `LANDING-PRODS-ORG2-001` (Org Level 2 filter) | `WF02-0031` (Org Level 2 cascades) | Duplicate → mark WF02-0031 as on-hold |
-| `LANDING-PRODS-DOCLEAD-001` (DOC Lead filter) | `WF02-0032` (DOC Lead narrows) | Duplicate → mark WF02-0032 as on-hold |
-| `LANDING-PRODS-OWNER-001` (Product Owner filter) | `WF02-0033` (Product Owner narrows) | Duplicate → mark WF02-0033 as on-hold |
-| `LANDING-RELS-JIRA-001` (Jira link clickable) | `WF02-0047` (Jira link clickable) | Duplicate → mark WF02-0047 as on-hold |
-| `LANDING-RELS-ACTIONS-002` (Clone option) | `WF02-0048` (Actions menu Clone) | Overlapping → mark WF02-0048 as on-hold |
-| `LANDING-HEADER-005` (logo nav existing) | `LANDING-HEADER-005` (pending, same ID) | Already has test code; fix tracker status |
+| `LANDING-TASKS-REL-001` (Release filter) | `WF02-0015` | Same filter test |
+| `LANDING-TASKS-PROD-001` (Product filter) | `WF02-0016` | Same filter test |
+| `LANDING-TASKS-TYPE-001` (PROCESS TYPE values) | `WF02-0008` | Same column validation |
+| `LANDING-PRODS-ORG2-001` (Org Level 2 filter) | `WF02-0031` | Same cascading filter |
+| `LANDING-PRODS-DOCLEAD-001` (DOC Lead filter) | `WF02-0032` | Same filter test |
+| `LANDING-PRODS-OWNER-001` (Product Owner filter) | `WF02-0033` | Same filter test |
+| `LANDING-RELS-JIRA-001` (Jira link clickable) | `WF02-0047` | Same Jira link test |
+| `LANDING-RELS-ACTIONS-002` (Clone option) | `WF02-0048` | Same actions menu test |
+| `LANDING-RELS-PROD-001` (Product filter) | `WF02-0042` | Same filter test |
+
+**Kept as distinct (not duplicates):**
+- `LANDING-TASKS-DATE-001` (visibility) vs `WF02-0017` (functional filter) → different scope
+- `LANDING-TASKS-ASSIGNEE-001` (visibility) vs `WF02-0018` (functional filter) → different scope
 
 ### Net New Scenarios to Create
 
@@ -264,27 +268,6 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ### WF 2.4 — My Releases Tab
 
----
-
-#### `WF02-0042` — Product Filter Narrows My Releases Grid
-
-**Preconditions:** Logged in as `process_quality_leader`. My Releases tab active with data rows.
-
-| Step | Action | Expected Result |
-|------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My Releases` tab | Verify the `My Releases` tab is active |
-| 2 | Verify the grid has data rows | Verify at least 1 row is visible |
-| 3 | Record the initial record count | Confirm the count is greater than 0 |
-| 4 | Click the `Product` combobox (2nd combobox in My Releases filters) and Select the first available option | Verify the selected product name appears in the combobox |
-| 5 | Verify the grid updated | Verify the grid is visible; verify the record count is less than or equal to the initial count |
-| 6 | Click the `Reset` button | Verify the combobox is cleared; verify the record count is restored |
-
-**Coverage dimension:** Happy Path + Data Integrity
-
-**Note:** `LANDING-RELS-PROD-001` already exists and automates this exact flow. Check if this is a true duplicate of WF02-0042 → if yes, mark WF02-0042 as on-hold.
-
----
-
 #### `WF02-0043` — Target Release Date Range Filter Applies Correctly
 
 **Preconditions:** Logged in as `process_quality_leader`. My Releases tab active with data rows.
@@ -394,22 +377,15 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-## Deduplication Actions for Tracker
+## Deduplication Actions — Completed
 
-Run after test cases are approved:
+The following 9 duplicates were **deleted** from the tracker DB:
 
-```bash
-# Mark duplicates as on-hold (already covered by LANDING-* automated scenarios)
-npx tsx scripts/tracker.ts auto-state WF02-0015 on-hold   # dup of LANDING-TASKS-REL-001
-npx tsx scripts/tracker.ts auto-state WF02-0016 on-hold   # dup of LANDING-TASKS-PROD-001
-npx tsx scripts/tracker.ts auto-state WF02-0008 on-hold   # dup of LANDING-TASKS-TYPE-001
-npx tsx scripts/tracker.ts auto-state WF02-0031 on-hold   # dup of LANDING-PRODS-ORG2-001
-npx tsx scripts/tracker.ts auto-state WF02-0032 on-hold   # dup of LANDING-PRODS-DOCLEAD-001
-npx tsx scripts/tracker.ts auto-state WF02-0033 on-hold   # dup of LANDING-PRODS-OWNER-001
-npx tsx scripts/tracker.ts auto-state WF02-0047 on-hold   # dup of LANDING-RELS-JIRA-001
-npx tsx scripts/tracker.ts auto-state WF02-0048 on-hold   # dup of LANDING-RELS-ACTIONS-002
-npx tsx scripts/tracker.ts auto-state WF02-0042 on-hold   # dup of LANDING-RELS-PROD-001
 ```
+WF02-0008, WF02-0015, WF02-0016, WF02-0031, WF02-0032, WF02-0033, WF02-0042, WF02-0047, WF02-0048
+```
+
+All removed via `npx tsx scripts/tracker.ts remove <ID>`. No on-hold — clean deletion.
 
 ---
 

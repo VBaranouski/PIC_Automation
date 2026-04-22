@@ -1,5 +1,5 @@
 ---
-name: picasso-test-automation
+name: create-auto-tests
 description: End-to-end Playwright test automation workflow for any PICASso feature area — DOC lifecycle, products, releases, landing, auth, reports, backoffice, integrations. Use whenever the user asks to create, fix, extend, or batch-automate test scenarios from the tracker DB. Also triggers for fixing test failures, updating locators after OutSystems UI changes, running headed browser validation, or updating the tracker. Covers the full 8-step process: branch → tracker query → test scripting → headed browser validation → locator fixes → headless run → tracker update → commit. Applies to any scenario ID pattern (WF*-*, DOC-PRIV-*, PRODUCT-*, RELEASE-*, AUTH-*, LANDING-*, etc.).
 ---
 

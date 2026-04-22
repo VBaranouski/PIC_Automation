@@ -1,11 +1,11 @@
 ---
-name: test-case-design
-description: "Design agent-compatible test cases for PICASso feature areas with zero-regression coverage guarantees. Use this skill whenever the user asks to create, write, refactor, review, or improve test cases, test scenarios, or test specifications — BEFORE any Playwright code is written. Also triggers for: 'write test cases for X', 'design tests for this feature', 'what tests do we need for X', 'refactor test cases', 'review test coverage for X', 'coverage gap analysis', 'are we testing everything', 'zero regression', or when the user mentions a feature area and wants test case specs rather than code. This skill produces structured test case documents that feed directly into the picasso-test-automation skill for implementation."
+name: create-test-cases
+description: "Design agent-compatible test cases for PICASso feature areas with zero-regression coverage guarantees. Use this skill whenever the user asks to create, write, refactor, review, or improve test cases, test scenarios, or test specifications — BEFORE any Playwright code is written. Also triggers for: 'write test cases for X', 'design tests for this feature', 'what tests do we need for X', 'refactor test cases', 'review test coverage for X', 'coverage gap analysis', 'are we testing everything', 'zero regression', or when the user mentions a feature area and wants test case specs rather than code. This skill produces structured test case documents that feed directly into the create-auto-tests skill for implementation."
 ---
 
 # Test Case Design for PICASso Automation
 
-Structured workflow for designing high-quality, agent-compatible test cases that guarantee zero-regression coverage when automated. This skill produces the test case specifications — the *what to test* — that the `picasso-test-automation` skill then implements as Playwright TypeScript code.
+Structured workflow for designing high-quality, agent-compatible test cases that guarantee zero-regression coverage when automated. This skill produces the test case specifications — the *what to test* — that the `create-auto-tests` skill then implements as Playwright TypeScript code.
 
 ## When to Use
 
@@ -16,7 +16,7 @@ Structured workflow for designing high-quality, agent-compatible test cases that
 - Creating test case specifications from tracker scenarios
 - Answering "what tests do we need?" or "is this feature fully covered?"
 
-**This skill is the STEP BEFORE `picasso-test-automation`.** It produces the test case specs; that skill produces the code.
+**This skill is the STEP BEFORE `create-auto-tests`.** It produces the test case specs; that skill produces the code.
 
 ## Prerequisites
 
@@ -61,6 +61,14 @@ Classify each existing scenario:
 - **pending** → candidate for design in this session
 - **on-hold** → check if still valid or if it was a duplicate
 
+**Read existing test case details** for every scenario in the area — both automated and pending:
+
+```bash
+npx tsx scripts/tracker.ts show <SCENARIO-ID>
+```
+
+Check whether each scenario already has `steps` and `expected_results` in the `scenario_details` table. If a scenario is automated but missing details, backfill them from the spec file code. If a pending scenario has vague or incomplete steps, refactor them to meet the quality rules in Step 5.
+
 ### Step 3: Run Coverage Gap Analysis
 
 Apply the **Five Coverage Dimensions** (from `test-case-design.instructions.md` §4.1):
@@ -91,8 +99,8 @@ Cross-reference pending tracker scenarios against automated ones. Common pattern
 - Same feature described with different wording
 
 For each duplicate pair, decide:
-- **True duplicate** → mark the pending one `on-hold` with note
-- **Overlapping but different** → keep both, clarify the distinction
+- **True duplicate** → **remove** the duplicate from the tracker (`npx tsx scripts/tracker.ts remove <ID>`). Do not put on-hold — delete it cleanly.
+- **Overlapping but different** → keep both, clarify the distinction in the title/description
 - **Visibility + Functional** → keep both (visibility = P2 smoke, functional = P2 regression)
 
 ### Step 5: Write Test Case Specifications
@@ -201,7 +209,7 @@ The skill produces a structured markdown document with:
 2. **Deduplication Table** — existing vs. pending overlaps + actions
 3. **Test Case Specifications** — detailed step tables for each scenario
 4. **Review Gate Checklist** — all 10 checks marked
-5. **Tracker Actions** — CLI commands to import new scenarios + mark duplicates
+5. **Tracker Actions** — CLI commands to import new scenarios + remove duplicates
 6. **Summary** — counts, priority breakdown, zero-regression assessment
 
 Save to: `specs/<area>-test-cases.md`
@@ -210,8 +218,8 @@ Save to: `specs/<area>-test-cases.md`
 
 When the test cases are approved:
 
-1. **Import into tracker:** Use the `tracker-scenario-import-export` skill to create an xlsx and import
-2. **Automate:** Use the `picasso-test-automation` skill to convert test case specs into Playwright code
+1. **Import into tracker:** Use the `tracker-scenario-import-export` skill to create an xlsx and import. Ensure every imported scenario has both `steps` and `expected_results` populated — verify with an audit query after import.
+2. **Automate:** Use the `create-auto-tests` skill to convert test case specs into Playwright code
 3. **Update registry:** Add any new feature IDs to `docs/ai/knowledge-base/feature-registry/<area>.md`
 
 ## Tips for High-Quality Test Cases

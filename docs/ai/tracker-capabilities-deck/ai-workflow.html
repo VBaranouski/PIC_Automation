@@ -392,7 +392,7 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); l
     <div class="loop-arrow">→</div>
     <div class="loop-box cyan">Execute<span class="loop-sub">headed run</span></div>
     <div class="loop-arrow">→</div>
-    <div class="loop-box cyan">MCP Check<span class="loop-sub">validate DOM</span></div>
+    <div class="loop-box cyan">Browser Validation<span class="loop-sub">via Playwright MCP</span></div>
     <div class="loop-arrow return">⟲</div>
     <div class="loop-box primary">Fix<span class="loop-sub">locators/logic</span></div>
     <div class="loop-arrow">→</div>
@@ -409,7 +409,7 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); l
   <div class="section-label">Phase 1 — Step-by-Step</div>
   <h2 class="section-title">How Every Scenario Gets Automated</h2>
   <p class="section-desc">
-    The 8-step process, powered by the <code style="font-family:'SF Mono',monospace;font-size:0.82rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;color:var(--tertiary);">picasso-test-automation</code> AI skill.
+    The 8-step process, powered by the <code style="font-family:'SF Mono',monospace;font-size:0.82rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;color:var(--tertiary);">create-auto-tests</code> AI skill.
   </p>
 
   <div class="pipeline">
@@ -422,19 +422,13 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); l
       </div>
       <div class="pipe-content">
         <span class="pipe-tag ai">AI + System</span>
-        <h3>Scenario Ingestion & Migration</h3>
+        <h3>Scenario Ingestion</h3>
         <p>
-          Manual test cases from Xray/Jira are exported and fed to the AI. The AI analyzes each case,
-          identifies outdated or untestable steps (e.g. "verify the page looks correct"), and rewrites them
-          as structured, automation-ready scenarios with precise assertions and DOM-aware steps.
+          Verified test cases are ready to be imported into the tracker tool — either via AI analysis
+          or through the Import feature built into the tracker UI. The AI analyzes each case,
+          identifies steps and expected results, and writes them as structured, automation-ready
+          scenarios with precise assertions and DOM-aware steps.
         </p>
-        <div class="pipe-detail">
-          <strong>What happens:</strong> AI reads the manual case → identifies outdated flow references →
-          rewrites steps with specific locator strategies and expected values →
-          assigns priority, workflow, and feature area →
-          imports into tracker via XLSX or direct API.
-          Result: scenario appears in tracker with state <code>pending</code>.
-        </div>
       </div>
     </div>
 
@@ -470,7 +464,7 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); l
         <span class="pipe-tag ai">AI Agent</span>
         <h3>AI Writes Playwright Test Script</h3>
         <p>
-          The AI agent (using the <strong>picasso-test-automation</strong> skill) queries the tracker for pending
+          The AI agent (using the <strong>create-auto-tests</strong> skill) queries the tracker for pending
           scenarios, reads the structured steps and expected results, then generates a complete
           Playwright TypeScript test following the project's four-layer architecture.
         </p>
@@ -614,7 +608,7 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--on-surface); l
      ═══════════════════════════════════════════════════════════════════════ -->
 <section class="section">
   <div class="section-label">AI Skill</div>
-  <h2 class="section-title">The picasso-test-automation Skill</h2>
+  <h2 class="section-title">The create-auto-tests Skill</h2>
   <p class="section-desc">
     A purpose-built AI skill that encodes PICASso-specific automation best practices,
     OutSystems DOM patterns, and the project's four-layer architecture.
