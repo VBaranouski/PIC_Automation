@@ -11,7 +11,7 @@
 | doc | Digital Offer Certification | `doc` | [feature-registry/doc.md](feature-registry/doc.md) | doc-workflow | `tests/doc/` | `src/pages/doc-details.page.ts`, `src/pages/control-detail.page.ts` |
 | reports | Reports & Dashboards | `reports` | [feature-registry/reports.md](feature-registry/reports.md) | reports-dashboards | — | — |
 | backoffice | Backoffice Admin | `backoffice` | [feature-registry/backoffice.md](feature-registry/backoffice.md) | roles-permissions, roles-delegation | — | — |
-| integrations | Jira / Jama / Azure DevOps | `integrations` | [feature-registry/integrations.md](feature-registry/integrations.md) | — | — | — |
+| integrations | Jira / Jama / Azure DevOps / Data APIs | `integrations` | [feature-registry/integrations.md](feature-registry/integrations.md) | data-ingestion-api, data-protection | — | — |
 | other | Cross-cutting / Uncategorized | `other` | [feature-registry/other.md](feature-registry/other.md) | — | — | — |
 
 ## Reserved keywords for keyword-match
