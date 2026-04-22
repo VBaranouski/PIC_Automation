@@ -1,0 +1,230 @@
+/**
+ * Exploratory QA Walk — headless capture
+ *
+ * Logs into QA with the default PQL user and probes a small, configurable list
+ * of entry points to capture page titles, headings, nav labels, and grid column
+ * headers. Results are written to
+ * docs/ai/knowledge-base/exploration-findings.md.
+ *
+ * Read-only: never submits forms, never clicks destructive buttons.
+ *
+ * Usage:
+ *   node scripts/explore-qa.mjs
+ */
+
+import { createRequire } from 'module';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const require = createRequire(import.meta.url);
+const { chromium } = require('@playwright/test');
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, '..');
+
+const BASE_URL = 'https://qa.leap.schneider-electric.com';
+const LOGIN_URL = `${BASE_URL}/GRC_Th/Login`;
+const LANDING_URL = `${BASE_URL}/GRC_PICASso/`;
+const LOGIN = 'PICEMDEPQL';
+const PASSWORD = 'outsystems';
+const OUTPUT = path.join(ROOT, 'docs', 'ai', 'knowledge-base', 'exploration-findings.md');
+
+const STEPS = [
+  { id: 'landing',         label: 'Landing / My Tasks',      url: LANDING_URL },
+  { id: 'my-products',     label: 'Landing → My Products',   url: LANDING_URL, click: 'text=My Products' },
+  { id: 'my-releases',     label: 'Landing → My Releases',   url: LANDING_URL, click: 'text=My Releases' },
+  { id: 'my-docs',         label: 'Landing → My DOCs',       url: LANDING_URL, click: 'text=My DOCs' },
+  { id: 'reports-tab',     label: 'Landing → Reports',       url: LANDING_URL, click: 'text=Reports' },
+  { id: 'roles-delegation',label: 'Roles Delegation',        url: `${BASE_URL}/GRC_PICASso/RolesDelegation` },
+];
+
+async function waitForOSLoad(page, timeout = 15_000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const loading = await page
+      .locator('.feedback-message-loading, .os-loading-overlay, .content-placeholder.loading')
+      .first()
+      .isVisible()
+      .catch(() => false);
+    if (!loading) break;
+    await page.waitForTimeout(300);
+  }
+  await page
+    .waitForFunction(
+      () => document.querySelectorAll('.content-placeholder.loading').length === 0,
+      { timeout: 10_000 },
+    )
+    .catch(() => {});
+}
+
+async function waitForContent(page, timeout = 45_000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const ready = await page.evaluate(() => {
+      const stillLoading =
+        document.querySelectorAll('.content-placeholder.loading, .feedback-message-loading, .os-loading-overlay').length > 0;
+      const hasShell =
+        document.querySelector('h1, h2, [role="tab"], table thead, .list, .grid, .ui-grid, .content') !== null;
+      return !stillLoading && hasShell && document.title.trim().length > 0;
+    }).catch(() => false);
+    if (ready) return true;
+    await page.waitForTimeout(500);
+  }
+  return false;
+}
+
+async function captureScreen(page, step) {
+  // Headings
+  const headings = await page
+    .locator('h1, h2, h3')
+    .evaluateAll((els) => els.map((e) => ({ tag: e.tagName, text: e.textContent?.trim() || '' }))
+                                 .filter((h) => h.text.length > 0 && h.text.length < 200));
+
+  // Tab labels near top
+  const tabs = await page
+    .locator('[role="tab"], .tab-header li, .tabs-item, .nav-tabs a')
+    .evaluateAll((els) => els.map((e) => e.textContent?.trim() || '').filter((t) => t && t.length < 80));
+
+  // Grid column headers
+  const columns = await page
+    .locator('table thead th, [role="columnheader"]')
+    .evaluateAll((els) => els.map((e) => e.textContent?.trim() || '').filter((t) => t && t.length < 80));
+
+  // Visible buttons (top of page only)
+  const buttons = await page
+    .locator('button, a.btn, input[type="button"], input[type="submit"]')
+    .evaluateAll((els) => els.slice(0, 30).map((e) => (e.value || e.textContent || '').trim()).filter((t) => t && t.length < 60));
+
+  // Visible filters — inputs with aria-label or placeholder
+  const filters = await page
+    .locator('input[aria-label], input[placeholder], [role="combobox"]')
+    .evaluateAll((els) => els.slice(0, 25).map((e) => e.getAttribute('aria-label') || e.getAttribute('placeholder') || '').filter(Boolean));
+
+  return {
+    step: step.id,
+    label: step.label,
+    url: page.url(),
+    title: await page.title().catch(() => ''),
+    headings: dedupe(headings.map((h) => `${h.tag}:${h.text}`)).slice(0, 20),
+    tabs: dedupe(tabs).slice(0, 15),
+    columns: dedupe(columns).slice(0, 25),
+    buttons: dedupe(buttons).slice(0, 20),
+    filters: dedupe(filters).slice(0, 15),
+  };
+}
+
+function dedupe(arr) {
+  const seen = new Set();
+  const out = [];
+  for (const v of arr) {
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+function toMarkdown(findings) {
+  const lines = [];
+  lines.push('# QA Exploration Findings');
+  lines.push('');
+  lines.push(`> Generated by \`scripts/explore-qa.mjs\`. Captured ${new Date().toISOString()}.`);
+  lines.push(`> Environment: QA (${BASE_URL}), user: ${LOGIN}.`);
+  lines.push('> Read-only DOM snapshot. Use together with `docs/ai/knowledge-base/corpus/` indexes and `exploration-plan.md`.');
+  lines.push('');
+  for (const f of findings) {
+    lines.push(`## ${f.label}`);
+    lines.push('');
+    lines.push(`- **URL:** \`${f.url}\``);
+    lines.push(`- **Title:** ${f.title}`);
+    if (f.headings.length) {
+      lines.push('- **Headings:**');
+      for (const h of f.headings) lines.push(`  - ${h}`);
+    }
+    if (f.tabs.length) {
+      lines.push(`- **Tabs:** ${f.tabs.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    if (f.filters.length) {
+      lines.push(`- **Filters / inputs:** ${f.filters.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    if (f.columns.length) {
+      lines.push(`- **Grid columns:** ${f.columns.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    if (f.buttons.length) {
+      lines.push(`- **Buttons:** ${f.buttons.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+(async () => {
+  console.log('Launching Chromium (headless)...');
+  const browser = await chromium.launch({ headless: true });
+  const authFile = path.join(ROOT, '.auth', 'user.json');
+  // Start clean — stale session cookies caused login to silently fail.
+  const context = await browser.newContext({ ignoreHTTPSErrors: true });
+  const page = await context.newPage();
+  page.setDefaultTimeout(60_000);
+
+  console.log('Logging in...');
+  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
+  await waitForOSLoad(page, 20_000);
+  await page.locator('#Input_UsernameVal').waitFor({ state: 'visible', timeout: 60_000 });
+  await page.locator('#Input_UsernameVal').fill(LOGIN);
+  await page.locator('#Input_PasswordVal').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Login', exact: true }).first().click();
+  const start = Date.now();
+  while (Date.now() - start < 60_000) {
+    await page.waitForTimeout(1000);
+    if (!page.url().includes('/GRC_Th/Login')) break;
+  }
+  await waitForOSLoad(page, 20_000);
+
+  if (!page.url().includes('/GRC_PICASso')) {
+    console.error(`Login did not reach /GRC_PICASso. Current URL: ${page.url()}`);
+    await browser.close();
+    process.exit(1);
+  }
+  console.log(`Logged in. Landing at ${page.url()}`);
+
+  // Persist fresh auth for subsequent runs
+  try {
+    fs.mkdirSync(path.dirname(authFile), { recursive: true });
+    await context.storageState({ path: authFile });
+  } catch (e) {
+    console.warn(`Failed to persist auth state: ${e.message}`);
+  }
+
+  const findings = [];
+  for (const step of STEPS) {
+    try {
+      console.log(`→ ${step.label}`);
+      await page.goto(step.url, { waitUntil: 'domcontentloaded' });
+      await waitForOSLoad(page, 30_000);
+      await waitForContent(page, 45_000);
+      if (step.click) {
+        const target = page.locator(step.click).first();
+        if (await target.isVisible().catch(() => false)) {
+          await target.click().catch(() => {});
+          await waitForOSLoad(page, 15_000);
+          await waitForContent(page, 20_000);
+        }
+      }
+      // Final settle
+      await page.waitForTimeout(1500);
+      findings.push(await captureScreen(page, step));
+    } catch (err) {
+      console.error(`  ! ${step.id} failed: ${err.message}`);
+      findings.push({ step: step.id, label: step.label, url: page.url(), title: '', headings: [], tabs: [], columns: [], buttons: [], filters: [], error: err.message });
+    }
+  }
+
+  fs.writeFileSync(OUTPUT, toMarkdown(findings), 'utf8');
+  console.log(`Wrote ${OUTPUT}`);
+  await browser.close();
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
