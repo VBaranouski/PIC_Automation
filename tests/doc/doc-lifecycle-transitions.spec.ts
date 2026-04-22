@@ -2,11 +2,11 @@
  * Spec 11.13a — DOC Lifecycle Stage Transitions
  *
  * Covers P1 scenarios for DOC stage transitions:
- *   WF11-0141: Completing Initiate DOC advances to Scope ITS Controls
- *   WF11-0144: Start ITS Risk Assessment advances to Risk Assessment stage
- *   WF11-0145: Risk Assessment tab available on Risk Assessment stage
- *   WF11-0146: Add Controls button available on Risk Assessment stage
- *   WF11-0176: Validate task creation and closure across full DOC lifecycle
+ *   DOC-LIFECYCLE-031: Completing Initiate DOC advances to Scope ITS Controls
+ *   DOC-LIFECYCLE-032: Start ITS Risk Assessment advances to Risk Assessment stage
+ *   DOC-LIFECYCLE-033: Risk Assessment tab available on Risk Assessment stage
+ *   DOC-LIFECYCLE-034: Add Controls button available on Risk Assessment stage
+ *   DOC-TASKS-021: Validate task creation and closure across full DOC lifecycle
  *
  * Non-destructive: tests verify stage presence and button visibility using seed DOCs.
  *
@@ -33,14 +33,14 @@ const COMPLETED_DOC_URL =
 test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
   test.setTimeout(180_000);
 
-  // ── WF11-0141 ─────────────────────────────────────────────────────────────
-  test('WF11-0141 — Completing Initiate DOC advances DOC to Scope ITS Controls',
+  // ── DOC-LIFECYCLE-031 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-031 — Completing Initiate DOC advances DOC to Scope ITS Controls',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle Transitions');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0141: Verify that a DOC that has completed the Initiate DOC stage ' +
+        'DOC-LIFECYCLE-031: Verify that a DOC that has completed the Initiate DOC stage ' +
         'shows the Scope ITS Controls stage as the current active stage. ' +
         'Verified on DOC 800 which is in Controls Scoping status (post-initiation).',
       );
@@ -79,14 +79,14 @@ test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
       });
     });
 
-  // ── WF11-0144 ─────────────────────────────────────────────────────────────
-  test('WF11-0144 — Start ITS Risk Assessment button visible on Controls Scoping stage',
+  // ── DOC-LIFECYCLE-032 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-032 — Start ITS Risk Assessment button visible on Controls Scoping stage',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle Transitions');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0144: Verify that the "Start ITS Risk Assessment" button is visible on a DOC ' +
+        'DOC-LIFECYCLE-032: Verify that the "Start ITS Risk Assessment" button is visible on a DOC ' +
         'in Controls Scoping stage. Clicking this button would advance the DOC to Risk Assessment ' +
         'and set all control statuses to "Evidence required". ' +
         'Non-destructive: button visibility and state are verified without clicking.',
@@ -121,14 +121,14 @@ test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
       });
     });
 
-  // ── WF11-0145 ─────────────────────────────────────────────────────────────
-  test('WF11-0145 — Risk Assessment stage shows Risk Summary tab on a post-RA DOC',
+  // ── DOC-LIFECYCLE-033 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-033 — Risk Assessment stage shows Risk Summary tab on a post-RA DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle Transitions');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0145: Verify that a DOC that has passed through the Risk Assessment stage ' +
+        'DOC-LIFECYCLE-033: Verify that a DOC that has passed through the Risk Assessment stage ' +
         'has the Risk Summary tab available. The Risk Assessment pipeline stage should be ' +
         'completed and visible with user/date info. ' +
         'Verified on DOC 538 (Actions Closure — past RA) and DOC 273 (Completed).',
@@ -161,14 +161,14 @@ test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
       });
     });
 
-  // ── WF11-0146 ─────────────────────────────────────────────────────────────
-  test('WF11-0146 — Add Controls button remains available on Controls Scoping stage',
+  // ── DOC-LIFECYCLE-034 ─────────────────────────────────────────────────────────────
+  test('DOC-LIFECYCLE-034 — Add Controls button remains available on Controls Scoping stage',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle Transitions');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0146: Verify that the "Add Controls" button is visible on the ITS Checklist tab ' +
+        'DOC-LIFECYCLE-034: Verify that the "Add Controls" button is visible on the ITS Checklist tab ' +
         'for a user with SCOPE_IT_SECURITY_CONTROLS privilege during Controls Scoping stage. ' +
         'Non-destructive: button visibility only.',
       );
@@ -204,14 +204,14 @@ test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
       });
     });
 
-  // ── WF11-0146 (post-RA check) ─────────────────────────────────────────────
-  test('WF11-0146 — Add Controls button is hidden on a Completed DOC',
+  // ── DOC-LIFECYCLE-034 (post-RA check) ─────────────────────────────────────────────
+  test('DOC-LIFECYCLE-034 — Add Controls button is hidden on a Completed DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle Transitions');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0146 (negative): Verify that the "Add Controls" button is NOT visible ' +
+        'DOC-LIFECYCLE-034 (negative): Verify that the "Add Controls" button is NOT visible ' +
         'on a Completed DOC, ensuring control scope cannot be modified after certification.',
       );
 
@@ -230,14 +230,14 @@ test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
       });
     });
 
-  // ── WF11-0176 ─────────────────────────────────────────────────────────────
-  test('WF11-0176 — Completed DOC shows all pipeline stages with completion info',
+  // ── DOC-TASKS-021 ─────────────────────────────────────────────────────────────
+  test('DOC-TASKS-021 — Completed DOC shows all pipeline stages with completion info',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle Transitions');
       await allure.severity('critical');
       await allure.tag('regression');
       await allure.description(
-        'WF11-0176: Validate that a completed DOC shows all 5 pipeline stages with ' +
+        'DOC-TASKS-021: Validate that a completed DOC shows all 5 pipeline stages with ' +
         'completion information (user and date) under each stage, confirming the full ' +
         'DOC lifecycle was traversed.',
       );

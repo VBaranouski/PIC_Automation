@@ -392,13 +392,13 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
     });
   });
 
-  // ── WF11-0061 ─────────────────────────────────────────────────────────────
+  // ── DOC-ROLES-014 ─────────────────────────────────────────────────────────────
   test('should allow selecting a Deputy user for CPSO/CISO roles', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0061: For CPSO/CISO roles, a Deputy user can be selected in place of the principal.',
+      'DOC-ROLES-014: For CPSO/CISO roles, a Deputy user can be selected in place of the principal.',
     );
 
     await test.step('Navigate to DOC Detail and open Roles & Responsibilities tab', async () => {
@@ -439,13 +439,13 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
     });
   });
 
-  // ── WF11-0062 ─────────────────────────────────────────────────────────────
+  // ── DOC-ROLES-015 ─────────────────────────────────────────────────────────────
   test('should not show Edit Roles button for VIEW_DOC privilege user (WF11)', async ({ page, docDetailsPage, getUserByRole }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'WF11-0062: User with VIEW_DOC privilege can view the Roles & Responsibilities tab ' +
+      'DOC-ROLES-015: User with VIEW_DOC privilege can view the Roles & Responsibilities tab ' +
       'but cannot edit it (no "Edit Roles" button shown).',
     );
 
