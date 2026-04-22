@@ -39,3 +39,7 @@
 | releases.signoff.sa | Security Advisor sign-off | active | RELEASE-SIGNOFF-SA-* | — | — | — | — |
 | releases.signoff.pql | Process Quality Leader sign-off | active | RELEASE-SIGNOFF-PQL-* | — | — | — | — |
 | releases.details.history | Release change history | active | RELEASE-HISTORY-* | — | — | — | — |
+| releases.requirements.versioning | Product & Process Requirements versioning banner (Keep / Change version + auto-apply date) | in-development | RELEASE-REQ-VERSION-* | — | 610919092 | — | 2026-04-22 |
+| releases.requirements.traceability.delegated | Delegated Requirements Traceability popup (Product Name / Other Product / Contact Person) on Delegated status | in-development | RELEASE-REQ-DELEGATED-* | — | 587596145, 709600377, 688765443, 715847649 | — | 2026-04-22 |
+| releases.sca.component-management | Software Composition Analysis — Scan-to-Component model, Add Scan Results modal, BDBA import | in-development | RELEASE-SCA-* | — | 688765053 | — | 2026-04-22 |
+| releases.data-protection.privacy-by-design | Data Protection & Privacy Review — Privacy Sections, Maturity Levels, Recommendation, PCC Decision | in-development | RELEASE-DPP-* | `triggers-for-the-privacy-review-for-the-release`, `stages-of-the-privacy-review-in-picasso` | 483816813, 457062708, 467663710, 431747813 | — | 2026-04-22 |
