@@ -1,5 +1,10 @@
 #!/usr/bin/env tsx
 /**
+ * @deprecated This one-time script has already been executed. All 29 IDs it
+ * targeted were subsequently superseded by the bulk rename in
+ * rename-wf-ids-to-semantic.ts. Do NOT re-run this script against the current
+ * DB — the target IDs no longer exist. Kept for audit history only.
+ *
  * Fix two issues introduced by earlier create-test-cases runs:
  *
  *   1. Rename the 29 scenarios the skill minted with placeholder WF##-####

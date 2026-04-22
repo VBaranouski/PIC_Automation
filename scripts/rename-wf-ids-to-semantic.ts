@@ -385,6 +385,7 @@ function main() {
 
   // ── Apply DB renames ──────────────────────────────────────────────────
   db.pragma('foreign_keys = OFF');
+  try {
   const tx = db.transaction(() => {
     const stmtScenarios = db.prepare('UPDATE scenarios SET id = ? WHERE id = ?');
     const stmtDetails = db.prepare('UPDATE scenario_details SET scenario_id = ? WHERE scenario_id = ?');
@@ -407,10 +408,14 @@ function main() {
         stmtMFrom.run(newId, oldId);
         stmtMInto.run(newId, oldId);
       }
-    } catch { /* table may not exist */ }
+    } catch (e) {
+      if (verbose) console.warn('[rename] scenario_merges update skipped (table may not exist):', (e as Error).message);
+    }
   });
   tx();
-  db.pragma('foreign_keys = ON');
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
 
   // ── Integrity check ───────────────────────────────────────────────────
   const orphans = db
@@ -432,7 +437,7 @@ function main() {
   console.log(`[rename] Remaining WF##-#### IDs: ${remaining.cnt}`);
 
   // ── Update text files ─────────────────────────────────────────────────
-  const textDirs = ['specs', 'docs/ai/knowledge-base', 'docs/ai/test-cases'];
+  const textDirs = ['specs', 'tests', 'src', 'docs/ai/knowledge-base', 'docs/ai/test-cases'];
   const textFiles: string[] = [];
   for (const dir of textDirs) textFiles.push(...collectTextFiles(path.join(REPO_ROOT, dir)));
 
