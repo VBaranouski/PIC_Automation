@@ -194,17 +194,11 @@ program
     const details = getScenarioDetails(s.id);
     if (details && details.steps.length) {
       console.log(chalk.bold('\n  Steps:'));
-      details.steps.forEach((step, i) => {
-        const text = step.replace(/^\d+[.)]\s*/, '');
-        console.log(`    ${i + 1}. ${text}`);
-      });
+      details.steps.forEach((step, i) => console.log(`    ${i + 1}. ${step}`));
     }
     if (details && details.expected_results.length) {
       console.log(chalk.bold('\n  Expected Results:'));
-      details.expected_results.forEach((r, i) => {
-        const text = r.replace(/^\d+[.)]\s*/, '');
-        console.log(`    ${i + 1}. ${text}`);
-      });
+      details.expected_results.forEach((r, i) => console.log(`    ${i + 1}. ${r}`));
     }
     if (details?.execution_notes) {
       console.log(chalk.bold('\n  Execution Notes:'));
