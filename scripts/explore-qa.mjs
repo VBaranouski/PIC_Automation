@@ -30,13 +30,16 @@ const LOGIN = 'PICEMDEPQL';
 const PASSWORD = 'outsystems';
 const OUTPUT = path.join(ROOT, 'docs', 'ai', 'knowledge-base', 'exploration-findings.md');
 
-const STEPS = [
-  { id: 'landing',         label: 'Landing / My Tasks',      url: LANDING_URL },
-  { id: 'my-products',     label: 'Landing → My Products',   url: LANDING_URL, click: 'text=My Products' },
-  { id: 'my-releases',     label: 'Landing → My Releases',   url: LANDING_URL, click: 'text=My Releases' },
-  { id: 'my-docs',         label: 'Landing → My DOCs',       url: LANDING_URL, click: 'text=My DOCs' },
-  { id: 'reports-tab',     label: 'Landing → Reports',       url: LANDING_URL, click: 'text=Reports' },
-  { id: 'roles-delegation',label: 'Roles Delegation',        url: `${BASE_URL}/GRC_PICASso/RolesDelegation` },
+const LANDING_TABS = [
+  { id: 'landing-my-tasks',    label: 'Landing → My Tasks',             tab: 'My Tasks' },
+  { id: 'landing-my-products', label: 'Landing → My Products',          tab: 'My Products' },
+  { id: 'landing-my-releases', label: 'Landing → My Releases',          tab: 'My Releases' },
+  { id: 'landing-my-docs',     label: 'Landing → My DOCs',              tab: 'My DOCs' },
+  { id: 'landing-reports',     label: 'Landing → Reports & Dashboards', tab: 'Reports & Dashboards' },
+];
+
+const EXTRA_STEPS = [
+  { id: 'roles-delegation', label: 'Roles Delegation', url: `${BASE_URL}/GRC_PICASso/RolesDelegation` },
 ];
 
 async function waitForOSLoad(page, timeout = 15_000) {
@@ -74,30 +77,28 @@ async function waitForContent(page, timeout = 45_000) {
   return false;
 }
 
-async function captureScreen(page, step) {
-  // Headings
-  const headings = await page
+async function captureScreen(page, step, scope) {
+  const root = scope ?? page;
+
+  const headings = await root
     .locator('h1, h2, h3')
     .evaluateAll((els) => els.map((e) => ({ tag: e.tagName, text: e.textContent?.trim() || '' }))
                                  .filter((h) => h.text.length > 0 && h.text.length < 200));
 
-  // Tab labels near top
+  // Tab labels: global (page-level chrome)
   const tabs = await page
     .locator('[role="tab"], .tab-header li, .tabs-item, .nav-tabs a')
     .evaluateAll((els) => els.map((e) => e.textContent?.trim() || '').filter((t) => t && t.length < 80));
 
-  // Grid column headers
-  const columns = await page
+  const columns = await root
     .locator('table thead th, [role="columnheader"]')
     .evaluateAll((els) => els.map((e) => e.textContent?.trim() || '').filter((t) => t && t.length < 80));
 
-  // Visible buttons (top of page only)
-  const buttons = await page
+  const buttons = await root
     .locator('button, a.btn, input[type="button"], input[type="submit"]')
-    .evaluateAll((els) => els.slice(0, 30).map((e) => (e.value || e.textContent || '').trim()).filter((t) => t && t.length < 60));
+    .evaluateAll((els) => els.slice(0, 40).map((e) => (e.value || e.textContent || '').trim()).filter((t) => t && t.length < 60));
 
-  // Visible filters — inputs with aria-label or placeholder
-  const filters = await page
+  const filters = await root
     .locator('input[aria-label], input[placeholder], [role="combobox"]')
     .evaluateAll((els) => els.slice(0, 25).map((e) => e.getAttribute('aria-label') || e.getAttribute('placeholder') || '').filter(Boolean));
 
@@ -108,8 +109,8 @@ async function captureScreen(page, step) {
     title: await page.title().catch(() => ''),
     headings: dedupe(headings.map((h) => `${h.tag}:${h.text}`)).slice(0, 20),
     tabs: dedupe(tabs).slice(0, 15),
-    columns: dedupe(columns).slice(0, 25),
-    buttons: dedupe(buttons).slice(0, 20),
+    columns: dedupe(columns).slice(0, 30),
+    buttons: dedupe(buttons).slice(0, 25),
     filters: dedupe(filters).slice(0, 15),
   };
 }
@@ -198,26 +199,131 @@ function toMarkdown(findings) {
   }
 
   const findings = [];
-  for (const step of STEPS) {
+
+  // --- Landing page: scope each tab capture to the visible tab panel ---
+  console.log('Loading landing page...');
+  await page.goto(LANDING_URL, { waitUntil: 'domcontentloaded' });
+  await waitForOSLoad(page, 30_000);
+  await waitForContent(page, 45_000);
+
+  for (const step of LANDING_TABS) {
+    try {
+      console.log(`→ ${step.label}`);
+      // Click the tab via role=tab (exact) with a text fallback
+      const tabEl = page.getByRole('tab', { name: step.tab, exact: true }).first();
+      if (await tabEl.count()) {
+        await tabEl.click();
+      } else {
+        await page.getByText(step.tab, { exact: true }).first().click();
+      }
+      await waitForOSLoad(page, 15_000);
+      await page.waitForTimeout(1500);
+
+      // Resolve active tab panel selector: aria-controls id, else the first visible [role=tabpanel]
+      const panelSelector = await page.evaluate((tabName) => {
+        const tab = Array.from(document.querySelectorAll('[role="tab"]'))
+          .find((el) => (el.textContent || '').trim() === tabName);
+        if (tab) {
+          const ctrl = tab.getAttribute('aria-controls');
+          if (ctrl && document.getElementById(ctrl)) return `#${CSS.escape(ctrl)}`;
+        }
+        const visiblePanels = Array.from(document.querySelectorAll('[role="tabpanel"]'))
+          .filter((p) => !p.hidden && p.offsetParent !== null);
+        if (visiblePanels[0] && visiblePanels[0].id) return `#${CSS.escape(visiblePanels[0].id)}`;
+        return null;
+      }, step.tab);
+      const scope = panelSelector ? page.locator(panelSelector) : null;
+
+      findings.push(await captureScreen(page, step, scope ?? undefined));
+    } catch (err) {
+      console.error(`  ! ${step.id} failed: ${err.message}`);
+      findings.push({ step: step.id, label: step.label, url: page.url(), title: '', headings: [], tabs: [], columns: [], buttons: [], filters: [], error: err.message });
+    }
+  }
+
+  // --- Discover a sample Product/Release/DOC from the landing grids ---
+  const discovered = { product: null, release: null, doc: null };
+
+  async function discoverFromTab(tabName, linkPattern) {
+    const tabEl = page.getByRole('tab', { name: tabName, exact: true }).first();
+    if (await tabEl.count()) await tabEl.click();
+    await waitForOSLoad(page, 15_000);
+    await waitForContent(page, 20_000);
+    await page.waitForTimeout(1200);
+    return page.evaluate((pattern) => {
+      const re = new RegExp(pattern);
+      const anchors = Array.from(document.querySelectorAll('a[href]'));
+      for (const a of anchors) {
+        const href = a.getAttribute('href') || '';
+        if (re.test(href)) return href;
+      }
+      return null;
+    }, linkPattern);
+  }
+
+  try {
+    discovered.product = await discoverFromTab('My Products', 'ProductDetail\\?.*ProductId=\\d+');
+  } catch (e) { console.error(`discover product: ${e.message}`); }
+  try {
+    discovered.release = await discoverFromTab('My Releases', 'ReleaseDetail\\?.*ReleaseId=\\d+');
+  } catch (e) { console.error(`discover release: ${e.message}`); }
+  try {
+    discovered.doc = await discoverFromTab('My DOCs', '(DOCDetail|DOC_Detail)\\?(?=[^"]*DOCId=\\d+)(?!.*ProductId=).*');
+    if (!discovered.doc) {
+      // Fallback: any DOCDetail link, then strip extra params
+      const href = await discoverFromTab('My DOCs', 'DOCDetail\\?');
+      if (href) {
+        const m = href.match(/DOCId=(\d+)/);
+        if (m) discovered.doc = `/GRC_PICASso_DOC/DOCDetail?DOCId=${m[1]}`;
+      }
+    }
+  } catch (e) { console.error(`discover doc: ${e.message}`); }
+
+  console.log('Discovered deep links:', discovered);
+
+  // --- Deep-link steps: navigate to each detail page and capture ---
+  const deepSteps = [];
+  if (discovered.product) deepSteps.push({ id: 'product-detail', label: 'Product Detail', url: new URL(discovered.product, BASE_URL).toString() });
+  if (discovered.release) deepSteps.push({ id: 'release-detail', label: 'Release Detail', url: new URL(discovered.release, BASE_URL).toString() });
+
+  for (const step of [...deepSteps, ...EXTRA_STEPS]) {
     try {
       console.log(`→ ${step.label}`);
       await page.goto(step.url, { waitUntil: 'domcontentloaded' });
       await waitForOSLoad(page, 30_000);
       await waitForContent(page, 45_000);
-      if (step.click) {
-        const target = page.locator(step.click).first();
-        if (await target.isVisible().catch(() => false)) {
-          await target.click().catch(() => {});
-          await waitForOSLoad(page, 15_000);
-          await waitForContent(page, 20_000);
-        }
-      }
-      // Final settle
       await page.waitForTimeout(1500);
       findings.push(await captureScreen(page, step));
     } catch (err) {
       console.error(`  ! ${step.id} failed: ${err.message}`);
       findings.push({ step: step.id, label: step.label, url: page.url(), title: '', headings: [], tabs: [], columns: [], buttons: [], filters: [], error: err.message });
+    }
+  }
+
+  // --- DOC Detail: requires click-through from My DOCs tab ---
+  if (discovered.doc) {
+    try {
+      console.log('→ DOC Detail (via click-through)');
+      await page.goto(LANDING_URL, { waitUntil: 'domcontentloaded' });
+      await waitForOSLoad(page, 30_000);
+      await waitForContent(page, 45_000);
+      const docsTab = page.getByRole('tab', { name: 'My DOCs', exact: true }).first();
+      if (await docsTab.count()) await docsTab.click();
+      await waitForOSLoad(page, 15_000);
+      await waitForContent(page, 20_000);
+      await page.waitForTimeout(2500);
+      const docLink = page.locator(`a[href*="DOCDetail"]`).first();
+      await docLink.waitFor({ state: 'visible', timeout: 20_000 });
+      await Promise.all([
+        page.waitForURL(/GRC_PICASso_DOC\/DOCDetail/i, { timeout: 60_000 }).catch(() => {}),
+        docLink.click(),
+      ]);
+      await waitForOSLoad(page, 30_000);
+      await waitForContent(page, 45_000);
+      await page.waitForTimeout(4000);
+      findings.push(await captureScreen(page, { id: 'doc-detail', label: 'DOC Detail' }));
+    } catch (err) {
+      console.error(`  ! doc-detail failed: ${err.message}`);
     }
   }
 
