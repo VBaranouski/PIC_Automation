@@ -12,6 +12,7 @@
  *   npx tsx scripts/index-confluence.ts --space PIC
  *   npx tsx scripts/index-confluence.ts --space PIC --limit 500
  *   npx tsx scripts/index-confluence.ts --page-ids 576736204,705565013
+ *   npx tsx scripts/index-confluence.ts --root-page 400856947
  *
  * Design rule: metadata only — page body is NEVER written to the index.
  */
@@ -34,6 +35,7 @@ interface Args {
   space: string | null;
   limit: number;
   pageIds: string[];
+  rootPage: string | null;
   dryRun: boolean;
 }
 
@@ -43,15 +45,24 @@ interface PageMeta {
   space: string;
   version: number;
   updated: string;
+  parentId: string | null;
+  depth: number;
 }
 
 function parseArgs(argv: string[]): Args {
-  const args: Args = { space: null, limit: 1000, pageIds: [], dryRun: false };
+  const args: Args = {
+    space: null,
+    limit: 2000,
+    pageIds: [],
+    rootPage: null,
+    dryRun: false,
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--space') args.space = argv[++i];
     else if (a === '--limit') args.limit = Number(argv[++i]);
     else if (a === '--page-ids') args.pageIds = (argv[++i] ?? '').split(',').filter(Boolean);
+    else if (a === '--root-page') args.rootPage = argv[++i];
     else if (a === '--dry-run') args.dryRun = true;
   }
   return args;
@@ -74,16 +85,88 @@ async function fetchPageMeta(
   base: string,
   token: string,
   id: string,
+  depth = 0,
+  parentId: string | null = null,
 ): Promise<PageMeta> {
-  const url = `${base}/rest/api/content/${id}?expand=version,space`;
+  const url = `${base}/rest/api/content/${id}?expand=version,space,ancestors`;
   const body = (await fetchJson(url, token)) as any;
+  const ancestors = Array.isArray(body?.ancestors) ? body.ancestors : [];
+  const computedParent =
+    parentId ?? (ancestors.length ? String(ancestors[ancestors.length - 1]?.id ?? '') : null);
   return {
     id: String(body.id),
     title: String(body.title ?? ''),
     space: String(body?.space?.key ?? ''),
     version: Number(body?.version?.number ?? 0),
     updated: String(body?.version?.when ?? ''),
+    parentId: computedParent || null,
+    depth,
   };
+}
+
+async function fetchChildPages(
+  base: string,
+  token: string,
+  parentId: string,
+): Promise<any[]> {
+  const out: any[] = [];
+  let start = 0;
+  const pageSize = 100;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const url = `${base}/rest/api/content/${parentId}/child/page?limit=${pageSize}&start=${start}&expand=version,space`;
+    const body = (await fetchJson(url, token)) as any;
+    const results = Array.isArray(body?.results) ? body.results : [];
+    out.push(...results);
+    if (results.length < pageSize) break;
+    start += pageSize;
+  }
+  return out;
+}
+
+async function fetchPageTree(
+  base: string,
+  token: string,
+  rootId: string,
+  limit: number,
+): Promise<PageMeta[]> {
+  const collected: PageMeta[] = [];
+  const rootMeta = await fetchPageMeta(base, token, rootId, 0, null);
+  collected.push(rootMeta);
+
+  const queue: { id: string; depth: number }[] = [{ id: rootId, depth: 0 }];
+  const seen = new Set<string>([rootId]);
+
+  while (queue.length > 0 && collected.length < limit) {
+    const { id: parentId, depth } = queue.shift()!;
+    let children: any[] = [];
+    try {
+      children = await fetchChildPages(base, token, parentId);
+    } catch (err) {
+      console.error(`  child fetch failed for ${parentId}: ${(err as Error).message}`);
+      continue;
+    }
+    for (const c of children) {
+      const cid = String(c.id);
+      if (seen.has(cid)) continue;
+      seen.add(cid);
+      collected.push({
+        id: cid,
+        title: String(c.title ?? ''),
+        space: String(c?.space?.key ?? rootMeta.space),
+        version: Number(c?.version?.number ?? 0),
+        updated: String(c?.version?.when ?? ''),
+        parentId,
+        depth: depth + 1,
+      });
+      queue.push({ id: cid, depth: depth + 1 });
+      if (collected.length >= limit) break;
+    }
+    if (collected.length % 50 === 0) {
+      console.log(`  ...${collected.length} pages traversed`);
+    }
+  }
+  return collected;
 }
 
 async function fetchSpacePages(
@@ -107,6 +190,8 @@ async function fetchSpacePages(
         space: String(p?.space?.key ?? space),
         version: Number(p?.version?.number ?? 0),
         updated: String(p?.version?.when ?? ''),
+        parentId: null,
+        depth: 0,
       });
       if (out.length >= limit) break;
     }
@@ -116,8 +201,11 @@ async function fetchSpacePages(
   return out;
 }
 
-function writeIndex(pages: PageMeta[]): void {
-  pages.sort((a, b) => a.space.localeCompare(b.space) || a.title.localeCompare(b.title));
+function writeIndex(pages: PageMeta[], rootPage: string | null): void {
+  pages.sort((a, b) => {
+    if (rootPage) return a.depth - b.depth || a.title.localeCompare(b.title);
+    return a.space.localeCompare(b.space) || a.title.localeCompare(b.title);
+  });
   const out: string[] = [];
   out.push('# Confluence Index');
   out.push('');
@@ -125,12 +213,17 @@ function writeIndex(pages: PageMeta[]): void {
   out.push(
     '> Metadata only. Fetch content via `confluence_get_page(id=…)` through Atlassian MCP.',
   );
+  if (rootPage) {
+    out.push(`> Scope: page-tree rooted at **${rootPage}** (descendants included).`);
+  }
   out.push('');
-  out.push('| Page ID | Title | Space | Version | Updated | Owning Area |');
-  out.push('|---|---|---|---|---|---|');
+  out.push('| Page ID | Title | Space | Version | Updated | Depth | Parent | Owning Area |');
+  out.push('|---|---|---|---|---|---|---|---|');
   for (const p of pages) {
+    const title = p.title.replace(/\|/g, '\\|');
+    const indent = '— '.repeat(p.depth);
     out.push(
-      `| ${p.id} | ${p.title.replace(/\|/g, '\\|')} | ${p.space} | ${p.version} | ${p.updated} | — |`,
+      `| ${p.id} | ${indent}${title} | ${p.space} | ${p.version} | ${p.updated} | ${p.depth} | ${p.parentId ?? ''} | — |`,
     );
   }
   out.push('');
@@ -165,10 +258,13 @@ async function main(): Promise<void> {
   try {
     if (args.pageIds.length > 0) {
       for (const id of args.pageIds) pages.push(await fetchPageMeta(base, token, id));
+    } else if (args.rootPage) {
+      console.log(`Walking tree rooted at page ${args.rootPage} (limit=${args.limit})...`);
+      pages = await fetchPageTree(base, token, args.rootPage, args.limit);
     } else if (args.space) {
       pages = await fetchSpacePages(base, token, args.space, args.limit);
     } else {
-      console.error('Specify --space <KEY> or --page-ids <csv>.');
+      console.error('Specify --root-page <id>, --space <KEY>, or --page-ids <csv>.');
       process.exit(2);
     }
   } catch (err) {
@@ -181,7 +277,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  writeIndex(pages);
+  writeIndex(pages, args.rootPage);
   updateSyncState(pages);
   console.log(`Wrote ${OUTPUT} — ${pages.length} pages indexed.`);
 }
