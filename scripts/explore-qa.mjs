@@ -23,12 +23,20 @@ const { chromium } = require('@playwright/test');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
-const BASE_URL = 'https://qa.leap.schneider-electric.com';
+// Read credentials from environment; fall back to dotenv if available.
+try { (await import('dotenv')).config({ path: path.join(ROOT, '.env') }); } catch { /* dotenv optional */ }
+
+const BASE_URL = process.env.BASE_URL || 'https://qa.leap.schneider-electric.com';
 const LOGIN_URL = `${BASE_URL}/GRC_Th/Login`;
 const LANDING_URL = `${BASE_URL}/GRC_PICASso/`;
-const LOGIN = 'PICEMDEPQL';
-const PASSWORD = 'outsystems';
+const LOGIN = process.env.EXPLORE_USER || process.env.DEFAULT_USER || 'PICEMDEPQL';
+const PASSWORD = process.env.EXPLORE_PASSWORD || process.env.DEFAULT_PASSWORD || '';
 const OUTPUT = path.join(ROOT, 'docs', 'ai', 'knowledge-base', 'exploration-findings.md');
+
+if (!PASSWORD) {
+  console.error('No password set. Export EXPLORE_PASSWORD or DEFAULT_PASSWORD before running.');
+  process.exit(2);
+}
 
 const LANDING_TABS = [
   { id: 'landing-my-tasks',    label: 'Landing → My Tasks',             tab: 'My Tasks' },
@@ -42,6 +50,7 @@ const EXTRA_STEPS = [
   { id: 'roles-delegation', label: 'Roles Delegation', url: `${BASE_URL}/GRC_PICASso/RolesDelegation` },
 ];
 
+/** Wait for OutSystems loading overlays + content placeholders to disappear. */
 async function waitForOSLoad(page, timeout = 15_000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
@@ -61,6 +70,7 @@ async function waitForOSLoad(page, timeout = 15_000) {
     .catch(() => {});
 }
 
+/** Wait for the SPA shell to hydrate (headings / tabs / grid present, title set, no loaders). */
 async function waitForContent(page, timeout = 45_000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
@@ -163,7 +173,6 @@ function toMarkdown(findings) {
 (async () => {
   console.log('Launching Chromium (headless)...');
   const browser = await chromium.launch({ headless: true });
-  const authFile = path.join(ROOT, '.auth', 'user.json');
   // Start clean — stale session cookies caused login to silently fail.
   const context = await browser.newContext({ ignoreHTTPSErrors: true });
   const page = await context.newPage();
@@ -176,11 +185,9 @@ function toMarkdown(findings) {
   await page.locator('#Input_UsernameVal').fill(LOGIN);
   await page.locator('#Input_PasswordVal').fill(PASSWORD);
   await page.getByRole('button', { name: 'Login', exact: true }).first().click();
-  const start = Date.now();
-  while (Date.now() - start < 60_000) {
-    await page.waitForTimeout(1000);
-    if (!page.url().includes('/GRC_Th/Login')) break;
-  }
+  // Wait for navigation away from the login page (timeout 60s).
+  await page.waitForURL((url) => !url.pathname.includes('/GRC_Th/Login'), { timeout: 60_000 })
+    .catch(() => {});
   await waitForOSLoad(page, 20_000);
 
   if (!page.url().includes('/GRC_PICASso')) {
@@ -190,13 +197,8 @@ function toMarkdown(findings) {
   }
   console.log(`Logged in. Landing at ${page.url()}`);
 
-  // Persist fresh auth for subsequent runs
-  try {
-    fs.mkdirSync(path.dirname(authFile), { recursive: true });
-    await context.storageState({ path: authFile });
-  } catch (e) {
-    console.warn(`Failed to persist auth state: ${e.message}`);
-  }
+  // Auth state is intentionally NOT persisted — stale cookies caused silent login failures.
+  // If you need a reusable session, use the test suite's setup project instead.
 
   const findings = [];
 

@@ -56,7 +56,7 @@ Triggered by: three-dot menu → **Delegated**, OR Actions → View/Edit → Edi
 
 ## Edge Cases & Validations
 
-- `Other Product` path must persist free-text exactly as entered (no sanitisation lowers it). Never clear on reopen.
+- `Other Product` path must persist free-text exactly as entered (no sanitisation lowercases it). Never clear on reopen.
 - Saving Delegated without Product Name + Contact Person must block with inline error.
 - Versioning "Change version" with zero rows selected must no-op (not dismiss the banner).
 - When the auto-apply date is reached, the system overrides the user's `Keep previous version` choice silently — assertion must verify banner flips from warning to info.
