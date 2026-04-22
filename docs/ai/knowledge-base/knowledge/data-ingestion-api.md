@@ -119,5 +119,12 @@ Requests against releases in other states return error: *"release is in a state 
 
 - **Path:** BackOffice → Data Ingestion API Configuration → Consumers Configuration
 - **Add External Tool:** Name + Client ID → Access Level (Global/Org1/Org2/Org3/Product) → Section grants
-- **Multiple access levels** per scope allowed (except Global)
+- **Multiple access levels** per scope allowed (except Global — Global is exclusive and replaces scope-specific levels; only one Global entry permitted)
 - Changes take immediate effect on next API call
+
+## 10. Reference Data Endpoint — Authorization Note
+
+- `/ReferenceData_GetLoV/{EntityCode}` is a **read-only** utility endpoint
+- It requires a **valid Bearer token** (auth enforced) but does **NOT** require a section grant
+- Any registered External Tool (regardless of section permissions) can call the Reference Data endpoint
+- This is by design — LoV lookups are needed to construct valid payloads for write endpoints

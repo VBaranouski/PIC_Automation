@@ -15,7 +15,7 @@
 | Category | Count |
 |----------|-------|
 | Total Scenarios | **0** (all 19 legacy scenarios removed — incorrect) |
-| **NEW (this session)** | **55** |
+| **NEW (this session)** | **64** |
 
 ### Coverage Gap Table (Five Dimensions)
 
@@ -51,7 +51,7 @@
 | Step | Action | Expected Result |
 |------|--------|----------------|
 | 1 | Send a POST request to Azure AD token endpoint with valid `client_id` but invalid `client_secret` | HTTP 401; response body contains `error=invalid_client` |
-| 2 | Send a GET request to any Data Ingestion API endpoint using the response as-is (no valid token) | HTTP 401; PICASso rejects the request |
+| 2 | Send a GET request to `/ReferenceData_GetLoV/YesNo` without a valid Bearer token (omit the Authorization header entirely) | HTTP 401; PICASso rejects the request |
 
 **Coverage dimension:** Negative / Validation
 
@@ -88,7 +88,7 @@
 | Step | Action | Expected Result |
 |------|--------|----------------|
 | 1 | Acquire a valid token from Azure AD using an unregistered client_id | HTTP 200; Azure AD returns a valid `access_token` |
-| 2 | Send a GET request to `/ReferenceData_GetLoV/YesNo` using the token | HTTP 401 or 403; PICASso rejects the request because the Client ID is not in Consumers Configuration |
+| 2 | Send a GET request to `/ReferenceData_GetLoV/YesNo` using the token | HTTP 403; PICASso rejects the request because the Client ID is not registered in Consumers Configuration |
 
 **Coverage dimension:** Role-Based Access
 
@@ -153,9 +153,10 @@
 | 2 | Click `Add Access Level` | A new Access Level row or form is visible |
 | 3 | Select a different scope (e.g., Org1-level) and different section grants | The new scope and grants are configured |
 | 4 | Click `Save` | Both access levels are saved and visible; the tool has combined permissions |
+| 5 | Attempt to add a second `Global` Access Level to the same tool | The UI prevents adding a second Global access level; an error or restriction message is visible |
 
 **Coverage dimension:** Role-Based Access
-**Note:** Multiple access levels can coexist except for Global (Global replaces all others)
+**Note:** Global access level replaces all scope-specific levels; only one Global entry is permitted per tool
 
 ---
 
@@ -693,7 +694,7 @@
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Send a GET request to `/ReferenceData_GetLoV/InvalidEntityCode` | HTTP 400 or 404; response indicates invalid entity code |
+| 1 | Send a GET request to `/ReferenceData_GetLoV/InvalidEntityCode` | HTTP 400; response indicates invalid entity code |
 
 **Coverage dimension:** Negative / Validation
 
@@ -726,7 +727,7 @@
 | Step | Action | Expected Result |
 |------|--------|----------------|
 | 1 | Send a POST request to create a System Design component with an invalid `RiskLevelCountermeasure` value (not from LoV) | HTTP 400; response contains "Invalid data sent - RiskLevelCountermeasure" |
-| 2 | Verify the same LoV validation applies to Threat Model by sending an invalid `IRARating` value | HTTP 400; response contains "Invalid data sent - IRARating" |
+| 2 | Send a POST request to create a Threat Model record with an invalid `IRARating` value (not from LoV) | HTTP 400; response contains "Invalid data sent - IRARating" |
 
 **Coverage dimension:** Negative / Validation
 
@@ -792,11 +793,11 @@
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Send a POST request to create data for a release in `INPROGRESS` state | HTTP 201; data created |
-| 2 | Send a POST request to create data for a release in `FCSRREADINESSREVIEW` state | HTTP 201; data created |
-| 3 | Send a POST request to create data for a release in `ACTIONSCLOSURE` state | HTTP 201; data created |
-| 4 | Send a POST request to create data for a release in `FCSRREVIEW` state | HTTP 201; data created |
-| 5 | Send a POST request to create data for a release in `FCSRESCALATED` state | HTTP 201; data created |
+| 1 | Send a POST request to `/Release/CreateRelease` for a release in `INPROGRESS` state | HTTP 201; release created |
+| 2 | Send a POST request to `/SystemDesign/CreateSystemDesignInfo` for a release in `FCSRREADINESSREVIEW` state | HTTP 201; system design info created |
+| 3 | Send a POST request to `/SystemDesign/CreateSystemDesignInfo` for a release in `ACTIONSCLOSURE` state | HTTP 201; system design info created |
+| 4 | Send a POST request to `/SystemDesign/CreateSystemDesignInfo` for a release in `FCSRREVIEW` state | HTTP 201; system design info created |
+| 5 | Send a POST request to `/SystemDesign/CreateSystemDesignInfo` for a release in `FCSRESCALATED` state | HTTP 201; system design info created |
 
 **Coverage dimension:** State Transitions
 
@@ -808,7 +809,7 @@
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Send a POST request to create data for a release in a non-editable state | HTTP 400 or 403; response contains "release is in a state where it is not possible to create or edit" |
+| 1 | Send a POST request to `/SystemDesign/CreateSystemDesignInfo` for a release in a non-editable state (e.g., CLOSED or CANCELLED) | HTTP 400; response contains "release is in a state where it is not possible to create or edit" |
 
 **Coverage dimension:** State Transitions
 
@@ -820,7 +821,7 @@
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Send a PUT request to update existing data on a release in a non-editable state | HTTP 400 or 403; response contains "release is in a state where it is not possible to create or edit" |
+| 1 | Send a PUT request to update existing data on a release in a non-editable state (e.g., CLOSED or CANCELLED) | HTTP 400; response contains "release is in a state where it is not possible to create or edit" |
 
 **Coverage dimension:** State Transitions
 
@@ -832,7 +833,7 @@
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Send a DELETE request to remove data from a release in a non-editable state | HTTP 400 or 403; response contains "release is in a state where it is not possible to create or edit" |
+| 1 | Send a DELETE request to remove data from a release in a non-editable state (e.g., CLOSED or CANCELLED) | HTTP 400; response contains "release is in a state where it is not possible to create or edit" |
 
 **Coverage dimension:** State Transitions
 
