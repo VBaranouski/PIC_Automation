@@ -1,0 +1,338 @@
+/**
+ * Exploratory QA Walk — headless capture
+ *
+ * Logs into QA with the default PQL user and probes a small, configurable list
+ * of entry points to capture page titles, headings, nav labels, and grid column
+ * headers. Results are written to
+ * docs/ai/knowledge-base/exploration-findings.md.
+ *
+ * Read-only: never submits forms, never clicks destructive buttons.
+ *
+ * Usage:
+ *   node scripts/explore-qa.mjs
+ */
+
+import { createRequire } from 'module';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const require = createRequire(import.meta.url);
+const { chromium } = require('@playwright/test');
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, '..');
+
+// Read credentials from environment; fall back to dotenv if available.
+try { (await import('dotenv')).config({ path: path.join(ROOT, '.env') }); } catch { /* dotenv optional */ }
+
+const BASE_URL = process.env.BASE_URL || 'https://qa.leap.schneider-electric.com';
+const LOGIN_URL = `${BASE_URL}/GRC_Th/Login`;
+const LANDING_URL = `${BASE_URL}/GRC_PICASso/`;
+const LOGIN = process.env.EXPLORE_USER || process.env.DEFAULT_USER || 'PICEMDEPQL';
+const PASSWORD = process.env.EXPLORE_PASSWORD || process.env.DEFAULT_PASSWORD || '';
+const OUTPUT = path.join(ROOT, 'docs', 'ai', 'knowledge-base', 'exploration-findings.md');
+
+if (!PASSWORD) {
+  console.error('No password set. Export EXPLORE_PASSWORD or DEFAULT_PASSWORD before running.');
+  process.exit(2);
+}
+
+const LANDING_TABS = [
+  { id: 'landing-my-tasks',    label: 'Landing → My Tasks',             tab: 'My Tasks' },
+  { id: 'landing-my-products', label: 'Landing → My Products',          tab: 'My Products' },
+  { id: 'landing-my-releases', label: 'Landing → My Releases',          tab: 'My Releases' },
+  { id: 'landing-my-docs',     label: 'Landing → My DOCs',              tab: 'My DOCs' },
+  { id: 'landing-reports',     label: 'Landing → Reports & Dashboards', tab: 'Reports & Dashboards' },
+];
+
+const EXTRA_STEPS = [
+  { id: 'roles-delegation', label: 'Roles Delegation', url: `${BASE_URL}/GRC_PICASso/RolesDelegation` },
+];
+
+/** Wait for OutSystems loading overlays + content placeholders to disappear. */
+async function waitForOSLoad(page, timeout = 15_000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const loading = await page
+      .locator('.feedback-message-loading, .os-loading-overlay, .content-placeholder.loading')
+      .first()
+      .isVisible()
+      .catch(() => false);
+    if (!loading) break;
+    await page.waitForTimeout(300);
+  }
+  await page
+    .waitForFunction(
+      () => document.querySelectorAll('.content-placeholder.loading').length === 0,
+      { timeout: 10_000 },
+    )
+    .catch(() => {});
+}
+
+/** Wait for the SPA shell to hydrate (headings / tabs / grid present, title set, no loaders). */
+async function waitForContent(page, timeout = 45_000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const ready = await page.evaluate(() => {
+      const stillLoading =
+        document.querySelectorAll('.content-placeholder.loading, .feedback-message-loading, .os-loading-overlay').length > 0;
+      const hasShell =
+        document.querySelector('h1, h2, [role="tab"], table thead, .list, .grid, .ui-grid, .content') !== null;
+      return !stillLoading && hasShell && document.title.trim().length > 0;
+    }).catch(() => false);
+    if (ready) return true;
+    await page.waitForTimeout(500);
+  }
+  return false;
+}
+
+async function captureScreen(page, step, scope) {
+  const root = scope ?? page;
+
+  const headings = await root
+    .locator('h1, h2, h3')
+    .evaluateAll((els) => els.map((e) => ({ tag: e.tagName, text: e.textContent?.trim() || '' }))
+                                 .filter((h) => h.text.length > 0 && h.text.length < 200));
+
+  // Tab labels: global (page-level chrome)
+  const tabs = await page
+    .locator('[role="tab"], .tab-header li, .tabs-item, .nav-tabs a')
+    .evaluateAll((els) => els.map((e) => e.textContent?.trim() || '').filter((t) => t && t.length < 80));
+
+  const columns = await root
+    .locator('table thead th, [role="columnheader"]')
+    .evaluateAll((els) => els.map((e) => e.textContent?.trim() || '').filter((t) => t && t.length < 80));
+
+  const buttons = await root
+    .locator('button, a.btn, input[type="button"], input[type="submit"]')
+    .evaluateAll((els) => els.slice(0, 40).map((e) => (e.value || e.textContent || '').trim()).filter((t) => t && t.length < 60));
+
+  const filters = await root
+    .locator('input[aria-label], input[placeholder], [role="combobox"]')
+    .evaluateAll((els) => els.slice(0, 25).map((e) => e.getAttribute('aria-label') || e.getAttribute('placeholder') || '').filter(Boolean));
+
+  return {
+    step: step.id,
+    label: step.label,
+    url: page.url(),
+    title: await page.title().catch(() => ''),
+    headings: dedupe(headings.map((h) => `${h.tag}:${h.text}`)).slice(0, 20),
+    tabs: dedupe(tabs).slice(0, 15),
+    columns: dedupe(columns).slice(0, 30),
+    buttons: dedupe(buttons).slice(0, 25),
+    filters: dedupe(filters).slice(0, 15),
+  };
+}
+
+function dedupe(arr) {
+  const seen = new Set();
+  const out = [];
+  for (const v of arr) {
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+function toMarkdown(findings) {
+  const lines = [];
+  lines.push('# QA Exploration Findings');
+  lines.push('');
+  lines.push(`> Generated by \`scripts/explore-qa.mjs\`. Captured ${new Date().toISOString()}.`);
+  lines.push(`> Environment: QA (${BASE_URL}), user: ${LOGIN}.`);
+  lines.push('> Read-only DOM snapshot. Use together with `docs/ai/knowledge-base/corpus/` indexes and `exploration-plan.md`.');
+  lines.push('');
+  for (const f of findings) {
+    lines.push(`## ${f.label}`);
+    lines.push('');
+    lines.push(`- **URL:** \`${f.url}\``);
+    lines.push(`- **Title:** ${f.title}`);
+    if (f.headings.length) {
+      lines.push('- **Headings:**');
+      for (const h of f.headings) lines.push(`  - ${h}`);
+    }
+    if (f.tabs.length) {
+      lines.push(`- **Tabs:** ${f.tabs.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    if (f.filters.length) {
+      lines.push(`- **Filters / inputs:** ${f.filters.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    if (f.columns.length) {
+      lines.push(`- **Grid columns:** ${f.columns.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    if (f.buttons.length) {
+      lines.push(`- **Buttons:** ${f.buttons.map((t) => '`' + t + '`').join(', ')}`);
+    }
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+(async () => {
+  console.log('Launching Chromium (headless)...');
+  const browser = await chromium.launch({ headless: true });
+  // Start clean — stale session cookies caused login to silently fail.
+  const context = await browser.newContext({ ignoreHTTPSErrors: true });
+  const page = await context.newPage();
+  page.setDefaultTimeout(60_000);
+
+  console.log('Logging in...');
+  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded' });
+  await waitForOSLoad(page, 20_000);
+  await page.locator('#Input_UsernameVal').waitFor({ state: 'visible', timeout: 60_000 });
+  await page.locator('#Input_UsernameVal').fill(LOGIN);
+  await page.locator('#Input_PasswordVal').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Login', exact: true }).first().click();
+  // Wait for navigation away from the login page (timeout 60s).
+  await page.waitForURL((url) => !url.pathname.includes('/GRC_Th/Login'), { timeout: 60_000 })
+    .catch(() => {});
+  await waitForOSLoad(page, 20_000);
+
+  if (!page.url().includes('/GRC_PICASso')) {
+    console.error(`Login did not reach /GRC_PICASso. Current URL: ${page.url()}`);
+    await browser.close();
+    process.exit(1);
+  }
+  console.log(`Logged in. Landing at ${page.url()}`);
+
+  // Auth state is intentionally NOT persisted — stale cookies caused silent login failures.
+  // If you need a reusable session, use the test suite's setup project instead.
+
+  const findings = [];
+
+  // --- Landing page: scope each tab capture to the visible tab panel ---
+  console.log('Loading landing page...');
+  await page.goto(LANDING_URL, { waitUntil: 'domcontentloaded' });
+  await waitForOSLoad(page, 30_000);
+  await waitForContent(page, 45_000);
+
+  for (const step of LANDING_TABS) {
+    try {
+      console.log(`→ ${step.label}`);
+      // Click the tab via role=tab (exact) with a text fallback
+      const tabEl = page.getByRole('tab', { name: step.tab, exact: true }).first();
+      if (await tabEl.count()) {
+        await tabEl.click();
+      } else {
+        await page.getByText(step.tab, { exact: true }).first().click();
+      }
+      await waitForOSLoad(page, 15_000);
+      await page.waitForTimeout(1500);
+
+      // Resolve active tab panel selector: aria-controls id, else the first visible [role=tabpanel]
+      const panelSelector = await page.evaluate((tabName) => {
+        const tab = Array.from(document.querySelectorAll('[role="tab"]'))
+          .find((el) => (el.textContent || '').trim() === tabName);
+        if (tab) {
+          const ctrl = tab.getAttribute('aria-controls');
+          if (ctrl && document.getElementById(ctrl)) return `#${CSS.escape(ctrl)}`;
+        }
+        const visiblePanels = Array.from(document.querySelectorAll('[role="tabpanel"]'))
+          .filter((p) => !p.hidden && p.offsetParent !== null);
+        if (visiblePanels[0] && visiblePanels[0].id) return `#${CSS.escape(visiblePanels[0].id)}`;
+        return null;
+      }, step.tab);
+      const scope = panelSelector ? page.locator(panelSelector) : null;
+
+      findings.push(await captureScreen(page, step, scope ?? undefined));
+    } catch (err) {
+      console.error(`  ! ${step.id} failed: ${err.message}`);
+      findings.push({ step: step.id, label: step.label, url: page.url(), title: '', headings: [], tabs: [], columns: [], buttons: [], filters: [], error: err.message });
+    }
+  }
+
+  // --- Discover a sample Product/Release/DOC from the landing grids ---
+  const discovered = { product: null, release: null, doc: null };
+
+  async function discoverFromTab(tabName, linkPattern) {
+    const tabEl = page.getByRole('tab', { name: tabName, exact: true }).first();
+    if (await tabEl.count()) await tabEl.click();
+    await waitForOSLoad(page, 15_000);
+    await waitForContent(page, 20_000);
+    await page.waitForTimeout(1200);
+    return page.evaluate((pattern) => {
+      const re = new RegExp(pattern);
+      const anchors = Array.from(document.querySelectorAll('a[href]'));
+      for (const a of anchors) {
+        const href = a.getAttribute('href') || '';
+        if (re.test(href)) return href;
+      }
+      return null;
+    }, linkPattern);
+  }
+
+  try {
+    discovered.product = await discoverFromTab('My Products', 'ProductDetail\\?.*ProductId=\\d+');
+  } catch (e) { console.error(`discover product: ${e.message}`); }
+  try {
+    discovered.release = await discoverFromTab('My Releases', 'ReleaseDetail\\?.*ReleaseId=\\d+');
+  } catch (e) { console.error(`discover release: ${e.message}`); }
+  try {
+    discovered.doc = await discoverFromTab('My DOCs', '(DOCDetail|DOC_Detail)\\?(?=[^"]*DOCId=\\d+)(?!.*ProductId=).*');
+    if (!discovered.doc) {
+      // Fallback: any DOCDetail link, then strip extra params
+      const href = await discoverFromTab('My DOCs', 'DOCDetail\\?');
+      if (href) {
+        const m = href.match(/DOCId=(\d+)/);
+        if (m) discovered.doc = `/GRC_PICASso_DOC/DOCDetail?DOCId=${m[1]}`;
+      }
+    }
+  } catch (e) { console.error(`discover doc: ${e.message}`); }
+
+  console.log('Discovered deep links:', discovered);
+
+  // --- Deep-link steps: navigate to each detail page and capture ---
+  const deepSteps = [];
+  if (discovered.product) deepSteps.push({ id: 'product-detail', label: 'Product Detail', url: new URL(discovered.product, BASE_URL).toString() });
+  if (discovered.release) deepSteps.push({ id: 'release-detail', label: 'Release Detail', url: new URL(discovered.release, BASE_URL).toString() });
+
+  for (const step of [...deepSteps, ...EXTRA_STEPS]) {
+    try {
+      console.log(`→ ${step.label}`);
+      await page.goto(step.url, { waitUntil: 'domcontentloaded' });
+      await waitForOSLoad(page, 30_000);
+      await waitForContent(page, 45_000);
+      await page.waitForTimeout(1500);
+      findings.push(await captureScreen(page, step));
+    } catch (err) {
+      console.error(`  ! ${step.id} failed: ${err.message}`);
+      findings.push({ step: step.id, label: step.label, url: page.url(), title: '', headings: [], tabs: [], columns: [], buttons: [], filters: [], error: err.message });
+    }
+  }
+
+  // --- DOC Detail: requires click-through from My DOCs tab ---
+  if (discovered.doc) {
+    try {
+      console.log('→ DOC Detail (via click-through)');
+      await page.goto(LANDING_URL, { waitUntil: 'domcontentloaded' });
+      await waitForOSLoad(page, 30_000);
+      await waitForContent(page, 45_000);
+      const docsTab = page.getByRole('tab', { name: 'My DOCs', exact: true }).first();
+      if (await docsTab.count()) await docsTab.click();
+      await waitForOSLoad(page, 15_000);
+      await waitForContent(page, 20_000);
+      await page.waitForTimeout(2500);
+      const docLink = page.locator(`a[href*="DOCDetail"]`).first();
+      await docLink.waitFor({ state: 'visible', timeout: 20_000 });
+      await Promise.all([
+        page.waitForURL(/GRC_PICASso_DOC\/DOCDetail/i, { timeout: 60_000 }).catch(() => {}),
+        docLink.click(),
+      ]);
+      await waitForOSLoad(page, 30_000);
+      await waitForContent(page, 45_000);
+      await page.waitForTimeout(4000);
+      findings.push(await captureScreen(page, { id: 'doc-detail', label: 'DOC Detail' }));
+    } catch (err) {
+      console.error(`  ! doc-detail failed: ${err.message}`);
+    }
+  }
+
+  fs.writeFileSync(OUTPUT, toMarkdown(findings), 'utf8');
+  console.log(`Wrote ${OUTPUT}`);
+  await browser.close();
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

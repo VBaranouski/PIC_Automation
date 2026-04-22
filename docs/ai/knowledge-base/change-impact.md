@@ -1,0 +1,30 @@
+# Change Impact — Tier 1 · Rolling 2-Sprint Log
+
+> Always loaded. Keep ≤ 40 rows (last 2 sprints). Older entries roll to [change-impact-archive.md](change-impact-archive.md).
+
+## Schema
+
+| Jira | Fix Version | Area | Feature-ID | Type | Change Summary | Knowledge File | Scenarios to Review | Status |
+|---|---|---|---|---|---|---|---|---|
+
+- **Type:** `NEW` or `IMPROVEMENT`
+- **Status:** `pending` → `in-progress` → `done`
+- **Scenarios to Review:** comma-separated scenario-id prefixes from the tracker
+- Feature-ID format: `<area>.<slug>` (e.g. `releases.questionnaire.auto-gen`)
+
+## Entries
+
+| Jira | Fix Version | Area | Feature-ID | Type | Change Summary | Knowledge File | Scenarios to Review | Status |
+|---|---|---|---|---|---|---|---|---|
+| PIC-10367 | PIC-2026-RC-11.0 | releases | releases.requirements.filters | IMPROVEMENT | Convert single-select → multi-select filters on Process/Product Requirements, CSRR summaries, DP&P tabs | knowledge/process-requirements.md, knowledge/product-requirements.md | — | pending |
+| PIC-8504 | PIC-2026-RC-11.0 | releases | releases.requirements.versioning | NEW | Product & Process Requirements Versioning — banner, Keep/Change version flow, auto-apply date, major vs minor field rules | knowledge/process-requirements.md | RELEASE-REQ-VERSION-* | pending |
+| PIC-2829 | BAU | releases | releases.requirements.traceability.delegated | NEW | Delegated Requirements Traceability popup with Product Name, Other Product, Contact Person, Release, Evidence link, Justification | knowledge/process-requirements.md | RELEASE-REQ-DELEGATED-* | pending |
+| — | PIC-2026-RC-11.0 | releases | releases.sca.component-management | NEW | Scan-to-Component data model + Add Scan Results modal (BDBA import, manual scan, CVSS severity from BackOffice) | knowledge/product-requirements.md | RELEASE-SCA-* | pending |
+| — | PIC-2026-RC-11.0 | releases | releases.data-protection.privacy-by-design | NEW | Privacy Sections maturity, Recommendation, PCC Decision (High-risk gated), Data Extraction API update | knowledge/data-protection.md | RELEASE-DPP-* | pending |
+| — | PIC-2026-RC-11.0 | reports | reports.tableau.data-privacy | NEW | 4 Master Data reports + Top Privacy Gaps + Crown Jewels matrix with RLS drill-down (Org L1→L2→L3) | knowledge/reports-dashboards.md | REPORT-DPP-* | pending |
+
+## Rolling rules
+
+1. A row older than 2 fix versions moves to `change-impact-archive.md` on the next sprint close.
+2. When a row transitions to `done`, set the feature-registry `last-verified` date in the matching area file.
+3. If a `NEW` row is added, ensure its feature-id also appears in `feature-registry/<area>.md` within the same PR.
