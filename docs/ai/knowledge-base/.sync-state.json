@@ -1,0 +1,13 @@
+{
+  "generatedBy": "scripts/sync-knowledge.ts",
+  "confluence": {},
+  "userGuide": {
+    "source": "docs/ai/test-cases/input/user-guide.md",
+    "lastIndexed": null,
+    "sha256": null
+  },
+  "scenarios": {
+    "db": "config/scenarios.db",
+    "lastIndexed": "2026-04-22T04:58:21.455Z"
+  }
+}

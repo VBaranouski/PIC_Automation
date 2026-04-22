@@ -35,7 +35,12 @@
     "tracker:sync": "npx tsx scripts/tracker.ts sync",
     "tracker:export": "npx tsx scripts/tracker.ts export",
     "tracker:ui": "npx tsx scripts/tracker-ui.ts",
-    "tracker:ui:stop": "pkill -f \"tracker-ui.ts|tracker:ui\" || true"
+    "tracker:ui:stop": "pkill -f \"tracker-ui.ts|tracker:ui\" || true",
+    "index:all": "npm run index:scenarios && npm run index:user-guide && npm run index:confluence",
+    "index:scenarios": "npx tsx scripts/index-scenarios.ts",
+    "index:user-guide": "npx tsx scripts/index-user-guide.ts",
+    "index:confluence": "npx tsx scripts/index-confluence.ts",
+    "sync:knowledge": "npx tsx scripts/sync-knowledge.ts"
   },
   "keywords": [
     "playwright",
