@@ -93,13 +93,13 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the `Landing Page` heading is visible |
-| 2 | Click the `My Products` tab | Verify the `My Products` tab has `aria-selected` = `"true"` |
-| 3 | Click the `My Releases` tab immediately (within 1 second) | Verify the `My Releases` tab has `aria-selected` = `"true"` |
-| 4 | Click the `My DOCs` tab immediately | Verify the `My DOCs` tab has `aria-selected` = `"true"` |
-| 5 | Click the `Reports & Dashboards` tab | Verify the `Reports & Dashboards` tab has `aria-selected` = `"true"` |
-| 6 | Click the `My Tasks` tab | Verify the `My Tasks` tab has `aria-selected` = `"true"` |
-| 7 | Verify the active tabpanel has loaded | Verify the grid is visible in the active tabpanel; verify at least 1 column header is present |
+| 1 | Navigate to the Landing Page | The `Landing Page` heading is visible |
+| 2 | Click the `My Products` tab | The `My Products` tab has `aria-selected` = `"true"` |
+| 3 | Click the `My Releases` tab immediately (within 1 second) | The `My Releases` tab has `aria-selected` = `"true"` |
+| 4 | Click the `My DOCs` tab immediately | The `My DOCs` tab has `aria-selected` = `"true"` |
+| 5 | Click the `Reports & Dashboards` tab | The `Reports & Dashboards` tab has `aria-selected` = `"true"` |
+| 6 | Click the `My Tasks` tab | The `My Tasks` tab has `aria-selected` = `"true"` |
+| 7 | Verify the active tabpanel has loaded | The grid is visible in the active tabpanel; at least 1 column header is present |
 
 **Coverage dimension:** State Transition (rapid state changes don't corrupt UI)
 
@@ -111,12 +111,12 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the `Landing Page` heading is visible |
-| 2 | Verify the `My Tasks` tab content | Verify either an empty-state message (e.g., `"No data"` or `"No records found"`) is visible, **or** verify the grid contains 0 data rows |
-| 3 | Click the `My Products` tab | Verify either an empty-state message is visible, or the grid contains 0 data rows |
-| 4 | Click the `My Releases` tab | Verify either an empty-state message is visible, or the grid contains 0 data rows |
-| 5 | Click the `My DOCs` tab | Verify either an empty-state message is visible, or the grid contains 0 data rows |
-| 6 | Click the `Reports & Dashboards` tab | Verify either an empty-state message is visible, or the grid contains 0 data rows |
+| 1 | Navigate to the Landing Page | The `Landing Page` heading is visible |
+| 2 | Verify the `My Tasks` tab content | An empty-state message (e.g., `"No data"` or `"No records found"`) is visible, **or** the grid contains 0 data rows |
+| 3 | Click the `My Products` tab | An empty-state message is visible, or the grid contains 0 data rows |
+| 4 | Click the `My Releases` tab | An empty-state message is visible, or the grid contains 0 data rows |
+| 5 | Click the `My DOCs` tab | An empty-state message is visible, or the grid contains 0 data rows |
+| 6 | Click the `Reports & Dashboards` tab | An empty-state message is visible, or the grid contains 0 data rows |
 
 **Coverage dimension:** Negative / Validation (empty data state)
 **Note:** Requires a dedicated test user with no data. If unavailable, mark `on-hold` in tracker.
@@ -133,13 +133,13 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the `My Tasks` tab is selected by default |
-| 2 | Verify the grid has data rows | Verify at least 1 data row is visible in the grid |
-| 3 | Record the initial record count from the pagination status | Confirm the count is greater than 0 |
-| 4 | Click the `Select a date.` date range picker | Verify the date picker calendar opens (calendar widget is visible) |
-| 5 | Select a date range that covers the last 30 days | Verify the date range picker displays the selected range |
-| 6 | Verify the grid updated | Verify the grid is still visible; verify the record count changed or stayed the same (data-dependent) |
-| 7 | Click the `Reset` button | Verify the date range picker is cleared; verify the record count is restored to the initial value |
+| 1 | Navigate to the Landing Page | The `My Tasks` tab is selected by default |
+| 2 | Verify the grid has data rows | At least 1 data row is visible in the grid |
+| 3 | Record the initial record count from the pagination status | The count is greater than 0 |
+| 4 | Click the `Select a date.` date range picker | The date picker calendar is open (calendar widget is visible) |
+| 5 | Select a date range that covers the last 30 days | The date range picker displays the selected range |
+| 6 | Verify the grid updated | The grid is still visible; the record count changed or stayed the same (data-dependent) |
+| 7 | Click the `Reset` button | The date range picker is cleared; the record count is restored to the initial value |
 
 **Coverage dimension:** Happy Path + Data Integrity (filter → read-back → reset → read-back)
 
@@ -151,13 +151,13 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the `My Tasks` tab is selected by default |
-| 2 | Verify the grid has data rows | Verify at least 1 data row is visible |
-| 3 | Record the initial record count | Confirm the count is greater than 0 |
-| 4 | Locate the `Assignee` combobox filter | Verify the `Assignee` combobox is visible |
-| 5 | Click the `Assignee` combobox and Select the first available option | Verify the selected option text appears in the combobox |
-| 6 | Verify the grid updated after filter applied | Verify the grid is visible; verify the record count is less than or equal to the initial count |
-| 7 | Click the `Reset` button | Verify the combobox is cleared; verify the record count is restored |
+| 1 | Navigate to the Landing Page | The `My Tasks` tab is selected by default |
+| 2 | Verify the grid has data rows | At least 1 data row is visible |
+| 3 | Record the initial record count | The count is greater than 0 |
+| 4 | Locate the `Assignee` combobox filter | The `Assignee` combobox is visible |
+| 5 | Click the `Assignee` combobox and Select the first available option | The selected option text appears in the combobox |
+| 6 | Verify the grid updated after filter applied | The grid is visible; the record count is less than or equal to the initial count |
+| 7 | Click the `Reset` button | The combobox is cleared; the record count is restored |
 
 **Coverage dimension:** Happy Path + Data Integrity
 
@@ -169,11 +169,11 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the `My Tasks` tab is active |
-| 2 | Verify the grid has data rows | Verify at least 1 row is visible |
-| 3 | Type `zzz_no_match_query_xyz_12345` into the `Search a task` searchbox | Verify the searchbox contains the typed text |
-| 4 | Verify the grid shows empty state | Verify the grid contains 0 data rows **or** an empty-state message like `"No records found"` is visible |
-| 5 | Click the `Reset` button | Verify the searchbox is cleared (value is empty); verify the grid has at least 1 data row again |
+| 1 | Navigate to the Landing Page | The `My Tasks` tab is active |
+| 2 | Verify the grid has data rows | At least 1 row is visible |
+| 3 | Type `zzz_no_match_query_xyz_12345` into the `Search a task` searchbox | The searchbox contains the typed text |
+| 4 | Verify the grid shows empty state | The grid contains 0 data rows **or** an empty-state message like `"No records found"` is visible |
+| 5 | Click the `Reset` button | The searchbox is cleared (value is empty); at least 1 data row is visible again |
 
 **Coverage dimension:** Negative / Validation (no-match scenario + recovery)
 
@@ -185,11 +185,11 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the `My Tasks` tab is active |
-| 2 | Verify the grid has at least 2 data rows | Confirm row count ≥ 2 |
-| 3 | Click the `Name` column header | Verify the column header has a sort indicator (ascending or descending); verify the grid is still visible with data |
-| 4 | Click the `Name` column header again | Verify the sort direction toggled (opposite indicator); verify the grid is still visible with data |
-| 5 | Click the `Product` column header | Verify the `Product` column now has a sort indicator; verify the `Name` sort indicator is removed or inactive |
+| 1 | Navigate to the Landing Page | The `My Tasks` tab is active |
+| 2 | Verify the grid has at least 2 data rows | Row count is ≥ 2 |
+| 3 | Click the `Name` column header | The column header has a sort indicator (ascending or descending); the grid is still visible with data |
+| 4 | Click the `Name` column header again | The sort direction is toggled (opposite indicator); the grid is still visible with data |
+| 5 | Click the `Product` column header | The `Product` column has a sort indicator; the `Name` sort indicator is removed or inactive |
 
 **Coverage dimension:** State Transition (sort state toggling)
 **Note:** If sorting is not available in the QA environment for these columns, skip the test with a descriptive message.
@@ -206,14 +206,14 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the page heading is visible |
-| 2 | Click the `My Products` tab | Verify the `My Products` tab has `aria-selected` = `"true"` |
-| 3 | Verify the grid has data rows | Verify at least 1 data row is visible |
-| 4 | Record the initial record count | Confirm the count is greater than 0 |
-| 5 | Click the `Product Id` combobox (2nd combobox in My Products filters) | Verify the combobox dropdown opens |
-| 6 | Select the first available Product ID option | Verify the selected Product ID text appears in the combobox |
-| 7 | Verify the grid updated | Verify the grid is visible; verify the record count is less than or equal to the initial count |
-| 8 | Click the `Reset` button | Verify the combobox is cleared; verify the record count is restored to the initial value |
+| 1 | Navigate to the Landing Page | The page heading is visible |
+| 2 | Click the `My Products` tab | The `My Products` tab has `aria-selected` = `"true"` |
+| 3 | Verify the grid has data rows | At least 1 data row is visible |
+| 4 | Record the initial record count | The count is greater than 0 |
+| 5 | Click the `Product Id` combobox (2nd combobox in My Products filters) | The combobox dropdown is open |
+| 6 | Select the first available Product ID option | The selected Product ID text appears in the combobox |
+| 7 | Verify the grid updated | The grid is visible; the record count is less than or equal to the initial count |
+| 8 | Click the `Reset` button | The combobox is cleared; the record count is restored to the initial value |
 
 **Coverage dimension:** Happy Path + Data Integrity
 
@@ -225,11 +225,11 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My Products` tab | Verify the tab is active |
-| 2 | Record the initial record count | Confirm the count is greater than 0 |
-| 3 | Verify the `Show Active Only` checkbox is checked by default | Confirm the checkbox `input[type="checkbox"]` is checked |
-| 4 | Click the `Org Level 1` combobox and Select the first available option | Verify the selected value appears |
-| 5 | Click the `Reset` button | Verify the `Org Level 1` combobox is cleared; verify the `Show Active Only` checkbox is still checked; verify the record count is restored to the initial value |
+| 1 | Navigate to the Landing Page and click the `My Products` tab | The tab is active |
+| 2 | Record the initial record count | The count is greater than 0 |
+| 3 | Verify the `Show Active Only` checkbox is checked by default | The `Show Active Only` checkbox `input[type="checkbox"]` is checked |
+| 4 | Click the `Org Level 1` combobox and Select the first available option | The selected value appears in the combobox |
+| 5 | Click the `Reset` button | The `Org Level 1` combobox is cleared; the `Show Active Only` checkbox is still checked; the record count is restored to the initial value |
 
 **Coverage dimension:** Data Integrity (filter + reset round-trip)
 
@@ -241,10 +241,10 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My Products` tab | Verify the `My Products` tab is active and grid has data |
-| 2 | Click the first product name link in the `Product` column | Verify a navigation is triggered |
-| 3 | Verify the URL contains `/ProductDetail` | Confirm the URL contains `ProductDetail` |
-| 4 | Verify the Product Detail page loaded | Verify the `Product Detail` heading or `Edit Product` button is visible |
+| 1 | Navigate to the Landing Page and click the `My Products` tab | The `My Products` tab is active and the grid has data |
+| 2 | Click the first product name link in the `Product` column | A navigation is triggered |
+| 3 | Verify the URL contains `/ProductDetail` | The URL contains `ProductDetail` |
+| 4 | Verify the Product Detail page loaded | The `Product Detail` heading or `Edit Product` button is visible |
 
 **Coverage dimension:** Happy Path (navigation)
 
@@ -256,10 +256,10 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My Products` tab | Verify the grid has at least 2 data rows |
-| 2 | Click the `Product` column header | Verify a sort indicator appears on the column header |
-| 3 | Click the `Product` column header again | Verify the sort direction toggles |
-| 4 | Click the `Org Level 1` column header | Verify the `Org Level 1` column shows a sort indicator |
+| 1 | Navigate to the Landing Page and click the `My Products` tab | The grid has at least 2 data rows |
+| 2 | Click the `Product` column header | A sort indicator appears on the column header |
+| 3 | Click the `Product` column header again | The sort direction is toggled |
+| 4 | Click the `Org Level 1` column header | The `Org Level 1` column shows a sort indicator |
 
 **Coverage dimension:** State Transition
 **Note:** Skip if sorting is not supported for these columns.
@@ -274,13 +274,13 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My Releases` tab | Verify the tab is active |
-| 2 | Verify the grid has data rows | Verify at least 1 row is visible |
-| 3 | Record the initial record count | Confirm the count is greater than 0 |
-| 4 | Click the date range picker (Target Release Date) | Verify the calendar widget opens |
-| 5 | Select a date range covering the last 90 days | Verify the date range appears in the picker |
-| 6 | Verify the grid updated | Verify the grid is visible; verify the record count changed or stayed the same |
-| 7 | Click the `Reset` button | Verify the date picker is cleared; verify the record count is restored |
+| 1 | Navigate to the Landing Page and click the `My Releases` tab | The tab is active |
+| 2 | Verify the grid has data rows | At least 1 row is visible |
+| 3 | Record the initial record count | The count is greater than 0 |
+| 4 | Click the date range picker (Target Release Date) | The calendar widget is open |
+| 5 | Select a date range covering the last 90 days | The date range appears in the picker |
+| 6 | Verify the grid updated | The grid is visible; the record count changed or stayed the same |
+| 7 | Click the `Reset` button | The date picker is cleared; the record count is restored |
 
 **Coverage dimension:** Happy Path + Data Integrity
 
@@ -292,10 +292,10 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My Releases` tab | Verify the grid has at least 2 rows |
-| 2 | Click the `Release` column header | Verify a sort indicator appears |
-| 3 | Click the `Release` column header again | Verify the sort direction toggles |
-| 4 | Click the `Target Release Date` column header | Verify this column now shows a sort indicator |
+| 1 | Navigate to the Landing Page and click the `My Releases` tab | The grid has at least 2 rows |
+| 2 | Click the `Release` column header | A sort indicator appears |
+| 3 | Click the `Release` column header again | The sort direction is toggled |
+| 4 | Click the `Target Release Date` column header | The `Target Release Date` column now shows a sort indicator |
 
 **Coverage dimension:** State Transition
 **Note:** Skip if sorting is not supported.
@@ -312,13 +312,13 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page and click the `My DOCs` tab | Verify the `My DOCs` tab is active |
-| 2 | Verify the grid has data rows | Verify at least 1 row is visible |
-| 3 | Record the initial record count | Confirm the count is greater than 0 |
-| 4 | Locate the DOC Status dropdown (the `Select an option` combobox) | Verify the combobox is visible |
-| 5 | Click the DOC Status combobox and Select the first available status option | Verify the selected status text appears in the combobox |
-| 6 | Verify the grid updated | Verify the grid is visible; verify the record count is less than or equal to the initial count |
-| 7 | Click the `Reset` button | Verify the combobox is cleared; verify the record count is restored |
+| 1 | Navigate to the Landing Page and click the `My DOCs` tab | The `My DOCs` tab is active |
+| 2 | Verify the grid has data rows | At least 1 row is visible |
+| 3 | Record the initial record count | The count is greater than 0 |
+| 4 | Locate the DOC Status dropdown (the `Select an option` combobox) | The combobox is visible |
+| 5 | Click the DOC Status combobox and Select the first available status option | The selected status text appears in the combobox |
+| 6 | Verify the grid updated | The grid is visible; the record count is less than or equal to the initial count |
+| 7 | Click the `Reset` button | The combobox is cleared; the record count is restored |
 
 **Coverage dimension:** Happy Path + Data Integrity
 
@@ -334,10 +334,10 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to a non-landing page (e.g., `/GRC_PICASso/RolesDelegation`) | Verify the page loaded (URL contains `RolesDelegation`) |
-| 2 | Click the PICASso header logo link | Verify a navigation is triggered |
-| 3 | Verify the URL contains `/GRC_PICASso/` | Confirm URL matches the Landing Page pattern |
-| 4 | Verify the Landing Page loaded | Verify the `My Tasks` tab is visible; verify the grid is visible |
+| 1 | Navigate to a non-landing page (e.g., `/GRC_PICASso/RolesDelegation`) | The URL contains `RolesDelegation` |
+| 2 | Click the PICASso header logo link | A navigation is triggered |
+| 3 | Verify the URL contains `/GRC_PICASso/` | The URL matches the Landing Page pattern |
+| 4 | Verify the Landing Page loaded | The `My Tasks` tab is visible; the grid is visible |
 
 **Coverage dimension:** Happy Path (global navigation)
 **Note:** This replaces existing `LANDING-HEADER-005` which tests logo from Landing → Landing. This variant tests from a different page to verify actual navigation.
@@ -350,10 +350,10 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to the Landing Page | Verify the page loaded |
+| 1 | Navigate to the Landing Page | The Landing Page heading is visible |
 | 2 | Verify whether a `My Reports` link exists in the header | If the link is **not visible**, skip the test with message `"My Reports link not present in QA environment"` |
-| 3 | Click the `My Reports` link | Verify a navigation is triggered |
-| 4 | Verify the target page loaded | Verify the URL contains `Reports` or the page heading contains `Reports` |
+| 3 | Click the `My Reports` link | A navigation is triggered |
+| 4 | Verify the target page loaded | The URL contains `Reports` or the page heading contains `Reports` |
 
 **Coverage dimension:** Happy Path
 **Note:** Link may not be present in QA. Mark as on-hold if confirmed absent.

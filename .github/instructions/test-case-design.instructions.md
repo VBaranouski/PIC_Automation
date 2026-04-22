@@ -41,13 +41,15 @@ Use these verbs and only these verbs in test step descriptions:
 | **Scroll** | Scroll to bring an element into view | `locator.scrollIntoViewIfNeeded()` |
 | **Clear** | Remove existing text from an input | `locator.clear()` |
 | **Upload** | Attach a file | `locator.setInputFiles()` |
-| **Verify** | Assert a visual/state condition (soft, informational) | `expect(locator).toBeVisible()` etc. |
+| **Verify** | Assert a visual/state condition in a **test step** | `expect(locator).toBeVisible()` etc. |
 | **Assert** | Assert a critical condition (test fails if false) | Same Playwright calls — both are hard assertions |
-| **Confirm** | Synonym for Verify/Assert in expected-result column | Same Playwright calls |
+| **Confirm** | Synonym for Verify/Assert — valid in **test steps only** | Same Playwright calls |
 | **Wait** | Explicitly wait for a condition before next step | `waitForOSScreenLoad()` / web-first `expect()` |
 
 **Banned verbs:** "Check" (ambiguous — click a checkbox or verify?), "Ensure" (vague),
 "Should" (passive), "Validate" (overloaded). Rewrite to one of the verbs above.
+
+> **Important:** `Verify` / `Confirm` / `Assert` are valid **step** verbs. They must **not** appear in the **Expected Result** column. Expected results are observable states, not actions.
 
 ### 1.3 Step Precision
 
@@ -67,34 +69,41 @@ Every test step must answer three questions:
 
 ---
 
-## 2. Expected Results — Measurable Assertions
+## 2. Expected Results — Observable States
 
-An agent needs a **binary** way to confirm success. Every expected result must be machine-verifiable.
+Expected results describe **what is observable after the step action completes** — not what to verify. Verification actions belong in test steps. An expected result is a factual state that either exists or does not.
+
+> **Rule:** Expected result = observable outcome. Strip `Verify/Confirm/Assert` — the result IS the state, not the act of checking it.
+>
+> ✅ `The Login button is visible`
+> ❌ `Verify the Login button is visible`
 
 ### 2.1 Assertion Categories
 
 | Category | Pattern | Example |
 |----------|---------|---------|
-| **Visibility** | Confirm `<element>` is visible / not visible | Confirm the `Welcome` heading is visible |
-| **State** | Verify `<element>` is enabled / disabled / checked | Verify the `Submit` button is disabled |
-| **Text content** | Verify `<element>` contains text `"<value>"` | Verify the banner contains text `"Product saved successfully"` |
-| **URL** | Verify the URL contains `<path>` | Verify the URL contains `/product-detail` |
-| **Count** | Verify `<container>` contains `<N>` `<items>` | Verify the Roles grid contains at least 1 row |
-| **Attribute** | Verify `<element>` has attribute `<attr>` = `"<value>"` | Verify the tab has `aria-selected` = `"true"` |
-| **Absence** | Confirm `<element>` is not present in the DOM | Confirm the `Delete` button is not visible for Viewer role |
-| **Order** | Verify `<item A>` appears before `<item B>` | Verify `Draft` appears before `In Review` in the Status dropdown |
-| **Download** | Verify a file download is triggered | Verify a `.xlsx` file download starts within 10 seconds |
+| **Visibility** | `The <element>` is visible / not visible | `The Welcome heading is visible` |
+| **State** | `The <element>` is enabled / disabled / checked | `The Submit button is disabled` |
+| **Text content** | `The <element>` contains text `"<value>"` | `The banner contains text "Product saved successfully"` |
+| **URL** | `The URL contains <path>` | `The URL contains /product-detail` |
+| **Count** | `At least <N> <items>` are visible | `At least 1 row is visible in the Roles grid` |
+| **Attribute** | `The <element>` has `<attr>` = `"<value>"` | `The tab has aria-selected = "true"` |
+| **Absence** | `The <element>` is not visible / not present | `The Delete button is not visible for Viewer role` |
+| **Order** | `<item A>` appears before `<item B>` | `"Draft" appears before "In Review" in the Status dropdown` |
+| **Download** | A `.<ext>` file download starts | `A .xlsx file download starts within 10 seconds` |
 
 ### 2.2 Forbidden Vague Results
 
-| Vague (banned) | Rewrite to |
-|----------------|------------|
-| "Page looks correct" | Verify the `<Page Heading>` heading is visible |
-| "Data loads properly" | Verify the grid contains at least 1 data row |
-| "Form works" | Verify the success banner `"Saved"` is visible after submit |
-| "No errors" | Verify no `alert` role element is visible on the page |
-| "Displays correctly" | Verify `<specific element>` is visible and contains `"<expected text>"` |
-| "Should be updated" | Verify `<field>` contains text `"<new value>"` |
+| Vague (banned) | Correct observable state |
+|----------------|--------------------------|
+| "Page looks correct" | `The <Page Heading> heading is visible` |
+| "Data loads properly" | `At least 1 data row is visible in the grid` |
+| "Form works" | `The success banner "Saved" is visible` |
+| "No errors" | `No alert-role element is visible on the page` |
+| "Displays correctly" | `The <specific element> is visible and contains "<expected text>"` |
+| "Should be updated" | `The <field> contains text "<new value>"` |
+| "Verify the page loaded" | `The <Heading> heading is visible` |
+| "Verify the grid updated" | `The grid is visible with at least 1 row` |
 
 ### 2.3 Boundary Assertions
 
@@ -103,9 +112,9 @@ For numeric fields, dates, and text inputs, include edge-case assertions:
 ```markdown
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 4a | Type `""` (empty) into the `Product Name` field and click `Save` | Verify validation message `"Product Name is required"` is visible |
-| 4b | Type a 256-character string into the `Product Name` field | Verify the field rejects or truncates input to 255 characters |
-| 4c | Type `<script>alert(1)</script>` into the `Product Name` field | Verify the input is sanitized; no script execution occurs |
+| 4a | Type `""` (empty) into the `Product Name` field and click `Save` | The validation message `"Product Name is required"` is visible |
+| 4b | Type a 256-character string into the `Product Name` field | The field rejects or truncates input to 255 characters |
+| 4c | Type `<script>alert(1)</script>` into the `Product Name` field | The input is sanitized; no script executes |
 ```
 
 ---
@@ -219,12 +228,12 @@ Apply this when reviewing test cases:
 
 ```markdown
 # Weak — only checks visibility, not content
-| 5 | Navigate to Product Detail | Verify the Product Detail page is visible |
+| 5 | Navigate to Product Detail | The Product Detail page is visible |
 
 # Strong — checks that the correct product loaded
-| 5 | Navigate to Product Detail | Verify the `Product Name` heading contains "Test Product Alpha" |
-| 5a | | Verify the `Product ID` field shows the expected ID |
-| 5b | | Verify the `Status` badge shows "Active" |
+| 5 | Navigate to Product Detail | The `Product Name` heading contains "Test Product Alpha" |
+| 5a | | The `Product ID` field shows the expected ID |
+| 5b | | The `Status` badge shows "Active" |
 ```
 
 ### 4.5 Dependency Verification
@@ -233,8 +242,8 @@ When a test creates or modifies data, verify the downstream effects:
 
 ```markdown
 # Product creation should cascade to release and DOC
-| 8 | Navigate to the Releases tab | Verify the newly created product appears in the Product dropdown |
-| 9 | Navigate to My DOCs tab | Verify no DOC exists yet for the new product (clean state) |
+| 8 | Navigate to the Releases tab | The newly created product appears in the Product dropdown |
+| 9 | Navigate to My DOCs tab | No DOC exists yet for the new product (clean state) |
 ```
 
 ### 4.6 Environment-Agnostic Assertions
@@ -243,10 +252,10 @@ Never assert on data that changes between environments:
 
 | Fragile | Robust |
 |---------|--------|
-| Verify 42 rows in the grid | Verify at least 1 row is visible in the grid |
-| Verify URL is `https://qa.leap...` | Verify URL contains `/product-detail` |
-| Verify user `John Doe` appears | Verify the `Created By` column is not empty |
-| Verify date is `2026-04-22` | Verify the `Created Date` column is not empty |
+| "42 rows in the grid" | At least 1 row is visible in the grid |
+| URL is `https://qa.leap...` | The URL contains `/product-detail` |
+| User `John Doe` appears | The `Created By` column is not empty |
+| Date is `2026-04-22` | The `Created Date` column is not empty |
 
 ---
 

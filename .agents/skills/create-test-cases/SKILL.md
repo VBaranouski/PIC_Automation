@@ -136,18 +136,21 @@ Use the **exact** element name from the DOM snapshot (exploration findings). One
 
 #### Rule 3: Measurable Expected Results
 
-Every expected result must map to a Playwright assertion:
+Expected results describe an **observable state**, not a verification action. Strip `Verify/Confirm/Assert` from expected results — those belong in test steps.
 
-| Category | Template | Playwright |
-|----------|----------|------------|
-| Visibility | Confirm `<element>` is visible | `expect(loc).toBeVisible()` |
-| State | Verify `<element>` is disabled | `expect(loc).toBeDisabled()` |
-| Text | Verify `<element>` contains `"<text>"` | `expect(loc).toContainText()` |
-| URL | Verify URL contains `<path>` | `expect(page).toHaveURL()` |
-| Count | Verify `<grid>` has at least 1 row | `expect(loc).toHaveCount()` |
-| Attribute | Verify `<tab>` has `aria-selected="true"` | `expect(loc).toHaveAttribute()` |
+> ✅ `The Login button is visible`  
+> ❌ `Verify the Login button is visible`
 
-**Banned vague results:** "Page looks correct", "Data loads properly", "Form works", "No errors", "Displays correctly"
+| Category | Observable State Template | Playwright assertion |
+|----------|--------------------------|---------------------|
+| Visibility | `The <element> is visible` | `expect(loc).toBeVisible()` |
+| State | `The <element> is disabled` | `expect(loc).toBeDisabled()` |
+| Text | `The <element> contains "<text>"` | `expect(loc).toContainText()` |
+| URL | `The URL contains <path>` | `expect(page).toHaveURL()` |
+| Count | `At least 1 row is visible in <grid>` | `expect(loc).toHaveCount()` |
+| Attribute | `The <tab> has aria-selected="true"` | `expect(loc).toHaveAttribute()` |
+
+**Banned vague results:** "Page looks correct", "Verify the page loaded", "Data loads properly", "Form works", "No errors", "Displays correctly"
 
 #### Rule 4: Step Precision (Where + What + How)
 
@@ -176,13 +179,16 @@ Every expected result must map to a Playwright assertion:
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to … | Verify the `…` heading is visible |
-| 2 | Click … | Verify `…` opens / changes |
-| 3 | Verify … | Confirm `…` is visible / contains "…" |
+| 1 | Navigate to … | The `…` heading is visible |
+| 2 | Click … | The `…` dialog is open |
+| 3 | Verify … | The `…` is visible / contains "…" |
 
 **Coverage dimension:** <which of the 5 dimensions this covers>
 **Note:** <skip conditions, known issues, on-hold criteria>
 ```
+
+> **Expected Result column rule:** Use observable states — no `Verify/Confirm/Assert` prefixes.
+> Steps use action verbs. Expected Results describe the resulting state.
 
 ### Step 6: Review Gate
 
