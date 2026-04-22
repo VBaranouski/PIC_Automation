@@ -46,8 +46,10 @@ export function now(): string {
 
 export function parseJsonArray(raw: string | null | undefined): string[] {
   if (!raw) return [];
+  // Prefer JSON array format (e.g. '["step1","step2"]')
   try { const v = JSON.parse(raw); return Array.isArray(v) ? v.map(String) : []; }
-  catch { return []; }
+  // Fallback: newline-separated plain text (legacy backfill format)
+  catch { return raw.split('\n').map(s => s.trim()).filter(Boolean); }
 }
 
 export function normalizeSpecFilePath(specFile: string | undefined): string {

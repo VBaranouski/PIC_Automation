@@ -23,6 +23,7 @@
  *   import      Import scenarios from a JSON file
  *   seed        Seed DB from the automation-testing-plan.md
  *   show        Show details of a single scenario
+ *   rename      Rename a scenario ID across all tables
  */
 
 import { Command } from 'commander';
@@ -59,6 +60,8 @@ import {
   mergeScenarios,
   listMerges,
   getMergedInto,
+  getScenarioDetails,
+  scenarioExists,
 } from '../src/tracker/operations';
 import {
   AUTOMATION_STATES,
@@ -187,6 +190,26 @@ program
     }
     console.log(`  Created:      ${s.created_at}`);
     console.log(`  Updated:      ${s.updated_at}`);
+
+    const details = getScenarioDetails(s.id);
+    if (details && details.steps.length) {
+      console.log(chalk.bold('\n  Steps:'));
+      details.steps.forEach((step, i) => {
+        const text = step.replace(/^\d+[.)]\s*/, '');
+        console.log(`    ${i + 1}. ${text}`);
+      });
+    }
+    if (details && details.expected_results.length) {
+      console.log(chalk.bold('\n  Expected Results:'));
+      details.expected_results.forEach((r, i) => {
+        const text = r.replace(/^\d+[.)]\s*/, '');
+        console.log(`    ${i + 1}. ${text}`);
+      });
+    }
+    if (details?.execution_notes) {
+      console.log(chalk.bold('\n  Execution Notes:'));
+      console.log(`    ${details.execution_notes}`);
+    }
     console.log();
     closeDb();
   });
@@ -271,6 +294,40 @@ program
   });
 
 // ── auto-state ────────────────────────────────────────────────────────────────
+
+// ── rename ────────────────────────────────────────────────────────────────────
+
+program
+  .command('rename <oldId> <newId>')
+  .description('Rename a scenario ID across all tables (scenarios, scenario_details, scenario_groups)')
+  .action((oldId: string, newId: string) => {
+    const db = getDb();
+    const old = oldId.toUpperCase();
+    const nw = newId.toUpperCase();
+
+    if (!scenarioExists(old)) {
+      console.log(chalk.red(`Scenario "${old}" not found.`));
+      closeDb();
+      process.exit(1);
+    }
+    if (scenarioExists(nw)) {
+      console.log(chalk.red(`Scenario "${nw}" already exists. Choose a different ID.`));
+      closeDb();
+      process.exit(1);
+    }
+
+    db.pragma('foreign_keys = OFF');
+    db.transaction(() => {
+      db.prepare('UPDATE scenarios SET id = ?, updated_at = ? WHERE id = ?').run(nw, new Date().toISOString().slice(0, 19).replace('T', ' '), old);
+      db.prepare('UPDATE scenario_details SET scenario_id = ? WHERE scenario_id = ?').run(nw, old);
+      db.prepare('UPDATE scenario_groups SET scenario_id = ? WHERE scenario_id = ?').run(nw, old);
+    })();
+    db.pragma('foreign_keys = ON');
+
+    console.log(chalk.green(`✓ Renamed ${old} → ${nw}`));
+    closeDb();
+  });
+
 
 program
   .command('auto-state <id> <newState>')

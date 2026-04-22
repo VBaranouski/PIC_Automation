@@ -24,7 +24,7 @@
 | Dimension | Status | Gap |
 |-----------|--------|-----|
 | **Happy Path** | ✅ Covered | All 5 tabs, grid load, default tab |
-| **Negative / Validation** | ❌ Missing | Empty state (WF02-0005), no-match search, invalid date range |
+| **Negative / Validation** | ❌ Missing | Empty state (LANDING-EMPTY-001), no-match search, invalid date range |
 | **Role-Based Access** | ❌ Missing | No role restriction tests for header actions (New Product visibility per role) |
 | **State Transitions** | ⚠️ Partial | Show Active Only toggle tested; but no tab-switch-while-loading test |
 | **Data Integrity** | ⚠️ Partial | Read-back after filter; but no cross-tab data consistency |
@@ -46,8 +46,8 @@ The following duplicates were **deleted** from the tracker DB (not on-hold — f
 | `LANDING-RELS-PROD-001` (Product filter) | `WF02-0042` | Same filter test |
 
 **Kept as distinct (not duplicates):**
-- `LANDING-TASKS-DATE-001` (visibility) vs `WF02-0017` (functional filter) → different scope
-- `LANDING-TASKS-ASSIGNEE-001` (visibility) vs `WF02-0018` (functional filter) → different scope
+- `LANDING-TASKS-DATE-001` (visibility) vs `LANDING-TASKS-DATE-002` (functional filter) → different scope
+- `LANDING-TASKS-ASSIGNEE-001` (visibility) vs `LANDING-TASKS-ASSIGNEE-002` (functional filter) → different scope
 
 ### Net New Scenarios to Create
 
@@ -55,19 +55,19 @@ After deduplication, **10 genuinely new scenarios** remain:
 
 | ID | Tab | Priority | Description |
 |---|---|---|---|
-| WF02-0005 | All | P2 | Empty state across all tabs |
-| WF02-0017 | My Tasks | P2 | Date Range picker functional filter |
-| WF02-0018 | My Tasks | P2 | Assignee filter functional |
-| WF02-0009 | My Tasks | P3 | Column sorting |
+| LANDING-EMPTY-001 | All | P2 | Empty state across all tabs |
+| LANDING-TASKS-DATE-002 | My Tasks | P2 | Date Range picker functional filter |
+| LANDING-TASKS-ASSIGNEE-002 | My Tasks | P2 | Assignee filter functional |
+| LANDING-TASKS-SORT-001 | My Tasks | P3 | Column sorting |
 | LANDING-MY-PRODUCTS-004 | My Products | P2 | Search by Product ID |
 | LANDING-MY-PRODUCTS-005 | My Products | P2 | Reset button restores default state |
 | LANDING-MY-PRODUCTS-006 | My Products | P2 | Product name click → Product Detail |
-| WF02-0034 | My Products | P3 | Column sorting |
+| LANDING-PRODS-SORT-001 | My Products | P3 | Column sorting |
 | WF02-0042 | My Releases | P2 | Product filter narrows results |
-| WF02-0043 | My Releases | P2 | Target Release Date range filter |
-| WF02-0040 | My Releases | P3 | Column sorting |
-| WF02-0055 | My DOCs | P2 | DOC Status dropdown filter |
-| WF02-0070 | Header | P2 | My Reports shortcut link |
+| LANDING-RELS-DATE-002 | My Releases | P2 | Target Release Date range filter |
+| LANDING-RELS-SORT-001 | My Releases | P3 | Column sorting |
+| LANDING-DOCS-STATUS-001 | My DOCs | P2 | DOC Status dropdown filter |
+| LANDING-HEADER-REPORTS-001 | Header | P2 | My Reports shortcut link |
 
 Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
@@ -105,7 +105,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0005` — Empty State Display When User Has No Data
+#### `LANDING-EMPTY-001` — Empty State Display When User Has No Data
 
 **Preconditions:** Logged in as a user with **no assigned tasks, products, releases, or DOCs** (e.g., a freshly provisioned test user with no data). If no such user is available, **mark as on-hold**.
 
@@ -127,7 +127,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0017` — Date Range Picker Filters My Tasks Grid
+#### `LANDING-TASKS-DATE-002` — Date Range Picker Filters My Tasks Grid
 
 **Preconditions:** Logged in as `process_quality_leader`. Landing Page loaded. My Tasks tab active with data rows.
 
@@ -145,7 +145,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0018` — Assignee Filter Changes My Tasks Grid Content
+#### `LANDING-TASKS-ASSIGNEE-002` — Assignee Filter Changes My Tasks Grid Content
 
 **Preconditions:** Logged in as `process_quality_leader`. Landing Page loaded. My Tasks tab active with data rows.
 
@@ -179,7 +179,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0009` — My Tasks Column Sorting
+#### `LANDING-TASKS-SORT-001` — My Tasks Column Sorting
 
 **Preconditions:** Logged in as `process_quality_leader`. My Tasks tab active with multiple data rows.
 
@@ -250,7 +250,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0034` — My Products Column Sorting
+#### `LANDING-PRODS-SORT-001` — My Products Column Sorting
 
 **Preconditions:** Logged in as `process_quality_leader`. My Products tab active with multiple data rows.
 
@@ -268,7 +268,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ### WF 2.4 — My Releases Tab
 
-#### `WF02-0043` — Target Release Date Range Filter Applies Correctly
+#### `LANDING-RELS-DATE-002` — Target Release Date Range Filter Applies Correctly
 
 **Preconditions:** Logged in as `process_quality_leader`. My Releases tab active with data rows.
 
@@ -286,7 +286,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0040` — My Releases Column Sorting
+#### `LANDING-RELS-SORT-001` — My Releases Column Sorting
 
 **Preconditions:** Logged in as `process_quality_leader`. My Releases tab active with multiple data rows.
 
@@ -306,7 +306,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0055` — DOC Status Dropdown Filter Applies Correctly
+#### `LANDING-DOCS-STATUS-001` — DOC Status Dropdown Filter Applies Correctly
 
 **Preconditions:** Logged in as `process_quality_leader`. My DOCs tab active with data rows.
 
@@ -344,7 +344,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 
 ---
 
-#### `WF02-0070` — My Reports Shortcut Link in Header
+#### `LANDING-HEADER-REPORTS-001` — My Reports Shortcut Link in Header
 
 **Preconditions:** Logged in as `process_quality_leader`. Landing Page loaded.
 
@@ -368,7 +368,7 @@ Plus **new scenarios from coverage gap analysis** (not yet in tracker):
 | 2 | Every expected result is machine-verifiable (visibility, state, text, URL, count) | ✅ |
 | 3 | No vague terms ("looks correct", "works", "displays properly") | ✅ |
 | 4 | UI element names match DOM snapshot from exploration-findings.md | ✅ |
-| 5 | Negative cases: no-match search (`LANDING-TASKS-EMPTY-001`), empty state (`WF02-0005`) | ✅ |
+| 5 | Negative cases: no-match search (`LANDING-TASKS-EMPTY-001`), empty state (`LANDING-EMPTY-001`) | ✅ |
 | 6 | Role-based: not applicable for landing (all tabs visible to `process_quality_leader`; role-restricted tests belong in `auth` area) | ✅ N/A |
 | 7 | State transitions: sort toggle, rapid tab switch, Show Active Only toggle | ✅ |
 | 8 | Data integrity: filter → record count → reset → count restored (all filter tests) | ✅ |
@@ -403,15 +403,15 @@ All removed via `npx tsx scripts/tracker.ts remove <ID>`. No on-hold — clean d
 | Priority | Count | Scenarios |
 |----------|-------|-----------|
 | P1 | 1 | LANDING-HEADER-LOGO-001 |
-| P2 | 9 | WF02-0005, WF02-0017, WF02-0018, LANDING-MY-PRODUCTS-004/005/006, WF02-0043, WF02-0055, LANDING-TASKS-EMPTY-001 |
-| P3 | 3 | WF02-0009, WF02-0034, WF02-0040 |
+| P2 | 9 | LANDING-EMPTY-001, LANDING-TASKS-DATE-002, LANDING-TASKS-ASSIGNEE-002, LANDING-MY-PRODUCTS-004/005/006, LANDING-RELS-DATE-002, LANDING-DOCS-STATUS-001, LANDING-TASKS-EMPTY-001 |
+| P3 | 3 | LANDING-TASKS-SORT-001, LANDING-PRODS-SORT-001, LANDING-RELS-SORT-001 |
 
 ### Zero-Regression Assessment After Completion
 
 | Dimension | Covered? |
 |-----------|----------|
 | Happy Path (all tabs, filters, navigation) | ✅ Yes — all 5 tabs fully covered |
-| Negative / Validation (empty state, no-match) | ✅ Yes — after WF02-0005 + LANDING-TASKS-EMPTY-001 |
+| Negative / Validation (empty state, no-match) | ✅ Yes — after LANDING-EMPTY-001 + LANDING-TASKS-EMPTY-001 |
 | Role-Based Access | ⚠️ Deferred to `auth` area (landing page is role-agnostic for viewing) |
-| State Transitions (sort, toggle, rapid switch) | ✅ Yes — after WF02-0009/0034/0040 + LANDING-TABS-SWITCH-001 |
+| State Transitions (sort, toggle, rapid switch) | ✅ Yes — after LANDING-TASKS-SORT-001/0034/0040 + LANDING-TABS-SWITCH-001 |
 | Data Integrity (filter → read-back → reset) | ✅ Yes — all filter tests follow this pattern |
