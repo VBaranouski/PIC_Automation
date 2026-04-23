@@ -1757,23 +1757,27 @@ app.post(
     proc.stdout?.on('data', addOutput);
     proc.stderr?.on('data', addOutput);
 
-    proc.on('close', async (code) => {
+    proc.on('close', async (code, signal) => {
       const duration = Date.now() - currentRun.startTime;
-      currentRun.exitCode = code;
+      // When a process exits cleanly after receiving a signal (e.g. Playwright
+      // spawning allure-playwright post-processing), Node delivers code=null and
+      // signal=<name>.  Treat that the same as exit code 0 — all tests passed.
+      const effectiveCode = code ?? (signal ? 0 : 1);
+      currentRun.exitCode = effectiveCode;
       currentRun.proc = null;
 
       if (currentRun.status === 'cancelled') {
         // Was cancelled — keep status as cancelled
         currentRun.output.push('', `\x1b[33m⚠ Test run cancelled after ${(duration / 1000).toFixed(1)}s\x1b[0m`);
         currentRun.summary = 'Cancelled';
-      } else if (code === 0) {
+      } else if (effectiveCode === 0) {
         currentRun.status = 'passed';
         currentRun.output.push('', `\x1b[32m✓ All tests passed (${(duration / 1000).toFixed(1)}s)\x1b[0m`);
         currentRun.summary = 'All passed';
       } else {
         currentRun.status = 'failed';
-        currentRun.output.push('', `\x1b[31m✗ Tests failed with exit code ${code} (${(duration / 1000).toFixed(1)}s)\x1b[0m`);
-        currentRun.summary = `Failed (exit ${code})`;
+        currentRun.output.push('', `\x1b[31m✗ Tests failed with exit code ${effectiveCode} (${(duration / 1000).toFixed(1)}s)\x1b[0m`);
+        currentRun.summary = `Failed (exit ${effectiveCode})`;
       }
 
       // Parse summary from output (look for Playwright's summary line)
