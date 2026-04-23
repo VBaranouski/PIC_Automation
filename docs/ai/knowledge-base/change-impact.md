@@ -36,6 +36,7 @@
 | — | — | releases | releases.details.history | IMPROVEMENT | Release History — 22 scenarios with steps, 2 new role-based scenarios | — | RELEASE-HISTORY-* | done |
 | — | — | releases | releases.stage-sidebar | IMPROVEMENT | Stage Sidebar — 19 scenarios with steps, 3 new gap-filling scenarios | — | STAGE-SIDEBAR-* | done |
 | — | — | integrations | — | REMOVAL | Deleted `user-guides/Picasso API Doc.md` (534-line API & CI/CD design doc); superseded by `user-guides/PICASso Data Extraction API.md` and the Data Ingestion API knowledge files added in PR #10 | knowledge/data-ingestion-api.md | — | done |
+| PIC-7695 | — | products | products.risk-profile.calculator | NEW | Product Risk Profile Calculator — 39 new test cases covering calculator page, Product Details section, override, factor comments, history, RBAC. 5 Jira stories: PIC-7954, PIC-8009, PIC-7981, PIC-7978, PIC-8011 | — | RISK-PROFILE-005–RISK-PROFILE-043 | done |
 
 ## Rolling rules
 

@@ -25,6 +25,7 @@ Load these files before starting:
 1. `.github/instructions/test-case-design.instructions.md` — **The canonical rules** for agent-compatible language, measurable assertions, exploratory testing, and zero-regression coverage. This is the authoritative reference. Read it first.
 2. `.github/instructions/testing-patterns.instructions.md` — Locator priority, web-first assertions (informs what's technically feasible)
 3. `.github/instructions/outsystems-picasso.instructions.md` — OSUI widget patterns (informs which UI elements need special handling)
+4. `docs/ai/knowledge-base/knowledge/access-privileges.md` — **Canonical role list, role groups, and privilege-to-role mapping.** Read this before writing any role-based test case. Use it to pick the exact role name and privilege code, and to identify the correct denied-access role for negative scenarios.
 
 ## The 8-Step Design Workflow
 
@@ -41,6 +42,11 @@ Then load Tier 2 context (read only what's needed — don't load everything):
 1. **Feature registry:** `docs/ai/knowledge-base/feature-registry/<area>.md` — existing feature IDs, scenario prefixes, POM methods
 2. **Exploration findings:** `docs/ai/knowledge-base/exploration-findings.md` — actual UI elements from DOM snapshot (canonical element names)
 3. **Knowledge file:** `docs/ai/knowledge-base/knowledge/<topic>.md` — business rules, workflows, edge cases (if exists for this area)
+4. **Access privileges reference:** `docs/ai/knowledge-base/knowledge/access-privileges.md` — **always load this**; look up:
+   - The **exact role name** (e.g., `Security Manager`, not `SecurityManager`) for every actor in the test cases
+   - The **privilege code** that gates the feature under test (e.g., `SCOPE_SUBMIT`, `EDIT_DOC_DETAILS`)
+   - The **denied-access role** for negative scenarios — pick a role in a different group that does NOT hold the required privilege (cross-reference the Role Groups table)
+   - Any **role group shorthand** to parameterize across multiple roles (e.g., "All product roles", "Governance roles")
 
 ### Step 2: Query Tracker for Current State
 
@@ -246,6 +252,19 @@ Use the **exact** element name from the DOM snapshot (exploration findings). One
 ❌ Click the add role button
 ```
 
+#### Rule 0: Role & Privilege Naming (apply before writing any precondition or step)
+
+Consult `docs/ai/knowledge-base/knowledge/access-privileges.md` for every actor and permission in each test case:
+
+1. **Role names** must match the canonical list exactly — copy-paste, don't paraphrase:
+   - ✅ `Security Manager`, `BU Security Officer`, `SuperUser`, `Viewer Global / Viewer Product`
+   - ❌ `Security_Manager`, `security manager`, `BU Sec Officer`, `Admin`, `Viewer`
+2. **Privilege codes** cited in notes/preconditions must match the `access-privileges.md` code column exactly (e.g., `SCOPE_SUBMIT`, `EDIT_DOC_DETAILS`).
+3. **Denied-access roles** for negative/RBAC scenarios must be chosen from a **different role group** than the allowed role (use the Role Groups table in the reference file):
+   - ✅ Testing `SCOPE_SUBMIT` (Product team) → denied role = `Privacy Advisor` (Privacy roles group)
+   - ❌ Testing `SCOPE_SUBMIT` → denied role = `Security Manager` (same Product team group — this is likely also allowed)
+4. **Role group shorthand** (e.g., "All product roles", "Governance roles") may be used in the precondition narrative when a feature applies to an entire group, but the spec step table must still name the concrete test role.
+
 #### Rule 2: Automation-Friendly Verbs Only
 
 | Verb | Meaning |
@@ -338,8 +357,9 @@ Every test case must pass ALL 13 checks before moving to automation:
 | **11** | **Every scenario ID follows `AREA-SUBSECTION-NNN` format** | `sqlite3 config/scenarios.db "SELECT id FROM scenarios WHERE id GLOB 'WF*' AND feature_area='<area>'"` returns 0 rows |
 | **12** | **Every scenario has steps + expected results populated** | Step 6c audit query returns 0 rows |
 | **13** | **No description starts with `<ID>: `** | `sqlite3 config/scenarios.db "SELECT id FROM scenarios WHERE description LIKE id || ':%' AND feature_area='<area>'"` returns 0 rows |
+| **14** | **All role names match `access-privileges.md` canonical list** | No freeform aliases like "admin", "Security_Manager", "product owner" (must match exactly: `Security Manager`, `SuperUser`, etc.) |
 
-> **BLOCKING:** Checks 11–13 are non-negotiable gates. If any fail, do NOT report the task as complete.
+> **BLOCKING:** Checks 11–14 are non-negotiable gates. If any fail, do NOT report the task as complete.
 
 ### Step 9: Mandatory Tracker DB Update (EXECUTE — Do Not Skip)
 

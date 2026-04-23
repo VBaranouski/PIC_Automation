@@ -14,3 +14,9 @@
 | products.actions | Cross-release actions window | active | PRODUCT-ACTIONS-* | — | — | — | — |
 | products.doc.initiate | Initiate DOC from product | active | PRODUCT-DOC-* | — | — | — | — |
 | products.inactivate | Inactivate product (admin) | active | PRODUCT-INACTIVATE-* | — | — | — | — |
+| products.risk-profile.calculator | Product Risk Profile Calculator — factor selection, calculation, save | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
+| products.risk-profile.details-section | Risk Profile section on Product Details page | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
+| products.risk-profile.override | Override Risk Profile popup CRUD | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
+| products.risk-profile.comments | Add/Edit/Delete comment per factor | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
+| products.risk-profile.history | CRA-specific Product History entries | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
+| products.risk-profile.rbac | Role-based access to Risk Profile features | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
