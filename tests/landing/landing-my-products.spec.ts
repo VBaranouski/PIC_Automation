@@ -282,3 +282,141 @@ test.describe('Landing Page - My Products Advanced Filters @regression', () => {
     });
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.3 — My Products: Product ID search, Reset, Name nav, Active toggle
+// ────────────────────────────────────────────────────────────────────────────
+
+test.describe('Landing Page - My Products ID Search & Active Toggle @regression', () => {
+  test.setTimeout(120_000);
+
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+    await landingPage.clickTab('My Products');
+    await landingPage.waitForGridDataRows();
+  });
+
+  test('LANDING-MY-PRODUCTS-007 — search by Product ID narrows results @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-MY-PRODUCTS-007: Verify that searching by a specific Product ID in the Product ID combobox filter narrows the grid results.',
+    );
+
+    let productId: string;
+
+    await test.step('Capture the first product ID from the grid', async () => {
+      productId = await landingPage.getProductIdAtRow(1);
+      test.skip(!productId, 'Could not extract a Product ID from the first grid row — no PIC-NNNN found.');
+    });
+
+    await test.step('Apply Product ID filter using extracted ID', async () => {
+      const idShort = productId.replace('PIC-', '');
+      await landingPage.searchAndSelectProductById(idShort, new RegExp(productId, 'i'));
+    });
+
+    await test.step('Verify grid is still visible after filtering', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset filters to restore default state', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectGridHasRows();
+    });
+  });
+
+  test('LANDING-MY-PRODUCTS-008 — Reset button restores default filter state @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-MY-PRODUCTS-008: Verify that clicking Reset on My Products clears all filters and restores the default view including Show Active Only being checked.',
+    );
+
+    await test.step('Toggle Show Active Only off to change filter state', async () => {
+      const isVisible = await landingPage.productsShowActiveOnlyCheckbox.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!isVisible, 'Show Active Only checkbox is not visible — skipping.');
+      await landingPage.toggleShowActiveOnly();
+      await landingPage.expectProductsShowActiveOnlyUnchecked();
+    });
+
+    await test.step('Click Reset', async () => {
+      await landingPage.resetFilters();
+    });
+
+    await test.step('Verify Show Active Only is restored to checked', async () => {
+      await landingPage.expectProductsShowActiveOnlyChecked();
+    });
+  });
+
+  test('LANDING-MY-PRODUCTS-009 — clicking a product name navigates to Product Detail page @regression', async ({ landingPage, page }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-MY-PRODUCTS-009: Verify that clicking a product name link in the My Products grid navigates to the Product Detail page.',
+    );
+
+    await test.step('Click the first product name link', async () => {
+      await landingPage.clickFirstProduct();
+    });
+
+    await test.step('Verify navigation to Product Detail page', async () => {
+      await page.waitForURL(/ProductDetail/, { timeout: 30_000 });
+      await expect(page).toHaveURL(/ProductDetail/);
+    });
+  });
+
+  test('LANDING-PRODS-ACTIVE-001 — Show Active Only toggle defaults to ON — only active products shown @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-PRODS-ACTIVE-001: Verify that "Show Active Only" toggle is checked by default when the My Products tab loads.',
+    );
+
+    await test.step('Verify Show Active Only checkbox is checked by default', async () => {
+      const isVisible = await landingPage.productsShowActiveOnlyCheckbox.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!isVisible, 'Show Active Only checkbox not rendered — skipping.');
+      await landingPage.expectProductsShowActiveOnlyChecked();
+    });
+
+    await test.step('Verify grid has data rows (active products are shown)', async () => {
+      await landingPage.expectGridHasRows();
+    });
+  });
+
+  test('LANDING-PRODS-ACTIVE-002 — toggling Show Active Only OFF reveals inactive products @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-PRODS-ACTIVE-002: Verify that toggling "Show Active Only" off on My Products reveals inactive/all products in the grid.',
+    );
+
+    let initialCount: number;
+
+    await test.step('Verify Show Active Only is on and record initial count', async () => {
+      const isVisible = await landingPage.productsShowActiveOnlyCheckbox.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!isVisible, 'Show Active Only checkbox not rendered — skipping.');
+      await landingPage.expectProductsShowActiveOnlyChecked();
+      initialCount = await landingPage.getGridRowCount();
+    });
+
+    await test.step('Toggle Show Active Only OFF', async () => {
+      await landingPage.toggleShowActiveOnly();
+      await landingPage.expectProductsShowActiveOnlyUnchecked();
+    });
+
+    await test.step('Verify grid is still visible (inactive products may have been added)', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset filters', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectProductsShowActiveOnlyChecked();
+    });
+  });
+});

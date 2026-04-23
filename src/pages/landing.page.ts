@@ -71,8 +71,10 @@ export class LandingPage extends BasePage {
   get reportsProductDropdown(): Locator       { return this.l.reportsProductDropdown; }
   get reportsProductTypeDropdown(): Locator   { return this.l.reportsProductTypeDropdown; }
   get reportsReleaseNumberDropdown(): Locator { return this.l.reportsReleaseNumberDropdown; }
-  get reportsMoreFiltersLink(): Locator       { return this.l.reportsMoreFiltersLink; }
-  get reportsAccessTableauLink(): Locator     { return this.l.reportsAccessTableauLink; }
+  get reportsMoreFiltersLink(): Locator            { return this.l.reportsMoreFiltersLink; }
+  get reportsAccessTableauLink(): Locator           { return this.l.reportsAccessTableauLink; }
+  get reportsConfigureColumnsButton(): Locator      { return this.l.reportsConfigureColumnsButton; }
+  get reportsDateRangePicker(): Locator             { return this.l.reportsDateRangePicker; }
 
   // --- Tab navigation ---
 
@@ -750,6 +752,10 @@ export class LandingPage extends BasePage {
     await expect(this.l.releasesShowActiveOnlyCheckbox).toBeChecked();
   }
 
+  async expectReleasesShowActiveOnlyUnchecked(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyCheckbox).not.toBeChecked();
+  }
+
   async expectDocsFiltersVisible(): Promise<void> {
     await expect(this.l.docsSearchBox).toBeVisible();
     await expect(this.l.docsProductDropdown).toBeVisible();
@@ -762,6 +768,75 @@ export class LandingPage extends BasePage {
 
   async expectAccessTableauLinkVisible(): Promise<void> {
     await expect(this.l.reportsAccessTableauLink).toBeVisible();
+  }
+
+  async clickReportsConfigureColumns(): Promise<void> {
+    await this.l.reportsConfigureColumnsButton.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.reportsConfigureColumnsButton.click();
+    await waitForOSScreenLoad(this.page).catch(() => undefined);
+  }
+
+  async expectReportsColumnConfigVisible(): Promise<void> {
+    const activePanel = this.page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
+    const doneBtn = activePanel.getByRole('button', { name: /^done$/i });
+    await expect(doneBtn).toBeVisible({ timeout: 15_000 });
+  }
+
+  async clickReportsColumnConfigDone(): Promise<void> {
+    const activePanel = this.page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
+    await activePanel.getByRole('button', { name: /^done$/i }).click();
+    await waitForOSScreenLoad(this.page).catch(() => undefined);
+    await expect(this.l.grid).toBeVisible({ timeout: 30_000 });
+  }
+
+  async clickReportsColumnConfigCancel(): Promise<void> {
+    const activePanel = this.page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
+    await activePanel.getByRole('button', { name: /^cancel$/i }).click();
+    await waitForOSScreenLoad(this.page).catch(() => undefined);
+  }
+
+  async clickReportsColumnConfigRestoreDefault(): Promise<void> {
+    const activePanel = this.page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
+    await activePanel.getByRole('button', { name: /restore default/i }).click();
+    await waitForOSScreenLoad(this.page).catch(() => undefined);
+  }
+
+  async clickReportsMoreFilters(): Promise<void> {
+    await this.l.reportsMoreFiltersLink.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.l.reportsMoreFiltersLink.click();
+    await waitForOSScreenLoad(this.page).catch(() => undefined);
+  }
+
+  async filterReportsByOrgLevel1(option?: string | RegExp): Promise<string | null> {
+    return this.selectFirstVirtualComboboxOption(this.l.reportsOrgLevel1Dropdown);
+  }
+
+  async filterReportsByOrgLevel2(option?: string | RegExp): Promise<string | null> {
+    return this.selectFirstVirtualComboboxOption(this.l.reportsOrgLevel2Dropdown);
+  }
+
+  async filterReportsByProduct(option?: string | RegExp): Promise<string | null> {
+    return this.selectFirstVirtualComboboxOption(this.l.reportsProductDropdown);
+  }
+
+  async filterReportsByProductType(option?: string | RegExp): Promise<string | null> {
+    return this.selectFirstVirtualComboboxOption(this.l.reportsProductTypeDropdown);
+  }
+
+  async filterReportsByReleaseNumber(option?: string | RegExp): Promise<string | null> {
+    return this.selectFirstVirtualComboboxOption(this.l.reportsReleaseNumberDropdown);
+  }
+
+  async expectTasksGridEmptyState(): Promise<void> {
+    await expect
+      .poll(
+        async () => {
+          const rowCount = (await this.l.grid.getByRole('row').count()) - 1; // minus header
+          return rowCount;
+        },
+        { timeout: 30_000, intervals: [500, 1000, 2000] },
+      )
+      .toBeLessThanOrEqual(0);
   }
 
   async expectMoreFiltersLinkVisible(): Promise<void> {

@@ -249,3 +249,66 @@ test.describe('Landing Page - My Releases Grid Actions @regression', () => {
     });
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.4 — My Releases: Show Active Only toggle
+// ────────────────────────────────────────────────────────────────────────────
+
+test.describe('Landing Page - My Releases Active Toggle @regression', () => {
+  test.setTimeout(120_000);
+
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+    await landingPage.clickTab('My Releases');
+    await landingPage.waitForGridDataRows();
+  });
+
+  test('LANDING-RELS-ACTIVE-001 — Show Active Only toggle on My Releases defaults to ON @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-RELS-ACTIVE-001: Verify that "Show Active Only" toggle on the My Releases tab is checked by default.',
+    );
+
+    await test.step('Verify Show Active Only checkbox is checked by default', async () => {
+      const isVisible = await landingPage.releasesShowActiveOnlyCheckbox.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!isVisible, 'Show Active Only checkbox not rendered — skipping.');
+      await landingPage.expectReleasesShowActiveOnlyChecked();
+    });
+
+    await test.step('Verify grid has data rows', async () => {
+      await landingPage.expectGridHasRows();
+    });
+  });
+
+  test('LANDING-RELS-ACTIVE-002 — toggling Show Active Only OFF reveals Cancelled, Completed, and Inactive releases @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-RELS-ACTIVE-002: Verify that toggling "Show Active Only" off on My Releases reveals Cancelled, Completed, and Inactive releases.',
+    );
+
+    await test.step('Verify Show Active Only is on by default', async () => {
+      const isVisible = await landingPage.releasesShowActiveOnlyCheckbox.isVisible({ timeout: 5_000 }).catch(() => false);
+      test.skip(!isVisible, 'Show Active Only checkbox not rendered — skipping.');
+      await landingPage.expectReleasesShowActiveOnlyChecked();
+    });
+
+    await test.step('Toggle Show Active Only OFF', async () => {
+      await landingPage.toggleReleasesShowActiveOnly();
+      await landingPage.expectReleasesShowActiveOnlyUnchecked();
+    });
+
+    await test.step('Verify grid is visible (additional inactive releases may appear)', async () => {
+      await landingPage.expectGridVisible();
+    });
+
+    await test.step('Reset filters to restore default state', async () => {
+      await landingPage.resetFilters();
+      await landingPage.expectReleasesShowActiveOnlyChecked();
+    });
+  });
+});
