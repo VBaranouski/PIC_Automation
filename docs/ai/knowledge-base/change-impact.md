@@ -16,6 +16,7 @@
 
 | Jira | Fix Version | Area | Feature-ID | Type | Change Summary | Knowledge File | Scenarios to Review | Status |
 |---|---|---|---|---|---|---|---|---|
+| — | — | backoffice | backoffice.access-privileges | NEW | Created access-privileges.md knowledge file from Access Privileges 21.4.xlsx — 158 unique privileges × 21 roles, 19 functional areas, role groups, test usage notes | knowledge/access-privileges.md | — | done |
 | PIC-10367 | PIC-2026-RC-11.0 | releases | releases.requirements.filters | IMPROVEMENT | Convert single-select → multi-select filters on Process/Product Requirements, CSRR summaries, DP&P tabs | knowledge/process-requirements.md, knowledge/product-requirements.md | — | pending |
 | PIC-8504 | PIC-2026-RC-11.0 | releases | releases.requirements.versioning | NEW | Product & Process Requirements Versioning — banner, Keep/Change version flow, auto-apply date, major vs minor field rules | knowledge/process-requirements.md | RELEASE-REQ-VERSION-* | pending |
 | PIC-2829 | BAU | releases | releases.requirements.traceability.delegated | NEW | Delegated Requirements Traceability popup with Product Name, Other Product, Contact Person, Release, Evidence link, Justification | knowledge/process-requirements.md | RELEASE-REQ-DELEGATED-* | pending |
