@@ -192,6 +192,25 @@ Map each scenario to a subsection based on the UI feature area it tests. Example
 - Keep subsection names human-readable and consistent (Title Case, 2–5 words)
 - A single scenario should belong to exactly ONE subsection
 
+#### 6a-note: Serial-Suite Decision
+
+Before inserting scenarios, decide whether the describe block for this batch will use `test.describe.serial()` or `test.describe()`:
+
+**Use `test.describe.serial()` ONLY IF:**
+- Test N reads state (e.g., a URL or name) that was written into a describe-scope `let` variable by Test N-1, AND
+- Test N has no way to independently acquire that state without re-running the earlier test.
+
+**Use `test.describe()` (parallel-safe) when:**
+- Every test has its own `beforeEach` / in-test `goto()` that navigates to its starting point independently.
+- Any describe-scope `let` is reset inside every test that uses it (not shared across tests).
+- Tests use `test.skip()` guards at the top if a prerequisite is absent, but can re-acquire that prerequisite on their own.
+
+**Why this matters:** `test.describe.serial()` causes all subsequent tests to be silently skipped (shown as `-`) when any earlier test fails. Misusing serial mode masks real failures and inflates skip counts. Only use it when the dependency chain is genuine and unavoidable.
+
+**Document the decision in the scenario Note field:**
+- Serial-dependent scenarios: `Note: serial-dependent — relies on URL/state set by <PRIOR-ID>.`
+- Independent scenarios: no note needed (default is `describe`, not `serial`).
+
 #### 6b. Insert into Tracker with Subsection
 
 When adding scenarios to the DB, always include the `subsection` field:
@@ -362,8 +381,9 @@ Every test case must pass ALL 13 checks before moving to automation:
 | **16** | **No duplicate titles within the workflow** | `sqlite3 config/scenarios.db "SELECT title, COUNT(*) c FROM scenarios WHERE workflow='<workflow>' GROUP BY title HAVING c > 1"` returns 0 rows |
 | **17** | **Scenarios are ordered sequentially within each subsection** | IDs within each prefix are contiguous (no gaps, no out-of-order inserts in the spec file) |
 | **18** | **Steps and expected results are aligned (same count per scenario)** | `sqlite3 config/scenarios.db "SELECT scenario_id, json_array_length(steps), json_array_length(expected_results) FROM scenario_details WHERE scenario_id IN (SELECT id FROM scenarios WHERE workflow='<workflow>') AND json_array_length(steps) != json_array_length(expected_results)"` returns 0 rows |
+| **19** | **Serial-suite mode is documented correctly for each scenario** | Scenarios that depend on state set by a prior test (e.g., a URL captured in test 1 re-used in test 2) are marked in Notes as `serial-dependent`; scenarios with independent navigation (each test calls `goto()` itself) are NOT marked serial-dependent |
 
-> **BLOCKING:** Checks 11–18 are non-negotiable gates. If any fail, do NOT report the task as complete.
+> **BLOCKING:** Checks 11–19 are non-negotiable gates. If any fail, do NOT report the task as complete.
 
 ### Step 9: Mandatory Tracker DB Update (EXECUTE — Do Not Skip)
 

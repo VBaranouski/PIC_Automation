@@ -107,7 +107,33 @@ test.describe('<Area> - Feature Description (WF ref) @regression', () => {
 | releases | `releaseDetailPage` | `ReleaseDetailPage` |
 | doc | `docDetailsPage` | `DocDetailsPage` |
 | doc (controls) | `controlDetailPage` | `ControlDetailPage` |
+### Serial-Suite Decision (Required Before Writing Any `describe` Block)
 
+Before choosing `test.describe()` vs `test.describe.serial()`, answer this question:
+
+> **Does any test in this block read a `let` variable at describe scope that was WRITTEN by a previous test?**
+
+| Condition | Correct mode | Reason |
+|-----------|-------------|--------|
+| Every test has its own `beforeEach` or in-test `goto()` and no describe-scope `let` is passed between tests | `test.describe()` | Tests are fully independent |
+| A describe-scope `let url = ''` is set in test 1 and read by tests 2+ (no independent fallback) | `test.describe.serial()` | Genuine sequential dependency |
+| `beforeAll` creates shared browser state (product, release, etc.) consumed by all tests | `test.describe.serial()` | Shared setup requires ordered execution |
+| Describe-scope `let` is **reset inside every test that uses it** | `test.describe()` | No real cross-test state |
+
+**Why it matters:** `test.describe.serial()` silently skips ALL remaining tests (shown as `-`) when any earlier test fails. Misuse inflates skip counts and hides real failures.
+
+**How to add tests to an existing serial suite:**
+If the suite has shared state (e.g., `let releaseDetailUrl = ''`), the new test MUST:
+1. Read that shared variable (not call `goto()` independently), OR
+2. Navigate to it but also set it as a fallback: `if (!releaseDetailUrl) { releaseDetailUrl = await findUrl(...); }`
+
+**Audit command — verify no unnecessary serial suites in the spec file:**
+```bash
+grep -n "describe.serial" tests/<area>/<spec>.spec.ts
+# For each hit, check whether tests 2+ read describe-scope let vars set by test 1
+grep -n "^  let " tests/<area>/<spec>.spec.ts
+```
+If a `describe.serial` block has NO describe-scope `let` that is set in one test and read in another → convert to `test.describe()`.
 ### Step 3: Validate Locators in Browser (Playwright CLI / Codegen)
 
 **This step uses the interactive Playwright CLI browser — not a test run.** Open the target environment, walk the full user journey manually, and verify every locator against the live DOM before running the test suite.
@@ -306,3 +332,4 @@ releaseDetailPage.waitForOSLoad()
 7. **Allure metadata is mandatory** — every test needs `suite`, `severity`, `tag`, `description`
 8. **Scenario IDs must match tracker** — use the exact `AREA-ACTION-###` or `WF##-####` format from the tracker DB
 9. **Both tracker fields must be updated together** — after every passing run, set both `auto-state automated` AND `exec-status passed` for each scenario. The Playwright reporters (list, HTML, Allure, JSON) write to files only — they never update `scenarios.db`. Forgetting `exec-status` leaves the scenario as `automated / not-executed`, which is a false state.
+10. **Never use `test.describe.serial()` for independent tests** — if every test in the block does its own `goto()` (or `beforeEach` navigates) and there is NO describe-scope `let` variable that is written in test N and read in test N+1, the suite must use `test.describe()`. Using serial on independent tests silently skips all remaining tests on the first failure, masking real regressions. See the Serial-Suite Decision section above.

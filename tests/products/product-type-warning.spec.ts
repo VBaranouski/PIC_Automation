@@ -68,7 +68,7 @@ async function findProductWithActiveRelease(
 
 // ---------------------------------------------------------------------------
 
-test.describe.serial('Products / Product Type Warning @regression', () => {
+test.describe('Products / Product Type Warning @regression', () => {
   test.setTimeout(300_000);
   // -------------------------------------------------------------------------
   // PRODUCT-TYPE-WARN-001

@@ -198,7 +198,7 @@ async function findProductWithAnyRelease(
   throw new Error('No product with existing releases found in the first 100 My Products rows.');
 }
 
-test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression', () => {
+test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () => {
   test.setTimeout(400_000);
 
   // Shared product URL — discovered once by the first test in the serial block

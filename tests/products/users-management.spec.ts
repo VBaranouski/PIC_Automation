@@ -75,7 +75,7 @@ async function navigateToUsersManagement(
 
 // ---------------------------------------------------------------------------
 
-test.describe.serial('Products / Users Management @regression', () => {
+test.describe('Products / Users Management @regression', () => {
   test.setTimeout(300_000);
   // -------------------------------------------------------------------------
   // PRODUCT-LEAP-001

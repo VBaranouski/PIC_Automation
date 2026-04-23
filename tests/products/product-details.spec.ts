@@ -196,7 +196,7 @@ async function openProductWithEditableBrandLabel(
   throw new Error(`Could not find a product with editable Brand Label checkbox and valid org levels in the first ${maxRows} rows.`);
 }
 
-test.describe.serial('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', () => {
+test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', () => {
   test.setTimeout(600_000);
 
   let productName: string;
