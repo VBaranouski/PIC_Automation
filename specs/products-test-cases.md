@@ -32,7 +32,7 @@
 | Product Inactivation (PRODUCT-INACTIVATE-*) | 3 | 1 | `product-inactivation.spec.ts` |
 | Tracking Tools (TRACKING-TOOLS-*) | 11 | 1 | `tracking-tools.spec.ts` |
 | Status Mapping (STATUS-MAP-*) | 6 | 0 | `status-mapping.spec.ts` |
-| Risk Profile (RISK-PROFILE-*) | 3 | 1 | `risk-profile.spec.ts` |
+| Risk Profile (RISK-PROFILE-CALC/DETAILS/OVERRIDE/COMMENT/HISTORY/RBAC-*) | 3 | 40 | `risk-profile.spec.ts` |
 | Cross-Org Dev (CROSS-ORG-*) | 7 | 0 | `cross-org.spec.ts` |
 | DOC Cert Tab (PROD-DOC-CERT-*) | 2 | 0 | `product-details.spec.ts` |
 | Product Actions (PRODUCT-ACTIONS-*) | 0 | 1 | `product-details-actions.spec.ts` |
@@ -519,25 +519,663 @@ npx tsx scripts/tracker.ts remove PRODUCT-CREATION-016
 
 ---
 
-### 3.9 Risk Profile — Pending Scenario
+### 3.9 Product Risk Profile
+
+> DB subsection: `3.6 Product Risk Profile` · Spec file: `risk-profile.spec.ts`
+> Automated: `RISK-PROFILE-CALC-001`, `RISK-PROFILE-CALC-002`, `RISK-PROFILE-CALC-003`
+> Pending: all cases below (004–020, DETAILS-001–006, OVERRIDE-001–006, COMMENT-001–006, HISTORY-001–003, RBAC-001–002)
 
 ---
 
-#### `RISK-PROFILE-003` — Submitting a calculation adds a row to the Risk Profile history grid
+**— Details Section (RISK-PROFILE-DETAILS-\*) —**
 
-**Preconditions:** Logged in as PQL. Product detail page → Security Summary tab → Risk Profile Calculator open.
+---
+
+#### `RISK-PROFILE-DETAILS-001` — Risk Profile section is visible on Product Details page with all fields
+
+**Preconditions:** Logged in as PQL. Product detail page open on the Security Summary tab.
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
-| 1 | Navigate to product detail page, click `Security Summary` tab, click `Calculate Risk Profile` button | The Risk Profile Calculator page loads |
-| 2 | Record the current row count in the Risk Profile history grid | The count is recorded (may be 0 or more) |
-| 3 | Fill the `Exposure`, `Likelihood`, and `Impact` input fields with valid values | All three fields contain values |
-| 4 | Click the `Submit` or `Calculate` button | The calculation is processed |
-| 5 | Verify a new row appears in the Risk Profile history grid | The row count is 1 more than the count recorded in step 2 |
-| 6 | Verify the new row shows Date, Submitted By, Risk level, Exposure, Likelihood, Impact columns | All column values in the new row are not empty |
+| 1 | Navigate to product detail page and click the `Security Summary` tab | Security Summary tab content is visible |
+| 2 | Verify a `Risk Profile` section header is visible | A Risk Profile section is present on the page |
+| 3 | Verify the following fields are present: `Exposure`, `Likelihood`, `Impact`, `Risk Vector`, `Updated Risk Profile` | All listed fields are visible within the Risk Profile section |
+| 4 | Verify at least one button (`Calculate Risk Profile` or `View Details`) is visible | At least one Risk Profile action button is visible |
 
-**Coverage dimension:** Data Integrity (calculation persistence)
+**Coverage dimension:** Happy Path (section visibility)
+
+---
+
+#### `RISK-PROFILE-DETAILS-002` — Before any calculation all Risk Profile fields show default empty values
+
+**Preconditions:** Logged in as PQL. Product has never had a Risk Profile calculated (clean test product).
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `Security Summary` tab | Security Summary content is visible |
+| 2 | Verify the `Exposure` field shows `–` or equivalent empty state | Exposure shows a default placeholder, not a numeric value |
+| 3 | Verify the `Likelihood` field shows `–` or equivalent empty state | Likelihood shows a default placeholder, not a numeric value |
+| 4 | Verify the `Impact` field shows `–` or equivalent empty state | Impact shows a default placeholder, not a numeric value |
+| 5 | Verify the `Risk Vector` field shows `–` or empty | Risk Vector field contains no calculated vector string |
+
+**Coverage dimension:** Negative (empty state before any calculation)
+
+---
+
+#### `RISK-PROFILE-DETAILS-003` — After a saved calculation all Risk Profile fields show computed values
+
+**Preconditions:** Logged in as PQL. Product has a completed and saved Risk Profile calculation.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `Security Summary` tab | Security Summary content is visible |
+| 2 | Verify `Exposure` shows a non-empty numeric value | Exposure field contains a number |
+| 3 | Verify `Likelihood` shows a non-empty numeric value | Likelihood field contains a number |
+| 4 | Verify `Impact` shows a non-empty numeric value | Impact field contains a number |
+| 5 | Verify `Risk Vector` contains a populated vector string | Risk Vector field shows a non-empty string (e.g., `AV:N/AC:L/...`) |
+
+**Coverage dimension:** Happy Path (post-calculation state on details page)
+
+---
+
+#### `RISK-PROFILE-DETAILS-004` — "Calculate Risk Profile" button navigates to calculator in edit mode
+
+**Preconditions:** Logged in as PQL. On the product detail Security Summary tab.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `Security Summary` tab | Risk Profile section is visible |
+| 2 | Click `Calculate Risk Profile` button | Navigation occurs |
+| 3 | Verify the Risk Profile Calculator page loads | URL changes to the Calculator page |
+| 4 | Verify factor dropdowns are editable (not disabled) | At least one factor dropdown can be opened and a value selected |
+| 5 | Verify `Save` and `Cancel` buttons are visible | Both buttons are present on the Calculator page |
+
+**Coverage dimension:** Happy Path (navigation to edit mode)
+
+---
+
+#### `RISK-PROFILE-DETAILS-005` — "View Details" button navigates to calculator in view (read-only) mode
+
+**Preconditions:** Logged in as PQL. Product has a previously saved Risk Profile (so "View Details" button is shown).
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `Security Summary` tab | Risk Profile section shows `View Details` button |
+| 2 | Click `View Details` button | Navigation occurs |
+| 3 | Verify the Risk Profile Calculator page loads | URL changes to the Calculator page |
+| 4 | Verify factor dropdowns are read-only or disabled | Factor dropdowns cannot be changed |
+| 5 | Verify `Save` button is NOT visible | No Save button is present |
+
+**Coverage dimension:** Happy Path (navigation to view-only mode)
+
+---
+
+#### `RISK-PROFILE-DETAILS-006` — Create Product page shows an info icon with tooltip for Risk Profile
+
+**Preconditions:** Logged in as PQL. On the Create Product page.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to the Create Product page | Create Product form is visible |
+| 2 | Locate the Risk Profile field label | A Risk Profile label is visible on the form |
+| 3 | Verify an info icon (`ℹ` or `?`) is present next to the label | An info icon is visible adjacent to the Risk Profile label |
+| 4 | Hover over the info icon | A tooltip appears |
+| 5 | Verify the tooltip contains non-empty explanatory text | Tooltip text describes the Risk Profile field purpose |
+
+**Coverage dimension:** Happy Path (UI discoverability)
+
+---
+
+**— Calculator (RISK-PROFILE-CALC-\*) —**
+
+> CALC-001 through CALC-003 are automated; CALC-004 through CALC-020 are pending.
+
+---
+
+#### `RISK-PROFILE-CALC-004` — Submitting a calculation adds a row to the Risk Profile history grid
+
+**Preconditions:** Logged in as PQL. Product detail page → Security Summary tab → Risk Profile Calculator open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page, click `Security Summary` tab, click `Calculate Risk Profile` | The Risk Profile Calculator page loads |
+| 2 | Record the current row count in the Risk Profile history grid | The count is recorded (may be 0 or more) |
+| 3 | Select values for `Connectivity`, `Functionality`, all Likelihood, and all Impact factor dropdowns | All required factor dropdowns have values; Exposure, Likelihood, Impact, Risk Vector are populated |
+| 4 | Click `Save` | The calculation is processed and the user is redirected |
+| 5 | Navigate back to product detail → Security Summary tab | Risk Profile section is visible |
+| 6 | Verify the Risk Profile history grid has one more row than before | Row count is 1 more than recorded in step 2 |
+| 7 | Verify the new row shows `Date`, `Submitted By`, `Risk level`, `Exposure`, `Likelihood`, `Impact` columns | All column values in the new row are non-empty |
+
+**Coverage dimension:** Data Integrity (calculation persistence in history grid)
 **Note:** DEFERRED — destructive action that creates permanent data. Requires disposable test product.
+
+---
+
+#### `RISK-PROFILE-CALC-005` — Calculator page displays all factor sections and their dropdowns
+
+**Preconditions:** Logged in as PQL. Risk Profile Calculator page open (edit mode).
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary → click `Calculate Risk Profile` | Calculator page loads |
+| 2 | Verify the `Exposure` section is visible with `Connectivity` and `Functionality` factor dropdowns | Exposure section header and 2 factor dropdowns are visible |
+| 3 | Verify the `Likelihood` section is visible with all 4 Likelihood factor dropdowns | Likelihood section header and 4 factor dropdowns are visible |
+| 4 | Verify the `Impact` section is visible with its factor dropdowns | Impact section header and all Impact factor dropdowns are visible |
+| 5 | Verify `Risk Vector`, `Notes`, and `Product Risk Assessment` fields are visible | All three output/text fields are present on the page |
+
+**Coverage dimension:** Happy Path (page completeness)
+
+---
+
+#### `RISK-PROFILE-CALC-006` — Cancel button with unsaved changes shows a confirmation dialog
+
+**Preconditions:** Logged in as PQL. Calculator page open; at least one factor dropdown has been changed.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Calculator loads in edit mode |
+| 2 | Select any value in one factor dropdown | Dropdown shows the selected value |
+| 3 | Click the `Cancel` button | A confirmation dialog appears |
+| 4 | Verify the dialog references unsaved changes | Dialog text mentions unsaved changes or asks for confirmation |
+| 5 | Click `Confirm` or `Yes` in the dialog | Dialog closes; user is returned to the Product Details page |
+
+**Coverage dimension:** State Transitions (cancel with unsaved changes)
+
+---
+
+#### `RISK-PROFILE-CALC-007` — Back navigation with unsaved changes shows a confirmation dialog
+
+**Preconditions:** Logged in as PQL. Calculator page open; at least one factor dropdown has been changed.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Calculator loads in edit mode |
+| 2 | Select any value in one factor dropdown | Dropdown shows the selected value |
+| 3 | Click the page-level `Back` button or browser back | A confirmation dialog appears (or the OS/page intercepts the navigation) |
+| 4 | Verify the dialog references unsaved changes | Dialog text mentions unsaved changes |
+| 5 | Click `Confirm` or `Leave` | User is returned to the Product Details page without saving |
+
+**Coverage dimension:** State Transitions (back navigation with unsaved changes)
+
+---
+
+#### `RISK-PROFILE-CALC-008` — Edit mode pre-populates factor dropdowns with previously saved values
+
+**Preconditions:** Logged in as PQL. Product has a previously saved Risk Profile calculation.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary → click `Calculate Risk Profile` | Calculator loads in edit mode |
+| 2 | Verify each factor dropdown shows the previously saved value | All factor dropdowns show non-empty, pre-selected values |
+| 3 | Verify the `Notes` field contains the previously saved notes text (if any) | Notes field is pre-populated if notes were previously saved |
+
+**Coverage dimension:** Data Integrity (pre-population of existing values)
+
+---
+
+#### `RISK-PROFILE-CALC-009` — View mode renders all factor values as read-only
+
+**Preconditions:** Logged in as PQL. Product has a previously saved Risk Profile. "View Details" was clicked.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary → click `View Details` | Calculator page loads |
+| 2 | Verify factor dropdowns are disabled or show selected values without an interactive control | Factor dropdown values are visible but cannot be changed |
+| 3 | Verify calculated fields `Exposure`, `Likelihood`, `Impact`, `Risk Vector` are visible | All calculated output fields show the saved values |
+| 4 | Verify `Save` button is NOT visible | No Save button is present on the page |
+
+**Coverage dimension:** Happy Path (view-only mode)
+
+---
+
+#### `RISK-PROFILE-CALC-010` — Selecting all 9 factors populates all calculated output fields
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | All factor dropdowns are empty; output fields show `–` |
+| 2 | Select a value in the `Connectivity` factor dropdown | Connectivity shows selected value; Exposure output still shows `–` |
+| 3 | Select a value in the `Functionality` factor dropdown | Functionality shows selected value; `Exposure` output field populates with a number |
+| 4 | Select values in all 4 Likelihood factor dropdowns one at a time | After the 4th Likelihood factor is set, `Likelihood` output field populates with a number |
+| 5 | Select values in all Impact factor dropdowns | `Impact` output field populates with a number |
+| 6 | Verify the `Risk Vector` field contains a full vector string | Risk Vector shows a non-empty string (e.g., `AV:N/AC:L/...`) |
+
+**Coverage dimension:** Happy Path (full factor selection and auto-calculation)
+
+---
+
+#### `RISK-PROFILE-CALC-011` — Exposure auto-calculates when both Connectivity and Functionality are selected
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Exposure output field shows `–` |
+| 2 | Select any value in the `Connectivity` factor dropdown | Connectivity shows selected value; Exposure still shows `–` |
+| 3 | Select any value in the `Functionality` factor dropdown | Exposure output field changes to a numeric value |
+| 4 | Verify Exposure shows a number greater than 0 | Exposure field contains a numeric value |
+
+**Coverage dimension:** Happy Path (Exposure auto-calculation trigger)
+
+---
+
+#### `RISK-PROFILE-CALC-012` — Likelihood auto-calculates after all 4 Likelihood factors are selected
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Likelihood output field shows `–` |
+| 2 | Select values in the first 3 Likelihood factor dropdowns one at a time | Likelihood output still shows `–` after each selection |
+| 3 | Select a value in the 4th Likelihood factor dropdown | Likelihood output field changes to a numeric value |
+| 4 | Verify Likelihood shows a number greater than 0 | Likelihood field contains a numeric value |
+
+**Coverage dimension:** Happy Path (Likelihood auto-calculation trigger)
+
+---
+
+#### `RISK-PROFILE-CALC-013` — Impact is calculated as the maximum level among all selected Impact factors
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Impact output field shows `–` |
+| 2 | Select a `Low`-level value in one Impact factor dropdown | Impact updates or shows a low-level value |
+| 3 | Select a `Critical`-level value in another Impact factor dropdown | Impact output changes to reflect the higher level |
+| 4 | Verify the Impact value reflects the maximum level among all selected Impact factors | Impact equals the highest-level value selected |
+
+**Coverage dimension:** Happy Path (Impact max-of-N calculation logic)
+
+---
+
+#### `RISK-PROFILE-CALC-014` — Risk Vector builds incrementally as each factor is selected
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Risk Vector field shows `–` or is empty |
+| 2 | Select a value in the `Connectivity` factor | Risk Vector begins forming (partial vector visible) or remains `–` until more factors are set |
+| 3 | Continue selecting factor values one at a time | Risk Vector string grows with each new factor selected |
+| 4 | After all 9 factors are selected, verify Risk Vector contains a complete vector string | Risk Vector shows a full vector (e.g., `AV:N/AC:L/Au:N/C:P/I:P/A:P`) |
+
+**Coverage dimension:** Happy Path (Risk Vector incremental build)
+
+---
+
+#### `RISK-PROFILE-CALC-015` — Risk Vector copy-to-clipboard button works
+
+**Preconditions:** Logged in as PQL. Calculator page open with all 9 factors selected; Risk Vector is populated.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page and select all 9 factors | Risk Vector field shows a complete vector string |
+| 2 | Click the `Copy to clipboard` icon or button next to the Risk Vector field | A success indicator appears (toast message or icon change to a checkmark) |
+| 3 | Verify the success indicator is visible | Toast or icon confirms the copy action succeeded |
+
+**Coverage dimension:** Happy Path (clipboard copy utility)
+
+---
+
+#### `RISK-PROFILE-CALC-016` — Saving all factors redirects to Product Details with a success toast
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode with all 9 factors selected.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page and select values for all 9 factor dropdowns | All factors have values; Exposure, Likelihood, Impact, and Risk Vector are populated |
+| 2 | Click `Save` | A loading indicator appears or the page begins navigation |
+| 3 | Verify the user is redirected to the Product Details page | URL changes to the Product Details URL |
+| 4 | Verify a success toast message is visible | A green success toast appears on the Product Details page |
+
+**Coverage dimension:** Happy Path (save and redirect with feedback)
+**Note:** DEFERRED — creates permanent data; requires a disposable test product.
+
+---
+
+#### `RISK-PROFILE-CALC-017` — Notes field accepts up to 200 characters and rejects the 201st
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Notes field is visible and empty |
+| 2 | Click the `Notes` field | Field becomes active for input |
+| 3 | Type a string of exactly 200 characters | All 200 characters appear in the field; character counter shows `200/200` (if present) |
+| 4 | Type one additional character (201st) | The character is rejected or trimmed; field retains exactly 200 characters |
+
+**Coverage dimension:** Negative / Validation (Notes character limit)
+
+---
+
+#### `RISK-PROFILE-CALC-018` — Product Risk Assessment link field accepts free text input
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | `Product Risk Assessment` link field is visible and empty |
+| 2 | Click the `Product Risk Assessment` link field | Field becomes active for input |
+| 3 | Type a URL string (e.g., `https://example.com/risk-assessment`) | The text appears in the field without a validation error |
+| 4 | Verify the field retains the typed text | Field value matches the typed string |
+| 5 | Click `Cancel` to discard changes | Calculator closes without saving |
+
+**Coverage dimension:** Happy Path (free-text link field)
+
+---
+
+#### `RISK-PROFILE-CALC-019` — Factor dropdowns show Level label and Vector Substring for each option
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Calculator loads with all factor dropdowns empty |
+| 2 | Click the `Connectivity` factor dropdown to open the option list | Dropdown menu expands |
+| 3 | Verify each option shows a Level label and a Vector Substring in parentheses (e.g., `Adjacent (A)`) | Each dropdown option contains both a Level name and a vector code |
+| 4 | Close the Connectivity dropdown and open the `Functionality` dropdown | Dropdown menu expands |
+| 5 | Verify the same option format (Level + Vector Substring) is present | Each option contains a Level name and a vector code |
+
+**Coverage dimension:** Happy Path (option format for all factor dropdowns)
+
+---
+
+#### `RISK-PROFILE-CALC-020` — Saving without selecting all required factors is blocked or shows a validation error
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode; no factors selected.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | All factor dropdowns are empty |
+| 2 | Click `Save` without selecting any factors | Either a validation error message appears, or the `Save` button remains disabled |
+| 3 | Verify the user remains on the Calculator page | URL does not change to Product Details |
+| 4 | Verify an error message or `Save` button disabled state is visible | Error text references missing required factors, or `Save` button is non-interactive |
+
+**Coverage dimension:** Negative / Validation (save-blocked on missing required factors)
+
+---
+
+**— Override (RISK-PROFILE-OVERRIDE-\*) —**
+
+---
+
+#### `RISK-PROFILE-OVERRIDE-001` — Override Risk Profile happy path: select level, justify, and save
+
+**Preconditions:** Logged in as PQL (Product Owner or Security Manager). Product has a completed Risk Profile calculation. `Override` button is visible.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → Security Summary tab → Risk Profile section | Risk Profile section is visible with an `Override` button |
+| 2 | Click `Override` | An Override popup or inline panel appears |
+| 3 | Select a value in the `Updated Risk Profile` dropdown | A value is selected in the dropdown |
+| 4 | Type justification text in the `Override Justification` field | Justification text is entered |
+| 5 | Click `Save` | The popup closes or a success indicator appears |
+| 6 | Verify the Risk Profile section shows the override values | `Updated Risk Profile` and justification text are visible on the details page |
+
+**Coverage dimension:** Happy Path (Override CRUD — create)
+
+---
+
+#### `RISK-PROFILE-OVERRIDE-002` — Override popup Cancel / X closes without saving any changes
+
+**Preconditions:** Logged in as PQL. Product has a completed Risk Profile calculation. Override popup is open.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary → click `Override` | Override popup appears |
+| 2 | Select a value in the `Updated Risk Profile` dropdown | A value is shown selected |
+| 3 | Click `Cancel` or the `×` close button | Popup closes |
+| 4 | Verify no override values appear in the Risk Profile section | Override row is not shown; original calculated values remain unchanged |
+
+**Coverage dimension:** State Transitions (cancel Override without saving)
+
+---
+
+#### `RISK-PROFILE-OVERRIDE-003` — Editing an existing override saves the updated values
+
+**Preconditions:** Logged in as PQL. Product already has a saved Override.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary tab → Risk Profile section | Existing override values are visible |
+| 2 | Click the `Edit` button or edit icon next to the Override | Override popup opens; existing values are pre-populated |
+| 3 | Select a different value in the `Updated Risk Profile` dropdown | New value is selected |
+| 4 | Clear the `Override Justification` field and type new justification text | New justification text is entered |
+| 5 | Click `Save` | Popup closes |
+| 6 | Verify the Risk Profile section shows the new override values | Updated Risk Profile shows the new selection; justification shows the new text |
+
+**Coverage dimension:** Happy Path (Override CRUD — update)
+
+---
+
+#### `RISK-PROFILE-OVERRIDE-004` — Deleting an override restores the original calculated Risk Profile
+
+**Preconditions:** Logged in as PQL. Product already has a saved Override.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary tab → Risk Profile section | Override values are visible |
+| 2 | Click the `Delete` button or delete icon next to the Override | A confirmation dialog appears |
+| 3 | Click `Confirm` or `Delete` to proceed | Dialog closes; the override is deleted |
+| 4 | Verify no `Updated Risk Profile` value is shown | Override row is removed from the Risk Profile section |
+| 5 | Verify the original calculated values are still displayed | Exposure, Likelihood, Impact, Risk Vector show the original computed values |
+
+**Coverage dimension:** State Transitions (Override CRUD — delete and restore)
+
+---
+
+#### `RISK-PROFILE-OVERRIDE-005` — Orange warning icon appears when the Override level is lower than the original
+
+**Preconditions:** Logged in as PQL. Product has a calculated Risk Profile with a non-trivial risk level.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail → Security Summary → click `Override` | Override popup opens |
+| 2 | Select an `Updated Risk Profile` value that is lower than the Original Risk Profile level | A lower risk level is selected in the dropdown |
+| 3 | Type justification text and click `Save` | Popup closes |
+| 4 | Verify an orange or amber warning icon is visible next to the `Updated Risk Profile` field | An orange icon is visible indicating the override is below the calculated level |
+
+**Coverage dimension:** Happy Path (visual indicator for downgraded override)
+
+---
+
+#### `RISK-PROFILE-OVERRIDE-006` — Override values (Updated Risk Profile, Justification, Override By) are displayed on the details page
+
+**Preconditions:** Logged in as PQL. Product has a saved Override.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → Security Summary tab | Security Summary content is visible |
+| 2 | Verify `Updated Risk Profile` value is visible in the Risk Profile section | The overridden risk level is shown |
+| 3 | Verify `Override Justification` text is visible | Justification text is displayed |
+| 4 | Verify `Override By` name and override date are visible | The name of the person who created the override and the date are non-empty |
+
+**Coverage dimension:** Data Integrity (Override display on details page)
+
+---
+
+**— Factor Comments (RISK-PROFILE-COMMENT-\*) —**
+
+---
+
+#### `RISK-PROFILE-COMMENT-001` — Adding a comment to a Likelihood factor saves and displays the comment
+
+**Preconditions:** Logged in as PQL (Security Manager or Product Owner). Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Calculator loads in edit mode |
+| 2 | Locate a Likelihood factor row and click its `Add Comment` button | A comment input field or textarea appears below the factor |
+| 3 | Type comment text (e.g., `This factor is rated high due to external exposure`) | Text appears in the comment field |
+| 4 | Click `Save` or `Add` to submit the comment | Comment field closes or enters read-only mode |
+| 5 | Verify the saved comment text is visible next to the Likelihood factor | Comment text is shown below the factor row |
+
+**Coverage dimension:** Happy Path (Add Comment — create)
+
+---
+
+#### `RISK-PROFILE-COMMENT-002` — "Add Comment" button is present for every factor row on the Calculator page
+
+**Preconditions:** Logged in as PQL. Calculator page open in edit mode.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page | Calculator loads in edit mode |
+| 2 | Verify each factor row in the `Exposure` section has an `Add Comment` button | An `Add Comment` button is visible next to each Exposure factor |
+| 3 | Verify each factor row in the `Likelihood` section has an `Add Comment` button | An `Add Comment` button is visible next to each Likelihood factor |
+| 4 | Verify each factor row in the `Impact` section has an `Add Comment` button | An `Add Comment` button is visible next to each Impact factor |
+
+**Coverage dimension:** Happy Path (Add Comment button presence per factor)
+
+---
+
+#### `RISK-PROFILE-COMMENT-003` — Comment field enforces a 500 character maximum and rejects the 501st
+
+**Preconditions:** Logged in as PQL. Calculator page open; comment field is active for a factor.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page and click `Add Comment` on any factor | Comment input field appears |
+| 2 | Type a string of exactly 500 characters | All 500 characters appear in the field; character counter (if present) shows `500/500` |
+| 3 | Verify the field accepts all 500 characters | No truncation or error for exactly 500 characters |
+| 4 | Type one additional character (501st) | The character is rejected; field remains at 500 characters |
+
+**Coverage dimension:** Negative / Validation (Comment character limit)
+
+---
+
+#### `RISK-PROFILE-COMMENT-004` — Cancelling a comment input returns to read-only without saving
+
+**Preconditions:** Logged in as PQL. Calculator page open; comment field is active for a factor.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page and click `Add Comment` on any factor | Comment input field appears |
+| 2 | Type comment text | Text appears in the field |
+| 3 | Click `Cancel` on the comment input | Comment field closes |
+| 4 | Verify no comment text is visible next to the factor | No comment is saved or displayed for that factor |
+
+**Coverage dimension:** State Transitions (Cancel comment input)
+
+---
+
+#### `RISK-PROFILE-COMMENT-005` — Editing an existing factor comment saves the updated text
+
+**Preconditions:** Logged in as PQL. At least one factor has a previously saved comment.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page (edit mode) | Calculator loads; the existing comment is visible next to its factor |
+| 2 | Click `Edit` on the existing comment | Comment field opens with the existing text pre-filled |
+| 3 | Clear the existing text and type new comment text | New text is entered in the comment field |
+| 4 | Click `Save` | Comment field closes |
+| 5 | Verify the updated comment text is shown | New comment text replaces the old text next to the factor |
+
+**Coverage dimension:** Happy Path (Comment CRUD — update)
+
+---
+
+#### `RISK-PROFILE-COMMENT-006` — Deleting a factor comment shows a confirmation dialog and removes the comment
+
+**Preconditions:** Logged in as PQL. At least one factor has a previously saved comment.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to Calculator page (edit mode) | Existing comment is visible |
+| 2 | Click `Delete` on the existing comment | A confirmation dialog appears |
+| 3 | Click `Confirm` or `Yes` to proceed | Dialog closes |
+| 4 | Verify the comment is removed | No comment text is visible next to that factor |
+
+**Coverage dimension:** State Transitions (Comment CRUD — delete with confirmation)
+
+---
+
+**— History Logging (RISK-PROFILE-HISTORY-\*) —**
+
+---
+
+#### `RISK-PROFILE-HISTORY-001` — A Risk Profile calculation is logged in the Product History tab
+
+**Preconditions:** Logged in as PQL. Product with at least one completed Risk Profile calculation.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `History` tab | History tab content is visible |
+| 2 | Locate a history entry referencing a Risk Profile calculation | A row references `Risk Profile` or `Calculate Risk Profile` in its action or description |
+| 3 | Verify the entry shows a non-empty `Date`, `User`, and action type | All three columns contain values |
+
+**Coverage dimension:** Data Integrity (calculation logged in History)
+
+---
+
+#### `RISK-PROFILE-HISTORY-002` — A factor value update is logged in Product History with old and new values
+
+**Preconditions:** Logged in as PQL. A Risk Profile factor value has been changed and saved since the initial calculation.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `History` tab | History tab content is visible |
+| 2 | Locate the history entry for the most recent Risk Profile factor update | An entry referencing a factor change is visible |
+| 3 | Verify the entry shows the old value | The previous factor value is displayed in the history row |
+| 4 | Verify the entry shows the new value | The updated factor value is displayed in the history row |
+| 5 | Verify the entry references the changed factor name | Factor name is identified in the history row |
+
+**Coverage dimension:** Data Integrity (factor change delta logged in History)
+
+---
+
+#### `RISK-PROFILE-HISTORY-003` — Override create, edit, and delete actions are each logged in Product History
+
+**Preconditions:** Logged in as PQL. Product has had Override create, edit, and delete actions performed.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → `History` tab | History tab content is visible |
+| 2 | Verify a history entry exists for the Override create action | A row referencing `Risk Profile Override` create is visible |
+| 3 | Verify a history entry exists for the Override edit action | A row referencing `Risk Profile Override` edit is visible |
+| 4 | Verify a history entry exists for the Override delete action | A row referencing `Risk Profile Override` delete is visible |
+| 5 | Verify each entry shows a non-empty date, user, and action type | All three columns are non-empty in each override history row |
+
+**Coverage dimension:** Data Integrity (all Override actions logged in History)
+
+---
+
+**— RBAC (RISK-PROFILE-RBAC-\*) —**
+
+---
+
+#### `RISK-PROFILE-RBAC-001` — Product Owner, Security Manager, and Security Advisor can all access the calculator
+
+**Preconditions:** Test product with Product Owner, Security Manager, and Security Advisor roles assigned to separate test accounts.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Log in as a user with `Product Owner` role on the test product | Logged in successfully |
+| 2 | Navigate to product detail → Security Summary → click `Calculate Risk Profile` | Calculator page loads; no access denied error |
+| 3 | Log out and log in as a user with `Security Manager` role | Logged in successfully |
+| 4 | Navigate to product detail → Security Summary → click `Calculate Risk Profile` | Calculator page loads; no access denied error |
+| 5 | Log out and log in as a user with `Security Advisor` role | Logged in successfully |
+| 6 | Navigate to product detail → Security Summary → click `Calculate Risk Profile` | Calculator page loads; no access denied error |
+
+**Coverage dimension:** Role-Based Access (authorized roles can access calculator)
+
+---
+
+#### `RISK-PROFILE-RBAC-002` — Viewer role cannot edit the Risk Profile
+
+**Preconditions:** Logged in as a user with Viewer-only role (no edit privileges) on the test product.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to product detail page → Security Summary tab | Security Summary content is visible |
+| 2 | Verify `Calculate Risk Profile` button is either absent or disabled | No active `Calculate Risk Profile` button is clickable by this user |
+| 3 | If `View Details` button is visible, click it | Calculator page opens in view (read-only) mode |
+| 4 | Verify all factor dropdowns are disabled or read-only | Factor dropdown values cannot be changed |
+| 5 | Verify `Save` button is not visible in view mode | No `Save` button is present on the Calculator page |
+
+**Coverage dimension:** Role-Based Access (Viewer cannot edit Risk Profile)
 
 ---
 

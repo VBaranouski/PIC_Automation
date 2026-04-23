@@ -25,13 +25,13 @@ test.describe('Product Risk Profile Calculator @regression', () => {
   });
 
   test(
-    'RISK-PROFILE-001: "Calculate Risk Profile" button is present on Security Summary tab',
+    'RISK-PROFILE-CALC-001 — "Calculate Risk Profile" button is present on Security Summary tab',
     async ({ newProductPage, page }) => {
       await allure.suite('Products - Risk Profile Calculator');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'RISK-PROFILE-001: Navigate to the Product Detail page, click the Security Summary tab, ' +
+        'Navigate to the Product Detail page, click the Security Summary tab, ' +
         'and verify the "Calculate Risk Profile" button is visible.',
       );
 
@@ -48,20 +48,20 @@ test.describe('Product Risk Profile Calculator @regression', () => {
       await test.step('Verify Calculate Risk Profile button is visible', async () => {
         const calcBtn = page.getByRole('button', { name: /Calculate Risk Profile/i });
         const isVisible = await calcBtn.isVisible({ timeout: 10_000 }).catch(() => false);
-        test.skip(!isVisible, 'RISK-PROFILE-001: "Calculate Risk Profile" button not found — feature may not be enabled for this product.');
+        test.skip(!isVisible, 'RISK-PROFILE-CALC-001: "Calculate Risk Profile" button not found — feature may not be enabled for this product.');
         await expect(calcBtn).toBeVisible({ timeout: 10_000 });
       });
     },
   );
 
   test(
-    'RISK-PROFILE-002: Risk Profile Calculator page shows Exposure, Likelihood, and Impact inputs',
+    'RISK-PROFILE-CALC-002 — Risk Profile Calculator page shows Exposure, Likelihood, and Impact inputs',
     async ({ newProductPage, page }) => {
       await allure.suite('Products - Risk Profile Calculator');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'RISK-PROFILE-002: Click the "Calculate Risk Profile" button on the Security Summary tab ' +
+        'Click the "Calculate Risk Profile" button on the Security Summary tab ' +
         'and verify the calculator form shows Exposure, Likelihood, and Impact input fields.',
       );
 
@@ -75,7 +75,7 @@ test.describe('Product Risk Profile Calculator @regression', () => {
       await test.step('Click Calculate Risk Profile button', async () => {
         const calcBtn = page.getByRole('button', { name: /Calculate Risk Profile/i });
         const isVisible = await calcBtn.isVisible({ timeout: 10_000 }).catch(() => false);
-        test.skip(!isVisible, 'RISK-PROFILE-002: "Calculate Risk Profile" button not found — skipping.');
+        test.skip(!isVisible, 'RISK-PROFILE-CALC-002: "Calculate Risk Profile" button not found — skipping.');
         await calcBtn.click();
         // Wait for navigation or dialog to appear
         await Promise.any([
@@ -110,13 +110,13 @@ test.describe('Product Risk Profile Calculator @regression', () => {
   );
 
   test.fixme(
-    'RISK-PROFILE-003: Submitting the form adds a row to the Risk Profile history grid',
+    'RISK-PROFILE-CALC-004 — Submitting the form adds a row to the Risk Profile history grid',
     async ({ newProductPage, page }) => {
       await allure.suite('Products - Risk Profile Calculator');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'RISK-PROFILE-003: Fill in Exposure, Likelihood, Impact on the Risk Profile Calculator form ' +
+        'RISK-PROFILE-CALC-004: Fill in Exposure, Likelihood, Impact on the Risk Profile Calculator form ' +
         'and submit — verify a new row appears in the Risk Profile history grid. ' +
         '(Deferred: requires knowing valid input values and may add records to QA data.)',
       );
@@ -126,13 +126,13 @@ test.describe('Product Risk Profile Calculator @regression', () => {
   );
 
   test(
-    'RISK-PROFILE-004: Risk Profile history grid shows expected column headers',
+    'RISK-PROFILE-CALC-003 — Risk Profile history grid shows expected column headers',
     async ({ newProductPage, page }) => {
       await allure.suite('Products - Risk Profile Calculator');
       await allure.severity('normal');
       await allure.tag('regression');
       await allure.description(
-        'RISK-PROFILE-004: Navigate to the Security Summary tab and verify the Risk Profile history grid ' +
+        'RISK-PROFILE-CALC-003: Navigate to the Security Summary tab and verify the Risk Profile history grid ' +
         'shows column headers: Date, Submitted By, Risk Level, Exposure, Likelihood, Impact, Notes.',
       );
 
@@ -148,7 +148,7 @@ test.describe('Product Risk Profile Calculator @regression', () => {
         // It may appear even when there are no calculation rows yet.
         const riskProfileSection = page.getByText(/Risk Profile/i).first();
         const isVisible = await riskProfileSection.isVisible({ timeout: 10_000 }).catch(() => false);
-        test.skip(!isVisible, 'RISK-PROFILE-004: No Risk Profile section found on Security Summary tab — skipping.');
+        test.skip(!isVisible, 'RISK-PROFILE-CALC-003: No Risk Profile section found on Security Summary tab — skipping.');
         await expect(riskProfileSection).toBeVisible({ timeout: 10_000 });
       });
 

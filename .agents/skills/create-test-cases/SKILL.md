@@ -358,8 +358,12 @@ Every test case must pass ALL 13 checks before moving to automation:
 | **12** | **Every scenario has steps + expected results populated** | Step 6c audit query returns 0 rows |
 | **13** | **No description starts with `<ID>: `** | `sqlite3 config/scenarios.db "SELECT id FROM scenarios WHERE description LIKE id || ':%' AND feature_area='<area>'"` returns 0 rows |
 | **14** | **All role names match `access-privileges.md` canonical list** | No freeform aliases like "admin", "Security_Manager", "product owner" (must match exactly: `Security Manager`, `SuperUser`, etc.) |
+| **15** | **No duplicate IDs in the DB** | `sqlite3 config/scenarios.db "SELECT id, COUNT(*) c FROM scenarios WHERE workflow='<workflow>' GROUP BY id HAVING c > 1"` returns 0 rows |
+| **16** | **No duplicate titles within the workflow** | `sqlite3 config/scenarios.db "SELECT title, COUNT(*) c FROM scenarios WHERE workflow='<workflow>' GROUP BY title HAVING c > 1"` returns 0 rows |
+| **17** | **Scenarios are ordered sequentially within each subsection** | IDs within each prefix are contiguous (no gaps, no out-of-order inserts in the spec file) |
+| **18** | **Steps and expected results are aligned (same count per scenario)** | `sqlite3 config/scenarios.db "SELECT scenario_id, json_array_length(steps), json_array_length(expected_results) FROM scenario_details WHERE scenario_id IN (SELECT id FROM scenarios WHERE workflow='<workflow>') AND json_array_length(steps) != json_array_length(expected_results)"` returns 0 rows |
 
-> **BLOCKING:** Checks 11–14 are non-negotiable gates. If any fail, do NOT report the task as complete.
+> **BLOCKING:** Checks 11–18 are non-negotiable gates. If any fail, do NOT report the task as complete.
 
 ### Step 9: Mandatory Tracker DB Update (EXECUTE — Do Not Skip)
 
@@ -440,6 +444,116 @@ SELECT id FROM scenarios WHERE id GLOB 'WF*' AND workflow = '<workflow>'
 
 If any query returns rows, **fix before reporting done**. The skill is not complete until all three return 0 rows.
 
+### Step 10: Post-Creation Verification (Run After Every Session)
+
+> **This step is mandatory.** Run all checks below after every test case creation or update session. Do not report the task complete until all queries return 0 rows and all spec-file checks pass.
+
+#### 10a. Verify correct ID format and no duplicates
+
+```bash
+# Duplicate IDs
+sqlite3 config/scenarios.db "
+SELECT id, COUNT(*) c FROM scenarios
+WHERE workflow = '<workflow>'
+GROUP BY id HAVING c > 1
+"
+
+# Duplicate titles
+sqlite3 config/scenarios.db "
+SELECT title, COUNT(*) c FROM scenarios
+WHERE workflow = '<workflow>'
+GROUP BY title HAVING c > 1
+"
+
+# Legacy WF*-* IDs (must be 0)
+sqlite3 config/scenarios.db "SELECT id FROM scenarios WHERE id GLOB 'WF*' AND workflow = '<workflow>'"
+```
+
+Expected: all three queries return 0 rows.
+
+#### 10b. Verify every scenario has steps AND expected results populated
+
+```bash
+# Missing steps or expected_results
+sqlite3 config/scenarios.db "
+SELECT s.id
+FROM scenarios s
+LEFT JOIN scenario_details sd ON s.id = sd.scenario_id
+WHERE s.workflow = '<workflow>'
+  AND (
+    sd.steps IS NULL OR sd.steps = '' OR sd.steps = '[]'
+    OR sd.expected_results IS NULL OR sd.expected_results = '' OR sd.expected_results = '[]'
+  )
+ORDER BY s.id
+"
+
+# Misaligned step/expected_result counts (one step must match one expected result)
+sqlite3 config/scenarios.db "
+SELECT sd.scenario_id,
+       json_array_length(sd.steps)            AS step_count,
+       json_array_length(sd.expected_results) AS expected_count
+FROM scenario_details sd
+JOIN scenarios s ON s.id = sd.scenario_id
+WHERE s.workflow = '<workflow>'
+  AND json_array_length(sd.steps) != json_array_length(sd.expected_results)
+"
+```
+
+Expected: both queries return 0 rows. If any scenario is missing steps or has misaligned counts, fix by:
+1. Adding/correcting the `| Step | Action | Expected Result |` table in the spec file.
+2. Re-running: `npx tsx scripts/backfill-scenario-details-from-specs.ts --write --overwrite`
+3. Or directly calling `upsertScenarioDetails(id, steps, expectedResults, '')` for individual rows.
+
+#### 10c. Verify sequential ordering within each subsection
+
+Inspect the spec file section for the workflow. Each subsection group must have IDs that:
+- Start at `001` (or continue from the established base if extending an existing series)
+- Increment by 1 with no gaps
+- Are in ascending order in the document (001 before 002 before 003 …)
+
+```bash
+# Show all IDs per subsection sorted — visually scan for gaps or out-of-order entries
+sqlite3 config/scenarios.db "
+SELECT subsection, id
+FROM scenarios
+WHERE workflow = '<workflow>'
+ORDER BY subsection, id
+"
+```
+
+If IDs are out of order in the spec file, reorder the headings to match the DB ordering. If there are numbering gaps (e.g., 001, 002, 004), renumber to close the gap using the two-phase temp-ID rename pattern to avoid UNIQUE constraint violations.
+
+#### 10d. Verify description quality (no embedded ID prefix)
+
+```bash
+sqlite3 config/scenarios.db "
+SELECT id, substr(description, 1, 60) AS desc_preview
+FROM scenarios
+WHERE workflow = '<workflow>'
+  AND description LIKE id || ':%'
+"
+```
+
+Expected: 0 rows. Any description that starts with its own ID (e.g., `"RISK-PROFILE-001: Verify …"`) must be corrected to a plain sentence.
+
+#### 10e. Report the verification results
+
+After all queries pass, produce a concise verification table:
+
+```markdown
+| Check | Result |
+|-------|--------|
+| No duplicate IDs | ✅ 0 rows |
+| No duplicate titles | ✅ 0 rows |
+| No legacy WF* IDs | ✅ 0 rows |
+| All steps populated | ✅ 0 rows |
+| Steps/expected aligned | ✅ 0 rows |
+| Sequential ordering | ✅ verified |
+| No ID-prefixed descriptions | ✅ 0 rows |
+```
+
+If any check is ❌, state the failing scenario IDs and fix them before closing the session.
+
 ## Output Format
 
 The skill produces a structured markdown document with:
@@ -449,9 +563,10 @@ The skill produces a structured markdown document with:
 3. **Deduplication Table** — existing vs. pending overlaps + actions (Step 5)
 4. **Test Case Specifications** — detailed step tables for ALL scenarios (existing + new) grouped by subsection (Steps 4d + 7)
 5. **Subsection Assignment Map** — which scenarios belong to which subsection (Step 6)
-6. **Review Gate Checklist** — all 10 checks marked (Step 8)
+6. **Review Gate Checklist** — all 18 checks marked (Step 8)
 7. **DB Update Confirmation** — confirmation that all new scenarios were inserted, steps backfilled, and 3 audit queries returned 0 rows (Step 9)
-8. **Summary** — total counts (existing + new), priority breakdown, zero-regression assessment
+8. **Post-Creation Verification Report** — the 7-row verification table from Step 10e showing all checks passed (Step 10)
+9. **Summary** — total counts (existing + new), priority breakdown, zero-regression assessment
 
 Save to: `specs/<area>-<workflow-slug>-test-cases.md`
 
