@@ -13,7 +13,7 @@ test.describe('Landing Page - Header Global Actions @regression', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should display New Product button in page header @regression', async ({ landingPage }) => {
+  test('LANDING-HEADER-001 — should display New Product button in page header @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -26,7 +26,7 @@ test.describe('Landing Page - Header Global Actions @regression', () => {
     });
   });
 
-  test('should navigate to New Product form when clicking New Product button @regression', async ({ landingPage, page }) => {
+  test('LANDING-HEADER-002 — should navigate to New Product form when clicking New Product button @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -43,7 +43,7 @@ test.describe('Landing Page - Header Global Actions @regression', () => {
     });
   });
 
-  test('should display Roles Delegation link in page header @regression', async ({ landingPage }) => {
+  test('LANDING-HEADER-003 — should display Roles Delegation link in page header @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -56,7 +56,7 @@ test.describe('Landing Page - Header Global Actions @regression', () => {
     });
   });
 
-  test('should navigate to Roles Delegation page when clicking link @regression', async ({ landingPage, page }) => {
+  test('LANDING-HEADER-004 — should navigate to Roles Delegation page when clicking link @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -75,7 +75,7 @@ test.describe('Landing Page - Header Global Actions @regression', () => {
     });
   });
 
-  test('should navigate back to Landing Page when clicking header logo @regression', async ({ landingPage, page }) => {
+  test('LANDING-HEADER-005 — should navigate back to Landing Page when clicking header logo @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - Header');
     await allure.severity('normal');
     await allure.tag('regression');

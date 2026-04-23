@@ -201,7 +201,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
 
   let productName: string;
   let productUrl: string;
-  test('should display product detail header with name, ID, status, and action links', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-DETAIL-001 — should display product detail header with name, ID, status, and action links', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -244,7 +244,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should display Product Details and bottom section tabs in view mode', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-DETAIL-002 — should display Product Details and bottom section tabs in view mode', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -278,7 +278,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should show required field validation when clearing Product Name in edit mode', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-003 — should show required field validation when clearing Product Name in edit mode', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -316,7 +316,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should restore original values when clicking Reset Form in edit mode', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-004 — should restore original values when clicking Reset Form in edit mode', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -356,7 +356,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should persist updated product description after save', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-005 — should persist updated product description after save', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -425,7 +425,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should toggle and persist Data Protection & Privacy checkbox', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-006 — should toggle and persist Data Protection & Privacy checkbox', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -473,7 +473,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should show Save Product confirmation dialog when enabling Data Protection & Privacy', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-011 — should show Save Product confirmation dialog when enabling Data Protection & Privacy', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -511,7 +511,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should toggle and persist Brand Label checkbox', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-007 — should toggle and persist Brand Label checkbox', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -557,7 +557,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should display product organization info in view mode', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-008 — should display product organization info in view mode', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -586,7 +586,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should display key product fields in read-only view mode', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-012 — should display key product fields in read-only view mode', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -637,7 +637,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should show Releases tab with Create Release button and list or empty state', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-009 — should show Releases tab with Create Release button and list or empty state', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -672,7 +672,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
     });
   });
 
-  test('should display all bottom tabs in view mode', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-DETAIL-010 — should display all bottom tabs in view mode', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Product Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -699,7 +699,7 @@ test.describe('Product Details Page (PIC-108, PIC-109, PIC-110) @regression', ()
 // ────────────────────────────────────────────────────────────────────────────
 test.describe('Product Details - Digital Offer Certification Tab @regression', () => {
   test.setTimeout(180_000);
-  test('should display Digital Offer Certification tab on a Digital Offer product @regression', async ({ newProductPage, page }) => {
+  test('PROD-DOC-CERT-001 — should display Digital Offer Certification tab on a Digital Offer product @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - Digital Offer Certification');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -719,7 +719,7 @@ test.describe('Product Details - Digital Offer Certification Tab @regression', (
     });
   });
 
-  test('should show Digital Offer Certification content when tab is clicked @regression', async ({ newProductPage, page }) => {
+  test('PROD-DOC-CERT-002 — should show Digital Offer Certification content when tab is clicked @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - Digital Offer Certification');
     await allure.severity('normal');
     await allure.tag('regression');

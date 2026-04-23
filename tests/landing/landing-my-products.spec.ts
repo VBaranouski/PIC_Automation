@@ -15,7 +15,7 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     await landingPage.waitForGridDataRows();
   });
 
-  test('should navigate to Release Detail when clicking the Latest Release version @regression', async ({ landingPage, page }) => {
+  test('LANDING-PRODS-LATEST-001 — should navigate to Release Detail when clicking the Latest Release version @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -47,7 +47,7 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     });
   });
 
-  test('should narrow product list when Org Level 1 filter is applied @regression', async ({ landingPage }) => {
+  test('LANDING-PRODS-ORG1-001 — should narrow product list when Org Level 1 filter is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -77,7 +77,7 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     });
   });
 
-  test('should show Inactivate option in the three-dot Actions menu @regression', async ({ landingPage }) => {
+  test('LANDING-PRODS-ACTIONS-001 — should show Inactivate option in the three-dot Actions menu @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -94,7 +94,7 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     });
   });
 
-  test('should narrow product list when Org Level 2 filter is applied @regression', async ({ landingPage }) => {
+  test('LANDING-PRODS-ORG2-001 — should narrow product list when Org Level 2 filter is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -144,7 +144,7 @@ test.describe('Landing Page - My Products Advanced Filters @regression', () => {
     await landingPage.waitForGridDataRows();
   });
 
-  test('should filter My Products by Product Owner', async ({ landingPage }) => {
+  test('LANDING-PRODS-OWNER-001 — should filter My Products by Product Owner', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -215,7 +215,7 @@ test.describe('Landing Page - My Products Advanced Filters @regression', () => {
     });
   });
 
-  test('should show DOC-related My Products columns when at least one product has Digital Offer', async ({ landingPage }) => {
+  test('LANDING-DOCS-017 — should show DOC-related My Products columns when at least one product has Digital Offer', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -238,7 +238,7 @@ test.describe('Landing Page - My Products Advanced Filters @regression', () => {
     });
   });
 
-  test('should show compact multi-VESTA summary when a My Products row contains multiple VESTA IDs', async ({ landingPage }) => {
+  test('LANDING-DOCS-019 — should show compact multi-VESTA summary when a My Products row contains multiple VESTA IDs', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('minor');
     await allure.tag('regression');

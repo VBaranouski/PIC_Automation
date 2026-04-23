@@ -820,7 +820,7 @@ test.describe.serial('Releases - Requirement Status Updates @regression', () => 
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should update Process Requirements rows across all supported statuses from the row action menu', async ({
+  test('PROCESS-REQ-TAB-011 — should update Process Requirements rows across all supported statuses from the row action menu', async ({
     page,
     releaseDetailPage,
   }) => {
@@ -841,7 +841,7 @@ test.describe.serial('Releases - Requirement Status Updates @regression', () => 
     await coverAllStatusesOnTab(page, releaseDetailPage, 'Process Requirements');
   });
 
-  test('should update Product Requirements rows across all supported statuses from the row action menu', async ({
+  test('PRODUCT-REQ-TAB-011 — should update Product Requirements rows across all supported statuses from the row action menu', async ({
     page,
     releaseDetailPage,
   }) => {

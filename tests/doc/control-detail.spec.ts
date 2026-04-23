@@ -22,7 +22,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
   // ── DOC-CONTROL-001 ───────────────────────────────────────────────────────
-  test('should navigate to Control Detail page via ITS Checklist Control ID link', async ({
+  test('DOC-CONTROL-001 — should navigate to Control Detail page via ITS Checklist Control ID link', async ({
     page, docDetailsPage, controlDetailPage,
   }) => {
     await allure.suite('DOC / Control Detail');
@@ -57,7 +57,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-002 ───────────────────────────────────────────────────────
-  test('should show the Control ID in the page header', async ({ page, controlDetailPage }) => {
+  test('DOC-CONTROL-002 — should show the Control ID in the page header', async ({ page, controlDetailPage }) => {
     await allure.suite('DOC / Control Detail');
     await allure.description(
       'DOC-CONTROL-002: Control Detail header must show the Control ID in ITS-NNN format.',
@@ -75,7 +75,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-003 ───────────────────────────────────────────────────────
-  test('should show breadcrumb with Home and Product Name links', async ({ page, controlDetailPage }) => {
+  test('DOC-CONTROL-003 — should show breadcrumb with Home and Product Name links', async ({ page, controlDetailPage }) => {
     await allure.suite('DOC / Control Detail');
     await allure.description(
       'DOC-CONTROL-003: Breadcrumb must show: Home (link) > Product Name (link) > DOC Name (link) > Control ID.',
@@ -94,7 +94,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-004 ───────────────────────────────────────────────────────
-  test('should show Description and Evidence Expectation sections', async ({ page, controlDetailPage }) => {
+  test('DOC-CONTROL-004 — should show Description and Evidence Expectation sections', async ({ page, controlDetailPage }) => {
     await allure.suite('DOC / Control Detail');
     await allure.description(
       'DOC-CONTROL-004: Control Detail must display Description and Evidence Expectation sections.',
@@ -116,7 +116,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-005 ───────────────────────────────────────────────────────
-  test('should show scope-stage read-only message on Scope ITS Controls stage', async ({ page, controlDetailPage }) => {
+  test('DOC-CONTROL-005 — should show scope-stage read-only message on Scope ITS Controls stage', async ({ page, controlDetailPage }) => {
     await allure.suite('DOC / Control Detail');
     await allure.description(
       'DOC-CONTROL-005: On the Scope ITS Controls stage Control Detail must show ' +
@@ -135,7 +135,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-006 ───────────────────────────────────────────────────────
-  test('should show Descope Control button for privileged user on Control Detail', async ({ page, controlDetailPage }) => {
+  test('DOC-CONTROL-006 — should show Descope Control button for privileged user on Control Detail', async ({ page, controlDetailPage }) => {
     await allure.suite('DOC / Control Detail');
     await allure.description(
       'DOC-CONTROL-006: "Descope Control" button must be visible for a user with ' +
@@ -159,7 +159,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     let laterStageControlUrl: string;
 
     // ── DOC-CONTROL-007 ─────────────────────────────────────────────────────────
-    test('should display an assessment status badge on a later-stage DOC Control Detail', async ({
+    test('DOC-CONTROL-007 — should display an assessment status badge on a later-stage DOC Control Detail', async ({
       page, docDetailsPage, controlDetailPage,
     }) => {
       await allure.suite('DOC / Control Detail');
@@ -197,7 +197,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-008 ─────────────────────────────────────────────────────────
-    test('should display Category label with a non-empty value on Control Detail', async ({ page, controlDetailPage }) => {
+    test('DOC-CONTROL-008 — should display Category label with a non-empty value on Control Detail', async ({ page, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -221,7 +221,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-009 ─────────────────────────────────────────────────────────
-    test('should show findings rows or a "No findings" empty-state in the Findings section', async ({ page, controlDetailPage }) => {
+    test('DOC-CONTROL-009 — should show findings rows or a "No findings" empty-state in the Findings section', async ({ page, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -242,7 +242,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-010 ─────────────────────────────────────────────────────────
-    test('should display the EVIDENCE LINKS section on a later-stage Control Detail page', async ({ page, controlDetailPage }) => {
+    test('DOC-CONTROL-010 — should display the EVIDENCE LINKS section on a later-stage Control Detail page', async ({ page, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -263,7 +263,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-011 ─────────────────────────────────────────────────────────
-    test('should display the COMMENTS section on a later-stage Control Detail page', async ({ page, controlDetailPage }) => {
+    test('DOC-CONTROL-011 — should display the COMMENTS section on a later-stage Control Detail page', async ({ page, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -284,7 +284,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-013 ────────────────────────────────────────────────────────────────────
-    test('should display a Risk Level label on a later-stage Control Detail page', async ({ page, docDetailsPage, controlDetailPage }) => {
+    test('DOC-CONTROL-013 — should display a Risk Level label on a later-stage Control Detail page', async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -313,7 +313,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-014 ────────────────────────────────────────────────────────────────────
-    test('should display clickable evidence links in EVIDENCE LINKS section (or empty state)', async ({ page, docDetailsPage, controlDetailPage }) => {
+    test('DOC-CONTROL-014 — should display clickable evidence links in EVIDENCE LINKS section (or empty state)', async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -343,7 +343,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-015 ────────────────────────────────────────────────────────────────────
-    test('should display comment timeline items in COMMENTS section (or empty state)', async ({ page, docDetailsPage, controlDetailPage }) => {
+    test('DOC-CONTROL-015 — should display comment timeline items in COMMENTS section (or empty state)', async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -379,7 +379,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     let completedDocControlUrl: string;
 
     // ── DOC-CONTROL-012 ─────────────────────────────────────────────────────────
-    test('should NOT show Descope Control button on a Completed DOC Control Detail page', async ({
+    test('DOC-CONTROL-012 — should NOT show Descope Control button on a Completed DOC Control Detail page', async ({
       page, docDetailsPage, controlDetailPage,
     }) => {
       await allure.suite('DOC / Control Detail');
@@ -414,7 +414,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
     });
 
     // ── DOC-CONTROL-016 ────────────────────────────────────────────────────────────────────
-    test('should show Control Detail in read-only mode on a Completed DOC (Issue Certification stage)', async ({ page, docDetailsPage, controlDetailPage }) => {
+    test('DOC-CONTROL-016 — should show Control Detail in read-only mode on a Completed DOC (Issue Certification stage)', async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Detail');
       await allure.severity('normal');
       await allure.tag('regression');
@@ -447,7 +447,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-017 ───────────────────────────────────────────────────────
-  test('should show Send for Remediation button on a control with findings', async ({
+  test('DOC-CONTROL-017 — should show Send for Remediation button on a control with findings', async ({
     page, docDetailsPage, controlDetailPage,
   }) => {
     await allure.suite('DOC / Control Detail');
@@ -490,7 +490,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-018 ───────────────────────────────────────────────────────
-  test('should show role-based editing controls after Actions Closure stage', async ({
+  test('DOC-CONTROL-018 — should show role-based editing controls after Actions Closure stage', async ({
     page, docDetailsPage, controlDetailPage,
   }) => {
     await allure.suite('DOC / Control Detail');
@@ -533,7 +533,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-019 ───────────────────────────────────────────────────────
-  test('should show Send Back for Update button for DOCL on Control Detail', async ({
+  test('DOC-CONTROL-019 — should show Send Back for Update button for DOCL on Control Detail', async ({
     page, docDetailsPage, controlDetailPage,
   }) => {
     await allure.suite('DOC / Control Detail');
@@ -576,7 +576,7 @@ test.describe('DOC - Control Detail Page (11.8) @regression', () => {
   });
 
   // ── DOC-CONTROL-020 ─────────────────────────────────────────────────────────────
-  test('should remove Descope button and show justification tooltip after descoping', async ({
+  test('DOC-CONTROL-020 — should remove Descope button and show justification tooltip after descoping', async ({
     page, docDetailsPage, controlDetailPage,
   }) => {
     await allure.suite('DOC / Control Detail');

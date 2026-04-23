@@ -12,7 +12,7 @@ test.describe.serial('Releases - Product Requirements gating @regression', () =>
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should keep Product Requirements disabled until questionnaire submission', async ({
+  test('RELEASE-PRODUCT-REQ-001 — should keep Product Requirements disabled until questionnaire submission', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -41,7 +41,7 @@ test.describe.serial('Releases - Product Requirements gating @regression', () =>
     });
   });
 
-  test('should not allow Product Requirements to become the active tab before questionnaire submission', async ({
+  test('RELEASE-PRODUCT-REQ-002 — should not allow Product Requirements to become the active tab before questionnaire submission', async ({
     page,
     landingPage,
     releaseDetailPage,

@@ -12,7 +12,7 @@ test.describe('Authentication - Login @smoke', () => {
     await loginPage.waitForPageLoad();
   });
 
-  test('should display login page with correct elements', async ({ loginPage }) => {
+  test('AUTH-LOGIN-001 — should display login page with correct elements', async ({ loginPage }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
     await allure.tag('smoke');
@@ -24,7 +24,7 @@ test.describe('Authentication - Login @smoke', () => {
   });
 
   // AUTH-LOGIN-002: Valid credentials redirect to the Landing Page
-  test('should redirect to Landing Page when logging in with valid credentials', async ({ loginPage, landingPage, userCredentials }) => {
+  test('AUTH-LOGIN-002 — should redirect to Landing Page when logging in with valid credentials', async ({ loginPage, landingPage, userCredentials }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -45,7 +45,7 @@ test.describe('Authentication - Login @smoke', () => {
   });
 
   // AUTH-LOGIN-002-b: Logged-in username is visible in the page header after login
-  test('should display logged-in username in page header after successful login', async ({ loginPage, landingPage, userCredentials }) => {
+  test('AUTH-LOGIN-002-b — should display logged-in username in page header after successful login', async ({ loginPage, landingPage, userCredentials }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -67,7 +67,7 @@ test.describe('Authentication - Login @smoke', () => {
   });
 
   // AUTH-LOGIN-002-c: Navigation menu is visible after login
-  test('should display navigation menu after successful login', async ({ loginPage, landingPage, userCredentials }) => {
+  test('AUTH-LOGIN-002-c — should display navigation menu after successful login', async ({ loginPage, landingPage, userCredentials }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -89,7 +89,7 @@ test.describe('Authentication - Login @smoke', () => {
   });
 
   // AUTH-LOGIN-002-d: Landing page tabs are visible after login
-  test('should display Landing Page tabs after successful login', async ({ loginPage, landingPage, userCredentials }) => {
+  test('AUTH-LOGIN-002-d — should display Landing Page tabs after successful login', async ({ loginPage, landingPage, userCredentials }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -110,7 +110,7 @@ test.describe('Authentication - Login @smoke', () => {
     });
   });
 
-  test('should show error when logging in with invalid credentials', async ({ loginPage }) => {
+  test('AUTH-LOGIN-003 — should show error when logging in with invalid credentials', async ({ loginPage }) => {
     await allure.suite('Authentication');
     await allure.severity('critical');
     await allure.tag('smoke');
@@ -130,7 +130,7 @@ test.describe('Authentication - Login @smoke', () => {
     });
   });
 
-  test('should show error when submitting empty credentials', async ({ loginPage }) => {
+  test('AUTH-LOGIN-004 — should show error when submitting empty credentials', async ({ loginPage }) => {
     await allure.suite('Authentication');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -153,7 +153,7 @@ test.describe('Authentication - Login @smoke', () => {
   //       live Ping credentials and is covered by manual / exploratory testing.
   //       We use super_user as the identity reference for this scenario.
   // ---------------------------------------------------------------------------
-  test('should redirect to Ping SSO identity provider when clicking Login SSO @regression', async ({ loginPage, getUserByRole }) => {
+  test('AUTH-SSO-002 — should redirect to Ping SSO identity provider when clicking Login SSO @regression', async ({ loginPage, getUserByRole }) => {
     const superUser = getUserByRole('super_user');
 
     await allure.suite('Authentication');
@@ -195,7 +195,7 @@ test.describe('Authentication - Login @smoke', () => {
   // No password reset / recovery flow is triggered.  Marked test.fail() and
   // explicitly flagged as a product defect in Allure so it is tracked in reports.
   // ---------------------------------------------------------------------------
-  test('should open password reset flow when clicking Forgot Password link @regression', async ({ loginPage }) => {
+  test('AUTH-FPW-001 — should open password reset flow when clicking Forgot Password link @regression', async ({ loginPage }) => {
     test.fail(true, 'AUTH-FPW-001 – Known bug: "Forgot password?" link has href="#" and does not redirect to a password reset page. No recovery flow is triggered.');
 
     await allure.suite('Authentication');
@@ -226,7 +226,7 @@ test.describe('Authentication - Login @smoke', () => {
   //   b) The user is NOT yet on the Landing Page (verifiable)
   // What cannot be automated: the full Ping IdP rejection flow (manual testing).
   // ---------------------------------------------------------------------------
-  test('should redirect to Ping SSO page and not land on application when SSO identity is invalid @regression', async ({ loginPage, page, getUserByRole }) => {
+  test('AUTH-SSO-003 — should redirect to Ping SSO page and not land on application when SSO identity is invalid @regression', async ({ loginPage, page, getUserByRole }) => {
     const invalidUser = getUserByRole('invalid_user');
 
     await allure.suite('Authentication');

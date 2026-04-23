@@ -119,7 +119,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.1 Stage Gating ─────────────────────────────────────────────────────
 
   // REVIEW-CONFIRM-001
-  test('should show Review & Confirm tab as disabled-tab at Creation & Scoping stage', async ({
+  test('REVIEW-CONFIRM-001 — should show Review & Confirm tab as disabled-tab at Creation & Scoping stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -152,7 +152,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-002
-  test('should show Submit for Review button visible (not hidden) at Creation & Scoping stage', async ({
+  test('REVIEW-CONFIRM-002 — should show Submit for Review button visible (not hidden) at Creation & Scoping stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -195,7 +195,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-003
-  test('should show Review & Confirm tab accessible (not disabled) when release is past Scoping stage', async ({
+  test('REVIEW-CONFIRM-003 — should show Review & Confirm tab accessible (not disabled) when release is past Scoping stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -233,7 +233,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.2 Requirements Summary Accordion ───────────────────────────────────
 
   // REVIEW-CONFIRM-004
-  test('should show Requirements Summary accordion collapsed by default on Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-004 — should show Requirements Summary accordion collapsed by default on Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -262,7 +262,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-005
-  test('should expand Requirements Summary accordion to show Process and Product Requirements sub-sections', async ({
+  test('REVIEW-CONFIRM-005 — should expand Requirements Summary accordion to show Process and Product Requirements sub-sections', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -315,7 +315,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-006
-  test('should show SDL Practice dropdown filter inside Requirements Summary when expanded', async ({
+  test('REVIEW-CONFIRM-006 — should show SDL Practice dropdown filter inside Requirements Summary when expanded', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -352,7 +352,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.3 Previous FCSR Summary Accordion ──────────────────────────────────
 
   // REVIEW-CONFIRM-007
-  test('should show Previous FCSR Summary accordion collapsed by default', async ({
+  test('REVIEW-CONFIRM-007 — should show Previous FCSR Summary accordion collapsed by default', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -380,7 +380,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-008
-  test('should expand Previous FCSR Summary accordion and show content or empty state', async ({
+  test('REVIEW-CONFIRM-008 — should expand Previous FCSR Summary accordion and show content or empty state', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -423,7 +423,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.4 Scope Review Participants Section ─────────────────────────────────
 
   // REVIEW-CONFIRM-009
-  test('should show Scope Review Participants section header on Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-009 — should show Scope Review Participants section header on Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -446,7 +446,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-010
-  test('should show correct column headers in Scope Review Participants table', async ({
+  test('REVIEW-CONFIRM-010 — should show correct column headers in Scope Review Participants table', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -469,7 +469,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-011
-  test('should show Add Participant button when release is at Review & Confirm stage', async ({
+  test('REVIEW-CONFIRM-011 — should show Add Participant button when release is at Review & Confirm stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -505,7 +505,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.5 Key Discussion Topics Section ─────────────────────────────────────
 
   // REVIEW-CONFIRM-012
-  test('should show Key Discussion Topics section header on Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-012 — should show Key Discussion Topics section header on Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -528,7 +528,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-013
-  test('should show correct column headers in Key Discussion Topics table', async ({
+  test('REVIEW-CONFIRM-013 — should show correct column headers in Key Discussion Topics table', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -551,7 +551,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-014
-  test('should show Add Topic button when release is at Review & Confirm stage', async ({
+  test('REVIEW-CONFIRM-014 — should show Add Topic button when release is at Review & Confirm stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -585,7 +585,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.6 Scope Review Decision Section ────────────────────────────────────
 
   // REVIEW-CONFIRM-015
-  test('should show Scope Review Decision section header on Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-015 — should show Scope Review Decision section header on Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -617,7 +617,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.7 Action Plan Items Section ────────────────────────────────────────
 
   // REVIEW-CONFIRM-016
-  test('should show Action Plan section with correct header label on Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-016 — should show Action Plan section with correct header label on Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -640,7 +640,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-017
-  test('should show "No Actions added yet" empty state when no action items exist', async ({
+  test('REVIEW-CONFIRM-017 — should show "No Actions added yet" empty state when no action items exist', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -674,7 +674,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-018
-  test('should show Add Action button visible on Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-018 — should show Add Action button visible on Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -716,7 +716,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.8 Submit & Rework Buttons ───────────────────────────────────────────
 
   // REVIEW-CONFIRM-019
-  test('should show Submit and Rework action buttons when release is at Review & Confirm stage', async ({
+  test('REVIEW-CONFIRM-019 — should show Submit and Rework action buttons when release is at Review & Confirm stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -751,7 +751,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-020
-  test('should display all six major sections on the Review & Confirm tab', async ({
+  test('REVIEW-CONFIRM-020 — should display all six major sections on the Review & Confirm tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -798,7 +798,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.2 Requirements Summary — Chart Areas ───────────────────────────────
 
   // REVIEW-CONFIRM-021
-  test('should show Process Requirements chart area in expanded Requirements Summary', async ({
+  test('REVIEW-CONFIRM-021 — should show Process Requirements chart area in expanded Requirements Summary', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -839,7 +839,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-022
-  test('should show Include Sub-Requirements toggle in Requirements Summary when expanded', async ({
+  test('REVIEW-CONFIRM-022 — should show Include Sub-Requirements toggle in Requirements Summary when expanded', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -879,7 +879,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-023
-  test('should show Product Requirements chart section in expanded Requirements Summary', async ({
+  test('REVIEW-CONFIRM-023 — should show Product Requirements chart section in expanded Requirements Summary', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -925,7 +925,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.3 Previous FCSR Summary — Field Visibility ─────────────────────────
 
   // REVIEW-CONFIRM-024
-  test('should show Previous Release dropdown or empty-state when Previous FCSR Summary is expanded', async ({
+  test('REVIEW-CONFIRM-024 — should show Previous Release dropdown or empty-state when Previous FCSR Summary is expanded', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -964,7 +964,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.4 Scope Review Participants — Read-Only Mode ────────────────────────
 
   // REVIEW-CONFIRM-025
-  test('should show Scope Review Participants section in read-only mode on past-stage release', async ({
+  test('REVIEW-CONFIRM-025 — should show Scope Review Participants section in read-only mode on past-stage release', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1006,7 +1006,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.5 Key Discussion Topics — Read-Only Mode ───────────────────────────
 
   // REVIEW-CONFIRM-026
-  test('should show Key Discussion Topics section in read-only mode on past-stage release', async ({
+  test('REVIEW-CONFIRM-026 — should show Key Discussion Topics section in read-only mode on past-stage release', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1047,7 +1047,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.6 Scope Review Decision — Value Visibility ─────────────────────────
 
   // REVIEW-CONFIRM-027
-  test('should show Scope Review Decision value in read-only mode on past-stage release', async ({
+  test('REVIEW-CONFIRM-027 — should show Scope Review Decision value in read-only mode on past-stage release', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1098,7 +1098,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.7 Action Plan — Popup Accessibility ────────────────────────────────
 
   // REVIEW-CONFIRM-028
-  test('should show Action Plan chart-burger-menu or chart container when actions exist', async ({
+  test('REVIEW-CONFIRM-028 — should show Action Plan chart-burger-menu or chart container when actions exist', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1133,7 +1133,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.2 Requirements Summary — Product Req chart filters ──────────────────
 
   // REVIEW-CONFIRM-029
-  test('should show Category and Source filters on Product Requirements chart in expanded Requirements Summary', async ({
+  test('REVIEW-CONFIRM-029 — should show Category and Source filters on Product Requirements chart in expanded Requirements Summary', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1169,7 +1169,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-030
-  test('should show Include Sub-Requirements toggle on Product Requirements chart in expanded Requirements Summary', async ({
+  test('REVIEW-CONFIRM-030 — should show Include Sub-Requirements toggle on Product Requirements chart in expanded Requirements Summary', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1207,7 +1207,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-031
-  test('should show chart burger menu on Requirements Summary chart', async ({
+  test('REVIEW-CONFIRM-031 — should show chart burger menu on Requirements Summary chart', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1249,7 +1249,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-036
-  test('should download a PNG file from the Requirements Summary chart menu when rendered', async ({
+  test('REVIEW-CONFIRM-036 — should download a PNG file from the Requirements Summary chart menu when rendered', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1289,7 +1289,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   });
 
   // REVIEW-CONFIRM-037
-  test('should switch chart menu to an exit-fullscreen action after View Full Screen is clicked', async ({
+  test('REVIEW-CONFIRM-037 — should switch chart menu to an exit-fullscreen action after View Full Screen is clicked', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1332,7 +1332,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.3 Previous FCSR Summary — Read-only Field Labels ───────────────────
 
   // REVIEW-CONFIRM-032
-  test('should show FCSR read-only field labels when Previous FCSR Summary is expanded with data', async ({
+  test('REVIEW-CONFIRM-032 — should show FCSR read-only field labels when Previous FCSR Summary is expanded with data', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1381,7 +1381,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.6 Scope Review Decision — Dropdown Options ─────────────────────────
 
   // REVIEW-CONFIRM-033
-  test('should show dropdown options for Scope Review Decision when release is at R&C stage', async ({
+  test('REVIEW-CONFIRM-033 — should show dropdown options for Scope Review Decision when release is at R&C stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1436,7 +1436,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.4 Add Participant Popup — Non-Destructive Inspect ───────────────────
 
   // REVIEW-CONFIRM-034
-  test('should show Add Participant popup with Release Team option and Recommendation radio buttons', async ({
+  test('REVIEW-CONFIRM-034 — should show Add Participant popup with Release Team option and Recommendation radio buttons', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');
@@ -1509,7 +1509,7 @@ test.describe.serial('Releases - Review & Confirm Tab (Workflow 5) @regression',
   // ── 5.7 Add Action Popup — Non-Destructive Inspect ────────────────────────
 
   // REVIEW-CONFIRM-035
-  test('should show Add Action popup with expected fields when Add Action button is clicked', async ({
+  test('REVIEW-CONFIRM-035 — should show Add Action popup with expected fields when Add Action button is clicked', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Review & Confirm');

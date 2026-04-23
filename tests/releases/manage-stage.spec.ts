@@ -45,7 +45,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   // ── 6.1 Stage Entry & Navigation ─────────────────────────────────────────
 
   // MANAGE-001
-  test('should find a release at or past Manage stage and verify pipeline active stage', async ({
+  test('MANAGE-001 — should find a release at or past Manage stage and verify pipeline active stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -78,7 +78,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-002
-  test('should show Process Requirements tab accessible (not disabled) at Manage stage', async ({
+  test('MANAGE-002 — should show Process Requirements tab accessible (not disabled) at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -105,7 +105,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-003
-  test('should show Product Requirements tab accessible (not disabled) at Manage stage', async ({
+  test('MANAGE-003 — should show Product Requirements tab accessible (not disabled) at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -129,7 +129,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-004
-  test('should show CSRR tab accessible (not disabled) at Manage stage', async ({
+  test('MANAGE-004 — should show CSRR tab accessible (not disabled) at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -155,7 +155,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-005
-  test('should show FCSR Decision tab accessible (not disabled) at Manage stage', async ({
+  test('MANAGE-005 — should show FCSR Decision tab accessible (not disabled) at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -183,7 +183,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   // ── 6.2 Submit Action Button ──────────────────────────────────────────────
 
   // MANAGE-006
-  test('should show Submit action button visible when release is at Manage stage', async ({
+  test('MANAGE-006 — should show Submit action button visible when release is at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -214,7 +214,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   // ── 6.3 Sidebar Links ─────────────────────────────────────────────────────
 
   // MANAGE-007
-  test('should show Actions Management sidebar link on Manage stage release', async ({
+  test('MANAGE-007 — should show Actions Management sidebar link on Manage stage release', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -240,7 +240,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-008
-  test('should show View Release History sidebar link on Manage stage release', async ({
+  test('MANAGE-008 — should show View Release History sidebar link on Manage stage release', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -268,7 +268,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   // ── 6.4 CSRR Tab ─────────────────────────────────────────────────────────
 
   // MANAGE-009
-  test('should load CSRR tab and show SDL Processes Summary section', async ({
+  test('MANAGE-009 — should load CSRR tab and show SDL Processes Summary section', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -306,7 +306,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-010
-  test('should show SBOM Status field in CSRR SDL Processes Summary', async ({
+  test('MANAGE-010 — should show SBOM Status field in CSRR SDL Processes Summary', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -339,7 +339,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-011
-  test('should show all expected CSRR sub-section navigation or headings on CSRR tab', async ({
+  test('MANAGE-011 — should show all expected CSRR sub-section navigation or headings on CSRR tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -391,7 +391,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   // ── 6.5 FCSR Decision Tab ─────────────────────────────────────────────────
 
   // MANAGE-012
-  test('should load FCSR Decision tab and show FCSR Participants section', async ({
+  test('MANAGE-012 — should load FCSR Decision tab and show FCSR Participants section', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -427,7 +427,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   });
 
   // MANAGE-013
-  test('should show Add Participant button on FCSR Decision tab at Manage stage', async ({
+  test('MANAGE-013 — should show Add Participant button on FCSR Decision tab at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');
@@ -463,7 +463,7 @@ test.describe.serial('Releases - Manage Stage (Workflow 6) @regression', () => {
   // ── 6.6 Key Discussion Topics ─────────────────────────────────────────────
 
   // MANAGE-014
-  test('should show Key Discussion Topics section on Review & Confirm tab at Manage stage', async ({
+  test('MANAGE-014 — should show Key Discussion Topics section on Review & Confirm tab at Manage stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Manage Stage');

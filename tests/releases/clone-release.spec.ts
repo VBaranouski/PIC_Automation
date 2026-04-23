@@ -208,7 +208,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
 
   let productWithReleaseUrl = '';
   let cloneContext: CloneReleaseContext | null = null;
-  test('should show Clone option in My Releases actions menu', async ({ landingPage }) => {
+  test('RELEASE-CLONE-001 — should show Clone option in My Releases actions menu', async ({ landingPage }) => {
     await allure.suite('Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -230,7 +230,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
     });
   });
 
-  test('should preselect Clone from existing release for products that already have releases', async ({
+  test('RELEASE-CLONE-002 — should preselect Clone from existing release for products that already have releases', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -262,7 +262,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
     });
   });
 
-  test('should restore clone defaults when Reset Form is clicked in second-release dialog', async ({
+  test('RELEASE-CLONE-003 — should restore clone defaults when Reset Form is clicked in second-release dialog', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -303,7 +303,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
     });
   });
 
-  test('should default the clone source dropdown to the latest available release', async ({
+  test('RELEASE-CLONE-004 — should default the clone source dropdown to the latest available release', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -341,7 +341,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
     });
   });
 
-  test('should block duplicate release version values in the clone dialog', async ({
+  test('RELEASE-CLONE-005 — should block duplicate release version values in the clone dialog', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -386,7 +386,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
     });
   });
 
-  test('should prevent selecting a past target date in the clone dialog', async ({
+  test('RELEASE-CLONE-006 — should prevent selecting a past target date in the clone dialog', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -419,7 +419,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
   });
 
   // ── RELEASE-CLONE-INHERIT-001 ─────────────────────────────────────────────
-  test('should preserve clone inheritance in the Release Details tab', async ({
+  test('RELEASE-CLONE-INHERIT-001 — should preserve clone inheritance in the Release Details tab', async ({
     page, landingPage, newProductPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Clone / Inheritance');
@@ -453,7 +453,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
   });
 
   // ── RELEASE-CLONE-INHERIT-002 ─────────────────────────────────────────────
-  test('should show empty FCSR Decision tab for a newly cloned release', async ({
+  test('RELEASE-CLONE-INHERIT-002 — should show empty FCSR Decision tab for a newly cloned release', async ({
     page, landingPage, newProductPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Clone / Inheritance');
@@ -495,7 +495,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
   });
 
   // ── RELEASE-CLONE-INHERIT-003 ─────────────────────────────────────────────
-  test('should not inherit Action Items when a release is cloned', async ({
+  test('RELEASE-CLONE-INHERIT-003 — should not inherit Action Items when a release is cloned', async ({
     page, landingPage, newProductPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Clone / Inheritance');

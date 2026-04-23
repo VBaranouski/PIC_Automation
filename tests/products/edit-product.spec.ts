@@ -90,7 +90,7 @@ test.describe.serial('Products - Edit Existing Product (PIC-108, PIC-109) @regre
   let productState: string;
   let productDefinition: string;
   let productType: string;
-  test('should edit an existing product from My Products and save changes', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-EDIT-001 — should edit an existing product from My Products and save changes', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -143,7 +143,7 @@ test.describe.serial('Products - Edit Existing Product (PIC-108, PIC-109) @regre
     });
   });
 
-  test('should discard unsaved existing-product changes when canceling edit mode', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-EDIT-002 — should discard unsaved existing-product changes when canceling edit mode', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');

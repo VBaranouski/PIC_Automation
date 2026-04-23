@@ -11,7 +11,7 @@ test.describe('Products - New Product Creation @regression', () => {
     await newProductPage.expectNewProductFormLoaded();
   });
 
-  test('should create a new product with all required fields filled', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-001 — should create a new product with all required fields filled', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -65,7 +65,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should display validation when saving without required fields', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-002-b — should display validation when saving without required fields', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -84,7 +84,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should cancel product creation and return to landing page', async ({ newProductPage, landingPage }) => {
+  test('PRODUCT-CREATION-003 — should cancel product creation and return to landing page', async ({ newProductPage, landingPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -106,7 +106,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should show cascading org level dropdowns', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-004 — should show cascading org level dropdowns', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -130,7 +130,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should show the expected Product State, Product Definition, and Product Type options', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-005A — should show the expected Product State, Product Definition, and Product Type options', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -177,7 +177,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should reveal Digital Offer detail fields when Digital Offer is enabled', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-006A — should reveal Digital Offer detail fields when Digital Offer is enabled', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -194,7 +194,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should validate the required Digital Offer details before save', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-006B — should validate the required Digital Offer details before save', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -246,7 +246,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should support the + Add VESTA ID row and user lookup selection in Digital Offer details', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-006C — should support the + Add VESTA ID row and user lookup selection in Digital Offer details', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -275,7 +275,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should show the DPP confirmation dialog and create the product only after save is confirmed', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-007A — should show the DPP confirmation dialog and create the product only after save is confirmed', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -336,7 +336,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should restore default values when Reset Form is clicked on the New Product form', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-008A — should restore default values when Reset Form is clicked on the New Product form', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -366,7 +366,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should refresh Product Type options when Product Definition changes', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-009A — should refresh Product Type options when Product Definition changes', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -386,7 +386,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should reveal Development Org Level fields when Cross-Organizational Development is enabled', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-010A — should reveal Development Org Level fields when Cross-Organizational Development is enabled', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -407,7 +407,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should require Vendor when Brand Label is enabled', async ({ newProductPage }) => {
+  test('PRODUCT-CREATION-011A — should require Vendor when Brand Label is enabled', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -461,7 +461,7 @@ test.describe('Products - New Product Creation @regression', () => {
     });
   });
 
-  test('should show Vendor as mandatory immediately when Brand Label is enabled', async ({ newProductPage, page }) => {
+  test('PRODUCT-CREATION-012A — should show Vendor as mandatory immediately when Brand Label is enabled', async ({ newProductPage, page }) => {
     await allure.suite('Products');
     await allure.severity('normal');
     await allure.tag('regression');

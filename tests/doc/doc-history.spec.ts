@@ -63,7 +63,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
   // ── DOC-HISTORY-001 ───────────────────────────────────────────────────────
-  test('should open the DOC History popup when View History link is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-001 — should open the DOC History popup when View History link is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-001: Clicking "View History" in the DOC Detail header must open ' +
@@ -89,7 +89,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-002 ───────────────────────────────────────────────────────
-  test('should show the history grid with Date, User, Activity, Description columns', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-002 — should show the history grid with Date, User, Activity, Description columns', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-002: History popup grid must have columns: Date, User, Activity, Description.',
@@ -112,7 +112,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-003 ───────────────────────────────────────────────────────
-  test('should display at least one history record (DOC Creation event)', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-003 — should display at least one history record (DOC Creation event)', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-003: The history grid must contain at least one record. ' +
@@ -136,7 +136,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-004 ───────────────────────────────────────────────────────
-  test('should show Search, Activity filter, Date Range pickers, Search and Reset buttons', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-004 — should show Search, Activity filter, Date Range pickers, Search and Reset buttons', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-004: History popup must display: Search field, Activity filter dropdown, ' +
@@ -164,7 +164,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-005 ───────────────────────────────────────────────────────
-  test('should filter history by Activity type and reduce results', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-005 — should filter history by Activity type and reduce results', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-005: Selecting an Activity type in the Activity filter must narrow ' +
@@ -209,7 +209,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-006 ───────────────────────────────────────────────────────
-  test('should list multiple activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-006 — should list multiple activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-006: The Activity filter dropdown must expose at least 5 selectable ' +
@@ -237,7 +237,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-007 ───────────────────────────────────────────────────────
-  test('should display a recognizable date value in the Date column of history rows', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-007 — should display a recognizable date value in the Date column of history rows', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-007: The Date column in the history grid must contain a non-empty ' +
@@ -266,7 +266,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-008 ───────────────────────────────────────────────────────
-  test('should filter history records when search text is entered', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-008 — should filter history records when search text is entered', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-008: Entering text in the Search field and clicking the Search button ' +
@@ -310,7 +310,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-009 ───────────────────────────────────────────────────────
-  test('should clear search text and activity selection when Reset is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-009 — should clear search text and activity selection when Reset is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-009: After applying search text and an Activity filter in the DOC History popup, ' +
@@ -348,7 +348,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-010 ───────────────────────────────────────────────────────
-  test('should filter history by selected date range', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-010 — should filter history by selected date range', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-010: Applying a DOC History date range must narrow the grid to rows whose Date values fall within the selected day.',
@@ -389,7 +389,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-011 ───────────────────────────────────────────────────────
-  test('should paginate history rows when more than one page of records exists', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-011 — should paginate history rows when more than one page of records exists', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.description(
       'DOC-HISTORY-011: DOC History pagination must support per-page selection and moving to the next page when more than 10 records exist.',
@@ -427,7 +427,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-012 ─────────────────────────────────────────────────────────────
-  test('should list all expected activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-012 — should list all expected activity types in the Activity filter dropdown', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.severity('minor');
     await allure.tag('regression');
@@ -480,7 +480,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-013 ─────────────────────────────────────────────────────────────
-  test('should narrow history entries when a date range is applied', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-013 — should narrow history entries when a date range is applied', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.severity('minor');
     await allure.tag('regression');
@@ -531,7 +531,7 @@ test.describe('DOC - DOC History (11.12) @regression', () => {
   });
 
   // ── DOC-HISTORY-014 ─────────────────────────────────────────────────────────────
-  test('should support per-page selector with 10/20/30/50/100 options', async ({ page, docDetailsPage }) => {
+  test('DOC-HISTORY-014 — should support per-page selector with 10/20/30/50/100 options', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / History');
     await allure.severity('minor');
     await allure.tag('regression');

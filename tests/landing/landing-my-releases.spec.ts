@@ -15,7 +15,7 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
     await landingPage.waitForGridDataRows();
   });
 
-  test('should navigate to Release Detail when clicking a release name @regression', async ({ landingPage, page }) => {
+  test('LANDING-RELS-NAV-001 — should navigate to Release Detail when clicking a release name @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -32,7 +32,7 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
     });
   });
 
-  test('should narrow releases when release name search filter is applied @regression', async ({ landingPage }) => {
+  test('LANDING-RELS-SEARCH-001 — should narrow releases when release name search filter is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -63,7 +63,7 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
     });
   });
 
-  test('should filter releases by status when status dropdown is applied @regression', async ({ landingPage }) => {
+  test('LANDING-RELS-STATUS-001 — should filter releases by status when status dropdown is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -86,7 +86,7 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
     });
   });
 
-  test('should clear all filters when Reset button is clicked @regression', async ({ landingPage }) => {
+  test('LANDING-RELS-RESET-001 — should clear all filters when Reset button is clicked @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -109,7 +109,7 @@ test.describe('Landing Page - My Releases Filters & Navigation @regression', () 
     });
   });
 
-  test('should narrow releases when Product filter is applied @regression', async ({ landingPage }) => {
+  test('LANDING-RELS-PROD-001 — should narrow releases when Product filter is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -153,7 +153,7 @@ test.describe('Landing Page - My Releases Target Date Filter @regression', () =>
     await landingPage.clickTab('My Releases');
   });
 
-  test('should display Target Release Date range picker on My Releases tab @regression', async ({ landingPage }) => {
+  test('LANDING-RELS-DATE-001 — should display Target Release Date range picker on My Releases tab @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -181,7 +181,7 @@ test.describe('Landing Page - My Releases Grid Actions @regression', () => {
     await landingPage.waitForGridDataRows();
   });
 
-  test('should show a clickable Jira link in My Releases when Jira is configured', async ({ landingPage }) => {
+  test('LANDING-RELS-JIRA-001 — should show a clickable Jira link in My Releases when Jira is configured', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -226,7 +226,7 @@ test.describe('Landing Page - My Releases Grid Actions @regression', () => {
     });
   });
 
-  test('should show Clone option in My Releases row actions menu', async ({ landingPage }) => {
+  test('LANDING-RELS-ACTIONS-002 — should show Clone option in My Releases row actions menu', async ({ landingPage }) => {
     test.fail(true, 'QA environment: My Releases row actions currently shows Inactivate only; Clone is not exposed');
 
     await allure.suite('Landing Page - My Releases');

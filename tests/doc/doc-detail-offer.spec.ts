@@ -20,7 +20,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
   // ── DOC-OFFER-001 ─────────────────────────────────────────────────────────
-  test('should show Digital Offer Details tab content in read-only mode', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-001 — should show Digital Offer Details tab content in read-only mode', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-001: Digital Offer Details tab in read-only mode must display ' +
@@ -40,7 +40,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-002 ─────────────────────────────────────────────────────────
-  test('should switch to edit mode when Edit Details is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-002 — should switch to edit mode when Edit Details is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-002: Clicking "Edit Details" must switch the tab to edit mode ' +
@@ -64,7 +64,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-003 ─────────────────────────────────────────────────────────
-  test('should expose an editable DOC Name textbox in edit mode', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-003 — should expose an editable DOC Name textbox in edit mode', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-003: In edit mode the DOC Name field must be an editable textbox.',
@@ -83,7 +83,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-004 ─────────────────────────────────────────────────────────
-  test('should show live character count on the DOC Reason textarea', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-004 — should show live character count on the DOC Reason textarea', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-004: In edit mode the DOC Reason textarea must show a live ' +
@@ -103,7 +103,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-005 ─────────────────────────────────────────────────────────
-  test('should reveal Release Version field when Other Release is selected', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-005 — should reveal Release Version field when Other Release is selected', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-005: Selecting "Other Release" in the Release dropdown must reveal ' +
@@ -131,7 +131,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   // does NOT persist the updated DOC Reason to the backend in the QA environment.
   // The test is annotated with test.fail() so it counts as an expected failure
   // (green in the report) and will flag as "unexpected pass" when the defect is fixed.
-  test('should persist edits and return to read-only view when Save Changes is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-006 — should persist edits and return to read-only view when Save Changes is clicked', async ({ page, docDetailsPage }) => {
     test.fail(true, 'KNOWN DEFECT TC-11.5.6: Save Changes appears to succeed visually ' +
       '(returns to read-only) but does not persist the updated DOC Reason to the backend. ' +
       'The test will auto-pass when the product defect is resolved.');
@@ -174,7 +174,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-007 ─────────────────────────────────────────────────────────
-  test('should discard edits and return to read-only view when Cancel is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-007 — should discard edits and return to read-only view when Cancel is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-007: Clicking "Cancel" in edit mode must discard unsaved changes ' +
@@ -206,7 +206,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-008 ─────────────────────────────────────────────────────────
-  test('should display VESTA ID in the Digital Offer Details read-only tab', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-008 — should display VESTA ID in the Digital Offer Details read-only tab', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-008: The Digital Offer Details tab in read-only mode must show a ' +
@@ -239,7 +239,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-009 ─────────────────────────────────────────────────────────
-  test('should show Target Release Date as read-only/disabled in edit mode', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-009 — should show Target Release Date as read-only/disabled in edit mode', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.description(
       'DOC-OFFER-009: The "Target Release Date" field must be read-only or disabled ' +
@@ -401,7 +401,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-005-b ───────────────────────────────────────────────────────
-  test('should display Release Version text field when Other Release is selected', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-005-b — should display Release Version text field when Other Release is selected', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -434,7 +434,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-010 ─────────────────────────────────────────────────────────
-  test('should handle VESTA ID dropdown based on number of VESTAs', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-010 — should handle VESTA ID dropdown based on number of VESTAs', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -480,7 +480,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-011 ─────────────────────────────────────────────────────────
-  test('should disable VESTA ID with active DOC tooltip', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-011 — should disable VESTA ID with active DOC tooltip', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -529,7 +529,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-012 ─────────────────────────────────────────────────────────
-  test('should allow VESTA ID editing only on Initiate DOC and Scope ITS Controls stages', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-012 — should allow VESTA ID editing only on Initiate DOC and Scope ITS Controls stages', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -571,7 +571,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-013 ─────────────────────────────────────────────────────────
-  test('should show validation errors when saving with empty mandatory fields', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-013 — should show validation errors when saving with empty mandatory fields', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -634,7 +634,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-014 ─────────────────────────────────────────────────────────
-  test('should show Related Documents link editable for DOCL but read-only for DO Team', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-014 — should show Related Documents link editable for DOCL but read-only for DO Team', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -682,7 +682,7 @@ test.describe('DOC - Digital Offer Details Tab (11.5) @regression', () => {
   });
 
   // ── DOC-OFFER-015 ─────────────────────────────────────────────────────────
-  test('should make Release Version and Target Release Date editable and mandatory when Other Release is selected', async ({ page, docDetailsPage }) => {
+  test('DOC-OFFER-015 — should make Release Version and Target Release Date editable and mandatory when Other Release is selected', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Digital Offer Details');
     await allure.severity('normal');
     await allure.tag('regression');

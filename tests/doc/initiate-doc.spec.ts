@@ -103,7 +103,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // DOC-INIT-001 (smoke) — Create product with Digital Offer, initiate DOC,
   //                   verify status transitions to "Controls Scoping"
   // ---------------------------------------------------------------------------
-  test('should update DOC status to Controls Scoping and stage to Scope ITS Controls after initiation @smoke',
+  test('DOC-INIT-001 — should update DOC status to Controls Scoping and stage to Scope ITS Controls after initiation @smoke',
     async ({ page, landingPage, newProductPage, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('critical');
@@ -143,7 +143,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // ---------------------------------------------------------------------------
   // DOC-INIT-002 — Navigating back to the DOC Detail page preserves status/stage
   // ---------------------------------------------------------------------------
-  test('should initiate DOC from stage button and produce same status/stage transition',
+  test('DOC-INIT-002 — should initiate DOC from stage button and produce same status/stage transition',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('normal');
@@ -167,7 +167,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // ---------------------------------------------------------------------------
   // DOC-INIT-003 — Digital Offer Details tab is present and clickable
   // ---------------------------------------------------------------------------
-  test('should show Digital Offer Details tab as clickable after initiation',
+  test('DOC-INIT-003 — should show Digital Offer Details tab as clickable after initiation',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('normal');
@@ -195,7 +195,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // ---------------------------------------------------------------------------
   // DOC-INIT-004 — Roles & Responsibilities tab is present and clickable
   // ---------------------------------------------------------------------------
-  test('should show Roles & Responsibilities tab as clickable after initiation',
+  test('DOC-INIT-004 — should show Roles & Responsibilities tab as clickable after initiation',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('normal');
@@ -218,7 +218,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // ---------------------------------------------------------------------------
   // DOC-INIT-005 — ITS Checklist tab is present and clickable
   // ---------------------------------------------------------------------------
-  test('should show ITS Checklist tab as clickable after initiation',
+  test('DOC-INIT-005 — should show ITS Checklist tab as clickable after initiation',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('normal');
@@ -240,7 +240,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // ---------------------------------------------------------------------------
   // DOC-INIT-006 — Initiator username and date shown under Initiate stage
   // ---------------------------------------------------------------------------
-  test('should show initiator username and date under the Initiate stage in the DOC flow',
+  test('DOC-INIT-006 — should show initiator username and date under the Initiate stage in the DOC flow',
     async ({ page, docDetailsPage, userCredentials }) => {
       await allure.suite('DOC');
       await allure.severity('normal');
@@ -267,7 +267,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   // ---------------------------------------------------------------------------
   // DOC-INIT-007 — Cancel DOC button is available after initiation
   // ---------------------------------------------------------------------------
-  test('should show Cancel DOC button for privileged user after initiation',
+  test('DOC-INIT-007 — should show Cancel DOC button for privileged user after initiation',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('normal');
@@ -295,7 +295,7 @@ test.describe.serial('DOC - Initiate DOC Process (PIC-3927) @regression', () => 
   
   /* SKip, as DOC ID format and Target Release Date are no longer in scope for PIC-3927; will revisit in future when those fields are expected to be present
 
-  test('should display correct VESTA ID, DOC ID format, and populated Target Release Date in header @smoke',
+  test('DOC-INIT-008 — should display correct VESTA ID, DOC ID format, and populated Target Release Date in header @smoke',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC');
       await allure.severity('critical');

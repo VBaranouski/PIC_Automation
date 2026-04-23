@@ -80,7 +80,7 @@ test.describe('Products / Users Management @regression', () => {
   // -------------------------------------------------------------------------
   // PRODUCT-LEAP-001
   // -------------------------------------------------------------------------
-  test('should show Active LEAP License for users with assigned roles', async ({
+  test('PRODUCT-LEAP-001 — should show Active LEAP License for users with assigned roles', async ({
     page,
     landingPage,
     newProductPage,
@@ -152,7 +152,7 @@ test.describe('Products / Users Management @regression', () => {
   // -------------------------------------------------------------------------
   // PRODUCT-LEAP-002
   // -------------------------------------------------------------------------
-  test('should show No License for users without a LEAP License', async ({
+  test('PRODUCT-LEAP-002 — should show No License for users without a LEAP License', async ({
     page,
     landingPage,
     newProductPage,

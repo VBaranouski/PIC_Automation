@@ -19,7 +19,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
   // ── DOC-DETAIL-001 ────────────────────────────────────────────────────────
-  test('should show breadcrumb with clickable Home and Product Name links', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-001 — should show breadcrumb with clickable Home and Product Name links', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-001: DOC Detail breadcrumb must show "Home" as a clickable link ' +
@@ -41,7 +41,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-002 ────────────────────────────────────────────────────────
-  test('should show all 5 DOC pipeline stages in the flow header', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-002 — should show all 5 DOC pipeline stages in the flow header', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-002: The DOC pipeline must render all 5 stage tabs: ' +
@@ -59,7 +59,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-003 ────────────────────────────────────────────────────────
-  test('should highlight the Scope ITS Controls stage as the active stage', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-003 — should highlight the Scope ITS Controls stage as the active stage', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-003: For a DOC in Controls Scoping status the "Scope ITS Controls" ' +
@@ -77,7 +77,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-004 ────────────────────────────────────────────────────────
-  test('should hide the pipeline when Hide Flow is clicked and restore it with Show Flow', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-004 — should hide the pipeline when Hide Flow is clicked and restore it with Show Flow', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-004: Clicking "Hide Flow" must hide the pipeline; ' +
@@ -105,7 +105,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-005 ────────────────────────────────────────────────────────
-  test('should display Controls Scoping in the DOC status badge', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-005 — should display Controls Scoping in the DOC status badge', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-005: The status badge in the DOC Detail header must show "Controls Scoping".',
@@ -122,7 +122,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-006 ────────────────────────────────────────────────────────
-  test('should show DOC ID in the correct DOC-NNN format', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-006 — should show DOC ID in the correct DOC-NNN format', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-006: The DOC ID displayed in the header must match the DOC-NNN format.',
@@ -139,7 +139,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-007 ────────────────────────────────────────────────────────
-  test('should show all three DOC content tabs after initiation', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-007 — should show all three DOC content tabs after initiation', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-007: After DOC initiation all three content tabs must be present and clickable: ' +
@@ -159,7 +159,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-008 ────────────────────────────────────────────────────────
-  test('should show username and date under each completed pipeline stage', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-008 — should show username and date under each completed pipeline stage', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-008: For a completed DOC all five pipeline stage tabs must show ' +
@@ -201,7 +201,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-009 ────────────────────────────────────────────────────────
-  test('should display Certification Decision badge in header for a completed DOC', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-009 — should display Certification Decision badge in header for a completed DOC', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-009: For a completed DOC the header area must show a ' +
@@ -243,7 +243,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-010 ────────────────────────────────────────────────────────
-  test('should navigate to Release Detail page when the Release link in DOC header is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-010 — should navigate to Release Detail page when the Release link in DOC header is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.description(
       'DOC-DETAIL-010: Clicking the Release link in the DOC Detail header must navigate ' +
@@ -287,7 +287,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-011 ────────────────────────────────────────────────────────
-  test('should display DOC ID and VESTA ID in the DOC Detail header', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-011 — should display DOC ID and VESTA ID in the DOC Detail header', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -311,7 +311,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-007-b ──────────────────────────────────────────────────────
-  test('should show Roles & Responsibilities tab available after DOC initiation', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-007-b — should show Roles & Responsibilities tab available after DOC initiation', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -336,7 +336,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-007-c ──────────────────────────────────────────────────────
-  test('should show ITS Checklist tab available after DOC initiation', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-007-c — should show ITS Checklist tab available after DOC initiation', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -361,7 +361,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-012 ────────────────────────────────────────────────────────
-  test('should show Cancelled badge with info tooltip on a cancelled DOC', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-012 — should show Cancelled badge with info tooltip on a cancelled DOC', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -400,7 +400,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-013 ────────────────────────────────────────────────────────
-  test('should display 6 content tabs in correct order for a later-stage DOC', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-013 — should display 6 content tabs in correct order for a later-stage DOC', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -462,7 +462,7 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
   });
 
   // ── DOC-DETAIL-014 ────────────────────────────────────────────────────────
-  test('should show overdue warning icon for a DOC with approaching Actions Closure deadline', async ({ page, docDetailsPage }) => {
+  test('DOC-DETAIL-014 — should show overdue warning icon for a DOC with approaching Actions Closure deadline', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Header');
     await allure.severity('minor');
     await allure.tag('regression');

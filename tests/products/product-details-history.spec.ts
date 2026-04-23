@@ -146,7 +146,7 @@ function isSameCalendarDay(timestamp: number, target: Date): boolean {
 
 test.describe('Product Details - View History @regression', () => {
   test.setTimeout(240_000);
-  test('should open View History dialog when clicking View History link @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-001 — should open View History dialog when clicking View History link @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -185,7 +185,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should display history entries with dates, users and change descriptions @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-002 — should display history entries with dates, users and change descriptions @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -225,7 +225,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should reset Product Change History search and activity filters @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-003 — should reset Product Change History search and activity filters @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -279,7 +279,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should show Product Change History entries sorted by newest date first @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-004 — should show Product Change History entries sorted by newest date first @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -316,7 +316,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should show no-data message when Product Change History filters return no results @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-005 — should show no-data message when Product Change History filters return no results @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -355,7 +355,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should filter Product Change History by selected date range @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-006 — should filter Product Change History by selected date range @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -404,7 +404,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should paginate Product Change History when more than one page of rows exists @regression', async ({ landingPage, newProductPage, page }) => {
+  test('PRODUCT-HISTORY-007 — should paginate Product Change History when more than one page of rows exists @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -448,7 +448,7 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
-  test('should record a creation event in Product Change History after a new product is saved @regression', async ({ newProductPage, page }) => {
+  test('PRODUCT-HISTORY-008 — should record a creation event in Product Change History after a new product is saved @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');

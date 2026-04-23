@@ -26,7 +26,7 @@ const COMPLETED_DOC_URL =
 test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
   test.setTimeout(180_000);
   // ── TC-LIFECYCLE-001 ──────────────────────────────────────────────────────
-  test('should show Cancel DOC button for privileged user on a Controls Scoping DOC',
+  test('TC-LIFECYCLE-001 — should show Cancel DOC button for privileged user on a Controls Scoping DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -47,7 +47,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-002 ──────────────────────────────────────────────────────
-  test('should open a confirmation dialog when Cancel DOC is clicked and dismiss it without cancelling',
+  test('TC-LIFECYCLE-002 — should open a confirmation dialog when Cancel DOC is clicked and dismiss it without cancelling',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -104,7 +104,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-003 ──────────────────────────────────────────────────────
-  test('should show Start ITS Risk Assessment button for Controls Scoping DOC',
+  test('TC-LIFECYCLE-003 — should show Start ITS Risk Assessment button for Controls Scoping DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -127,7 +127,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-004 ──────────────────────────────────────────────────────
-  test('should show Start ITS Risk Assessment button state (enabled or gated by orange-dot roles)',
+  test('TC-LIFECYCLE-004 — should show Start ITS Risk Assessment button state (enabled or gated by orange-dot roles)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -167,7 +167,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-005 ──────────────────────────────────────────────────────
-  test('should show Completed status on a Completed DOC and all 5 pipeline stages',
+  test('TC-LIFECYCLE-005 — should show Completed status on a Completed DOC and all 5 pipeline stages',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -225,7 +225,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-006 ──────────────────────────────────────────────────────
-  test('should show frozen Digital Offer Details on a Completed DOC (no Edit Details button)',
+  test('TC-LIFECYCLE-006 — should show frozen Digital Offer Details on a Completed DOC (no Edit Details button)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -257,7 +257,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-007 ──────────────────────────────────────────────────────
-  test('should show frozen ITS Checklist tab on a Completed DOC (no Add Controls button)',
+  test('TC-LIFECYCLE-007 — should show frozen ITS Checklist tab on a Completed DOC (no Add Controls button)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -287,7 +287,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-008 ──────────────────────────────────────────────────────
-  test('should show Action Plan tab accessible in read-only mode on a Completed DOC',
+  test('TC-LIFECYCLE-008 — should show Action Plan tab accessible in read-only mode on a Completed DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -318,7 +318,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-009 ──────────────────────────────────────────────────────
-  test('should not show Edit Roles button on a Completed DOC (Roles tab frozen)',
+  test('TC-LIFECYCLE-009 — should not show Edit Roles button on a Completed DOC (Roles tab frozen)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -351,7 +351,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-010 ──────────────────────────────────────────────────────
-  test('should not show Propose Decision or Submit for Approval buttons on a Completed DOC',
+  test('TC-LIFECYCLE-010 — should not show Propose Decision or Submit for Approval buttons on a Completed DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -389,7 +389,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-011 ──────────────────────────────────────────────────────
-  test('should show Risk Summary tab with all four summary sections on a Completed DOC',
+  test('TC-LIFECYCLE-011 — should show Risk Summary tab with all four summary sections on a Completed DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -415,7 +415,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-012 ──────────────────────────────────────────────────────
-  test('should hide all Descope action buttons on a Completed DOC (ITS Checklist frozen)',
+  test('TC-LIFECYCLE-012 — should hide all Descope action buttons on a Completed DOC (ITS Checklist frozen)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -456,7 +456,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-013 ──────────────────────────────────────────────────────
-  test('should show or gracefully not show Revoke DOC button on a Completed DOC',
+  test('TC-LIFECYCLE-013 — should show or gracefully not show Revoke DOC button on a Completed DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -485,7 +485,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-014 ──────────────────────────────────────────────────────
-  test('should keep VESTA ID read-only on a Completed DOC',
+  test('TC-LIFECYCLE-014 — should keep VESTA ID read-only on a Completed DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -524,7 +524,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-015 ──────────────────────────────────────────────────────
-  test('should show "Under Review" status on a control submitted for Risk Assessment',
+  test('DOC-LIFECYCLE-015 — should show "Under Review" status on a control submitted for Risk Assessment',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -569,7 +569,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-016 ──────────────────────────────────────────────────────
-  test('should show "Sent Back for Update" status on controls returned to DO Team',
+  test('DOC-LIFECYCLE-016 — should show "Sent Back for Update" status on controls returned to DO Team',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -608,7 +608,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-017 ──────────────────────────────────────────────────────
-  test('should show "Remediation Required" status on controls with findings',
+  test('DOC-LIFECYCLE-017 — should show "Remediation Required" status on controls with findings',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -647,7 +647,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-018 ──────────────────────────────────────────────────────
-  test('should show Risk Summary Review stage label on a DOC submitted to DRL for review',
+  test('DOC-LIFECYCLE-018 — should show Risk Summary Review stage label on a DOC submitted to DRL for review',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -673,7 +673,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-019 ──────────────────────────────────────────────────────
-  test('should show or gracefully skip "Send Back to DO Team" button during Risk Summary Review',
+  test('DOC-LIFECYCLE-019 — should show or gracefully skip "Send Back to DO Team" button during Risk Summary Review',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -705,7 +705,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-020 ──────────────────────────────────────────────────────
-  test('should show Issue Certification stage label on a DOC submitted for certification',
+  test('DOC-LIFECYCLE-020 — should show Issue Certification stage label on a DOC submitted for certification',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -731,7 +731,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-021 ──────────────────────────────────────────────────────
-  test('should show Certification Decision with "Certified" on a DOC with 1 approver',
+  test('DOC-LIFECYCLE-021 — should show Certification Decision with "Certified" on a DOC with 1 approver',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -767,7 +767,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-022 ──────────────────────────────────────────────────────
-  test('should show Certification Decision requiring 2 approvers for Certified with Exception',
+  test('DOC-LIFECYCLE-022 — should show Certification Decision requiring 2 approvers for Certified with Exception',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -815,7 +815,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-023 ──────────────────────────────────────────────────────
-  test('should show Certification Decision requiring 3 approvers for Waiver',
+  test('DOC-LIFECYCLE-023 — should show Certification Decision requiring 3 approvers for Waiver',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -861,7 +861,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-024 ──────────────────────────────────────────────────────
-  test('should show Reject/Return action on Certification Approval stage (non-destructive)',
+  test('DOC-LIFECYCLE-024 — should show Reject/Return action on Certification Approval stage (non-destructive)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -903,7 +903,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-025 ──────────────────────────────────────────────────────
-  test('should show "Risk Summary Review" as a visible pipeline stage for DRL rework',
+  test('DOC-LIFECYCLE-025 — should show "Risk Summary Review" as a visible pipeline stage for DRL rework',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -925,7 +925,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-026 ──────────────────────────────────────────────────────
-  test('should show Completed status and certification decision on a finished DOC',
+  test('DOC-LIFECYCLE-026 — should show Completed status and certification decision on a finished DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -958,7 +958,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-027 ──────────────────────────────────────────────────────
-  test('should show Cancelled status and cancellation reason tooltip on a cancelled DOC',
+  test('DOC-LIFECYCLE-027 — should show Cancelled status and cancellation reason tooltip on a cancelled DOC',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('critical');
@@ -1003,7 +1003,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-028 ──────────────────────────────────────────────────────
-  test('should verify revoked DOC status behavior (visibility check)',
+  test('DOC-LIFECYCLE-028 — should verify revoked DOC status behavior (visibility check)',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -1030,7 +1030,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-029 ──────────────────────────────────────────────────────
-  test('should verify Actions Closure stage exists for CwE/Waiver DOCs',
+  test('DOC-LIFECYCLE-029 — should verify Actions Closure stage exists for CwE/Waiver DOCs',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');
@@ -1066,7 +1066,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
     });
 
   // ── TC-LIFECYCLE-030 ──────────────────────────────────────────────────────
-  test('should verify Action Plan tab is accessible during Actions Closure stage',
+  test('DOC-LIFECYCLE-030 — should verify Action Plan tab is accessible during Actions Closure stage',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Lifecycle');
       await allure.severity('normal');

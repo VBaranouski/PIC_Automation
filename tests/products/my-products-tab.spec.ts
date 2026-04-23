@@ -13,7 +13,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     await landingPage.grid.waitFor({ timeout: 30_000 });
   });
 
-  test('should search products by name using combobox filter', async ({ landingPage }) => {
+  test('LANDING-MY-PRODUCTS-001 — should search products by name using combobox filter', async ({ landingPage }) => {
     await allure.suite('My Products');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -41,7 +41,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
   });
 
-  test('should search products by Product ID using combobox filter', async ({ landingPage }) => {
+  test('LANDING-MY-PRODUCTS-002 — should search products by Product ID using combobox filter', async ({ landingPage }) => {
     await allure.suite('My Products');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -67,7 +67,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
   });
 
-  test('should toggle Show Active Only checkbox to include inactive products', async ({ landingPage }) => {
+  test('LANDING-MY-PRODUCTS-003 — should toggle Show Active Only checkbox to include inactive products', async ({ landingPage }) => {
     await allure.suite('My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -102,7 +102,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
   });
 
-  test('should reset all filters and restore default state', async ({ landingPage }) => {
+  test('LANDING-MY-PRODUCTS-004 — should reset all filters and restore default state', async ({ landingPage }) => {
     await allure.suite('My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -124,7 +124,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
   });
 
-  test('should navigate through pages using pagination', async ({ landingPage }) => {
+  test('LANDING-MY-PRODUCTS-005 — should navigate through pages using pagination', async ({ landingPage }) => {
     await allure.suite('My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -159,7 +159,7 @@ test.describe('My Products Tab - Exploratory @regression', () => {
     });
   });
 
-  test('should open Product Detail page when clicking a product name', async ({ landingPage, newProductPage }) => {
+  test('LANDING-MY-PRODUCTS-006 — should open Product Detail page when clicking a product name', async ({ landingPage, newProductPage }) => {
     await allure.suite('My Products');
     await allure.severity('critical');
     await allure.tag('regression');

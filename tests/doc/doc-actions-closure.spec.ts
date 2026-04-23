@@ -21,7 +21,7 @@ const COMPLETED_DOC_URL =
 test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
   test.setTimeout(180_000);
   // ── DOC-CLOSURE-001 ──────────────────────────────────────────────────────
-  test('should show controls in ITS Checklist with correct data during Actions Closure',
+  test('DOC-CLOSURE-001 — should show controls in ITS Checklist with correct data during Actions Closure',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -64,7 +64,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-002 ──────────────────────────────────────────────────────
-  test('should show Evidence Links and Comments sections on Control Detail during Actions Closure',
+  test('DOC-CLOSURE-002 — should show Evidence Links and Comments sections on Control Detail during Actions Closure',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -99,7 +99,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-003 ──────────────────────────────────────────────────────
-  test('should show action options for findings in Actions Closure stage',
+  test('DOC-CLOSURE-003 — should show action options for findings in Actions Closure stage',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -123,7 +123,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-004 ──────────────────────────────────────────────────────
-  test('should show Action Plan tab with action items during Actions Closure',
+  test('DOC-CLOSURE-004 — should show Action Plan tab with action items during Actions Closure',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -148,7 +148,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-005 ──────────────────────────────────────────────────────
-  test('should show re-assessment option for controls in Actions Closure',
+  test('DOC-CLOSURE-005 — should show re-assessment option for controls in Actions Closure',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -178,7 +178,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-006 ──────────────────────────────────────────────────────
-  test('should NOT show Add Controls button during Actions Closure stage',
+  test('DOC-CLOSURE-006 — should NOT show Add Controls button during Actions Closure stage',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -201,7 +201,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-007 ──────────────────────────────────────────────────────
-  test('should display controls with open findings correctly during Actions Closure',
+  test('DOC-CLOSURE-007 — should display controls with open findings correctly during Actions Closure',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -251,7 +251,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-008 ──────────────────────────────────────────────────────
-  test('should enforce role-based permissions during Actions Closure',
+  test('DOC-CLOSURE-008 — should enforce role-based permissions during Actions Closure',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');
@@ -280,7 +280,7 @@ test.describe('DOC - Actions Closure Stage (11.18) @regression', () => {
     });
 
   // ── DOC-CLOSURE-009 ──────────────────────────────────────────────────────
-  test('should show findings in read-only state when control is Assessment Completed',
+  test('DOC-CLOSURE-009 — should show findings in read-only state when control is Assessment Completed',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Actions Closure');
       await allure.severity('normal');

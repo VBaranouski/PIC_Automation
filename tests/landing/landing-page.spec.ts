@@ -10,7 +10,7 @@ test.describe('Landing Page @smoke', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should display all tabs on landing page', async ({ landingPage }) => {
+  test('LANDING-HOME-001 — should display all tabs on landing page', async ({ landingPage }) => {
     await allure.suite('Landing Page');
     await allure.severity('critical');
     await allure.tag('smoke');
@@ -25,7 +25,7 @@ test.describe('Landing Page @smoke', () => {
     });
   });
 
-  test('should have My Tasks tab selected by default after login @regression', async ({ landingPage }) => {
+  test('LANDING-TAB-DEFAULT-001 — should have My Tasks tab selected by default after login @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -36,7 +36,7 @@ test.describe('Landing Page @smoke', () => {
     });
   });
 
-  test('should load content when clicking each tab', async ({ landingPage }) => {
+  test('LANDING-HOME-002 — should load content when clicking each tab', async ({ landingPage }) => {
     await allure.suite('Landing Page');
     await allure.severity('critical');
     await allure.tag('smoke');
@@ -64,7 +64,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should display correct grid columns for My Tasks', async ({ landingPage }) => {
+  test('LANDING-HOME-003 — should display correct grid columns for My Tasks', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -75,7 +75,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     });
   });
 
-  test('should display all required My Tasks grid columns @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-COLS-001 — should display all required My Tasks grid columns @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -90,7 +90,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     });
   });
 
-  test('should have Show Closed Tasks toggle OFF by default @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-TOGGLE-001 — should have Show Closed Tasks toggle OFF by default @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -104,7 +104,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     });
   });
 
-  test('should display filters for My Tasks', async ({ landingPage }) => {
+  test('LANDING-HOME-004 — should display filters for My Tasks', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -115,7 +115,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     });
   });
 
-  test('should toggle Show Closed Tasks checkbox and update data', async ({ landingPage }) => {
+  test('LANDING-HOME-005 — should toggle Show Closed Tasks checkbox and update data', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -134,7 +134,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     });
   });
 
-  test('should change per-page value and update grid rows', async ({ landingPage }) => {
+  test('LANDING-HOME-006 — should change per-page value and update grid rows', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -155,7 +155,7 @@ test.describe('Landing Page - My Tasks Tab @regression', () => {
     });
   });
 
-  test('should navigate to next page using pagination', async ({ landingPage }) => {
+  test('LANDING-HOME-007 — should navigate to next page using pagination', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -182,7 +182,7 @@ test.describe('Landing Page - My Products Tab @regression', () => {
     await landingPage.clickTab('My Products');
   });
 
-  test('should display correct grid columns for My Products', async ({ landingPage }) => {
+  test('LANDING-HOME-008 — should display correct grid columns for My Products', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -195,7 +195,7 @@ test.describe('Landing Page - My Products Tab @regression', () => {
     });
   });
 
-  test('should display filters and Show Active Only is checked by default', async ({ landingPage }) => {
+  test('LANDING-HOME-009 — should display filters and Show Active Only is checked by default', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -210,7 +210,7 @@ test.describe('Landing Page - My Products Tab @regression', () => {
     });
   });
 
-  test('should uncheck Show Active Only and update data', async ({ landingPage }) => {
+  test('LANDING-HOME-010 — should uncheck Show Active Only and update data', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -225,7 +225,7 @@ test.describe('Landing Page - My Products Tab @regression', () => {
     });
   });
 
-  test('should change per-page value on My Products', async ({ landingPage }) => {
+  test('LANDING-HOME-011 — should change per-page value on My Products', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Products');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -254,7 +254,7 @@ test.describe('Landing Page - My Releases Tab @regression', () => {
     await landingPage.clickTab('My Releases');
   });
 
-  test('should display correct grid columns for My Releases', async ({ landingPage }) => {
+  test('LANDING-HOME-012 — should display correct grid columns for My Releases', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -268,7 +268,7 @@ test.describe('Landing Page - My Releases Tab @regression', () => {
     });
   });
 
-  test('should display Show Active Only checked by default', async ({ landingPage }) => {
+  test('LANDING-HOME-013 — should display Show Active Only checked by default', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -280,7 +280,7 @@ test.describe('Landing Page - My Releases Tab @regression', () => {
     });
   });
 
-  test('should uncheck Show Active Only and update data', async ({ landingPage }) => {
+  test('LANDING-HOME-014 — should uncheck Show Active Only and update data', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -296,7 +296,7 @@ test.describe('Landing Page - My Releases Tab @regression', () => {
     });
   });
 
-  test('should navigate to next page on My Releases', async ({ landingPage }) => {
+  test('LANDING-HOME-015 — should navigate to next page on My Releases', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -323,7 +323,7 @@ test.describe('Landing Page - My DOCs Tab @regression', () => {
     await landingPage.clickTab('My DOCs');
   });
 
-  test('should display correct grid columns for My DOCs', async ({ landingPage }) => {
+  test('LANDING-HOME-016 — should display correct grid columns for My DOCs', async ({ landingPage }) => {
     await allure.suite('Landing Page - My DOCs');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -337,7 +337,7 @@ test.describe('Landing Page - My DOCs Tab @regression', () => {
     });
   });
 
-  test('should display DOC search box and filters', async ({ landingPage }) => {
+  test('LANDING-HOME-017 — should display DOC search box and filters', async ({ landingPage }) => {
     await allure.suite('Landing Page - My DOCs');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -348,7 +348,7 @@ test.describe('Landing Page - My DOCs Tab @regression', () => {
     });
   });
 
-  test('should display DOC data in grid', async ({ landingPage }) => {
+  test('LANDING-HOME-018 — should display DOC data in grid', async ({ landingPage }) => {
     await allure.suite('Landing Page - My DOCs');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -373,7 +373,7 @@ test.describe('Landing Page - Reports & Dashboards Tab @regression', () => {
     await landingPage.clickTab('Reports & Dashboards');
   });
 
-  test('should display correct grid columns for Reports & Dashboards', async ({ landingPage }) => {
+  test('LANDING-HOME-019 — should display correct grid columns for Reports & Dashboards', async ({ landingPage }) => {
     await allure.suite('Landing Page - Reports & Dashboards');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -388,7 +388,7 @@ test.describe('Landing Page - Reports & Dashboards Tab @regression', () => {
     });
   });
 
-  test('should display Access Tableau link', async ({ landingPage }) => {
+  test('LANDING-HOME-020 — should display Access Tableau link', async ({ landingPage }) => {
     await allure.suite('Landing Page - Reports & Dashboards');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -399,7 +399,7 @@ test.describe('Landing Page - Reports & Dashboards Tab @regression', () => {
     });
   });
 
-  test('should display More Filters link', async ({ landingPage }) => {
+  test('LANDING-HOME-021 — should display More Filters link', async ({ landingPage }) => {
     await allure.suite('Landing Page - Reports & Dashboards');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -411,7 +411,7 @@ test.describe('Landing Page - Reports & Dashboards Tab @regression', () => {
     });
   });
 
-  test('should display data in reports grid', async ({ landingPage }) => {
+  test('LANDING-HOME-022 — should display data in reports grid', async ({ landingPage }) => {
     await allure.suite('Landing Page - Reports & Dashboards');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -428,7 +428,7 @@ test.describe('Landing Page - Reports & Dashboards Tab @regression', () => {
     });
   });
 
-  test('should change per-page value on Reports & Dashboards', async ({ landingPage }) => {
+  test('LANDING-HOME-023 — should change per-page value on Reports & Dashboards', async ({ landingPage }) => {
     await allure.suite('Landing Page - Reports & Dashboards');
     await allure.severity('normal');
     await allure.tag('regression');

@@ -14,7 +14,7 @@ test.describe('Landing Page - My Tasks Filters & Navigation @regression', () => 
     await landingPage.waitForGridDataRows();
   });
 
-  test('should narrow task list when searching by task name @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-SEARCH-001 — should narrow task list when searching by task name @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -41,7 +41,7 @@ test.describe('Landing Page - My Tasks Filters & Navigation @regression', () => 
     });
   });
 
-  test('should clear filters when Reset button is clicked @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-RESET-001 — should clear filters when Reset button is clicked @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -66,7 +66,7 @@ test.describe('Landing Page - My Tasks Filters & Navigation @regression', () => 
     });
   });
 
-  test('should navigate to task detail when clicking the Review button @regression', async ({ landingPage, page }) => {
+  test('LANDING-TASKS-REVIEW-001 — should navigate to task detail when clicking the Review button @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -104,7 +104,7 @@ test.describe('Landing Page - My Tasks Advanced Filters @regression', () => {
     await landingPage.waitForGridDataRows();
   });
 
-  test('should narrow task list when Release filter is applied @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-REL-001 — should narrow task list when Release filter is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -134,7 +134,7 @@ test.describe('Landing Page - My Tasks Advanced Filters @regression', () => {
     });
   });
 
-  test('should narrow task list when Product filter is applied @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-PROD-001 — should narrow task list when Product filter is applied @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -177,7 +177,7 @@ test.describe('Landing Page - My Tasks Date Range Filter @regression', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should display Tasks Date Range picker on My Tasks tab @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-DATE-001 — should display Tasks Date Range picker on My Tasks tab @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -203,7 +203,7 @@ test.describe('Landing Page - My Tasks Assignee Filter @regression', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should display Tasks Assignee filter on My Tasks tab @regression', async ({ landingPage }) => {
+  test('LANDING-TASKS-ASSIGNEE-001 — should display Tasks Assignee filter on My Tasks tab @regression', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -230,7 +230,7 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
     await landingPage.waitForGridDataRows();
   });
 
-  test('should display renamed column headers in My Tasks grid', async ({ landingPage }) => {
+  test('LANDING-TASKS-LABELS-001 — should display renamed column headers in My Tasks grid', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -266,7 +266,7 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
     });
   });
 
-  test('should show SDL or DOC values in the PROCESS TYPE column', async ({ landingPage }) => {
+  test('LANDING-TASKS-TYPE-001 — should show SDL or DOC values in the PROCESS TYPE column', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -302,7 +302,7 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
     });
   });
 
-  test('should show DOC Lead value for DOC-type tasks', async ({ landingPage }) => {
+  test('LANDING-TASKS-DOCLEAD-001 — should show DOC Lead value for DOC-type tasks', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -352,7 +352,7 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
     });
   });
 
-  test('should keep My Tasks pre-filtered to the logged-in assignee', async ({ landingPage, userCredentials }) => {
+  test('DOC-TASKS-001 — should keep My Tasks pre-filtered to the logged-in assignee', async ({ landingPage, userCredentials }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -380,7 +380,7 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
     });
   });
 
-  test('should show DOC-related Product and Rel. Ver. columns in My Tasks', async ({ landingPage }) => {
+  test('DOC-TASKS-002 — should show DOC-related Product and Rel. Ver. columns in My Tasks', async ({ landingPage }) => {
     await allure.suite('Landing Page - My Tasks');
     await allure.severity('normal');
     await allure.tag('regression');

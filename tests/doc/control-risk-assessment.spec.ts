@@ -29,7 +29,7 @@ const COMPLETED_DOC_URL =
 test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
   test.setTimeout(180_000);
   // ── DOC-CTRL-RA-001 ──────────────────────────────────────────────────────
-  test('should show additional RA columns (Status, Risk Level, Findings) during Risk Assessment',
+  test('DOC-CTRL-RA-001 — should show additional RA columns (Status, Risk Level, Findings) during Risk Assessment',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('critical');
@@ -69,7 +69,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-002 ──────────────────────────────────────────────────────
-  test('should show "Add Evidence Link" button on Control Detail during Risk Assessment',
+  test('DOC-CTRL-RA-002 — should show "Add Evidence Link" button on Control Detail during Risk Assessment',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('critical');
@@ -108,7 +108,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-003 ──────────────────────────────────────────────────────
-  test('should show Evidence Links section on Control Detail',
+  test('DOC-CTRL-RA-003 — should show Evidence Links section on Control Detail',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -132,7 +132,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-004 ──────────────────────────────────────────────────────
-  test('should show Evidence Links as clickable links with text and URL',
+  test('DOC-CTRL-RA-004 — should show Evidence Links as clickable links with text and URL',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -156,7 +156,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-005 ──────────────────────────────────────────────────────
-  test('should show "Submit for Review" button on Control Detail during Risk Assessment',
+  test('DOC-CTRL-RA-005 — should show "Submit for Review" button on Control Detail during Risk Assessment',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('critical');
@@ -185,7 +185,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-006 ──────────────────────────────────────────────────────
-  test('should gate Submit for Review until evidence or comment is provided',
+  test('DOC-CTRL-RA-006 — should gate Submit for Review until evidence or comment is provided',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -224,7 +224,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-007 ──────────────────────────────────────────────────────
-  test('should show read-only Control Detail for VIEW_DOC user during RA',
+  test('DOC-CTRL-RA-007 — should show read-only Control Detail for VIEW_DOC user during RA',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -255,7 +255,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-008 ──────────────────────────────────────────────────────
-  test('should show "Evaluate" button for DOCL on Control Detail during review',
+  test('DOC-CTRL-RA-008 — should show "Evaluate" button for DOCL on Control Detail during review',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('critical');
@@ -284,7 +284,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-009 ──────────────────────────────────────────────────────
-  test('should show "Send Back for Update" button for DOCL during review',
+  test('DOC-CTRL-RA-009 — should show "Send Back for Update" button for DOCL during review',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -313,7 +313,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-010 ──────────────────────────────────────────────────────
-  test('should show "Complete Risk Assessment" button for DOCL evaluation',
+  test('DOC-CTRL-RA-010 — should show "Complete Risk Assessment" button for DOCL evaluation',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('critical');
@@ -342,7 +342,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-011 ──────────────────────────────────────────────────────
-  test('should show "Mark Control as Not Applicable" button for DOCL',
+  test('DOC-CTRL-RA-011 — should show "Mark Control as Not Applicable" button for DOCL',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -371,7 +371,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-012 ──────────────────────────────────────────────────────
-  test('should show read-only Control Detail for VIEW_DOC user during DOCL review',
+  test('DOC-CTRL-RA-012 — should show read-only Control Detail for VIEW_DOC user during DOCL review',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -404,7 +404,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-013 ──────────────────────────────────────────────────────
-  test('should show "Add Finding" button on Control Detail during review',
+  test('DOC-CTRL-RA-013 — should show "Add Finding" button on Control Detail during review',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -433,7 +433,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-014 ──────────────────────────────────────────────────────
-  test('should show Findings section with empty state or findings table',
+  test('DOC-CTRL-RA-014 — should show Findings section with empty state or findings table',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -457,7 +457,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-015 ──────────────────────────────────────────────────────
-  test('should show "Send for Remediation" button on controls with findings',
+  test('DOC-CTRL-RA-015 — should show "Send for Remediation" button on controls with findings',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -486,7 +486,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-016 ──────────────────────────────────────────────────────
-  test('should show Comments section on Control Detail for DOCL/DO Team communication',
+  test('DOC-CTRL-RA-016 — should show Comments section on Control Detail for DOCL/DO Team communication',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -510,7 +510,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-017 ──────────────────────────────────────────────────────
-  test('should show control status in ITS Checklist after DO Team resubmits',
+  test('DOC-CTRL-RA-017 — should show control status in ITS Checklist after DO Team resubmits',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -541,7 +541,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-018 ──────────────────────────────────────────────────────
-  test('should show Risk Level label on Control Detail during RA',
+  test('DOC-CTRL-RA-018 — should show Risk Level label on Control Detail during RA',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -565,7 +565,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-019 ──────────────────────────────────────────────────────
-  test('should show control re-evaluation state after remediation',
+  test('DOC-CTRL-RA-019 — should show control re-evaluation state after remediation',
     async ({ page, docDetailsPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');
@@ -600,7 +600,7 @@ test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
     });
 
   // ── DOC-CTRL-RA-020 ──────────────────────────────────────────────────────
-  test('should show "Add Action" button in Findings table for privileged users',
+  test('DOC-CTRL-RA-020 — should show "Add Action" button in Findings table for privileged users',
     async ({ page, docDetailsPage, controlDetailPage }) => {
       await allure.suite('DOC / Control Risk Assessment');
       await allure.severity('normal');

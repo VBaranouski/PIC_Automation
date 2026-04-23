@@ -55,7 +55,7 @@ test.describe.serial('Releases - Create New Release (PIC-100) @regression', () =
 
   let productUrl: string;
   let productName: string;
-  test('should show required validation when trying to create the first release without mandatory fields', async ({ page, landingPage, newProductPage }) => {
+  test('RELEASE-CREATE-001 — should show required validation when trying to create the first release without mandatory fields', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -87,7 +87,7 @@ test.describe.serial('Releases - Create New Release (PIC-100) @regression', () =
     });
   });
 
-  test('should create the first release for a product without releases', async ({ page, landingPage, newProductPage }) => {
+  test('RELEASE-CREATE-002 — should create the first release for a product without releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Releases');
     await allure.severity('critical');
     await allure.tag('smoke');
@@ -204,7 +204,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   // Shared product URL — discovered once by the first test in the serial block
   let noReleaseProductUrl = '';
   // ── RELEASE-CREATE-003 ────────────────────────────────────────────────────
-  test('should show Release Type radio buttons with "New Product Release" selected by default', async ({
+  test('RELEASE-CREATE-003 — should show Release Type radio buttons with "New Product Release" selected by default', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -246,7 +246,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-004 ────────────────────────────────────────────────────
-  test('should reveal "Cont. Pen Test Contract Date" field when Continuous Pen Testing is checked', async ({
+  test('RELEASE-CREATE-004 — should reveal "Cont. Pen Test Contract Date" field when Continuous Pen Testing is checked', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -291,7 +291,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-005 ────────────────────────────────────────────────────
-  test('should prevent selecting a past date in Target Release Date picker', async ({
+  test('RELEASE-CREATE-005 — should prevent selecting a past date in Target Release Date picker', async ({
     page, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -324,7 +324,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-006 ────────────────────────────────────────────────────
-  test('should reveal extra fields when "Existing Product Release" radio is selected', async ({
+  test('RELEASE-CREATE-006 — should reveal extra fields when "Existing Product Release" radio is selected', async ({
     page, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -362,7 +362,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-007 ────────────────────────────────────────────────────
-  test('should show Clone / Create-as-new options when product already has a release', async ({
+  test('RELEASE-CREATE-007 — should show Clone / Create-as-new options when product already has a release', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -397,7 +397,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-008 ────────────────────────────────────────────────────
-  test('should reveal Last Full Pen Test Date field for Existing Product Release', async ({
+  test('RELEASE-CREATE-008 — should reveal Last Full Pen Test Date field for Existing Product Release', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -436,7 +436,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-009 ────────────────────────────────────────────────────
-  test('should reveal Last BU Security Officer FCSR Date field for Existing Product Release', async ({
+  test('RELEASE-CREATE-009 — should reveal Last BU Security Officer FCSR Date field for Existing Product Release', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -475,7 +475,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-010 ────────────────────────────────────────────────────
-  test('should offer Existing Product Release only for products that do not yet have releases', async ({
+  test('RELEASE-CREATE-010 — should offer Existing Product Release only for products that do not yet have releases', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -520,7 +520,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-011 ────────────────────────────────────────────────────
-  test('should require Release Version when other mandatory create fields are filled', async ({
+  test('RELEASE-CREATE-011 — should require Release Version when other mandatory create fields are filled', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -564,7 +564,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-012 ────────────────────────────────────────────────────
-  test('should require Last BU Security Officer FCSR Date for Existing Product Release', async ({
+  test('RELEASE-CREATE-012 — should require Last BU Security Officer FCSR Date for Existing Product Release', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');
@@ -612,7 +612,7 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
   });
 
   // ── RELEASE-CREATE-013 ────────────────────────────────────────────────────
-  test('should create Existing Product Release without Last Full Pen Test Date when FCSR Date is provided', async ({
+  test('RELEASE-CREATE-013 — should create Existing Product Release without Last Full Pen Test Date when FCSR Date is provided', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Releases');

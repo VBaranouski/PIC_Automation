@@ -11,7 +11,7 @@ import * as allure from 'allure-js-commons';
 
 test.describe('Product Details - Actions Management @regression', () => {
   test.setTimeout(240_000);
-  test('should navigate to Actions Management page from Product Detail @regression', async ({ newProductPage, page }) => {
+  test('PRODUCT-ACTIONS-001 — should navigate to Actions Management page from Product Detail @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - Actions Management');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -35,7 +35,7 @@ test.describe('Product Details - Actions Management @regression', () => {
     });
   });
 
-  test('should display Actions Management grid with action-related columns @regression', async ({ newProductPage, page }) => {
+  test('PRODUCT-ACTIONS-002 — should display Actions Management grid with action-related columns @regression', async ({ newProductPage, page }) => {
     await allure.suite('Products - Actions Management');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -56,7 +56,7 @@ test.describe('Product Details - Actions Management @regression', () => {
     });
   });
 
-  test.fixme('should allow creating a new action from Actions Management page', async ({ newProductPage, page }) => {
+  test.fixme('PRODUCT-ACTIONS-003 — should allow creating a new action from Actions Management page', async ({ newProductPage, page }) => {
     await allure.suite('Products - Actions Management');
     await allure.severity('normal');
     await allure.tag('regression');

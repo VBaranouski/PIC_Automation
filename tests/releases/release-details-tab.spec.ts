@@ -53,7 +53,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should load Release Details by default with the core read-only fields visible', async ({
+  test('RELEASE-DETAILS-001 — should load Release Details by default with the core read-only fields visible', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -79,7 +79,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     });
   });
 
-  test('should show the SE product subtabs inside Release Details', async ({
+  test('RELEASE-DETAILS-002 — should show the SE product subtabs inside Release Details', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -105,7 +105,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     });
   });
 
-  test('should open Part of SE Products as a read-only subtab', async ({
+  test('RELEASE-DETAILS-003 — should open Part of SE Products as a read-only subtab', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -135,7 +135,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     });
   });
 
-  test('should enter inline edit mode for Release Details and cancel back to read-only', async ({
+  test('RELEASE-DETAILS-004 — should enter inline edit mode for Release Details and cancel back to read-only', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -163,7 +163,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     });
   });
 
-  test('should save an updated Change Summary and restore the original value', async ({
+  test('RELEASE-DETAILS-005 — should save an updated Change Summary and restore the original value', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -220,7 +220,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
   });
 
   // ── RELEASE-DETAILS-CANCEL-LEAVE-001 ─────────────────────────────────────
-  test('should show Leave Page dialog when navigating away with unsaved Release Details changes', async ({
+  test('RELEASE-DETAILS-CANCEL-LEAVE-001 — should show Leave Page dialog when navigating away with unsaved Release Details changes', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Release Details');
@@ -289,7 +289,7 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
   });
 
   // ── RELEASE-DETAILS-ADDSEP-001 ────────────────────────────────────────────
-  test('should open Add SE Product dialog from Included SE Components subtab', async ({
+  test('RELEASE-DETAILS-ADDSEP-001 — should open Add SE Product dialog from Included SE Components subtab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Release Details');

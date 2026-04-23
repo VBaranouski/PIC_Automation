@@ -95,7 +95,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	// so serial mode is NOT used here — it would cause cascade-skips when
 	// running a subset of tests with --grep.
 	test.setTimeout(240_000);
-	test('should display the Certification Decision tab for eligible DOC stages', async ({
+	test('DOC-CERT-001 — should display the Certification Decision tab for eligible DOC stages', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -121,7 +121,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 	});
 
-	test('should show Propose Decision or Edit button in Decision Proposal status', async ({
+	test('DOC-CERT-002 — should show Propose Decision or Edit button in Decision Proposal status', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -141,7 +141,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 	});
 
-	test('should show Submit for Approval button in Decision Proposal status', async ({
+	test('DOC-CERT-003 — should show Submit for Approval button in Decision Proposal status', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -161,7 +161,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 	});
 
-	test('should show Risk Summary cards on the Certification Decision tab', async ({
+	test('DOC-CERT-004 — should show Risk Summary cards on the Certification Decision tab', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -181,7 +181,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 	});
 
-	test('should show Unresolved Findings section or empty state', async ({
+	test('DOC-CERT-005 — should show Unresolved Findings section or empty state', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -214,7 +214,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 	});
 
-	test('should show DOC Approvals section in Certification Approval status', async ({
+	test('DOC-CERT-006 — should show DOC Approvals section in Certification Approval status', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -237,7 +237,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-007 ──────────────────────────────────────────────────────────
-	test('should show Send for Rework button on a DOC in Certification Approval status', async ({
+	test('DOC-CERT-007 — should show Send for Rework button on a DOC in Certification Approval status', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -271,7 +271,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-008 ──────────────────────────────────────────────────────────
-	test('should display pipeline stage labelled "Risk Summary Review" (not "Review Risk Summary")', async ({
+	test('DOC-CERT-008 — should display pipeline stage labelled "Risk Summary Review" (not "Review Risk Summary")', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -299,7 +299,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-009 ──────────────────────────────────────────────────────────
-	test('should show warning text when no proposed decision has been set on a Decision Proposal DOC', async ({
+	test('DOC-CERT-009 — should show warning text when no proposed decision has been set on a Decision Proposal DOC', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -336,7 +336,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-010 ──────────────────────────────────────────────────────────
-	test('should display Proposed Decision value on the Certification Decision tab after decision is set', async ({
+	test('DOC-CERT-010 — should display Proposed Decision value on the Certification Decision tab after decision is set', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -390,7 +390,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-011 ──────────────────────────────────────────────────────────
-	test('should show DOC Approvals signatures table with correct columns in Certification Approval status', async ({
+	test('DOC-CERT-011 — should show DOC Approvals signatures table with correct columns in Certification Approval status', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -433,7 +433,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-012 ──────────────────────────────────────────────────────────
-	test('should show clickable CONTROL ID link in Unresolved Findings table', async ({
+	test('DOC-CERT-012 — should show clickable CONTROL ID link in Unresolved Findings table', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -469,7 +469,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-013 ──────────────────────────────────────────────────────────
-	test('should show clickable Closed Actions count link in Unresolved Findings table', async ({
+	test('DOC-CERT-013 — should show clickable Closed Actions count link in Unresolved Findings table', async ({
 		page,
 		landingPage,
 		docDetailsPage,
@@ -505,7 +505,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-014 ──────────────────────────────────────────────────────────
-	test('should show Monitor Action Closure pipeline stage for a DOC in Actions Closure status', async ({
+	test('DOC-CERT-014 — should show Monitor Action Closure pipeline stage for a DOC in Actions Closure status', async ({
 		page,
 		docDetailsPage,
 	}) => {
@@ -531,7 +531,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
 	// ── DOC-CERT-015 ──────────────────────────────────────────────────────────
-	test('should show empty Unresolved Findings for a Completed/Certified DOC', async ({
+	test('DOC-CERT-015 — should show empty Unresolved Findings for a Completed/Certified DOC', async ({
 		page,
 		docDetailsPage,
 	}) => {
@@ -561,7 +561,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 	});
 
         // ── DOC-CERT-016 ──────────────────────────────────────────────────────
-        test('should show "Edit" button after a Proposed Decision has been saved', async ({
+        test('DOC-CERT-016 — should show "Edit" button after a Proposed Decision has been saved', async ({
                 page,
                 landingPage,
                 docDetailsPage,
@@ -594,7 +594,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
         });
 
         // ── DOC-CERT-017 ──────────────────────────────────────────────────────
-        test('should show 1–3 approver rows matching the Proposed Decision type', async ({
+        test('DOC-CERT-017 — should show 1–3 approver rows matching the Proposed Decision type', async ({
                 page,
                 landingPage,
                 docDetailsPage,
@@ -636,7 +636,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
         });
 
         // ── DOC-CERT-018 ──────────────────────────────────────────────────────
-        test('should show "Provide Signature" button for eligible approvers in Certification Approval status', async ({
+        test('DOC-CERT-018 — should show "Provide Signature" button for eligible approvers in Certification Approval status', async ({
                 page,
                 landingPage,
                 docDetailsPage,
@@ -669,7 +669,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
         });
 
         // ── DOC-CERT-019 ──────────────────────────────────────────────────────
-        test('should open a confirmation popup when Submit for Approval is clicked', async ({
+        test('DOC-CERT-019 — should open a confirmation popup when Submit for Approval is clicked', async ({
                 page,
                 landingPage,
                 docDetailsPage,
@@ -705,7 +705,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
         });
 
         // ── DOC-CERT-020 ──────────────────────────────────────────────────────
-        test('should NOT show Monitor Action Closure stage in the pipeline for a non-Waiver/Exception DOC', async ({
+        test('DOC-CERT-020 — should NOT show Monitor Action Closure stage in the pipeline for a non-Waiver/Exception DOC', async ({
                 page,
                 docDetailsPage,
         }) => {
@@ -730,7 +730,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
         });
 
 			// ── DOC-CERT-021 ──────────────────────────────────────────────────────
-			test('should open Propose Decision popup and show base decision fields', async ({
+			test('DOC-CERT-021 — should open Propose Decision popup and show base decision fields', async ({
 				page,
 				landingPage,
 				docDetailsPage,
@@ -814,7 +814,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 			});
 
 	// ── DOC-CERT-022 ──────────────────────────────────────────────────────────
-	test('should show Provide Signature popup with Signature dropdown and mandatory Comment',
+	test('DOC-CERT-022 — should show Provide Signature popup with Signature dropdown and mandatory Comment',
 		async ({ page, docDetailsPage }) => {
 			await allure.suite('DOC / DOC Detail / Certification Decision');
 			await allure.severity('critical');
@@ -865,7 +865,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 
 	// ── DOC-CERT-023 ──────────────────────────────────────────────────────────
-	test('should show warning when Rejected is selected in Provide Signature popup',
+	test('DOC-CERT-023 — should show warning when Rejected is selected in Provide Signature popup',
 		async ({ page, docDetailsPage }) => {
 			await allure.suite('DOC / DOC Detail / Certification Decision');
 			await allure.severity('normal');
@@ -931,7 +931,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 
 	// ── DOC-CERT-024 ──────────────────────────────────────────────────────────
-	test('should verify approval reset behavior when Proposed Decision changes',
+	test('DOC-CERT-024 — should verify approval reset behavior when Proposed Decision changes',
 		async ({ page, docDetailsPage }) => {
 			await allure.suite('DOC / DOC Detail / Certification Decision');
 			await allure.severity('normal');
@@ -962,7 +962,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 
 	// ── DOC-CERT-025 ──────────────────────────────────────────────────────────
-	test('should show Cancel DOC button during Issue Certification stage',
+	test('DOC-CERT-025 — should show Cancel DOC button during Issue Certification stage',
 		async ({ page, docDetailsPage }) => {
 			await allure.suite('DOC / DOC Detail / Certification Decision');
 			await allure.severity('normal');
@@ -992,7 +992,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 
 	// ── DOC-CERT-026 ──────────────────────────────────────────────────────────
-	test('should show Revoke DOC button only for CwE decision and REVOKE_DOC privilege',
+	test('DOC-CERT-026 — should show Revoke DOC button only for CwE decision and REVOKE_DOC privilege',
 		async ({ page, docDetailsPage }) => {
 			await allure.suite('DOC / DOC Detail / Certification Decision');
 			await allure.severity('normal');
@@ -1022,7 +1022,7 @@ test.describe('DOC - Certification Decision Tab (11.11) @regression', () => {
 		});
 
 	// ── DOC-CERT-027 ──────────────────────────────────────────────────────────
-	test('should freeze data sections after DOC reaches Issue Certification',
+	test('DOC-CERT-027 — should freeze data sections after DOC reaches Issue Certification',
 		async ({ page, docDetailsPage }) => {
 			await allure.suite('DOC / DOC Detail / Certification Decision');
 			await allure.severity('normal');

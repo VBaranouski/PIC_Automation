@@ -14,7 +14,7 @@ test.describe('Products - New Product Creation with Digital Offer @regression', 
     await newProductPage.expectNewProductFormLoaded();
   });
 
-  test('should create a new product with Digital Offer and verify certification tab appears', async ({ newProductPage }) => {
+  test('DOC-SETUP-001 — should create a new product with Digital Offer and verify certification tab appears', async ({ newProductPage }) => {
     await allure.suite('Products');
     await allure.severity('critical');
     await allure.tag('regression');

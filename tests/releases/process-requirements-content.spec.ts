@@ -74,7 +74,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-001 ────────────────────────────────────────────────────
 
-  test('should load Process Requirements tab with SDL Practice groups or empty state', async ({
+  test('PROCESS-REQ-TAB-001 — should load Process Requirements tab with SDL Practice groups or empty state', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -114,7 +114,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-002 ────────────────────────────────────────────────────
 
-  test('should show "Show All Requirements" toggle on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-002 — should show "Show All Requirements" toggle on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -139,7 +139,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-003 ────────────────────────────────────────────────────
 
-  test('should show "Show Sub-Requirements" toggle on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-003 — should show "Show Sub-Requirements" toggle on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -164,7 +164,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-004 ────────────────────────────────────────────────────
 
-  test('should show "Show Only New Requirements" toggle on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-004 — should show "Show Only New Requirements" toggle on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -189,7 +189,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-005 ────────────────────────────────────────────────────
 
-  test('should show SDL Practice dropdown filter on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-005 — should show SDL Practice dropdown filter on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -222,7 +222,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-006 ────────────────────────────────────────────────────
 
-  test('should show Status dropdown filter on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-006 — should show Status dropdown filter on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -255,7 +255,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-007 ────────────────────────────────────────────────────
 
-  test('should show Reset button on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-007 — should show Reset button on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -280,7 +280,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-008 ────────────────────────────────────────────────────
 
-  test('should show Requirements Status Summary link on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-008 — should show Requirements Status Summary link on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -308,7 +308,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-009 ────────────────────────────────────────────────────
 
-  test('should open pie chart popup from Requirements Status Summary link', async ({
+  test('PROCESS-REQ-TAB-009 — should open pie chart popup from Requirements Status Summary link', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -360,7 +360,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-010 ────────────────────────────────────────────────────
 
-  test('should show Export XLSX button on the Process Requirements tab', async ({
+  test('PROCESS-REQ-TAB-010 — should show Export XLSX button on the Process Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -388,7 +388,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-012 ───────────────────────────────────────────────────
 
-  test('should expand or collapse the first SDL Practice accordion group when available', async ({
+  test('PROCESS-REQ-TAB-012 — should expand or collapse the first SDL Practice accordion group when available', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');
@@ -425,7 +425,7 @@ test.describe.serial('Releases - Process Requirements Tab Content (WF4 §4.8) @r
 
   // ── PROCESS-REQ-TAB-013 ───────────────────────────────────────────────────
 
-  test('should show status labels inside the Requirements Status Summary popup', async ({
+  test('PROCESS-REQ-TAB-013 — should show status labels inside the Requirements Status Summary popup', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Process Requirements / Content');

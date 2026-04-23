@@ -10,7 +10,7 @@ import * as allure from 'allure-js-commons';
 test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   test.setTimeout(180_000);
   // ── LANDING-DOCS-001 ──────────────────────────────────────────────────────
-  test('should show My DOCs tab visible on the Landing Page', async ({ landingPage }) => {
+  test('LANDING-DOCS-001 — should show My DOCs tab visible on the Landing Page', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-001: The My DOCs tab must be visible on the Landing Page ' +
@@ -28,7 +28,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-002 ──────────────────────────────────────────────────────
-  test('should show My DOCs tab positioned after My Releases tab in the tab list', async ({ landingPage }) => {
+  test('LANDING-DOCS-002 — should show My DOCs tab positioned after My Releases tab in the tab list', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-002: My DOCs tab must appear after the My Releases tab in the tab list.',
@@ -49,7 +49,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-003 ──────────────────────────────────────────────────────
-  test('should display all expected columns on the My DOCs grid', async ({ landingPage }) => {
+  test('LANDING-DOCS-003 — should display all expected columns on the My DOCs grid', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-003: My DOCs grid must show: DOC Name, Product, VESTA ID, ' +
@@ -73,7 +73,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-004 ──────────────────────────────────────────────────────
-  test('should show clickable DOC Name links that navigate to DOC Detail page', async ({ page, landingPage }) => {
+  test('LANDING-DOCS-004 — should show clickable DOC Name links that navigate to DOC Detail page', async ({ page, landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-004: DOC Name column must contain clickable links. ' +
@@ -97,7 +97,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-005 ──────────────────────────────────────────────────────
-  test('should show Certification Decision as dash for a newly initiated DOC', async ({ landingPage }) => {
+  test('LANDING-DOCS-005 — should show Certification Decision as dash for a newly initiated DOC', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-005: Certification Decision column shows "–" until a decision is provided.',
@@ -137,7 +137,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-006 ──────────────────────────────────────────────────────
-  test('should display all My DOCs filter controls', async ({ landingPage }) => {
+  test('LANDING-DOCS-006 — should display all My DOCs filter controls', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-006: My DOCs tab must show Search, Product, VESTA ID, DOC Status, ' +
@@ -157,7 +157,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-007 ──────────────────────────────────────────────────────
-  test('should filter DOCs by DOC Status dropdown', async ({ landingPage }) => {
+  test('LANDING-DOCS-007 — should filter DOCs by DOC Status dropdown', async ({ landingPage }) => {
     // 🐛 KNOWN PRODUCT DEFECT (TC-11.3.7): The DOC Status dropdown filter does not
     // reliably exclude DOCs of other statuses. Completed/Certified DOCs appear when
     // "Controls Scoping" is selected. Marked test.fail() so the defect is tracked
@@ -194,7 +194,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-008 ──────────────────────────────────────────────────────
-  test('should clear all filters when Reset button is clicked', async ({ landingPage }) => {
+  test('LANDING-DOCS-008 — should clear all filters when Reset button is clicked', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-008: Clicking Reset must clear all active DOC filters and restore the full list.',
@@ -223,7 +223,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-009 ──────────────────────────────────────────────────────
-  test('should change displayed rows via the per-page selector', async ({ landingPage }) => {
+  test('LANDING-DOCS-009 — should change displayed rows via the per-page selector', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-009: The per-page selector must change the number of rows displayed in the My DOCs grid.',
@@ -244,7 +244,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-010 ──────────────────────────────────────────────────────
-  test('should filter DOCs by DOC name using the search field', async ({ landingPage }) => {
+  test('LANDING-DOCS-010 — should filter DOCs by DOC name using the search field', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-010: The search field must filter the DOC grid by DOC name. ' +
@@ -273,7 +273,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-011 ──────────────────────────────────────────────────────
-  test('should show all My DOCs grid columns as sortable', async ({ landingPage }) => {
+  test('LANDING-DOCS-011 — should show all My DOCs grid columns as sortable', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.description(
       'LANDING-DOCS-011: All My DOCs grid column headers must be sortable (clickable). ' +
@@ -305,7 +305,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-012 ──────────────────────────────────────────────────────
-  test('should narrow My DOCs grid when a product is selected in the Product dropdown filter', async ({ landingPage }) => {
+  test('LANDING-DOCS-012 — should narrow My DOCs grid when a product is selected in the Product dropdown filter', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -341,7 +341,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-013 ──────────────────────────────────────────────────────
-  test('should filter My DOCs grid by Certification Decision dropdown value', async ({ landingPage }) => {
+  test('LANDING-DOCS-013 — should filter My DOCs grid by Certification Decision dropdown value', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -375,7 +375,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-014 ──────────────────────────────────────────────────────
-  test('should narrow My DOCs grid when a VESTA ID is selected in the VESTA ID dropdown filter', async ({ landingPage }) => {
+  test('LANDING-DOCS-014 — should narrow My DOCs grid when a VESTA ID is selected in the VESTA ID dropdown filter', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -411,7 +411,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-015 ──────────────────────────────────────────────────────
-  test('should narrow My DOCs grid when a DOC Lead is selected in the DOC Lead dropdown filter', async ({ landingPage }) => {
+  test('LANDING-DOCS-015 — should narrow My DOCs grid when a DOC Lead is selected in the DOC Lead dropdown filter', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -477,7 +477,7 @@ test.describe('DOC - Landing Page: My DOCs Tab (11.3) @regression', () => {
   });
 
   // ── LANDING-DOCS-016 ──────────────────────────────────────────────────────
-  test('should show empty state in My DOCs grid when search returns no results', async ({ landingPage }) => {
+  test('LANDING-DOCS-016 — should show empty state in My DOCs grid when search returns no results', async ({ landingPage }) => {
     await allure.suite('DOC / Landing Page');
     await allure.severity('normal');
     await allure.tag('regression');

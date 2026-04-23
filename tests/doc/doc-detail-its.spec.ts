@@ -22,7 +22,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
   // ── DOC-ITS-001 ───────────────────────────────────────────────────────────
-  test('should show the IT SECURITY CONTROLS subtitle on the ITS Checklist tab', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-001 — should show the IT SECURITY CONTROLS subtitle on the ITS Checklist tab', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-001: After clicking the ITS Checklist tab the page must display ' +
@@ -41,7 +41,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-002 ───────────────────────────────────────────────────────────
-  test('should display the ITS Checklist grid with expected column headers', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-002 — should display the ITS Checklist grid with expected column headers', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-002: ITS Checklist grid must show columns: ' +
@@ -60,7 +60,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-003 ───────────────────────────────────────────────────────────
-  test('should show Category filter, Search field, and Reset button on ITS Checklist', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-003 — should show Category filter, Search field, and Reset button on ITS Checklist', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-003: ITS Checklist tab must expose a Category filter dropdown, ' +
@@ -79,7 +79,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-004 ───────────────────────────────────────────────────────────
-  test('should show the Add Control button with SCOPE_IT_SECURITY_CONTROLS privilege', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-004 — should show the Add Control button with SCOPE_IT_SECURITY_CONTROLS privilege', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-004: "Add Control" button must be visible for users with ' +
@@ -98,7 +98,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-005 ───────────────────────────────────────────────────────────
-  test('should open Add Control popup when Add Control button is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-005 — should open Add Control popup when Add Control button is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-005: Clicking Add Control must open a popup dialog with a search field, ' +
@@ -127,7 +127,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-006 ───────────────────────────────────────────────────────────
-  test('should show Add Selected button and selected count when a control is checked in the popup', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-006 — should show Add Selected button and selected count when a control is checked in the popup', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-006: Selecting a control in the Add Control popup must show "N of M Selected" ' +
@@ -165,7 +165,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-007 ───────────────────────────────────────────────────────────
-  test('should filter ITS controls with the search field and reset correctly', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-007 — should filter ITS controls with the search field and reset correctly', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-007: Entering text in the search field must filter controls; ' +
@@ -201,7 +201,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-008 ───────────────────────────────────────────────────────────
-  test('should open Descope popup with disabled Descope button until justification is filled', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-008 — should open Descope popup with disabled Descope button until justification is filled', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-008: Clicking the X (Descope) button on a control row must open ' +
@@ -246,7 +246,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-009 ───────────────────────────────────────────────────────────
-  test('should re-sort ITS Checklist grid without breaking layout when a column header is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-009 — should re-sort ITS Checklist grid without breaking layout when a column header is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -282,7 +282,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-010 ───────────────────────────────────────────────────────────
-  test('should re-sort ITS Checklist grid when Description column header is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-010 — should re-sort ITS Checklist grid when Description column header is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -313,7 +313,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-011 ───────────────────────────────────────────────────────────
-  test('should re-sort ITS Checklist grid when Category column header is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-011 — should re-sort ITS Checklist grid when Category column header is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -344,7 +344,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-012 ───────────────────────────────────────────────────────────
-  test('should show "No results found" empty state when ITS search returns no matches', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-012 — should show "No results found" empty state when ITS search returns no matches', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -380,7 +380,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-013 ───────────────────────────────────────────────────────────
-  test('should display ITS Checklist controls sorted by Control ID ascending by default', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-013 — should display ITS Checklist controls sorted by Control ID ascending by default', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -407,7 +407,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-014 ───────────────────────────────────────────────────────────
-  test('should show "No results found" in Add Control popup and preserve selection count when search matches nothing', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-014 — should show "No results found" in Add Control popup and preserve selection count when search matches nothing', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -429,7 +429,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-015 ───────────────────────────────────────────────────────────
-  test('should filter ITS Checklist controls by selecting a Category from the dropdown', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-015 — should filter ITS Checklist controls by selecting a Category from the dropdown', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -496,7 +496,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-016 ───────────────────────────────────────────────────────────
-  test('should filter controls by Category in the Add Control popup', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-016 — should filter controls by Category in the Add Control popup', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -555,7 +555,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-017 (fixme: destructive) ───────────────────────────────────────
-  test.fixme('adding selected controls from Add Control popup appends them to the ITS Checklist table and can be reverted by descoping', async ({ page, docDetailsPage }) => {
+  test.fixme('DOC-ITS-017 — adding selected controls from Add Control popup appends them to the ITS Checklist table and can be reverted by descoping', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-017: Selecting controls in the Add Control popup and clicking "Add Selected" must ' +
@@ -565,7 +565,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-018 ───────────────────────────────────────────────────────────
-  test('should show "Start ITS Risk Assessment" button and reflect its gating state based on unassessed controls', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-018 — should show "Start ITS Risk Assessment" button and reflect its gating state based on unassessed controls', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -625,7 +625,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-019 (fixme: destructive — advances DOC stage) ─────────────────
-  test.fixme('confirming Start ITS Risk Assessment advances the DOC to Risk Assessment stage', async ({ page, docDetailsPage }) => {
+  test.fixme('DOC-ITS-019 — confirming Start ITS Risk Assessment advances the DOC to Risk Assessment stage', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-019: Clicking "Start ITS Risk Assessment" on a fully-assessed DOC must ' +
@@ -635,7 +635,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-007-b ─────────────────────────────────────────────────────────
-  test('should clear all search filters when Reset button is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-007-b — should clear all search filters when Reset button is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -685,7 +685,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-008-b ─────────────────────────────────────────────────────────
-  test('should show Unscope ITS Control popup with mandatory Justification when Descope is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-008-b — should show Unscope ITS Control popup with mandatory Justification when Descope is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -748,7 +748,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-017 (fixme: modifies data) ─────────────────────────────────────
-  test.fixme('should add selected controls from Add Control popup to ITS Checklist', async ({ page, docDetailsPage }) => {
+  test.fixme('DOC-ITS-017 — should add selected controls from Add Control popup to ITS Checklist', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.description(
       'DOC-ITS-017: Selecting controls in the Add Control popup and clicking "Add Selected" ' +
@@ -757,7 +757,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-020 ────────────────────────────────────────────────────────────
-  test('should show active controls sorted by Control ID for DOC in Controls Scoping', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-020 — should show active controls sorted by Control ID for DOC in Controls Scoping', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -798,7 +798,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-021 ────────────────────────────────────────────────────────────
-  test('should show ITS Checklist in read-only mode on a Completed DOC (no Add/Descope)', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-021 — should show ITS Checklist in read-only mode on a Completed DOC (no Add/Descope)', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -835,7 +835,7 @@ test.describe('DOC - ITS Checklist Tab (11.7) @regression', () => {
   });
 
   // ── DOC-ITS-022 ────────────────────────────────────────────────────────────
-  test('should disable Start ITS Risk Assessment when mandatory R&R fields are not set', async ({ page, docDetailsPage }) => {
+  test('DOC-ITS-022 — should disable Start ITS Risk Assessment when mandatory R&R fields are not set', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / ITS Checklist');
     await allure.severity('critical');
     await allure.tag('regression');

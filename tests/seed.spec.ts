@@ -2,7 +2,7 @@ import { test, expect } from '../src/fixtures';
 import * as allure from 'allure-js-commons';
 
 test.describe('Environment Validation', () => {
-  test('should load the base URL successfully @smoke', async ({ page }) => {
+  test('SMOKE-SEED-001 — should load the base URL successfully @smoke', async ({ page }) => {
     await allure.suite('Environment');
     await allure.severity('critical');
     await allure.tag('smoke');

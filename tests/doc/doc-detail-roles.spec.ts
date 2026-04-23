@@ -19,7 +19,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
     docDetailsUrl = readDocState().docDetailsUrl;
   });
   // ── DOC-ROLES-001 ─────────────────────────────────────────────────────────
-  test('should display the Roles grid with all four expected column headers', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-001 — should display the Roles grid with all four expected column headers', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-001: Roles & Responsibilities grid must have columns: ' +
@@ -39,7 +39,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-002 ─────────────────────────────────────────────────────────
-  test('should show all currently available role rows in the Roles grid', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-002 — should show all currently available role rows in the Roles grid', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-002: The grid must list the product-derived roles for the selected DOC ' +
@@ -59,7 +59,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-003 ─────────────────────────────────────────────────────────
-  test('should show pre-populated Team Members for product-derived roles', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-003 — should show pre-populated Team Members for product-derived roles', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-003: IT Owner, Project Manager, Product Owner and Security Advisor ' +
@@ -80,7 +80,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-004 ─────────────────────────────────────────────────────────
-  test('should show the Edit Roles button for a user with edit privilege', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-004 — should show the Edit Roles button for a user with edit privilege', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-004: "Edit Roles" button must be visible for a user with ' +
@@ -99,7 +99,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-005 ─────────────────────────────────────────────────────────
-  test('should enter edit mode when Edit Roles is clicked', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-005 — should enter edit mode when Edit Roles is clicked', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-005: Clicking "Edit Roles" must switch the tab to edit mode ' +
@@ -122,7 +122,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-006 ─────────────────────────────────────────────────────────
-  test('should show Save Changes as disabled when mandatory editable roles are empty', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-006 — should show Save Changes as disabled when mandatory editable roles are empty', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-006: Save Changes button must be disabled when any mandatory ' +
@@ -155,7 +155,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-007 ─────────────────────────────────────────────────────────
-  test('should discard changes and return to read-only when Cancel is clicked in edit mode', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-007 — should discard changes and return to read-only when Cancel is clicked in edit mode', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-007: Clicking Cancel in edit mode must discard changes and ' +
@@ -184,7 +184,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-008 ─────────────────────────────────────────────────────────
-  test('should show orange dot indicator on Roles tab when mandatory roles are unassigned', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-008 — should show orange dot indicator on Roles tab when mandatory roles are unassigned', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-008: When at least one mandatory role is unassigned the "Roles & Responsibilities" ' +
@@ -219,7 +219,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-009 ─────────────────────────────────────────────────────────
-  test('should show "No member assigned" for unassigned editable role rows', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-009 — should show "No member assigned" for unassigned editable role rows', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.description(
       'DOC-ROLES-009: Editable role rows with no assigned member must display ' +
@@ -264,7 +264,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-010 ─────────────────────────────────────────────────────────
-  test('should show user lookup input fields in edit mode for editable roles', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-010 — should show user lookup input fields in edit mode for editable roles', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -289,7 +289,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-011 ─────────────────────────────────────────────────────────
-  test('should display correct column headers in the Roles grid', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-011 — should display correct column headers in the Roles grid', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('minor');
     await allure.tag('regression');
@@ -309,7 +309,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-012 ─────────────────────────────────────────────────────────
-  test('should return to read-only view after editing Roles with all mandatory roles populated', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-012 — should return to read-only view after editing Roles with all mandatory roles populated', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -353,7 +353,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-013 ─────────────────────────────────────────────────────────
-  test('should not show Edit Roles button for a user with VIEW_DOC privilege only', async ({ page, docDetailsPage, getUserByRole }) => {
+  test('DOC-ROLES-013 — should not show Edit Roles button for a user with VIEW_DOC privilege only', async ({ page, docDetailsPage, getUserByRole }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -393,7 +393,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-014 ─────────────────────────────────────────────────────────────
-  test('should allow selecting a Deputy user for CPSO/CISO roles', async ({ page, docDetailsPage }) => {
+  test('DOC-ROLES-014 — should allow selecting a Deputy user for CPSO/CISO roles', async ({ page, docDetailsPage }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -440,7 +440,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
   });
 
   // ── DOC-ROLES-015 ─────────────────────────────────────────────────────────────
-  test('should not show Edit Roles button for VIEW_DOC privilege user (WF11)', async ({ page, docDetailsPage, getUserByRole }) => {
+  test('DOC-ROLES-015 — should not show Edit Roles button for VIEW_DOC privilege user (WF11)', async ({ page, docDetailsPage, getUserByRole }) => {
     await allure.suite('DOC / DOC Detail / Roles & Responsibilities');
     await allure.severity('normal');
     await allure.tag('regression');

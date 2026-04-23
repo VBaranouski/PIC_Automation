@@ -136,7 +136,7 @@ async function openDocWithActionPlanTab(
 
 test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	test.setTimeout(240_000);
-	test('should display the Action Plan grid with expected columns', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-001 — should display the Action Plan grid with expected columns', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(
 			'DOC-ACTIONS-001: Action Plan tab must show a grid with columns: ' +
@@ -154,7 +154,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		});
 	});
 
-	test('should show Search, Show open only, and Reset controls on Action Plan', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-002 — should show Search, Show open only, and Reset controls on Action Plan', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(
 			'DOC-ACTIONS-002: Action Plan tab must provide Search, Show open only, and Reset controls.',
@@ -170,7 +170,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		});
 	});
 
-	test('should show clickable Action Name and Findings links in Action Plan rows', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-003 — should show clickable Action Name and Findings links in Action Plan rows', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(
 			'DOC-ACTIONS-003: Action rows must expose clickable Action Name and Findings links.',
@@ -193,7 +193,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		});
 	});
 
-	test('should show visible status and due-date data in Action Plan rows', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-004 — should show visible status and due-date data in Action Plan rows', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(
 			'DOC-ACTIONS-004: Action Plan rows must display status values and due-date information.',
@@ -217,7 +217,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		});
 	});
 
-	test('should filter Action Plan rows with Show open only', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-005 — should filter Action Plan rows with Show open only', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(
 			'DOC-ACTIONS-005: Enabling Show open only must hide Closed actions from the visible grid.',
@@ -247,7 +247,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		});
 	});
 
-	test('should filter Action Plan rows by search and restore them with Reset', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-006 — should filter Action Plan rows by search and restore them with Reset', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.description(
 			'DOC-ACTIONS-006: Search must filter Action Plan results and Reset must restore the original grid.',
@@ -289,7 +289,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-004-b ────────────────────────────────────────────────────
-	test('should show due date with overdue tooltip indicator for past-due actions', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-004-b — should show due date with overdue tooltip indicator for past-due actions', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -338,7 +338,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-006 (Add Action button) ──────────────────────────────────
-	test('should show Add Action button for user with CREATE_UPDATE_DOC_ACTIONS privilege', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-006 — should show Add Action button for user with CREATE_UPDATE_DOC_ACTIONS privilege', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -363,7 +363,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-007 ─────────────────────────────────────────────────────
-	test('should show Create New Action popup with required fields', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-007 — should show Create New Action popup with required fields', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -413,7 +413,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-008 ─────────────────────────────────────────────────────
-	test('should show option to select existing open actions in Add Action popup', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-008 — should show option to select existing open actions in Add Action popup', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -461,7 +461,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-009 ─────────────────────────────────────────────────────
-	test('should support bulk add action for multiple findings', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-009 — should support bulk add action for multiple findings', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('minor');
 		await allure.tag('regression');
@@ -498,7 +498,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-010 ─────────────────────────────────────────────────────
-	test('should open Action Details view when Action Name link is clicked', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-010 — should open Action Details view when Action Name link is clicked', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -535,7 +535,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-011 ─────────────────────────────────────────────────────
-	test('should allow editing action fields and require Closure Comment when status is Closed', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-ACTIONS-011 — should allow editing action fields and require Closure Comment when status is Closed', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -578,7 +578,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 	});
 
 	// ── DOC-ACTIONS-012 ─────────────────────────────────────────────────────
-	test('should show empty state when Action Plan has no actions', async ({ page, docDetailsPage }) => {
+	test('DOC-ACTIONS-012 — should show empty state when Action Plan has no actions', async ({ page, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Action Plan');
 		await allure.severity('minor');
 		await allure.tag('regression');

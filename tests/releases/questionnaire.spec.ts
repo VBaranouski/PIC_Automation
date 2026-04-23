@@ -53,7 +53,7 @@ test.describe.serial('Releases - Questionnaire gating @regression', () => {
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should show Start Questionnaire on releases where the questionnaire has not started', async ({
+  test('RELEASE-QUESTIONNAIRE-001 — should show Start Questionnaire on releases where the questionnaire has not started', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -82,7 +82,7 @@ test.describe.serial('Releases - Questionnaire gating @regression', () => {
     });
   });
 
-  test('should keep downstream release tabs disabled before questionnaire submission', async ({
+  test('RELEASE-QUESTIONNAIRE-002 — should keep downstream release tabs disabled before questionnaire submission', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -118,7 +118,7 @@ test.describe.serial('Releases - Questionnaire gating @regression', () => {
     });
   });
 
-  test('should show questionnaire empty-state guidance before the workflow is started', async ({
+  test('RELEASE-QUESTIONNAIRE-003 — should show questionnaire empty-state guidance before the workflow is started', async ({
     page,
     landingPage,
     releaseDetailPage,

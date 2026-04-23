@@ -12,7 +12,7 @@ test.describe.serial('Releases - Process Requirements gating @regression', () =>
     await landingPage.expectPageLoaded({ timeout: 60_000 });
   });
 
-  test('should keep Process Requirements disabled until questionnaire submission', async ({
+  test('RELEASE-PROCESS-REQ-001 — should keep Process Requirements disabled until questionnaire submission', async ({
     page,
     landingPage,
     releaseDetailPage,
@@ -41,7 +41,7 @@ test.describe.serial('Releases - Process Requirements gating @regression', () =>
     });
   });
 
-  test('should not allow Process Requirements to become the active tab before questionnaire submission', async ({
+  test('RELEASE-PROCESS-REQ-002 — should not allow Process Requirements to become the active tab before questionnaire submission', async ({
     page,
     landingPage,
     releaseDetailPage,

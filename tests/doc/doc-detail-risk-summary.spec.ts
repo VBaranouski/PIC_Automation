@@ -79,7 +79,7 @@ async function openDocWithRiskSummaryTab(
 test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	test.describe.configure({ mode: 'serial' });
 	test.setTimeout(240_000);
-	test('should display the four Risk Summary sections', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-001 — should display the four Risk Summary sections', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.description(
 			'DOC-RISK-001: Risk Summary tab must show SDL FCSR Summary, Data Protection and Privacy Summary, ITS CONTROL SUMMARY, and CONTROLS sections.',
@@ -95,7 +95,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		});
 	});
 
-	test('should show SDL FCSR summary labels and linked document', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-002 — should show SDL FCSR summary labels and linked document', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.description(
 			'DOC-RISK-002: SDL FCSR Summary must show FCSR Decision, Comments, and a visible linked summary document.',
@@ -111,7 +111,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		});
 	});
 
-	test('should show Data Protection and Privacy summary labels and linked document', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-003 — should show Data Protection and Privacy summary labels and linked document', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.description(
 			'DOC-RISK-003: Data Protection and Privacy Summary must show PCC Decision, Comments, and a visible privacy summary document link.',
@@ -127,7 +127,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		});
 	});
 
-	test('should show ITS Control Summary labels', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-004 — should show ITS Control Summary labels', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.description(
 			'DOC-RISK-004: ITS CONTROL SUMMARY must show Overall Risk Assessment and Comment labels.',
@@ -143,7 +143,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		});
 	});
 
-	test('should show controls content or the no-results state', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-005 — should show controls content or the no-results state', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.description(
 			'DOC-RISK-005: CONTROLS must either list associated controls or show a No results found empty state.',
@@ -164,7 +164,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-006 ────────────────────────────────────────────────────────
-	test('should show Controls table with sortable columns', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-006 — should show Controls table with sortable columns', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -202,7 +202,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-007 ────────────────────────────────────────────────────────
-	test('should support Category, Status, and Risk Level filters in Controls table', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-007 — should support Category, Status, and Risk Level filters in Controls table', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -248,7 +248,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-008 ────────────────────────────────────────────────────────
-	test('should show pagination elements below Controls table', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-008 — should show pagination elements below Controls table', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('minor');
 		await allure.tag('regression');
@@ -298,7 +298,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-009 ────────────────────────────────────────────────────────
-	test('should allow editing FCSR/DPP Summaries for user with ENTER_DATA_PRIVACY_REVIEW_SDL_FCSR_SUMMARYDATA privilege', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-009 — should allow editing FCSR/DPP Summaries for user with ENTER_DATA_PRIVACY_REVIEW_SDL_FCSR_SUMMARYDATA privilege', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -338,7 +338,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-010 ────────────────────────────────────────────────────────
-	test('should populate summary data from release FCSR/DPP results when DOC is linked to existing release', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-010 — should populate summary data from release FCSR/DPP results when DOC is linked to existing release', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -376,7 +376,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-011 ────────────────────────────────────────────────────────
-	test('should show empty state or allow manual entry when DOC is not linked to existing release', async ({ page, docDetailsPage }) => {
+	test('DOC-RISK-011 — should show empty state or allow manual entry when DOC is not linked to existing release', async ({ page, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('normal');
 		await allure.tag('regression');
@@ -424,7 +424,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 	});
 
 	// ── DOC-RISK-012 ────────────────────────────────────────────────────────
-	test('should show "ITS Control Summary" label (renamed from "IT Security Summary")', async ({ page, landingPage, docDetailsPage }) => {
+	test('DOC-RISK-012 — should show "ITS Control Summary" label (renamed from "IT Security Summary")', async ({ page, landingPage, docDetailsPage }) => {
 		await allure.suite('DOC / DOC Detail / Risk Summary');
 		await allure.severity('minor');
 		await allure.tag('regression');

@@ -95,7 +95,7 @@ async function findProductWithoutReleases(
 
 test.describe('Product Details - Releases Tab @regression', () => {
   test.setTimeout(300_000);
-  test('should display releases grid with at least one row for a product with existing releases', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-RELEASES-001 — should display releases grid with at least one row for a product with existing releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -138,7 +138,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     });
   });
 
-  test('should show no-releases empty state for a product without releases', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-RELEASES-002 — should show no-releases empty state for a product without releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -157,7 +157,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     });
   });
 
-  test('should show required-field validation when Create Release is submitted without mandatory fields', async ({ page, landingPage, newProductPage }) => {
+  test('PRODUCT-RELEASES-003 — should show required-field validation when Create Release is submitted without mandatory fields', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -186,7 +186,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     });
   });
 
-  test.fixme('should create a new release and verify it appears in the grid', async ({ landingPage, newProductPage }) => {
+  test.fixme('PRODUCT-RELEASES-004 — should create a new release and verify it appears in the grid', async ({ landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('critical');
     await allure.tag('regression');
@@ -201,7 +201,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
   });
 
   // ── PRODUCT-RELEASES-005 ──────────────────────────────────────────────────
-  test('should navigate to Release Detail page when clicking a release name link', async ({
+  test('PRODUCT-RELEASES-005 — should navigate to Release Detail page when clicking a release name link', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Products - Releases');
@@ -240,7 +240,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
   });
 
   // ── PRODUCT-RELEASES-006 ──────────────────────────────────────────────────
-  test('should display a release status badge on each Releases grid row', async ({
+  test('PRODUCT-RELEASES-006 — should display a release status badge on each Releases grid row', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Products - Releases');
@@ -273,7 +273,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
   });
 
   // ── PRODUCT-RELEASES-007 ──────────────────────────────────────────────────
-  test('should show correct column headers in the Releases tab grid', async ({
+  test('PRODUCT-RELEASES-007 — should show correct column headers in the Releases tab grid', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Products - Releases');
@@ -312,7 +312,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
   });
 
   // ── PRODUCT-RELEASES-008 ──────────────────────────────────────────────────
-  test('should update visible row count when the per-page selector is changed', async ({
+  test('PRODUCT-RELEASES-008 — should update visible row count when the per-page selector is changed', async ({
     page, landingPage, newProductPage,
   }) => {
     await allure.suite('Products - Releases');

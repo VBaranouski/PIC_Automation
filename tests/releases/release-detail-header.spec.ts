@@ -100,7 +100,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
 
   // Login before every test — same pattern as create-new-release.spec.ts
   // ── RELEASE-HEADER-001 ────────────────────────────────────────────────────
-  test('should load Release Detail page with breadcrumb showing Home > Product > Release', async ({
+  test('RELEASE-HEADER-001 — should load Release Detail page with breadcrumb showing Home > Product > Release', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -144,7 +144,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-002 ────────────────────────────────────────────────────
-  test('should show a release status badge with non-empty text in the header', async ({
+  test('RELEASE-HEADER-002 — should show a release status badge with non-empty text in the header', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -172,7 +172,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-003 ────────────────────────────────────────────────────
-  test('should show exactly 7 pipeline stage tabs on the Release Detail page', async ({
+  test('RELEASE-HEADER-003 — should show exactly 7 pipeline stage tabs on the Release Detail page', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -213,7 +213,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-004 ────────────────────────────────────────────────────
-  test('should highlight exactly one stage as active in the pipeline bar', async ({
+  test('RELEASE-HEADER-004 — should highlight exactly one stage as active in the pipeline bar', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -247,7 +247,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-005 ────────────────────────────────────────────────────
-  test('should show the "View Flow" toggle that expands and reveals the pipeline bar', async ({
+  test('RELEASE-HEADER-005 — should show the "View Flow" toggle that expands and reveals the pipeline bar', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -274,7 +274,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-006 ────────────────────────────────────────────────────
-  test('should show a "Need Help" link in the Release Detail header', async ({
+  test('RELEASE-HEADER-006 — should show a "Need Help" link in the Release Detail header', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -297,7 +297,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-007 ────────────────────────────────────────────────────
-  test('should navigate to Landing Page when Home breadcrumb link is clicked', async ({
+  test('RELEASE-HEADER-007 — should navigate to Landing Page when Home breadcrumb link is clicked', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -331,7 +331,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-008 ────────────────────────────────────────────────────
-  test('should show all 7 expected pipeline stage names in the workflow bar', async ({
+  test('RELEASE-HEADER-008 — should show all 7 expected pipeline stage names in the workflow bar', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -367,7 +367,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-009 ────────────────────────────────────────────────────
-  test('should show submission summary details for stages in the workflow panel', async ({
+  test('RELEASE-HEADER-009 — should show submission summary details for stages in the workflow panel', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -400,7 +400,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-010 ────────────────────────────────────────────────────
-  test('should show responsible user entries for the active stage in the workflow panel', async ({
+  test('RELEASE-HEADER-010 — should show responsible user entries for the active stage in the workflow panel', async ({
     page, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -433,7 +433,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-011 ────────────────────────────────────────────────────
-  test('should open Stage Sidebar with stage name, responsible users table, description and Close button', async ({
+  test('RELEASE-HEADER-011 — should open Stage Sidebar with stage name, responsible users table, description and Close button', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -538,7 +538,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-012 ────────────────────────────────────────────────────
-  test('should show submission counter format (N from M submissions) in workflow panel for active stage', async ({
+  test('RELEASE-HEADER-012 — should show submission counter format (N from M submissions) in workflow panel for active stage', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -591,7 +591,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-013 ────────────────────────────────────────────────────
-  test('should show at least one responsible user for the active stage in the workflow panel', async ({
+  test('RELEASE-HEADER-013 — should show at least one responsible user for the active stage in the workflow panel', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
@@ -639,7 +639,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-014 ────────────────────────────────────────────────────
-  test('should show all required submission counts for every pipeline stage in workflow panel', async ({
+  test('RELEASE-HEADER-014 — should show all required submission counts for every pipeline stage in workflow panel', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');

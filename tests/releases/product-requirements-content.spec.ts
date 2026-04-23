@@ -72,7 +72,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-001 ────────────────────────────────────────────────────
 
-  test('should load Product Requirements tab with product categories or empty state', async ({
+  test('PRODUCT-REQ-TAB-001 — should load Product Requirements tab with product categories or empty state', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -114,7 +114,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-002 ────────────────────────────────────────────────────
 
-  test('should show Category dropdown filter on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-002 — should show Category dropdown filter on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -146,7 +146,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-003 ────────────────────────────────────────────────────
 
-  test('should show Sources dropdown filter on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-003 — should show Sources dropdown filter on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -171,7 +171,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-004 ────────────────────────────────────────────────────
 
-  test('should show Status dropdown filter on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-004 — should show Status dropdown filter on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -203,7 +203,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-005 ────────────────────────────────────────────────────
 
-  test('should show a Search input field on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-005 — should show a Search input field on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -230,7 +230,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-006 ────────────────────────────────────────────────────
 
-  test('should show "Show Sub-Requirements" toggle on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-006 — should show "Show Sub-Requirements" toggle on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -255,7 +255,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-007 ────────────────────────────────────────────────────
 
-  test('should show Reset button on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-007 — should show Reset button on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -280,7 +280,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-008 ────────────────────────────────────────────────────
 
-  test('should show "+Custom Requirements" button on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-008 — should show "+Custom Requirements" button on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -308,7 +308,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-009 ────────────────────────────────────────────────────
 
-  test('should show Requirements Status Summary link on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-009 — should show Requirements Status Summary link on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -336,7 +336,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-010 ────────────────────────────────────────────────────
 
-  test('should show Export XLSX button on the Product Requirements tab', async ({
+  test('PRODUCT-REQ-TAB-010 — should show Export XLSX button on the Product Requirements tab', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -364,7 +364,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-012 ───────────────────────────────────────────────────
 
-  test('should expand or collapse the first Product Requirements category when available', async ({
+  test('PRODUCT-REQ-TAB-012 — should expand or collapse the first Product Requirements category when available', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
@@ -401,7 +401,7 @@ test.describe.serial('Releases - Product Requirements Tab Content (WF4 §4.9) @r
 
   // ── PRODUCT-REQ-TAB-013 ───────────────────────────────────────────────────
 
-  test('should show category-oriented content inside the Product Requirements summary popup when available', async ({
+  test('PRODUCT-REQ-TAB-013 — should show category-oriented content inside the Product Requirements summary popup when available', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Product Requirements / Content');
