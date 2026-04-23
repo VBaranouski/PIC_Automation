@@ -70,7 +70,7 @@ test.describe('Products - New Product Creation @regression', () => {
     await allure.severity('normal');
     await allure.tag('regression');
     await allure.description(
-      'PRODUCT-CREATION-002: Verify that the form prevents saving when required fields are empty and shows appropriate indicators.',
+      'PRODUCT-CREATION-002-b: Verify that the form prevents saving when required fields are empty and shows appropriate indicators.',
     );
 
     await test.step('Attempt to save without filling required fields', async () => {
