@@ -63,7 +63,7 @@ export function extractQuotedText(expression: string): string {
 }
 
 export function extractScenarioIdFromDescription(description: string): string {
-  const match = description.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+|WF\d{2}-\d{4})/i);
+  const match = description.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+[A-Za-z]*(?:-[a-z]+)*|WF\d{2}-\d{4})/i);
   return match ? match[1].toUpperCase() : '';
 }
 
@@ -80,7 +80,7 @@ export function extractScenarioIdsFromSpecContent(content: string): string[] {
     const quotedText = Array.from(String(match[1] ?? '').matchAll(/(['"])((?:\\.|(?!\1)[\s\S])*)\1/g))
       .map((part) => part[2])
       .join(' ');
-    const scenarioId = quotedText.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+|WF\d{2}-\d{4})/i)?.[1]?.toUpperCase();
+    const scenarioId = quotedText.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+[A-Za-z]*(?:-[a-z]+)*|WF\d{2}-\d{4})/i)?.[1]?.toUpperCase();
     if (scenarioId) ids.add(scenarioId);
   }
 

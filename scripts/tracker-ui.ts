@@ -551,7 +551,7 @@ function pickHigherExecutionStatus(current: ExecutionStatus | undefined, next: E
 }
 
 function extractScenarioIdFromDescription(description: string): string {
-  const match = description.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+|WF\d{2}-\d{4})/i);
+  const match = description.match(/([A-Z]{2,}(?:-[A-Z0-9]+)*-\d+[A-Za-z]*(?:-[a-z]+)*|WF\d{2}-\d{4})/i);
   return match ? match[1].toUpperCase() : '';
 }
 
