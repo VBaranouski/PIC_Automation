@@ -7,6 +7,7 @@
 import type { FeatureArea } from './models';
 
 export const WORKFLOW_ORDER = [
+  'Environment Reachability',
   'Authentication',
   'Landing Page & Home Navigation',
   'Product Management',
@@ -34,9 +35,9 @@ export const WORKFLOW_ORDER = [
 export function workflowSortKey(name: string): number {
   const cleaned = name.replace(/^WORKFLOW\s+\d+\s*[—–-]\s*/i, '').trim().toLowerCase();
   const exactIndex = WORKFLOW_ORDER.findIndex((entry) => entry.toLowerCase() === cleaned);
-  if (exactIndex >= 0) return exactIndex + 1;
+  if (exactIndex >= 0) return exactIndex;
   const prefixIndex = WORKFLOW_ORDER.findIndex((entry) => cleaned.startsWith(entry.toLowerCase()));
-  if (prefixIndex >= 0) return prefixIndex + 1;
+  if (prefixIndex >= 0) return prefixIndex;
   return WORKFLOW_ORDER.length + 100;
 }
 
@@ -67,9 +68,9 @@ export function featureAreaFromSpecFile(specFile: string): FeatureArea {
 }
 
 export function workflowNameFromSubsection(subsection: string): string {
-  const workflowNumber = Number(String(subsection).match(/^(\d+)/)?.[1] ?? '0');
-  if (workflowNumber >= 1 && workflowNumber <= WORKFLOW_ORDER.length) {
-    return WORKFLOW_ORDER[workflowNumber - 1];
+  const workflowNumber = Number(String(subsection).match(/^(\d+)/)?.[1] ?? '-1');
+  if (workflowNumber >= 0 && workflowNumber < WORKFLOW_ORDER.length) {
+    return WORKFLOW_ORDER[workflowNumber];
   }
   return '';
 }

@@ -608,6 +608,7 @@ const PR = {
 const RUN_DOT = { idle:'#767575', running:'#ff9157', passed:'#81ecff', failed:'#c42e09', cancelled:'#d5d4d4' };
 
 const WORKFLOW_ORDER = [
+  'Environment Reachability',
   'Authentication',
   'Landing Page & Home Navigation',
   'Product Management',
@@ -1787,9 +1788,9 @@ function cleanWorkflowName(name) {
 function getWorkflowOrder(name) {
   const cleaned = cleanWorkflowName(name);
   const exactIndex = WORKFLOW_ORDER.findIndex(entry => entry.toLowerCase() === cleaned.toLowerCase());
-  if (exactIndex >= 0) return exactIndex + 1;
+  if (exactIndex >= 0) return exactIndex;
   const prefixedIndex = WORKFLOW_ORDER.findIndex(entry => cleaned.toLowerCase().startsWith(entry.toLowerCase()));
-  if (prefixedIndex >= 0) return prefixedIndex + 1;
+  if (prefixedIndex >= 0) return prefixedIndex;
   return WORKFLOW_ORDER.length + 100;
 }
 
@@ -1797,7 +1798,7 @@ function formatWorkflowName(name) {
   if (!name) return '';
   const title = cleanWorkflowName(name);
   const order = getWorkflowOrder(name);
-  return order <= WORKFLOW_ORDER.length ? `${order}. ${title}` : title;
+  return order < WORKFLOW_ORDER.length ? `${order}. ${title}` : title;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
