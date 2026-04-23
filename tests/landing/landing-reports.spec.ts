@@ -426,7 +426,7 @@ test.describe('Landing Page - Reports & Dashboards Date & Type Filters @regressi
     });
   });
 
-  test('LANDING-REPORTS-DATEFILTER-002 — Product Type multi-select filter narrows results @regression', async ({ landingPage }) => {
+  test('LANDING-REPORTS-DATEFILTER-002 — Product Type multi-select filter narrows results @regression', async ({ landingPage, page }) => {
     await allure.suite('Landing Page - Reports & Dashboards');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -442,6 +442,8 @@ test.describe('Landing Page - Reports & Dashboards Date & Type Filters @regressi
     await test.step('Apply Product Type filter using first available option', async () => {
       const optionText = await landingPage.filterReportsByProductType();
       test.skip(!optionText, 'No Product Type options available to select.');
+      // Dismiss the virtual combobox dropdown before interacting with other elements
+      await page.keyboard.press('Escape');
     });
 
     await test.step('Verify grid is still visible', async () => {

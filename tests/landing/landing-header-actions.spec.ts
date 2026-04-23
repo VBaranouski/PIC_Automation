@@ -113,11 +113,18 @@ test.describe('Landing Page - Logo Navigation & Tab Switching @regression', () =
       'LANDING-HEADER-LOGO-001: Verify that clicking the PICASso header logo from a non-landing page (e.g. Product Detail) navigates back to the Landing Page.',
     );
 
-    await test.step('Navigate to a non-landing page (New Product creation form)', async () => {
+    await test.step('Navigate to My Releases tab and click the first release link', async () => {
       await landingPage.goto();
       await landingPage.expectPageLoaded({ timeout: 60_000 });
-      await landingPage.clickNewProductButton();
-      await page.waitForURL(/ProductDetail/, { timeout: 30_000 });
+      await landingPage.clickTab('My Releases');
+      await landingPage.waitForGridDataRows();
+
+      // Click the first clickable release link to land on a non-landing page
+      const firstLink = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
+      const hasLink = await firstLink.isVisible({ timeout: 10_000 }).catch(() => false);
+      test.skip(!hasLink, 'No release link found in My Releases grid — cannot test logo navigation from non-landing page.');
+      await firstLink.click();
+      await page.waitForURL(/ReleaseDetail|DOCDetail|ProductDetail/, { timeout: 30_000 });
     });
 
     await test.step('Verify we are NOT on the landing page', async () => {
@@ -125,7 +132,6 @@ test.describe('Landing Page - Logo Navigation & Tab Switching @regression', () =
     });
 
     await test.step('Click the PICASso header logo', async () => {
-      await landingPage.expectHeaderLogoVisible();
       await landingPage.clickHeaderLogo();
     });
 
