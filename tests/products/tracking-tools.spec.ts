@@ -26,7 +26,7 @@ import * as allure from 'allure-js-commons';
 const PRODUCT_URL =
   '/GRC_PICASso/ProductDetail?ProductId=1133';
 
-test.describe.serial('Product Configuration — Tracking Tools @regression', () => {
+test.describe('Product Configuration — Tracking Tools @regression', () => {
   test.setTimeout(180_000);
 
   test.beforeEach(async ({ landingPage }) => {

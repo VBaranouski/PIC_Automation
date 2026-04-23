@@ -33,7 +33,7 @@ async function openStatusMappingPopup(page: Page): Promise<boolean> {
   return true;
 }
 
-test.describe.serial('Status Mapping Configuration @regression', () => {
+test.describe('Status Mapping Configuration @regression', () => {
   test.setTimeout(180_000);
 
   test.beforeEach(async ({ landingPage }) => {

@@ -1,7 +1,7 @@
 import { test, expect } from '../../src/fixtures';
 import * as allure from 'allure-js-commons';
 
-test.describe.serial('Products - New Product Creation @regression', () => {
+test.describe('Products - New Product Creation @regression', () => {
   // Extended timeout: filling all 4 team roles requires OutSystems search API calls,
   // each with up to 240s wait for the edit link widget to appear.
   test.setTimeout(360_000);
