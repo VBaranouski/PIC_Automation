@@ -32,6 +32,7 @@ applyTo: '**'
 - Broad Confluence search. Use `corpus/confluence-index.md` to find the page-id, then `confluence_get_page(id=X)` via Atlassian MCP.
 - Dumping the tracker DB into context. Use `npm run tracker:list` with filters.
 - Creating a new test file without first checking the matching `tests/<area>/` for existing coverage.
+- **Accessing Jira or Confluence via a web browser or any tool that follows HTTP redirects to an SSO/OAuth login page.** The Schneider Electric Atlassian instance requires SSO which blocks browser-based access. Always use the REST API directly with credentials from `.env`.
 
 ## On Task Completion
 
@@ -43,6 +44,8 @@ applyTo: '**'
 
 1. `npm run tracker:list -- --feature-area=<area> --grep=<term>`
 2. `grep_search` across `docs/ai/knowledge-base/corpus/` (metadata hits only)
-3. `confluence_get_page(id=<from registry or confluence-index>)` via Atlassian MCP
-4. `jira_get_issue(key=<PIC-NNNN>)` via Atlassian MCP
+3. Confluence REST API — `curl -s -H "Authorization: Bearer <CONFLUENCE_TOKEN>" "https://confluence.se.com/rest/api/content/<page-id>?expand=body.storage"` (credentials from `.env`)
+4. Jira REST API — `curl -s -u "<JIRA_USER>:<JIRA_TOKEN>" "https://jira.se.com/rest/api/2/issue/<PIC-NNNN>"` (credentials from `.env`)
 5. Surgical `read_file(startLine, endLine)` into `user-guide.md` using the index
+
+> **Atlassian API rule:** Always call Confluence and Jira via REST API (steps 3–4 above). Never use a web browser, `fetch_webpage`, or any tool that follows SSO redirects — the Schneider Electric instance blocks non-API access. Read credentials from `.env` before making any API call.
