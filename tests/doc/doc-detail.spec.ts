@@ -258,32 +258,27 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
       await docDetailsPage.waitForOSLoad();
     });
 
+    let detail009LinkVisible = false;
     await test.step('Verify the Release header value is a clickable link', async () => {
       const releaseLink = page.getByText(/Release/).locator('..').getByRole('link').first();
-      const isLinkVisible = await releaseLink.isVisible().catch(() => false);
-      if (!isLinkVisible) {
-        test.skip(
-          true,
-          'No Release link visible in DOC header — this DOC may use "Other Release" (plain text); skipping navigation test.',
-        );
-        return;
-      }
+      detail009LinkVisible = await releaseLink.isVisible().catch(() => false);
+      if (!detail009LinkVisible) return;
       await expect(releaseLink).toBeVisible({ timeout: 15_000 });
     });
+    test.skip(!detail009LinkVisible, 'No Release link visible in DOC header — this DOC may use "Other Release" (plain text); skipping navigation test.');
 
+    let detail009Href = '';
     await test.step('Click the Release link and verify navigation to Release Detail page', async () => {
       const releaseLink = page.getByText(/Release/).locator('..').getByRole('link').first();
-      const href = await releaseLink.getAttribute('href');
-      if (!href) {
-        test.skip(true, 'Release link has no href attribute — skipping navigation test.');
-        return;
-      }
-      await page.goto(new URL(href, page.url()).toString(), {
+      detail009Href = (await releaseLink.getAttribute('href').catch(() => null)) ?? '';
+      if (!detail009Href) return;
+      await page.goto(new URL(detail009Href, page.url()).toString(), {
         waitUntil: 'domcontentloaded',
         timeout: 30_000,
       });
       await expect.poll(() => page.url(), { timeout: 30_000 }).toMatch(/ReleaseDetail/);
     });
+    test.skip(!detail009Href, 'Release link has no href attribute — skipping navigation test.');
   });
 
   // ── DOC-DETAIL-011 ────────────────────────────────────────────────────────
@@ -386,17 +381,15 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
       ).toBeVisible({ timeout: 20_000 });
     });
 
+    let detail012InfoVisible = false;
     await test.step('Verify info icon is present near the Cancelled badge', async () => {
       // The info icon is typically an <i class="fa-info-circle"> or similar, near the Cancelled text
       const infoIcon = page.locator('i.fa-info-circle, i[class*="info"], .tooltip-icon').first();
-      const isVisible = await infoIcon.isVisible().catch(() => false);
-      if (!isVisible) {
-        // Some cancelled DOCs may not have a reason tooltip if cancelled without comment
-        test.skip(true, 'Info icon not visible — DOC may have been cancelled without a reason comment.');
-        return;
-      }
+      detail012InfoVisible = await infoIcon.isVisible().catch(() => false);
+      if (!detail012InfoVisible) return;
       await expect(infoIcon).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!detail012InfoVisible, 'Info icon not visible — DOC may have been cancelled without a reason comment.');
   });
 
   // ── DOC-DETAIL-013 ────────────────────────────────────────────────────────
@@ -480,20 +473,16 @@ test.describe('DOC - DOC Detail Header & Navigation (11.4) @regression', () => {
       await docDetailsPage.waitForOSLoad();
     });
 
+    let detail014WarningVisible = false;
     await test.step('Check for overdue warning icon in header', async () => {
       // The overdue icon is a warning indicator (fa-exclamation-triangle or similar)
       const warningIcon = page.locator(
         'i.fa-exclamation-triangle, i[class*="warning"], i[class*="overdue"], .overdue-icon',
       ).first();
-      const isVisible = await warningIcon.isVisible().catch(() => false);
-
-      if (!isVisible) {
-        // Overdue icon only appears for Waiver decisions with ≤ 30 days remaining
-        test.skip(true, 'Overdue warning icon not visible — DOC may not have an approaching deadline or Waiver decision.');
-        return;
-      }
-
+      detail014WarningVisible = await warningIcon.isVisible().catch(() => false);
+      if (!detail014WarningVisible) return;
       await expect(warningIcon).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!detail014WarningVisible, 'Overdue warning icon not visible — DOC may not have an approaching deadline or Waiver decision.');
   });
 });

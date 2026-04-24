@@ -2680,7 +2680,7 @@ These 4 meta-scenarios (RELEASE-REVIEW-001 through RELEASE-REVIEW-004) in subsec
 | 7 | 10.3 Pen Test Validation at Final Acceptance | RELEASE-ACCEPT-PENTEST-001 – RELEASE-ACCEPT-PENTEST-003 | 3 |
 | 7 | 10.4 Final Acceptance & Return to Rework | RELEASE-ACCEPT-DECISION-001 – RELEASE-ACCEPT-002 | 8 |
 
-**Note:** This map covers only the scenarios with NEW step tables written in this document. Stages 3 and 5 have additional subsections (6.3a-c, 6.4b, 6.5b, 8.2, 8.3, 8.6a-h) with scenarios already in the tracker whose step tables follow the same patterns but are not fully enumerated here to keep the document focused on the specifications with the highest immediate value.
+**Note:** This map covers only the scenarios with NEW step tables written in this document. Stages 3 and 5 have additional subsections (6.3.1–6.3.3, 6.4.2, 6.5.2, 8.2, 8.3, 8.6.1–8.6.8) with scenarios already in the tracker whose step tables follow the same patterns but are not fully enumerated here to keep the document focused on the specifications with the highest immediate value.
 
 ---
 
@@ -2749,7 +2749,7 @@ npx tsx scripts/tracker.ts add -i RELEASE-ACCEPT-002 -t "Cancel Release at Final
 |--------|-------|
 | **Existing scenarios (Stages 2–7)** | 323 |
 | **Scenarios with step tables written** | 156 (in this document) |
-| **Remaining scenarios needing steps** | Stage 3 Jira/Jama (6.3a-c: 26), Stage 5 tabs/participants/report (8.2-3, 8.6a-h: 59), Stage 3 bar chart (6.5b: 4) |
+| **Remaining scenarios needing steps** | Stage 3 Jira/Jama (6.3.1–6.3.3: 26), Stage 5 tabs/participants/report (8.2-3, 8.6.1–8.6.8: 59), Stage 3 bar chart (6.5.2: 4) |
 | **New scenarios minted** | 17 |
 | **Duplicate meta-scenarios removed** | 4 |
 | **Final total (after add/remove)** | 336 |

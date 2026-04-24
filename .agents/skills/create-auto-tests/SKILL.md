@@ -232,6 +232,56 @@ npx tsc --noEmit  # verify no TS errors in the project
 ```
 All tests must pass. If a test fails due to a product defect (not a locator/script issue), use `test.fail()` — never weaken assertions.
 
+### Step 5b: Write Execution Notes to Tracker
+
+After each test run, update the tracker `execution_notes` field with a concise, human-readable summary.
+
+**CRITICAL — Clear notes on every run:**
+Always overwrite (not append) execution notes. If a previously failing test now passes, the old failure reason must be removed. If the old note is left in place, stale failure reasons accumulate and show false failures in the tracker UI.
+
+```bash
+# Clear notes before writing new ones (pass empty string to reset)
+npx tsx scripts/tracker.ts notes <SCENARIO-ID> ""
+
+# Then write the new note
+npx tsx scripts/tracker.ts notes <SCENARIO-ID> "Passed: tab switch verified, all headers present."
+```
+
+**Execution Notes format rules:**
+
+| Outcome | Format |
+|---------|--------|
+| Pass | `Passed: <one-line description of what was verified>.` |
+| Timeout | `Failed: Timeout — element not loaded within limit (possible performance issue or missing locator).` |
+| Assertion mismatch | `Failed: <expected> not found in <actual context>. Example: expected "name" column header, received ["activity", "description", ...].` |
+| Defect (test.fail) | `Defect: <SCENARIO-ID> — <short description>. Known bug: <reason>. Marked test.fail().` |
+| On-hold / skipped | `Skipped: <reason why not applicable, e.g. role/privilege not assigned to test user>.` |
+
+**Do NOT paste raw Playwright stack traces or call logs into execution notes.** Translate the error into a plain-English sentence:
+
+```
+// WRONG — raw trace dump
+Failed: TimeoutError: locator.selectOption: Timeout 15000ms exceeded. Call log:
+  - waiting for getByRole('combobox', { name: 'Month' }).last()
+  - locator resolved to <select tabindex="-1" ...>
+  - attempting select option action
+  - 30 × waiting for element to be visible and enabled — did not find some options
+  at src/pages/new-product.page.ts:1055
+
+// CORRECT — concise human note
+Failed: Timeout — month dropdown option not selectable within 15 s (flatpickr month select, possible timing issue).
+```
+
+```
+// WRONG — raw assertion dump
+Failed: expect(received).toContain(expected) Expected: "name"
+Received array: ["activity", "description", "status", "product", ...]
+at src/pages/landing.page.ts:689
+
+// CORRECT
+Failed: "name" column header not found in My Tasks tab. Actual headers: activity, description, status, product, release, vesta id…
+```
+
 ### Step 6: Update Tracker DB
 
 > **CRITICAL:** `automation_state` and `execution_status` are **two independent fields** — both must always be updated together. Setting only `auto-state automated` leaves `execution_status` as `not-executed`, which misrepresents the actual test result in reports.
@@ -333,3 +383,23 @@ releaseDetailPage.waitForOSLoad()
 8. **Scenario IDs must match tracker** — use the exact `AREA-ACTION-###` or `WF##-####` format from the tracker DB
 9. **Both tracker fields must be updated together** — after every passing run, set both `auto-state automated` AND `exec-status passed` for each scenario. The Playwright reporters (list, HTML, Allure, JSON) write to files only — they never update `scenarios.db`. Forgetting `exec-status` leaves the scenario as `automated / not-executed`, which is a false state.
 10. **Never use `test.describe.serial()` for independent tests** — if every test in the block does its own `goto()` (or `beforeEach` navigates) and there is NO describe-scope `let` variable that is written in test N and read in test N+1, the suite must use `test.describe()`. Using serial on independent tests silently skips all remaining tests on the first failure, masking real regressions. See the Serial-Suite Decision section above.
+11. **Never call `test.skip()` inside `test.step()`** — calling `test.skip()` inside a step callback skips the ENTIRE test immediately, not just the step. When a condition is checked inside a step, capture the result as an outer `let` variable, `return` early from the step if the condition is not met (so the step passes), then call `test.skip()` at test-body level AFTER the step:
+    ```typescript
+    // WRONG — test.skip() inside a step callback
+    await test.step('Check button visibility', async () => {
+      const isVisible = await btn.isVisible().catch(() => false);
+      if (!isVisible) {
+        test.skip(true, 'Button not found.');
+        return; // this return exits the step callback, but skip already propagated
+      }
+    });
+    
+    // CORRECT — capture flag, return early from step, skip at test level
+    let btnVisible = false;
+    await test.step('Check button visibility', async () => {
+      btnVisible = await btn.isVisible().catch(() => false);
+      if (!btnVisible) return; // step passes cleanly
+    });
+    test.skip(!btnVisible, 'Button not found — skipping test.');
+    ```
+    Exception: `test.skip()` called BETWEEN steps at the test-body level (not inside a step callback) is correct and should not be changed.

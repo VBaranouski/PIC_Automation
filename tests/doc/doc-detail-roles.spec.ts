@@ -137,12 +137,10 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
     });
 
     // Only run this assertion if the mandatory roles are not yet filled
+    let roles006EditVisible = false;
     await test.step('Check Save Changes button state when mandatory roles are empty', async () => {
-      const editRolesVisible = await docDetailsPage.isEditRolesButtonVisible();
-      if (!editRolesVisible) {
-        test.skip(true, 'Edit Roles button not visible — skipping mandatory validation check.');
-        return;
-      }
+      roles006EditVisible = await docDetailsPage.isEditRolesButtonVisible();
+      if (!roles006EditVisible) return;
       await docDetailsPage.clickEditRoles();
       const isDisabled = await docDetailsPage.isSaveRolesChangesDisabled();
       if (isDisabled) {
@@ -152,6 +150,7 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
         console.log('Mandatory roles already set — Save Changes is enabled as expected.');
       }
     });
+    test.skip(!roles006EditVisible, 'Edit Roles button not visible — skipping mandatory validation check.');
   });
 
   // ── DOC-ROLES-007 ─────────────────────────────────────────────────────────
@@ -168,15 +167,14 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       await docDetailsPage.clickRolesResponsibilitiesTab();
     });
 
+    let roles007EditVisible = false;
     await test.step('Enter edit mode and click Cancel', async () => {
-      const editRolesVisible = await docDetailsPage.isEditRolesButtonVisible();
-      if (!editRolesVisible) {
-        test.skip(true, 'Edit Roles button not visible — user may not have edit privilege.');
-        return;
-      }
+      roles007EditVisible = await docDetailsPage.isEditRolesButtonVisible();
+      if (!roles007EditVisible) return;
       await docDetailsPage.clickEditRoles();
       await docDetailsPage.clickCancelRoles();
     });
+    test.skip(!roles007EditVisible, 'Edit Roles button not visible — user may not have edit privilege.');
 
     await test.step('Verify Edit Roles button is visible again (read-only mode restored)', async () => {
       await docDetailsPage.expectEditRolesButtonVisible();
@@ -196,26 +194,23 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       await docDetailsPage.waitForOSLoad();
     });
 
+    let roles008OrangeDotVisible = false;
     await test.step('Verify orange dot is visible on the Roles & Responsibilities tab', async () => {
       const rolesTab = page.getByRole('tab', { name: /Roles & Responsibilities/i });
       await expect(rolesTab, 'Roles & Responsibilities tab should be visible').toBeVisible({ timeout: 20_000 });
 
       // The orange dot is rendered as <i class="fa fa-circle text-warning"> inside the tab
       const orangeDot = rolesTab.locator('i.text-warning, i.fa-circle, [class*="text-warning"]').first();
-      const isOrangeDotVisible = await orangeDot.isVisible().catch(() => false);
+      roles008OrangeDotVisible = await orangeDot.isVisible().catch(() => false);
 
-      if (!isOrangeDotVisible) {
-        // Orange dot is only shown when mandatory editable roles are missing.
-        // If all mandatory roles for the current DOC stage are assigned, the dot is absent — acceptable.
-        test.skip(true, 'Orange dot is not visible — all mandatory roles may be assigned for this DOC stage.');
-        return;
-      }
+      if (!roles008OrangeDotVisible) return;
 
       await expect(
         orangeDot,
         'Orange warning dot should be visible on the Roles tab when mandatory roles are missing',
       ).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!roles008OrangeDotVisible, 'Orange dot is not visible — all mandatory roles may be assigned for this DOC stage.');
   });
 
   // ── DOC-ROLES-009 ─────────────────────────────────────────────────────────
@@ -232,23 +227,19 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       await docDetailsPage.clickRolesResponsibilitiesTab();
     });
 
+    let roles009NoMemberVisible = false;
     await test.step('Verify at least one row displays "No member assigned"', async () => {
       const noMemberText = page.getByText('No member assigned').first();
-      const isVisible = await noMemberText.isVisible().catch(() => false);
+      roles009NoMemberVisible = await noMemberText.isVisible().catch(() => false);
 
-      if (!isVisible) {
-        // "No member assigned" only appears when editable roles are empty.
-        // For Controls Scoping DOCs the editable roles (DOCL, BVP, etc.) may not be shown
-        // yet (they appear at later DOC stages) — this is an expected data state.
-        test.skip(true, '"No member assigned" text not visible — mandatory roles may all be assigned for this DOC stage.');
-        return;
-      }
+      if (!roles009NoMemberVisible) return;
 
       await expect(
         noMemberText,
         '"No member assigned" should appear for at least one unassigned role row',
       ).toBeVisible({ timeout: 20_000 });
     });
+    test.skip(!roles009NoMemberVisible, '"No member assigned" text not visible — mandatory roles may all be assigned for this DOC stage.');
 
     await test.step('Verify specific unassigned roles for DOC 800 (DOCL, BVP, Senior BVP)', async () => {
       const doclText = await docDetailsPage.getRolesTeamMembersText('Digital Offer Certification Lead').catch(() => '');
@@ -407,32 +398,28 @@ test.describe('DOC - Roles & Responsibilities Tab (11.6) @regression', () => {
       await docDetailsPage.clickRolesResponsibilitiesTab();
     });
 
+    let roles014CisoText = '';
     await test.step('Check if CISO role row exists in the grid', async () => {
-      const cisoText = await docDetailsPage.getRolesTeamMembersText('CISO').catch(() => '');
-      if (!cisoText && cisoText !== '') {
-        test.skip(true, 'CISO role row not found in the grid — DOC may not include CISO role.');
-        return;
-      }
+      roles014CisoText = await docDetailsPage.getRolesTeamMembersText('CISO').catch(() => '');
     });
+    test.skip(!roles014CisoText && roles014CisoText !== '', 'CISO role row not found in the grid — DOC may not include CISO role.');
 
+    let roles014EditVisible = false;
+    let roles014DeputyVisible = false;
     await test.step('Enter edit mode and verify Deputy field is available for CISO', async () => {
-      const editVisible = await docDetailsPage.isEditRolesButtonVisible();
-      if (!editVisible) {
-        test.skip(true, 'Edit Roles button not visible — cannot check Deputy field.');
-        return;
-      }
+      roles014EditVisible = await docDetailsPage.isEditRolesButtonVisible();
+      if (!roles014EditVisible) return;
       await docDetailsPage.clickEditRoles();
       await docDetailsPage.expectSaveRolesChangesButtonVisible();
 
       // Deputy field is typically a secondary lookup input shown for CPSO/CISO rows
       const deputyField = page.getByText(/Deputy/i).first();
-      const isDeputyVisible = await deputyField.isVisible().catch(() => false);
-      if (!isDeputyVisible) {
-        test.skip(true, 'Deputy field not visible — may not apply to this DOC or stage.');
-        return;
-      }
+      roles014DeputyVisible = await deputyField.isVisible().catch(() => false);
+      if (!roles014DeputyVisible) return;
       await expect(deputyField).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!roles014EditVisible, 'Edit Roles button not visible — cannot check Deputy field.');
+    test.skip(!roles014DeputyVisible, 'Deputy field not visible — may not apply to this DOC or stage.');
 
     await test.step('Cancel edit mode', async () => {
       await docDetailsPage.clickCancelRoles();

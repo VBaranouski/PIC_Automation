@@ -183,14 +183,16 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       await releaseDetailPage.waitForPageLoad();
     });
 
+    let rdtOriginalSummary = false;
     await test.step('Capture the original Change Summary from edit mode', async () => {
       await releaseDetailPage.openReleaseDetailsEditMode();
       await releaseDetailPage.expectReleaseDetailsEditModeVisible();
       originalSummary = await releaseDetailPage.getEditModeChangeSummaryValue();
+      rdtOriginalSummary = !!originalSummary;
       await releaseDetailPage.cancelReleaseDetailsEditMode();
       await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
-      test.skip(!originalSummary, 'Change Summary is empty on the sampled release; skipping persistence check.');
     });
+    test.skip(!rdtOriginalSummary, 'Change Summary is empty on the sampled release; skipping persistence check.');
 
     try {
       await test.step('Update and save Change Summary', async () => {
@@ -246,18 +248,17 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       await page.waitForTimeout(2_000);
     });
 
+    let rdtLeavePageShown = false;
     await test.step('Check whether Leave Page dialog appeared or navigation occurred silently', async () => {
       const currentUrl = page.url();
-      if (!currentUrl.includes('ReleaseDetail')) {
-        test.skip(true, 'Leave Page dialog did not appear — OS may not block navigation in this release context');
-      }
+      if (!currentUrl.includes('ReleaseDetail')) return;
       const leaveDialog = page
         .locator('[role="dialog"]')
         .filter({ hasText: /leave|unsaved|discard/i })
         .first();
-      const dialogVisible = await leaveDialog.isVisible({ timeout: 5_000 }).catch(() => false);
-      test.skip(!dialogVisible, 'Leave Page dialog did not appear — OS may not block navigation in this release context');
+      rdtLeavePageShown = await leaveDialog.isVisible({ timeout: 5_000 }).catch(() => false);
     });
+    test.skip(!rdtLeavePageShown, 'Leave Page dialog did not appear — OS may not block navigation in this release context');
 
     await test.step('Assert Leave Page dialog has required action buttons', async () => {
       const leaveDialog = page
@@ -309,17 +310,18 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       await releaseDetailPage.expectReleaseDetailsCoreFieldsVisible();
     });
 
+    let rdtAddSeButtonAvailable = false;
     await test.step('Attempt to open Add SE Product dialog', async () => {
-      let buttonAvailable = false;
-      try {
-        await releaseDetailPage.openAddSeProductDialog();
-        buttonAvailable = true;
-      } catch {
-        // Button not visible or release is read-only/locked
-      }
-      test.skip(!buttonAvailable, 'Add SE Product button not available on sampled release');
-      await releaseDetailPage.expectAddSeProductDialogVisible();
+        try {
+          await releaseDetailPage.openAddSeProductDialog();
+          rdtAddSeButtonAvailable = true;
+        } catch {
+          // Button not visible or release is read-only/locked
+        }
+        if (!rdtAddSeButtonAvailable) return;
+        await releaseDetailPage.expectAddSeProductDialogVisible();
     });
+    test.skip(!rdtAddSeButtonAvailable, 'Add SE Product button not available on sampled release');
 
     await test.step('Dismiss Add SE Product dialog', async () => {
       const dialog = page
@@ -350,49 +352,62 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       releaseDetailUrl = await openAddSeProductDialogOrSkip(page, landingPage, releaseDetailPage, releaseDetailUrl);
     });
 
+    let rdtSearchVisible = false;
+    let rdtOptionVisible = false;
+    let rdtReleaseSelectVisible = false;
+    let rdtSelectedRelease: { value: string; text: string } | null = null;
     await test.step('Search for a registered product and select the first available option', async () => {
       const dialog = getAddSeProductDialog(page);
       const searchInput = dialog.locator('input[type="search"], input[type="text"]').first();
-      const searchVisible = await searchInput.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!searchVisible, 'Registered product search input is not rendered in this QA dialog layout.');
+      rdtSearchVisible = await searchInput.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtSearchVisible) return;
 
       await searchInput.fill('Power');
       await page.waitForTimeout(1_500);
 
       const firstOption = dialog.locator('[role="option"], .vscomp-option, .select2-results__option').first();
-      const optionVisible = await firstOption.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!optionVisible, 'No registered product options were returned for the sampled search term.');
+      rdtOptionVisible = await firstOption.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtOptionVisible) return;
       addedDependencyLabel = (await firstOption.innerText().catch(() => '')).trim();
       await firstOption.click();
 
       const releaseSelect = dialog.getByRole('combobox').last();
-      const releaseSelectVisible = await releaseSelect.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!releaseSelectVisible, 'Release selector is not rendered after choosing the registered product.');
+      rdtReleaseSelectVisible = await releaseSelect.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtReleaseSelectVisible) return;
       const releaseOptions = await releaseSelect.locator('option').evaluateAll((options) =>
         options.map((option) => ({ value: option.getAttribute('value') ?? '', text: option.textContent?.trim() ?? '' })),
       ).catch(() => [] as Array<{ value: string; text: string }>);
-      const selectedRelease = releaseOptions.find((option) => option.value && option.text) ?? null;
-      test.skip(!selectedRelease, 'No release options are available for the selected registered product.');
-      await releaseSelect.selectOption(selectedRelease!.value);
+      rdtSelectedRelease = releaseOptions.find((option) => option.value && option.text) ?? null;
+      if (!rdtSelectedRelease) return;
+      await releaseSelect.selectOption(rdtSelectedRelease.value);
     });
+    test.skip(!rdtSearchVisible, 'Registered product search input is not rendered in this QA dialog layout.');
+    test.skip(!rdtOptionVisible, 'No registered product options were returned for the sampled search term.');
+    test.skip(!rdtReleaseSelectVisible, 'Release selector is not rendered after choosing the registered product.');
+    test.skip(!rdtSelectedRelease, 'No release options are available for the selected registered product.');
 
+    let rdtSaveVisible = false;
+    let rdtIsDuplicate = false;
     await test.step('Save and verify the dependency is added or dialog closes successfully', async () => {
       const dialog = getAddSeProductDialog(page);
       const saveButton = dialog.getByRole('button', { name: /Save|Add/i }).first();
-      const saveVisible = await saveButton.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!saveVisible, 'Save/Add action is not available in the current Add SE Product dialog layout.');
+      rdtSaveVisible = await saveButton.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtSaveVisible) return;
       await saveButton.click();
 
       const dialogStillVisible = await dialog.isVisible({ timeout: 10_000 }).catch(() => false);
       if (dialogStillVisible) {
         const dialogText = await dialog.innerText().catch(() => '');
-        test.skip(/already been added to the list/i.test(dialogText), 'Selected registered product is already present in Included SE Components.');
+        rdtIsDuplicate = /already been added to the list/i.test(dialogText);
+        if (rdtIsDuplicate) return;
       }
 
       if (addedDependencyLabel) {
         await expect(page.getByText(addedDependencyLabel, { exact: false }).first()).toBeVisible({ timeout: 20_000 });
       }
     });
+    test.skip(!rdtSaveVisible, 'Save/Add action is not available in the current Add SE Product dialog layout.');
+    test.skip(rdtIsDuplicate, 'Selected registered product is already present in Included SE Components.');
   });
 
   test('should allow manual release entry when Release not found is selected in Add SE Product popup', async ({
@@ -409,17 +424,19 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       releaseDetailUrl = await openAddSeProductDialogOrSkip(page, landingPage, releaseDetailPage, releaseDetailUrl);
     });
 
+    let rdtReleaseNotFoundVisible = false;
     await test.step('Select Release not found and verify manual-entry fields appear', async () => {
       const dialog = getAddSeProductDialog(page);
       const releaseNotFound = dialog.getByText(/Release not found/i).first();
-      const controlVisible = await releaseNotFound.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!controlVisible, 'Release not found option is not available in this QA dialog layout.');
+      rdtReleaseNotFoundVisible = await releaseNotFound.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtReleaseNotFoundVisible) return;
       await releaseNotFound.click();
 
       await expect(dialog.getByRole('textbox', { name: /Release Number/i }).first()).toBeVisible({ timeout: 10_000 });
       await expect(dialog.getByRole('combobox', { name: /FCSR Decision/i }).first()).toBeVisible({ timeout: 10_000 });
       await expect(dialog.getByRole('textbox', { name: /FCSR Date|Select a date/i }).first()).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!rdtReleaseNotFoundVisible, 'Release not found option is not available in this QA dialog layout.');
 
     await test.step('Dismiss Add SE Product dialog', async () => {
       await closeAddSeProductDialog(page);
@@ -440,16 +457,18 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       releaseDetailUrl = await openAddSeProductDialogOrSkip(page, landingPage, releaseDetailPage, releaseDetailUrl);
     });
 
+    let rdtCreateNewDepVisible = false;
     await test.step('Enable Create New Dependencies with SE Product and verify free-form entry appears', async () => {
       const dialog = getAddSeProductDialog(page);
       const createNewDependencies = dialog.getByText(/Create New Dependencies with SE Product/i).first();
-      const controlVisible = await createNewDependencies.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!controlVisible, 'Create New Dependencies with SE Product control is not available in this QA dialog layout.');
+      rdtCreateNewDepVisible = await createNewDependencies.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtCreateNewDepVisible) return;
       await createNewDependencies.click();
 
       const freeFormInput = dialog.locator('input[type="text"], textarea').first();
       await expect(freeFormInput).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!rdtCreateNewDepVisible, 'Create New Dependencies with SE Product control is not available in this QA dialog layout.');
 
     await test.step('Dismiss Add SE Product dialog', async () => {
       await closeAddSeProductDialog(page);
@@ -468,37 +487,45 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
 
     let existingDependencyLabel = '';
 
+    let rdtExistingRowVisible = false;
     await test.step('Capture an existing dependency row', async () => {
       releaseDetailUrl = await openReleaseDetail(page, landingPage, releaseDetailUrl);
       await releaseDetailPage.waitForPageLoad();
       await releaseDetailPage.expectReleaseDetailsTabSelected();
 
       const existingRow = page.getByRole('grid').getByRole('row').nth(1);
-      const rowVisible = await existingRow.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!rowVisible, 'No Included SE Components rows are present on the sampled release.');
+      rdtExistingRowVisible = await existingRow.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtExistingRowVisible) return;
       existingDependencyLabel = ((await existingRow.innerText().catch(() => '')) || '').split('\n')[0]?.trim() ?? '';
-      test.skip(!existingDependencyLabel, 'Could not derive an existing dependency label from the first Included SE Components row.');
     });
+    test.skip(!rdtExistingRowVisible, 'No Included SE Components rows are present on the sampled release.');
+    test.skip(!existingDependencyLabel, 'Could not derive an existing dependency label from the first Included SE Components row.');
 
+    let rdtDupSearchVisible = false;
+    let rdtDupOptionVisible = false;
+    let rdtDupSaveVisible = false;
     await test.step('Attempt to add the same dependency again', async () => {
       releaseDetailUrl = await openAddSeProductDialogOrSkip(page, landingPage, releaseDetailPage, releaseDetailUrl);
       const dialog = getAddSeProductDialog(page);
       const searchInput = dialog.locator('input[type="search"], input[type="text"]').first();
-      const searchVisible = await searchInput.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!searchVisible, 'Registered product search input is not rendered in this QA dialog layout.');
+      rdtDupSearchVisible = await searchInput.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtDupSearchVisible) return;
       await searchInput.fill(existingDependencyLabel);
       await page.waitForTimeout(1_500);
 
       const matchingOption = dialog.getByText(new RegExp(existingDependencyLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')).first();
-      const optionVisible = await matchingOption.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!optionVisible, 'The existing dependency is not selectable from the current Add SE Product dialog search results.');
+      rdtDupOptionVisible = await matchingOption.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtDupOptionVisible) return;
       await matchingOption.click();
 
       const saveButton = dialog.getByRole('button', { name: /Save|Add/i }).first();
-      const saveVisible = await saveButton.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!saveVisible, 'Save/Add action is not available in the current Add SE Product dialog layout.');
+      rdtDupSaveVisible = await saveButton.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtDupSaveVisible) return;
       await saveButton.click();
     });
+    test.skip(!rdtDupSearchVisible, 'Registered product search input is not rendered in this QA dialog layout.');
+    test.skip(!rdtDupOptionVisible, 'The existing dependency is not selectable from the current Add SE Product dialog search results.');
+    test.skip(!rdtDupSaveVisible, 'Save/Add action is not available in the current Add SE Product dialog layout.');
 
     await test.step('Verify duplicate validation message is shown', async () => {
       await expect(getAddSeProductDialog(page).getByText(/This product has already been added to the list/i).first()).toBeVisible({ timeout: 15_000 });
@@ -516,19 +543,21 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       'Removing an Included SE Component added by the current run removes that dependency from related CSRR content when both flows are available in QA.',
     );
 
+    test.skip(!addedDependencyLabel, 'No dependency was added earlier in this run, so removal cannot be validated safely.');
     await test.step('Require a dependency added by this test session', async () => {
-      test.skip(!addedDependencyLabel, 'No dependency was added earlier in this run, so removal cannot be validated safely.');
       releaseDetailUrl = await openReleaseDetail(page, landingPage, releaseDetailUrl);
       await releaseDetailPage.waitForPageLoad();
     });
 
+    let rdtRemoveRowVisible = false;
+    let rdtRemoveButtonVisible = false;
     await test.step('Remove the added dependency from Included SE Components', async () => {
       const dependencyRow = page.getByRole('row').filter({ hasText: addedDependencyLabel }).first();
-      const rowVisible = await dependencyRow.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!rowVisible, `Added dependency ${addedDependencyLabel} is not present in Included SE Components.`);
+      rdtRemoveRowVisible = await dependencyRow.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtRemoveRowVisible) return;
       const removeButton = dependencyRow.getByRole('button', { name: /Remove|Delete/i }).first();
-      const removeVisible = await removeButton.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!removeVisible, 'Remove action is not available for the added Included SE Component row.');
+      rdtRemoveButtonVisible = await removeButton.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtRemoveButtonVisible) return;
       await removeButton.click();
       const confirmButton = page.getByRole('button', { name: /Yes|Remove|Delete/i }).first();
       const confirmVisible = await confirmButton.isVisible({ timeout: 5_000 }).catch(() => false);
@@ -536,16 +565,22 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
         await confirmButton.click();
       }
     });
+    test.skip(!rdtRemoveRowVisible, `Added dependency ${addedDependencyLabel} is not present in Included SE Components.`);
+    test.skip(!rdtRemoveButtonVisible, 'Remove action is not available for the added Included SE Component row.');
 
+    let rdtCsrrVisible = false;
+    let rdtCsrrDisabled = false;
     await test.step('Verify the dependency no longer appears under CSRR content', async () => {
       const csrrTab = releaseDetailPage.getTopLevelTab('Cybersecurity Residual Risks');
-      const csrrVisible = await csrrTab.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!csrrVisible, 'CSRR tab is not visible on the sampled release.');
-      const csrrDisabled = await releaseDetailPage.isTopLevelTabDisabled('Cybersecurity Residual Risks');
-      test.skip(csrrDisabled, 'CSRR tab is disabled on the sampled release.');
+      rdtCsrrVisible = await csrrTab.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtCsrrVisible) return;
+      rdtCsrrDisabled = await releaseDetailPage.isTopLevelTabDisabled('Cybersecurity Residual Risks');
+      if (rdtCsrrDisabled) return;
       const csrrText = await releaseDetailPage.getTopLevelTabPanelText('Cybersecurity Residual Risks');
       expect(csrrText).not.toContain(addedDependencyLabel);
     });
+    test.skip(!rdtCsrrVisible, 'CSRR tab is not visible on the sampled release.');
+    test.skip(rdtCsrrDisabled, 'CSRR tab is disabled on the sampled release.');
   });
 
   test('should show a warning icon when Included SE Component release number differs from latest release number', async ({
@@ -564,11 +599,13 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       await releaseDetailPage.expectReleaseDetailsTabSelected();
     });
 
+    let warningVisible = false;
     await test.step('Verify warning icon visibility when mismatch rows exist', async () => {
       const warningIcon = page.locator('[title*="Latest Release Number"], [aria-label*="warning" i], .fa-warning, .icon-warning').first();
-      const warningVisible = await warningIcon.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!warningVisible, 'No Included SE Component release-version mismatch warning is visible on the sampled QA release.');
+      warningVisible = await warningIcon.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!warningVisible) return;
       await expect(warningIcon).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!warningVisible, 'No Included SE Component release-version mismatch warning is visible on the sampled QA release.');
   });
 });

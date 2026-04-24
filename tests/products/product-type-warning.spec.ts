@@ -89,11 +89,11 @@ test.describe('Products / Product Type Warning @regression', () => {
 
       await test.step('Scan My Products for a product that has at least one release', async () => {
         productHref = await findProductWithActiveRelease(page, landingPage, newProductPage, 50);
-        test.skip(
-          productHref === null,
-          'No product with active releases found for Product Type warning test (scanned up to 50 rows).',
-        );
       });
+      test.skip(
+        productHref === null,
+        'No product with active releases found for Product Type warning test (scanned up to 50 rows).',
+      );
 
       await test.step('Navigate back to the product detail page', async () => {
         await page.goto(productHref!);
@@ -126,23 +126,26 @@ test.describe('Products / Product Type Warning @regression', () => {
         }
       });
 
+      let ptw001Alternatives: string[] = [];
       await test.step('Select a different Product Type value', async () => {
         const options = await newProductPage.getProductTypeOptions();
         // Filter out blank/placeholder and the currently selected value
-        const alternatives = options.filter(
+        ptw001Alternatives = options.filter(
           (o) => o.trim() !== '' && o !== '- Select -' && o !== currentProductType,
         );
 
-        test.skip(
-          alternatives.length === 0,
-          `No alternative Product Type options available (current: "${currentProductType}") — cannot trigger warning. Skipping PRODUCT-TYPE-WARN-001.`,
-        );
+        if (ptw001Alternatives.length === 0) return;
 
         // Attempt to select a different type
-        await newProductPage.selectProductType(alternatives[0]);
+        await newProductPage.selectProductType(ptw001Alternatives[0]);
         await page.waitForTimeout(2_000);
       });
+      test.skip(
+        ptw001Alternatives.length === 0,
+        `No alternative Product Type options available (current: "${currentProductType}") — cannot trigger warning. Skipping PRODUCT-TYPE-WARN-001.`,
+      );
 
+      let ptw001WarningShown = false;
       await test.step('Assert a warning message appears', async () => {
         // The app may surface the warning as:
         // 1. A modal/dialog with warning text
@@ -162,15 +165,16 @@ test.describe('Products / Product Type Warning @regression', () => {
         const afterChangeType = await newProductPage.getSelectedProductType().catch(() => '');
         const typeReverted = afterChangeType === currentProductType;
 
-        test.skip(
-          !dialogVisible && !alertVisible && !inlineVisible && !typeReverted,
-          'No warning dialog, alert, or inline message was shown after changing Product Type ' +
-          'and the value did not revert — the warning behaviour may not yet be implemented ' +
-          'in this environment. Skipping PRODUCT-TYPE-WARN-001 gracefully.',
-        );
+        ptw001WarningShown = dialogVisible || alertVisible || inlineVisible || typeReverted;
 
         // At least one warning indicator was present — requirement confirmed.
       });
+      test.skip(
+        !ptw001WarningShown,
+        'No warning dialog, alert, or inline message was shown after changing Product Type ' +
+        'and the value did not revert — the warning behaviour may not yet be implemented ' +
+        'in this environment. Skipping PRODUCT-TYPE-WARN-001 gracefully.',
+      );
 
       await test.step('Cancel / leave without saving changes', async () => {
         // Dismiss any open dialog first

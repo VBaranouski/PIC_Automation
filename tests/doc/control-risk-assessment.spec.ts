@@ -1,5 +1,5 @@
 /**
- * Spec 11.7a — DOC Detail: Control Risk Assessment
+ * Spec 11.7.1 — DOC Detail: Control Risk Assessment
  *
  * Covers ITS Checklist Risk Assessment columns, Control Detail page during RA,
  * evidence links, findings, Submit for Review, DOCL Evaluate, Complete Risk Assessment,
@@ -26,7 +26,7 @@ const SCOPING_DOC_URL =
 const COMPLETED_DOC_URL =
   '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
-test.describe('DOC - Control Risk Assessment (11.7a) @regression', () => {
+test.describe('DOC - Control Risk Assessment (11.7.1) @regression', () => {
   test.setTimeout(180_000);
   // ── DOC-CTRL-RA-001 ──────────────────────────────────────────────────────
   test('DOC-CTRL-RA-001 — should show additional RA columns (Status, Risk Level, Findings) during Risk Assessment',

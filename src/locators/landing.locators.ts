@@ -71,8 +71,10 @@ export const landingLocators = (page: Page) => ({
   reportsProductDropdown:       page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('combobox').nth(3),
   reportsProductTypeDropdown:   page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('combobox').nth(4),
   reportsReleaseNumberDropdown: page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('combobox').nth(5),
-  reportsMoreFiltersLink:       page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('link', { name: 'More Filters' }),
-  reportsAccessTableauLink:     page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('link', { name: 'Access Tableau' }),
+  reportsMoreFiltersLink:           page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('link', { name: 'More Filters' }),
+  reportsAccessTableauLink:         page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('link', { name: 'Access Tableau' }),
+  reportsConfigureColumnsButton:    page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('button', { name: /configure columns/i }),
+  reportsDateRangePicker:           page.locator('[role="tabpanel"]:not([aria-hidden="true"])').first().getByRole('textbox').first(),
 });
 
 export type LandingLocators = ReturnType<typeof landingLocators>;

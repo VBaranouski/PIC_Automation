@@ -178,13 +178,11 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 			await docDetailsPage.clickRiskSummaryTab();
 		});
 
+		let risk006HasGrid = false;
 		await test.step('Verify Controls table grid is visible', async () => {
-			const hasGrid = await docDetailsPage.hasRiskSummaryControlsGrid();
-			if (!hasGrid) {
-				test.skip(true, 'Controls grid not visible — DOC may have no controls in Risk Summary.');
-				return;
-			}
+			risk006HasGrid = await docDetailsPage.hasRiskSummaryControlsGrid();
 		});
+		test.skip(!risk006HasGrid, 'Controls grid not visible — DOC may have no controls in Risk Summary.');
 
 		await test.step('Verify column headers include Category, Status, Risk Level', async () => {
 			await docDetailsPage.expectRiskSummaryControlsGridColumnHeaders();
@@ -268,6 +266,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 			return;
 		}
 
+		let risk008SkipReason = '';
 		await test.step('Verify pagination elements are present', async () => {
 			const controlsPanel = page.getByRole('tabpanel')
 				.filter({ has: page.getByText('SDL FCSR Summary') }).first();
@@ -285,7 +284,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 				// Small number of controls may not trigger pagination
 				const rowCount = await docDetailsPage.getRiskSummaryControlsRowCount();
 				if (rowCount <= 10) {
-					test.skip(true, `Only ${rowCount} controls — pagination may not be rendered for small datasets.`);
+					risk008SkipReason = `Only ${rowCount} controls — pagination may not be rendered for small datasets.`;
 					return;
 				}
 			}
@@ -295,6 +294,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 				'Pagination elements (text, per-page select, or navigation) should be visible',
 			).toBe(true);
 		});
+		test.skip(!!risk008SkipReason, risk008SkipReason || '');
 	});
 
 	// ── DOC-RISK-009 ────────────────────────────────────────────────────────
@@ -312,6 +312,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 			await docDetailsPage.clickRiskSummaryTab();
 		});
 
+		let risk009HasEditControls = false;
 		await test.step('Check for edit controls on SDL FCSR and Privacy Summary sections', async () => {
 			const editButton = page.getByRole('tabpanel')
 				.filter({ has: page.getByText('SDL FCSR Summary') }).first()
@@ -324,10 +325,10 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 					.filter({ has: page.getByText('SDL FCSR Summary') }).first()
 					.getByRole('combobox');
 				const editableCount = await editableFields.count();
-				if (editableCount === 0) {
-					test.skip(true, 'No edit controls visible — user may lack ENTER_DATA_PRIVACY_REVIEW_SDL_FCSR_SUMMARYDATA privilege.');
-					return;
-				}
+				risk009HasEditControls = editableCount > 0;
+				if (!risk009HasEditControls) return;
+			} else {
+				risk009HasEditControls = true;
 			}
 
 			// If edit button is visible, verify it can be clicked (but don't submit changes)
@@ -335,6 +336,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 				await expect(editButton).toBeVisible();
 			}
 		});
+		test.skip(!risk009HasEditControls, 'No edit controls visible — user may lack ENTER_DATA_PRIVACY_REVIEW_SDL_FCSR_SUMMARYDATA privilege.');
 	});
 
 	// ── DOC-RISK-010 ────────────────────────────────────────────────────────
@@ -352,6 +354,7 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 			await docDetailsPage.clickRiskSummaryTab();
 		});
 
+		let risk010HasData = false;
 		await test.step('Verify SDL FCSR Summary has populated data', async () => {
 			const panelText = await docDetailsPage.getRiskSummaryPanelText();
 
@@ -360,19 +363,17 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 			await expect(fcsrDecisionLabel).toBeVisible({ timeout: 15_000 });
 
 			// The decision value should be a non-empty text near the label
-			const hasData = panelText.includes('Passed') ||
+			risk010HasData = panelText.includes('Passed') ||
 				panelText.includes('Failed') ||
 				panelText.includes('Not Applicable') ||
 				panelText.includes('Conditional') ||
 				panelText.includes('N/A');
 
-			if (!hasData) {
-				test.skip(true, 'FCSR/DPP summary data not populated — DOC may not be linked to a release with results.');
-				return;
-			}
+			if (!risk010HasData) return;
 
-			expect(hasData, 'FCSR Decision should have a populated value from the linked release').toBe(true);
+			expect(risk010HasData, 'FCSR Decision should have a populated value from the linked release').toBe(true);
 		});
+		test.skip(!risk010HasData, 'FCSR/DPP summary data not populated — DOC may not be linked to a release with results.');
 	});
 
 	// ── DOC-RISK-011 ────────────────────────────────────────────────────────
@@ -388,18 +389,17 @@ test.describe('DOC - Risk Summary Tab (11.10) @regression', () => {
 		// Use the seed DOC which may use "Other Release" (not linked to existing release)
 		const seedDocUrl = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
+		let risk011TabVisible = false;
 		await test.step('Navigate to DOC and switch to Risk Summary', async () => {
 			await page.goto(seedDocUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
 			await docDetailsPage.waitForOSLoad();
 
 			const riskSummaryTab = page.getByRole('tab', { name: 'Risk Summary', exact: true });
-			const isTabVisible = await riskSummaryTab.isVisible().catch(() => false);
-			if (!isTabVisible) {
-				test.skip(true, 'Risk Summary tab not visible on this DOC.');
-				return;
-			}
+			risk011TabVisible = await riskSummaryTab.isVisible().catch(() => false);
+			if (!risk011TabVisible) return;
 			await docDetailsPage.clickRiskSummaryTab();
 		});
+		test.skip(!risk011TabVisible, 'Risk Summary tab not visible on this DOC.');
 
 		await test.step('Verify summary sections show empty state or editable fields', async () => {
 			const panelText = await docDetailsPage.getRiskSummaryPanelText();

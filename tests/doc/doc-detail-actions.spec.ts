@@ -309,6 +309,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 			return;
 		}
 
+		let hasOverdueIndicator = false;
 		await test.step('Verify at least one row has a due date with overdue indicator', async () => {
 			const rowCount = await docDetailsPage.getActionPlanRowCount();
 			let foundOverdue = false;
@@ -329,12 +330,16 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 					.first();
 				const hasOverdueIcon = await overdueIcon.isVisible().catch(() => false);
 				if (!hasOverdueIcon) {
-					test.skip(true, 'No overdue actions found — all actions may have future due dates.');
 					return;
 				}
 				await expect(overdueIcon).toBeVisible();
+				hasOverdueIndicator = true;
+				return;
 			}
+
+			hasOverdueIndicator = true;
 		});
+		test.skip(!hasOverdueIndicator, 'No overdue actions found — all actions may have future due dates.');
 	});
 
 	// ── DOC-ACTIONS-006 (Add Action button) ──────────────────────────────────
@@ -352,14 +357,13 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 			await docDetailsPage.clickActionPlanTab();
 		});
 
+		let actions006AddVisible = false;
 		await test.step('Verify Add Action button is visible', async () => {
-			const isVisible = await docDetailsPage.isAddActionButtonVisible();
-			if (!isVisible) {
-				test.skip(true, 'Add Action button not visible — user may lack CREATE_UPDATE_DOC_ACTIONS privilege or DOC is read-only.');
-				return;
-			}
+			actions006AddVisible = await docDetailsPage.isAddActionButtonVisible();
+			if (!actions006AddVisible) return;
 			await docDetailsPage.expectAddActionButtonVisible();
 		});
+		test.skip(!actions006AddVisible, 'Add Action button not visible — user may lack CREATE_UPDATE_DOC_ACTIONS privilege or DOC is read-only.');
 	});
 
 	// ── DOC-ACTIONS-007 ─────────────────────────────────────────────────────
@@ -438,16 +442,15 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 			await expect(page.getByRole('dialog').last()).toBeVisible({ timeout: 15_000 });
 		});
 
+		let actions008ExistingOptionVisible = false;
 		await test.step('Verify "Select existing open Actions" option is available', async () => {
 			const dialog = page.getByRole('dialog').last();
 			const existingActionsOption = dialog.getByText(/Select existing|Existing Actions|Link.*Action/i).first();
-			const isOptionVisible = await existingActionsOption.isVisible().catch(() => false);
-			if (!isOptionVisible) {
-				test.skip(true, '"Select existing open Actions" option not found in popup — may not be implemented in this environment.');
-				return;
-			}
+			actions008ExistingOptionVisible = await existingActionsOption.isVisible().catch(() => false);
+			if (!actions008ExistingOptionVisible) return;
 			await expect(existingActionsOption).toBeVisible();
 		});
+		test.skip(!actions008ExistingOptionVisible, '"Select existing open Actions" option not found in popup — may not be implemented in this environment.');
 
 		await test.step('Close the popup', async () => {
 			const cancelBtn = page.getByRole('dialog').last()
@@ -481,20 +484,19 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 			return;
 		}
 
+		let actions009HasBulkControls = false;
 		await test.step('Check for bulk action controls (checkboxes or bulk action button)', async () => {
 			const bulkCheckbox = page.getByRole('tabpanel').getByRole('checkbox').first();
 			const bulkButton = page.getByRole('tabpanel').getByRole('button', { name: /Bulk|Select All/i }).first();
 
 			const hasBulkCheckbox = await bulkCheckbox.isVisible().catch(() => false);
 			const hasBulkButton = await bulkButton.isVisible().catch(() => false);
-
-			if (!hasBulkCheckbox && !hasBulkButton) {
-				test.skip(true, 'Bulk action controls not visible — feature may not be available in this stage.');
-				return;
-			}
+			actions009HasBulkControls = hasBulkCheckbox || hasBulkButton;
+			if (!actions009HasBulkControls) return;
 
 			expect(hasBulkCheckbox || hasBulkButton, 'Bulk action controls should be present').toBe(true);
 		});
+		test.skip(!actions009HasBulkControls, 'Bulk action controls not visible — feature may not be available in this stage.');
 	});
 
 	// ── DOC-ACTIONS-010 ─────────────────────────────────────────────────────
@@ -559,6 +561,7 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 			await docDetailsPage.clickFirstActionNameLink();
 		});
 
+		let actions011HasEditableFields = false;
 		await test.step('Verify editable fields are present in Action Details', async () => {
 			// Check for edit controls (dropdown, textarea, input)
 			const statusDropdown = page.getByRole('combobox').filter({ hasText: /Open|In Progress|Closed/i }).first()
@@ -567,14 +570,12 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 
 			const editButton = page.getByRole('button', { name: /Edit/i }).first();
 			const hasEditButton = await editButton.isVisible().catch(() => false);
-
-			if (!hasStatusDropdown && !hasEditButton) {
-				test.skip(true, 'No editable fields visible — user may lack edit privilege or action is in read-only state.');
-				return;
-			}
+			actions011HasEditableFields = hasStatusDropdown || hasEditButton;
+			if (!actions011HasEditableFields) return;
 
 			expect(hasStatusDropdown || hasEditButton, 'Status dropdown or Edit button should be visible').toBe(true);
 		});
+		test.skip(!actions011HasEditableFields, 'No editable fields visible — user may lack edit privilege or action is in read-only state.');
 	});
 
 	// ── DOC-ACTIONS-012 ─────────────────────────────────────────────────────
@@ -590,27 +591,24 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		// Use the seed DOC which may have no actions in a fresh environment
 		const seedDocUrl = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
+		let actions022TabVisible = false;
 		await test.step('Navigate to DOC and switch to Action Plan', async () => {
 			await page.goto(seedDocUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
 			await docDetailsPage.waitForOSLoad();
 
 			const actionPlanTab = page.getByRole('tab', { name: 'Action Plan' });
-			const isTabVisible = await actionPlanTab.isVisible().catch(() => false);
-			if (!isTabVisible) {
-				test.skip(true, 'Action Plan tab not visible on this DOC.');
-				return;
-			}
+			actions022TabVisible = await actionPlanTab.isVisible().catch(() => false);
+			if (!actions022TabVisible) return;
 			await docDetailsPage.clickActionPlanTab();
 		});
+		test.skip(!actions022TabVisible, 'Action Plan tab not visible on this DOC.');
 
+		let actions022HasExistingRows = false;
 		await test.step('Check for empty state message or existing actions', async () => {
 			const hasNoActions = await docDetailsPage.hasActionPlanNoActionsMessage();
-			const hasRows = await docDetailsPage.hasActionPlanRows();
+			actions022HasExistingRows = await docDetailsPage.hasActionPlanRows();
 
-			if (hasRows) {
-				test.skip(true, 'DOC has existing actions — cannot verify empty state. Test requires a DOC with no actions.');
-				return;
-			}
+			if (actions022HasExistingRows) return;
 
 			if (hasNoActions) {
 				await docDetailsPage.expectActionPlanNoActionsMessageVisible();
@@ -620,5 +618,6 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 				expect(rowCount, 'Action Plan grid should show 0 rows when no actions exist').toBe(0);
 			}
 		});
+		test.skip(actions022HasExistingRows, 'DOC has existing actions — cannot verify empty state. Test requires a DOC with no actions.');
 	});
 });

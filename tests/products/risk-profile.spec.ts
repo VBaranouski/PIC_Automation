@@ -45,12 +45,14 @@ test.describe('Product Risk Profile Calculator @regression', () => {
         await page.waitForTimeout(1_500);
       });
 
+      let rp001CalcVisible = false;
       await test.step('Verify Calculate Risk Profile button is visible', async () => {
         const calcBtn = page.getByRole('button', { name: /Calculate Risk Profile/i });
-        const isVisible = await calcBtn.isVisible({ timeout: 10_000 }).catch(() => false);
-        test.skip(!isVisible, 'RISK-PROFILE-CALC-001: "Calculate Risk Profile" button not found — feature may not be enabled for this product.');
+        rp001CalcVisible = await calcBtn.isVisible({ timeout: 10_000 }).catch(() => false);
+        if (!rp001CalcVisible) return;
         await expect(calcBtn).toBeVisible({ timeout: 10_000 });
       });
+      test.skip(!rp001CalcVisible, 'RISK-PROFILE-CALC-001: "Calculate Risk Profile" button not found — feature may not be enabled for this product.');
     },
   );
 
@@ -72,10 +74,11 @@ test.describe('Product Risk Profile Calculator @regression', () => {
         await page.waitForTimeout(1_500);
       });
 
+      let rp002CalcVisible = false;
       await test.step('Click Calculate Risk Profile button', async () => {
         const calcBtn = page.getByRole('button', { name: /Calculate Risk Profile/i });
-        const isVisible = await calcBtn.isVisible({ timeout: 10_000 }).catch(() => false);
-        test.skip(!isVisible, 'RISK-PROFILE-CALC-002: "Calculate Risk Profile" button not found — skipping.');
+        rp002CalcVisible = await calcBtn.isVisible({ timeout: 10_000 }).catch(() => false);
+        if (!rp002CalcVisible) return;
         await calcBtn.click();
         // Wait for navigation or dialog to appear
         await Promise.any([
@@ -85,6 +88,7 @@ test.describe('Product Risk Profile Calculator @regression', () => {
         ]).catch(() => undefined);
         await page.waitForTimeout(1_000);
       });
+      test.skip(!rp002CalcVisible, 'RISK-PROFILE-CALC-002: "Calculate Risk Profile" button not found — skipping.');
 
       await test.step('Verify Exposure input is visible', async () => {
         const exposureField = page
@@ -143,14 +147,16 @@ test.describe('Product Risk Profile Calculator @regression', () => {
         await page.waitForTimeout(2_000);
       });
 
+      let rp003SectionVisible = false;
       await test.step('Verify Risk Profile grid or history section is present', async () => {
         // Look for the Risk Profile history grid on the Security Summary tab.
         // It may appear even when there are no calculation rows yet.
         const riskProfileSection = page.getByText(/Risk Profile/i).first();
-        const isVisible = await riskProfileSection.isVisible({ timeout: 10_000 }).catch(() => false);
-        test.skip(!isVisible, 'RISK-PROFILE-CALC-003: No Risk Profile section found on Security Summary tab — skipping.');
+        rp003SectionVisible = await riskProfileSection.isVisible({ timeout: 10_000 }).catch(() => false);
+        if (!rp003SectionVisible) return;
         await expect(riskProfileSection).toBeVisible({ timeout: 10_000 });
       });
+      test.skip(!rp003SectionVisible, 'RISK-PROFILE-CALC-003: No Risk Profile section found on Security Summary tab — skipping.');
 
       await test.step('Verify at least some expected column labels are present', async () => {
         // The plan specifies: Date, Submitted By, Risk Level, Exposure, Likelihood, Impact, Notes

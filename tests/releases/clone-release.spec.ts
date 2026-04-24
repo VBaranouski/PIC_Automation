@@ -472,13 +472,15 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       await releaseDetailPage.waitForPageLoad();
     });
 
+    let clone001FcsrVisible = false;
     await test.step('Locate FCSR Decision tab and skip if unavailable', async () => {
       const fcsrTab = page.getByRole('tab', { name: /FCSR Decision/i }).first();
-      const isVisible = await fcsrTab.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!isVisible, 'FCSR Decision tab not available — release may not have advanced to that stage.');
+      clone001FcsrVisible = await fcsrTab.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!clone001FcsrVisible) return;
       await fcsrTab.click();
       await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => undefined);
     });
+    test.skip(!clone001FcsrVisible, 'FCSR Decision tab not available — release may not have advanced to that stage.');
 
     await test.step('Verify FCSR Decision tab shows no inherited data', async () => {
       const tabPanel = page.getByRole('tabpanel').first();
@@ -514,13 +516,15 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       await releaseDetailPage.waitForPageLoad();
     });
 
+    let clone002ActionsVisible = false;
     await test.step('Check for Actions Management link and skip if unavailable', async () => {
       const actionsLink = page.getByRole('link', { name: /Actions Management/i }).first();
-      const isVisible = await actionsLink.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!isVisible, 'Actions Management link not visible — release may not expose it at Scoping stage.');
+      clone002ActionsVisible = await actionsLink.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!clone002ActionsVisible) return;
       await actionsLink.click();
       await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => undefined);
     });
+    test.skip(!clone002ActionsVisible, 'Actions Management link not visible — release may not expose it at Scoping stage.');
 
     await test.step('Verify Actions Management page has no inherited action items', async () => {
       const hasDataRows = await page
@@ -560,8 +564,8 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       const sourceRolesText = await releaseDetailPage.getTopLevelTabPanelText('Roles & Responsibilities');
       const sourceProductTeamSection = getSectionText(sourceRolesText, 'Product Team', ['Edit', 'The "Submit for Review"', 'Release Details']);
       sourceEmails = extractEmails(sourceProductTeamSection);
-      test.skip(sourceEmails.length === 0, 'Selected source release has no Product Team email assignments to inherit.');
     });
+    test.skip(sourceEmails.length === 0, 'Selected source release has no Product Team email assignments to inherit.');
 
     await test.step('Open the cloned release Roles & Responsibilities tab', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
@@ -586,31 +590,36 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       'Cloned release inherits questionnaire content from the selected source release when the source questionnaire has already been started and answered.',
     );
 
+    let cloneQuestSourceStarted = false;
+    let cloneQuestAnswersVisible = false;
     await test.step('Open the source questionnaire', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
       }
       await openSourceReleaseForClone(page, newProductPage, releaseDetailPage, cloneContext);
       await releaseDetailPage.clickTopLevelTab('Questionnaire');
-      const sourceHasStartButton = await releaseDetailPage.isStartQuestionnaireVisible();
-      test.skip(sourceHasStartButton, 'Selected source release has not started the questionnaire yet.');
+      cloneQuestSourceStarted = !(await releaseDetailPage.isStartQuestionnaireVisible());
+      if (!cloneQuestSourceStarted) return;
       const sourceQuestionnaireText = await releaseDetailPage.getTopLevelTabPanelText('Questionnaire');
-      const sourceShowsAnswers = /Edit Answers|Risk Classification|Privacy Risk|Question/i.test(sourceQuestionnaireText);
-      test.skip(!sourceShowsAnswers, 'Source questionnaire does not expose answer content in this QA layout.');
+      cloneQuestAnswersVisible = /Edit Answers|Risk Classification|Privacy Risk|Question/i.test(sourceQuestionnaireText);
     });
+    test.skip(!cloneQuestSourceStarted, 'Selected source release has not started the questionnaire yet.');
+    test.skip(!cloneQuestAnswersVisible, 'Source questionnaire does not expose answer content in this QA layout.');
 
     await test.step('Open the cloned release questionnaire', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
       await releaseDetailPage.clickTopLevelTab('Questionnaire');
     });
 
+    let cloneQuestCloneStarted = false;
     await test.step('Verify the clone no longer shows the unstarted-questionnaire state', async () => {
       await expect(releaseDetailPage.getTopLevelTab('Questionnaire')).toHaveAttribute('aria-selected', 'true');
-      const cloneHasStartButton = await releaseDetailPage.isStartQuestionnaireVisible();
-      test.skip(cloneHasStartButton, 'Cloned release stayed in the pre-questionnaire state; inherited answers were not surfaced in this QA run.');
+      cloneQuestCloneStarted = !(await releaseDetailPage.isStartQuestionnaireVisible());
+      if (!cloneQuestCloneStarted) return;
       const cloneQuestionnaireText = await releaseDetailPage.getTopLevelTabPanelText('Questionnaire');
       expect(cloneQuestionnaireText).not.toMatch(/No questionnaire started yet/i);
     });
+    test.skip(!cloneQuestCloneStarted, 'Cloned release stayed in the pre-questionnaire state; inherited answers were not surfaced in this QA run.');
   });
 
   test('should show inherited-questionnaire warning in the cloned release when answers were copied', async ({
@@ -624,26 +633,29 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       'Cloned Questionnaire tab shows the inherited-answers warning banner when questionnaire answers were copied from the source release.',
     );
 
+    let cloneWarnQuestStarted = false;
     await test.step('Qualify the source release questionnaire state', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
       }
       await openSourceReleaseForClone(page, newProductPage, releaseDetailPage, cloneContext);
       await releaseDetailPage.clickTopLevelTab('Questionnaire');
-      const sourceHasStartButton = await releaseDetailPage.isStartQuestionnaireVisible();
-      test.skip(sourceHasStartButton, 'Selected source release has not started the questionnaire yet.');
+      cloneWarnQuestStarted = !(await releaseDetailPage.isStartQuestionnaireVisible());
     });
+    test.skip(!cloneWarnQuestStarted, 'Selected source release has not started the questionnaire yet.');
 
     await test.step('Open the cloned release questionnaire tab', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
       await releaseDetailPage.clickTopLevelTab('Questionnaire');
     });
 
+    let cloneWarnCloneStarted = false;
     await test.step('Verify inherited-warning text is shown', async () => {
-      const cloneHasStartButton = await releaseDetailPage.isStartQuestionnaireVisible();
-      test.skip(cloneHasStartButton, 'Cloned release stayed in the pre-questionnaire state; inherited-warning banner is not applicable in this QA run.');
+      cloneWarnCloneStarted = !(await releaseDetailPage.isStartQuestionnaireVisible());
+      if (!cloneWarnCloneStarted) return;
       await expect(page.getByText(/Some answers were inherited during cloning/i).first()).toBeVisible({ timeout: 15_000 });
     });
+    test.skip(!cloneWarnCloneStarted, 'Cloned release stayed in the pre-questionnaire state; inherited-warning banner is not applicable in this QA run.');
   });
 
   test('should inherit Process Requirements statuses when the source release already has scoped requirements', async ({
@@ -658,17 +670,19 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
 
     let sourceStatuses: string[] = [];
 
+    let cloneProcSourceEnabled = false;
     await test.step('Open the source Process Requirements tab', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
       }
       await openSourceReleaseForClone(page, newProductPage, releaseDetailPage, cloneContext);
-      const sourceDisabled = await releaseDetailPage.isTopLevelTabDisabled('Process Requirements');
-      test.skip(sourceDisabled, 'Selected source release does not expose Process Requirements yet.');
+      cloneProcSourceEnabled = !(await releaseDetailPage.isTopLevelTabDisabled('Process Requirements'));
+      if (!cloneProcSourceEnabled) return;
       const sourceProcessText = await releaseDetailPage.getTopLevelTabPanelText('Process Requirements');
       sourceStatuses = extractStatusLabels(sourceProcessText);
-      test.skip(sourceStatuses.length === 0, 'Source Process Requirements tab does not show scoped requirement statuses.');
     });
+    test.skip(!cloneProcSourceEnabled, 'Selected source release does not expose Process Requirements yet.');
+    test.skip(sourceStatuses.length === 0, 'Source Process Requirements tab does not show scoped requirement statuses.');
 
     await test.step('Open the cloned release Process Requirements tab', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
@@ -694,16 +708,20 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       'Inherited Process Requirements with Done status stay hidden by default and become visible after enabling the Show All Requirements toggle.',
     );
 
+    let cloneDoneProcEnabled = false;
+    let cloneDoneProcHasDone = false;
     await test.step('Qualify source release with Done process requirements', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
       }
       await openSourceReleaseForClone(page, newProductPage, releaseDetailPage, cloneContext);
-      const sourceDisabled = await releaseDetailPage.isTopLevelTabDisabled('Process Requirements');
-      test.skip(sourceDisabled, 'Selected source release does not expose Process Requirements yet.');
+      cloneDoneProcEnabled = !(await releaseDetailPage.isTopLevelTabDisabled('Process Requirements'));
+      if (!cloneDoneProcEnabled) return;
       const sourceProcessText = await releaseDetailPage.getTopLevelTabPanelText('Process Requirements');
-      test.skip(!/\bDone\b/i.test(sourceProcessText), 'Selected source release has no Done process requirements to validate.');
+      cloneDoneProcHasDone = /\bDone\b/i.test(sourceProcessText);
     });
+    test.skip(!cloneDoneProcEnabled, 'Selected source release does not expose Process Requirements yet.');
+    test.skip(!cloneDoneProcHasDone, 'Selected source release has no Done process requirements to validate.');
 
     await test.step('Open the cloned release Process Requirements tab', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
@@ -712,10 +730,11 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       await releaseDetailPage.clickTopLevelTab('Process Requirements');
     });
 
+    let cloneToggleVisible = false;
     await test.step('Toggle Show All Requirements and verify Done items become visible', async () => {
       const toggle = page.getByRole('checkbox', { name: /Show All Requirements/i }).first();
-      const toggleVisible = await toggle.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!toggleVisible, 'Show All Requirements toggle is not rendered in this QA layout.');
+      cloneToggleVisible = await toggle.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!cloneToggleVisible) return;
       const beforeText = normalizeText(await releaseDetailPage.getTopLevelTabPanelText('Process Requirements'));
       if (!(await toggle.isChecked().catch(() => false))) {
         await toggle.check().catch(() => toggle.click());
@@ -725,6 +744,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       expect((afterText.match(/\bDone\b/gi) ?? []).length).toBeGreaterThanOrEqual((beforeText.match(/\bDone\b/gi) ?? []).length);
       expect(afterText).toMatch(/\bDone\b/i);
     });
+    test.skip(!cloneToggleVisible, 'Show All Requirements toggle is not rendered in this QA layout.');
   });
 
   test('should inherit Product Requirements evidence and status details when the source release has them', async ({
@@ -740,18 +760,20 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
     let sourceStatuses: string[] = [];
     let sourceUrls: string[] = [];
 
+    let cloneProdSourceEnabled = false;
     await test.step('Open the source Product Requirements tab', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
       }
       await openSourceReleaseForClone(page, newProductPage, releaseDetailPage, cloneContext);
-      const sourceDisabled = await releaseDetailPage.isTopLevelTabDisabled('Product Requirements');
-      test.skip(sourceDisabled, 'Selected source release does not expose Product Requirements yet.');
+      cloneProdSourceEnabled = !(await releaseDetailPage.isTopLevelTabDisabled('Product Requirements'));
+      if (!cloneProdSourceEnabled) return;
       const sourceProductText = await releaseDetailPage.getTopLevelTabPanelText('Product Requirements');
       sourceStatuses = extractStatusLabels(sourceProductText);
       sourceUrls = extractUrls(sourceProductText);
-      test.skip(sourceStatuses.length === 0 && sourceUrls.length === 0, 'Source Product Requirements tab has no observable inherited data to compare.');
     });
+    test.skip(!cloneProdSourceEnabled, 'Selected source release does not expose Product Requirements yet.');
+    test.skip(sourceStatuses.length === 0 && sourceUrls.length === 0, 'Source Product Requirements tab has no observable inherited data to compare.');
 
     await test.step('Open the cloned release Product Requirements tab', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
@@ -795,17 +817,19 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
 
     let sourceSections: string[] = [];
 
+    let cloneCsrrSourceEnabled = false;
     await test.step('Open the source CSRR tab', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
       }
       await openSourceReleaseForClone(page, newProductPage, releaseDetailPage, cloneContext);
-      const sourceDisabled = await releaseDetailPage.isTopLevelTabDisabled('Cybersecurity Residual Risks');
-      test.skip(sourceDisabled, 'Selected source release does not expose CSRR yet.');
+      cloneCsrrSourceEnabled = !(await releaseDetailPage.isTopLevelTabDisabled('Cybersecurity Residual Risks'));
+      if (!cloneCsrrSourceEnabled) return;
       const sourceCsrrText = await releaseDetailPage.getTopLevelTabPanelText('Cybersecurity Residual Risks');
       sourceSections = expectedSections.filter((section) => sourceCsrrText.includes(section));
-      test.skip(sourceSections.length === 0, 'Source CSRR tab does not expose the expected section headers in this QA layout.');
     });
+    test.skip(!cloneCsrrSourceEnabled, 'Selected source release does not expose CSRR yet.');
+    test.skip(sourceSections.length === 0, 'Source CSRR tab does not expose the expected section headers in this QA layout.');
 
     await test.step('Open the cloned release CSRR tab', async () => {
       await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
@@ -831,6 +855,7 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
       'Cloned release Review & Confirm tab contains no inherited Scope Review Participants or Discussion Topics at creation time.',
     );
 
+    let cloneReviewVisible = false;
     await test.step('Open the cloned release Review & Confirm tab', async () => {
       if (!cloneContext) {
         cloneContext = await createCloneRelease(page, landingPage, newProductPage);
@@ -838,9 +863,9 @@ test.describe.serial('Releases - Clone Release (PIC-100) @regression', () => {
         await openClonedReleaseOrSkip(page, releaseDetailPage, cloneContext);
       }
       await releaseDetailPage.waitForPageLoad();
-      const reviewVisible = await releaseDetailPage.isTopLevelTabVisible('Review & Confirm');
-      test.skip(!reviewVisible, 'Review & Confirm tab is not visible on the cloned release.');
+      cloneReviewVisible = await releaseDetailPage.isTopLevelTabVisible('Review & Confirm');
     });
+    test.skip(!cloneReviewVisible, 'Review & Confirm tab is not visible on the cloned release.');
 
     await test.step('Verify no participants or discussion topics are inherited', async () => {
       const reviewText = normalizeText(await releaseDetailPage.getTopLevelTabPanelText('Review & Confirm'));

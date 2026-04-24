@@ -404,3 +404,68 @@ test.describe('Landing Page - My Tasks Column Renamed Labels @regression', () =>
     });
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// WORKFLOW 2.2 — My Tasks: Empty state & task row navigation
+// ────────────────────────────────────────────────────────────────────────────
+
+test.describe('Landing Page - My Tasks Empty State & Row Navigation @regression', () => {
+  test.setTimeout(120_000);
+
+  test.beforeEach(async ({ landingPage }) => {
+    await landingPage.goto();
+    await landingPage.expectPageLoaded({ timeout: 60_000 });
+    await landingPage.waitForGridDataRows();
+  });
+
+  test('LANDING-TASKS-EMPTY-001 — search with no-match query shows empty grid state on My Tasks tab @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-TASKS-EMPTY-001: Verify that searching with a query that matches no tasks shows an empty grid state on the My Tasks tab.',
+    );
+
+    let initialCount = 0;
+    await test.step('Verify initial grid has data rows', async () => {
+      initialCount = await landingPage.getGridRowCount();
+    });
+    test.skip(initialCount === 0, 'No tasks available for this user — cannot verify empty state transition.');
+
+    await test.step('Type a no-match search query', async () => {
+      await landingPage.searchTasksByName('ZZZNOMATCH_XYZ_99999_IMPOSSIBLE');
+    });
+
+    await test.step('Verify grid shows empty state (0 data rows)', async () => {
+      await landingPage.expectTasksGridEmptyState();
+    });
+  });
+
+  test('LANDING-TASKS-LINK-001 — clicking a task Name link navigates to the related detail page @regression', async ({ landingPage, page }) => {
+    await allure.suite('Landing Page - My Tasks');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-TASKS-LINK-001: Verify that clicking the Name link on a task row navigates to the related Release Detail or DOC Detail page.',
+    );
+
+    let rowCount = 0;
+    await test.step('Verify at least one task row exists', async () => {
+      rowCount = await landingPage.getGridRowCount();
+    });
+    test.skip(rowCount === 0, 'No tasks assigned to this user — cannot test row navigation.');
+
+    let hasLink = false;
+    await test.step('Click the first task Name link', async () => {
+      const nameLink = landingPage.grid.getByRole('link').first();
+      hasLink = await nameLink.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!hasLink) return;
+      await nameLink.click();
+    });
+    test.skip(!hasLink, 'No clickable task name link found in My Tasks grid row.');
+
+    await test.step('Verify navigation to Release Detail or DOC Detail page', async () => {
+      await page.waitForURL(/ReleaseDetail|DOCDetail/, { timeout: 30_000 });
+    });
+  });
+});

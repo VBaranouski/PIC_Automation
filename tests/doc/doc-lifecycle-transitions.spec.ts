@@ -1,5 +1,5 @@
 /**
- * Spec 11.13a — DOC Lifecycle Stage Transitions
+ * Spec 11.13.1 — DOC Lifecycle Stage Transitions
  *
  * Covers P1 scenarios for DOC stage transitions:
  *   DOC-LIFECYCLE-031: Completing Initiate DOC advances to Scope ITS Controls
@@ -30,7 +30,7 @@ const ACTIONS_CLOSURE_DOC_URL =
 const COMPLETED_DOC_URL =
   '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
-test.describe('DOC - Lifecycle Stage Transitions (11.13a) @regression', () => {
+test.describe('DOC - Lifecycle Stage Transitions (11.13.1) @regression', () => {
   test.setTimeout(180_000);
 
   // ── DOC-LIFECYCLE-031 ─────────────────────────────────────────────────────────────
