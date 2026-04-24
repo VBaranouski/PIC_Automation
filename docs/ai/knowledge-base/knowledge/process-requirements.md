@@ -23,16 +23,10 @@ The **Process Requirements** tab (under Release Detail) lists mandatory engineer
 - Actions in the banner: **Keep previous version**, **Change version** (opens row selector; offers "Update status to Planned" toggle, default off).
 
 ### Delegated status popup (feature 587596145)
-Triggered by: three-dot menu → **Delegated**, OR Actions → View/Edit → Edit → set status = Delegated. Popup adds these required fields:
+Triggered by: three-dot menu → **Delegated**, OR Actions → View/Edit → Edit → set status = Delegated.
 
-| Field | Type | Notes |
-|---|---|---|
-| Product Name | dropdown + search | Search by Product ID or Product Name. `Other Product` option pinned to top. |
-| Other Product | free text | Appears only when `Other Product` is selected. Mandatory. |
-| Contact Person | lookup | Mandatory. |
-| Release | dropdown | Filtered by selected Product. |
-| Evidence link | URL | As today. |
-| Justification | free text | As today. |
+> **Full field reference, validation rules, XLSX export/import columns, Jira/Jama sync warning, and CSRR display details** are in the dedicated knowledge file:
+> `docs/ai/knowledge-base/knowledge/delegated-requirements-traceability.md`
 
 ## Workflows / Business Rules
 

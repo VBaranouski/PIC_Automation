@@ -13,7 +13,8 @@
 | products.history | Product change history log | active | PRODUCT-HISTORY-* | — | — | — | — |
 | products.actions | Cross-release actions window | active | PRODUCT-ACTIONS-* | — | — | — | — |
 | products.doc.initiate | Initiate DOC from product | active | PRODUCT-DOC-* | — | — | — | — |
-| products.inactivate | Inactivate product (admin) | active | PRODUCT-INACTIVATE-* | — | — | — | — |
+| products.inactivate | Inactivate product (admin) | active | PRODUCT-INACTIVATE-* | — | 561972034 | — | 2026-04-24 |
+| products.release-inactivate | Inactivate release (admin) | active | RELEASE-INACTIVATE-* | — | 561972034 | — | 2026-04-24 |
 | products.risk-profile.calculator | Product Risk Profile Calculator — factor selection, calculation, save | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
 | products.risk-profile.details-section | Risk Profile section on Product Details page | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |
 | products.risk-profile.override | Override Risk Profile popup CRUD | active | RISK-PROFILE-* | 3.6 | 576728755 | — | 2025-07-22 |

@@ -30,6 +30,7 @@ dist/
 # Temporary debug / diagnostic scripts
 diagnose-*.mjs
 diagnose-*.ts
+.playwright-mcp/
 tmp/
 
 # Tracker DB & exports (SQLite — rebuild via `npm run tracker:sync`)

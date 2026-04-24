@@ -1,3 +1,0 @@
-[    1088ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/?plugins=forms,container-queries:63
-[    1172ms] Identifier 'WORKFLOW_ORDER' has already been declared
-[    1326ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3005/favicon.ico:0
