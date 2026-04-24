@@ -367,15 +367,14 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle010CertTabVisible = false;
       await test.step('Open the Certification Decision tab', async () => {
         const certTab = page.getByRole('tab', { name: 'Certification Decision' });
-        const isTabVisible = await certTab.isVisible().catch(() => false);
-        if (!isTabVisible) {
-          test.skip(true, 'Certification Decision tab not available on this DOC — skipping frozen-state check.');
-          return;
-        }
+        lifecycle010CertTabVisible = await certTab.isVisible().catch(() => false);
+        if (!lifecycle010CertTabVisible) return;
         await docDetailsPage.clickCertificationDecisionTab();
       });
+      test.skip(!lifecycle010CertTabVisible, 'Certification Decision tab not available on this DOC — skipping frozen-state check.');
 
       await test.step('Verify "Propose Decision" button is NOT present (frozen state)', async () => {
         const proposeDecisionBtn = page.getByRole('button', { name: 'Propose Decision' });
@@ -591,20 +590,18 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.clickITSChecklistTab();
       });
 
+      let lifecycle016HasSentBack = false;
       await test.step('Check for "Sent Back for Update" status in controls', async () => {
         const itsPanel = page
           .getByRole('tabpanel')
           .filter({ has: page.getByText('IT SECURITY CONTROLS') })
           .first();
         const panelText = await itsPanel.textContent() ?? '';
-        const hasSentBack = /Sent Back for Update/i.test(panelText);
-
-        if (!hasSentBack) {
-          test.skip(true, 'No controls with "Sent Back for Update" status found on this DOC.');
-          return;
-        }
-        expect(hasSentBack).toBe(true);
+        lifecycle016HasSentBack = /Sent Back for Update/i.test(panelText);
+        if (!lifecycle016HasSentBack) return;
+        expect(lifecycle016HasSentBack).toBe(true);
       });
+      test.skip(!lifecycle016HasSentBack, 'No controls with "Sent Back for Update" status found on this DOC.');
     });
 
   // ── TC-LIFECYCLE-017 ──────────────────────────────────────────────────────
@@ -630,20 +627,18 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.clickITSChecklistTab();
       });
 
+      let lifecycle017HasRemediation = false;
       await test.step('Check for "Remediation Required" status in controls', async () => {
         const itsPanel = page
           .getByRole('tabpanel')
           .filter({ has: page.getByText('IT SECURITY CONTROLS') })
           .first();
         const panelText = await itsPanel.textContent() ?? '';
-        const hasRemediation = /Remediation Required/i.test(panelText);
-
-        if (!hasRemediation) {
-          test.skip(true, 'No controls with "Remediation Required" status found on this DOC.');
-          return;
-        }
-        expect(hasRemediation).toBe(true);
+        lifecycle017HasRemediation = /Remediation Required/i.test(panelText);
+        if (!lifecycle017HasRemediation) return;
+        expect(lifecycle017HasRemediation).toBe(true);
       });
+      test.skip(!lifecycle017HasRemediation, 'No controls with "Remediation Required" status found on this DOC.');
     });
 
   // ── TC-LIFECYCLE-018 ──────────────────────────────────────────────────────
@@ -692,16 +687,14 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle019SendBackVisible = false;
       await test.step('Check for Send Back button', async () => {
         const sendBackBtn = page.getByRole('button', { name: /Send Back/i });
-        const isVisible = await sendBackBtn.isVisible().catch(() => false);
-
-        if (!isVisible) {
-          test.skip(true, 'Send Back button not visible — DOC may not be at Risk Summary Review stage.');
-          return;
-        }
+        lifecycle019SendBackVisible = await sendBackBtn.isVisible().catch(() => false);
+        if (!lifecycle019SendBackVisible) return;
         await expect(sendBackBtn).toBeVisible();
       });
+      test.skip(!lifecycle019SendBackVisible, 'Send Back button not visible — DOC may not be at Risk Summary Review stage.');
     });
 
   // ── TC-LIFECYCLE-020 ──────────────────────────────────────────────────────
@@ -787,31 +780,28 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle022CertTabVisible = false;
       await test.step('Open Certification Decision tab', async () => {
         const certTab = page.getByRole('tab', { name: 'Certification Decision' });
-        const isVisible = await certTab.isVisible().catch(() => false);
-        if (!isVisible) {
-          test.skip(true, 'Certification Decision tab not available on this DOC.');
-          return;
-        }
+        lifecycle022CertTabVisible = await certTab.isVisible().catch(() => false);
+        if (!lifecycle022CertTabVisible) return;
         await docDetailsPage.clickCertificationDecisionTab();
       });
+      test.skip(!lifecycle022CertTabVisible, 'Certification Decision tab not available on this DOC.');
 
+      let lifecycle022HasCwE = false;
       await test.step('Check for "Certified with Exception" decision and 2 approvers', async () => {
         const certPanel = page.getByRole('tabpanel').first();
         const panelText = await certPanel.textContent() ?? '';
-        const hasCwE = /Certified with Exception/i.test(panelText);
-
-        if (!hasCwE) {
-          test.skip(true, 'DOC does not have "Certified with Exception" decision — skipping 2-approver check.');
-          return;
-        }
+        lifecycle022HasCwE = /Certified with Exception/i.test(panelText);
+        if (!lifecycle022HasCwE) return;
 
         // Count approver rows — look for signature entries
         const approverRows = certPanel.locator('[class*="approver"], [class*="signature"]');
         const approverCount = await approverRows.count();
         expect(approverCount, 'CwE decision should require at least 2 approvers').toBeGreaterThanOrEqual(2);
       });
+      test.skip(!lifecycle022HasCwE, 'DOC does not have "Certified with Exception" decision — skipping 2-approver check.');
     });
 
   // ── TC-LIFECYCLE-023 ──────────────────────────────────────────────────────
@@ -834,30 +824,27 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle023CertTabVisible = false;
       await test.step('Open Certification Decision tab', async () => {
         const certTab = page.getByRole('tab', { name: 'Certification Decision' });
-        const isVisible = await certTab.isVisible().catch(() => false);
-        if (!isVisible) {
-          test.skip(true, 'Certification Decision tab not available on this DOC.');
-          return;
-        }
+        lifecycle023CertTabVisible = await certTab.isVisible().catch(() => false);
+        if (!lifecycle023CertTabVisible) return;
         await docDetailsPage.clickCertificationDecisionTab();
       });
+      test.skip(!lifecycle023CertTabVisible, 'Certification Decision tab not available on this DOC.');
 
+      let lifecycle023HasWaiver = false;
       await test.step('Check for "Waiver" decision and 3 approvers', async () => {
         const certPanel = page.getByRole('tabpanel').first();
         const panelText = await certPanel.textContent() ?? '';
-        const hasWaiver = /Waiver/i.test(panelText);
-
-        if (!hasWaiver) {
-          test.skip(true, 'DOC does not have "Waiver" decision — skipping 3-approver check.');
-          return;
-        }
+        lifecycle023HasWaiver = /Waiver/i.test(panelText);
+        if (!lifecycle023HasWaiver) return;
 
         const approverRows = certPanel.locator('[class*="approver"], [class*="signature"]');
         const approverCount = await approverRows.count();
         expect(approverCount, 'Waiver decision should require at least 3 approvers').toBeGreaterThanOrEqual(3);
       });
+      test.skip(!lifecycle023HasWaiver, 'DOC does not have "Waiver" decision — skipping 3-approver check.');
     });
 
   // ── TC-LIFECYCLE-024 ──────────────────────────────────────────────────────
@@ -879,27 +866,24 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle024CertTabVisible = false;
       await test.step('Open Certification Decision tab', async () => {
         const certTab = page.getByRole('tab', { name: 'Certification Decision' });
-        const isVisible = await certTab.isVisible().catch(() => false);
-        if (!isVisible) {
-          test.skip(true, 'Certification Decision tab not available on this DOC.');
-          return;
-        }
+        lifecycle024CertTabVisible = await certTab.isVisible().catch(() => false);
+        if (!lifecycle024CertTabVisible) return;
         await docDetailsPage.clickCertificationDecisionTab();
       });
+      test.skip(!lifecycle024CertTabVisible, 'Certification Decision tab not available on this DOC.');
 
+      let lifecycle024HasRejectReturn = false;
       await test.step('Check for Reject/Return action buttons', async () => {
         const certPanel = page.getByRole('tabpanel').first();
         const panelText = await certPanel.textContent() ?? '';
-        const hasRejectReturn = /Reject|Return|Rejected/i.test(panelText);
-
-        if (!hasRejectReturn) {
-          test.skip(true, 'No Reject/Return action found — DOC may not be at approval stage or user lacks privilege.');
-          return;
-        }
-        expect(hasRejectReturn).toBe(true);
+        lifecycle024HasRejectReturn = /Reject|Return|Rejected/i.test(panelText);
+        if (!lifecycle024HasRejectReturn) return;
+        expect(lifecycle024HasRejectReturn).toBe(true);
       });
+      test.skip(!lifecycle024HasRejectReturn, 'No Reject/Return action found — DOC may not be at approval stage or user lacks privilege.');
     });
 
   // ── TC-LIFECYCLE-025 ──────────────────────────────────────────────────────
@@ -1019,14 +1003,16 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle028ShouldSkip = false;
       await test.step('Check Revoke DOC button availability', async () => {
         const hasRevoke = await docDetailsPage.hasRevokeDocButton();
         if (hasRevoke) {
           await docDetailsPage.expectRevokeDocButtonVisible();
         } else {
-          test.skip(true, 'Revoke DOC button not visible — user may lack REVOKE_DOC privilege.');
+          lifecycle028ShouldSkip = true;
         }
       });
+      test.skip(lifecycle028ShouldSkip, 'Revoke DOC button not visible — user may lack REVOKE_DOC privilege.');
     });
 
   // ── TC-LIFECYCLE-029 ──────────────────────────────────────────────────────
@@ -1048,6 +1034,7 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
         await docDetailsPage.waitForOSLoad();
       });
 
+      let lifecycle029ShouldSkip = false;
       await test.step('Check for Actions Closure stage in pipeline', async () => {
         const actionsClosureTab = page.getByRole('tab', { name: /Actions Closure/i }).first();
         const isVisible = await actionsClosureTab.isVisible().catch(() => false);
@@ -1057,12 +1044,13 @@ test.describe('DOC - Lifecycle Transitions (11.13) @regression', () => {
           const headerText = await page.locator('.ThemeGrid_Width12').first().textContent() ?? '';
           const hasCwEOrWaiver = /Certified with Exception|Waiver/i.test(headerText);
           if (!hasCwEOrWaiver) {
-            test.skip(true, 'DOC does not have CwE/Waiver decision — Actions Closure not applicable.');
+            lifecycle029ShouldSkip = true;
             return;
           }
         }
         await expect(actionsClosureTab).toBeVisible({ timeout: 20_000 });
       });
+      test.skip(lifecycle029ShouldSkip, 'DOC does not have CwE/Waiver decision — Actions Closure not applicable.');
     });
 
   // ── TC-LIFECYCLE-030 ──────────────────────────────────────────────────────

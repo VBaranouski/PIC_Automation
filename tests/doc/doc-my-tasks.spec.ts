@@ -85,22 +85,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Provide DOC Details');
       });
 
+      let tasks006Visible = false;
       await test.step('Verify "Provide DOC Details" task appears in results', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_PROVIDE_DOC_DETAILS })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          // The test user may not be in the DO Team role — skip gracefully
-          test.skip(true, '"Provide DOC Details" task not visible for the current test user — role may not be in DO Team.');
-          return;
-        }
-
+        tasks006Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks006Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks006Visible, '"Provide DOC Details" task not visible for the current test user — role may not be in DO Team.');
     });
 
   // ── DOC-TASKS-007 ───────────────────────────────────────────────────────────────
@@ -134,21 +130,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Initiate DOC');
       });
 
+      let tasks007Visible = false;
       await test.step('Verify "Initiate DOC" task appears or test user is not DOCL', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_INITIATE_DOC })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Initiate DOC" task not visible — test user may not be DOCL.');
-          return;
-        }
-
+        tasks007Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks007Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks007Visible, '"Initiate DOC" task not visible — test user may not be DOCL.');
     });
 
   // ── DOC-TASKS-008 ───────────────────────────────────────────────────────────────
@@ -192,6 +185,7 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Initiate DOC');
       });
 
+      let tasks008ShouldSkip = false;
       await test.step('Verify closed "Initiate DOC" tasks are shown or not visible (already closed)', async () => {
         const taskGrid = landingPage.grid;
         const initiateDocRows = taskGrid
@@ -210,9 +204,10 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
           expect(rowText.length, 'Task row should contain task information').toBeGreaterThan(0);
         } else {
           // No rows found for current user — role-scoped skip
-          test.skip(true, '"Initiate DOC" tasks not visible for the current test user — role may not be DOCL.');
+          tasks008ShouldSkip = true;
         }
       });
+      test.skip(tasks008ShouldSkip, '"Initiate DOC" tasks not visible for the current test user — role may not be DOCL.');
     });
 
   // ── DOC-TASKS-009 ───────────────────────────────────────────────────────────────
@@ -249,21 +244,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Define controls scope');
       });
 
+      let tasks009Visible = false;
       await test.step('Verify "Define controls scope for DOC" task is present', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_DEFINE_CONTROLS_SCOPE })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Define controls scope for DOC" task not visible — test user may not be DOCL.');
-          return;
-        }
-
+        tasks009Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks009Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks009Visible, '"Define controls scope for DOC" task not visible — test user may not be DOCL.');
     });
 
   // ── DOC-TASKS-010 ───────────────────────────────────────────────────────────────
@@ -293,21 +285,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Provide control');
       });
 
+      let tasks010Visible = false;
       await test.step('Verify "Provide control\'s details for ITS Risk Assessment" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_PROVIDE_CONTROL_DETAILS })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Provide control\'s details" task not visible — test user may not be in DO Team or RA not started.');
-          return;
-        }
-
+        tasks010Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks010Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks010Visible, '"Provide control\'s details" task not visible — test user may not be in DO Team or RA not started.');
     });
 
   // ── DOC-TASKS-011 ───────────────────────────────────────────────────────────────
@@ -336,21 +325,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Evaluate control');
       });
 
+      let tasks011Visible = false;
       await test.step('Verify "Evaluate control submitted to ITS Risk Assessment" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_EVALUATE_CONTROL })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Evaluate control submitted" task not visible — test user may not be DOCL or no control submitted.');
-          return;
-        }
-
+        tasks011Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks011Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks011Visible, '"Evaluate control submitted" task not visible — test user may not be DOCL or no control submitted.');
     });
 
   // ── DOC-TASKS-012 ───────────────────────────────────────────────────────────────
@@ -380,21 +366,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Review completed ITS');
       });
 
+      let tasks012Visible = false;
       await test.step('Verify "Review completed ITS Risk Assessment" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_REVIEW_ITS_RA })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Review completed ITS Risk Assessment" task not visible — test user may not be Digital Risk Lead.');
-          return;
-        }
-
+        tasks012Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks012Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks012Visible, '"Review completed ITS Risk Assessment" task not visible — test user may not be Digital Risk Lead.');
     });
 
   // ── DOC-TASKS-013 ───────────────────────────────────────────────────────────────
@@ -424,21 +407,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Update the ITS Risk Assessment');
       });
 
+      let tasks013Visible = false;
       await test.step('Verify "Update the ITS Risk Assessment data" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_UPDATE_ITS_RA })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Update the ITS Risk Assessment data" task not visible — no DOC in rework state or user role mismatch.');
-          return;
-        }
-
+        tasks013Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks013Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks013Visible, '"Update the ITS Risk Assessment data" task not visible — no DOC in rework state or user role mismatch.');
     });
 
   // ── DOC-TASKS-014 ───────────────────────────────────────────────────────────────
@@ -468,21 +448,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Issue Certification');
       });
 
+      let tasks014Visible = false;
       await test.step('Verify Issue Certification task for Digital Risk Lead', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_ISSUE_CERTIFICATION })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, 'Issue Certification task not visible — test user may not be Digital Risk Lead or DOC not in Decision Proposal.');
-          return;
-        }
-
+        tasks014Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks014Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks014Visible, 'Issue Certification task not visible — test user may not be Digital Risk Lead or DOC not in Decision Proposal.');
     });
 
   // ── DOC-TASKS-015 ───────────────────────────────────────────────────────────────
@@ -512,21 +489,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Provide signature');
       });
 
+      let tasks015Visible = false;
       await test.step('Verify "Provide signature for DOC Decision" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_PROVIDE_SIGNATURE })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Provide signature for DOC Decision" task not visible — test user may not be BU Security Officer.');
-          return;
-        }
-
+        tasks015Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks015Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks015Visible, '"Provide signature for DOC Decision" task not visible — test user may not be BU Security Officer.');
     });
 
   // ── DOC-TASKS-016 ───────────────────────────────────────────────────────────────
@@ -556,21 +530,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Update DOC Decision Proposal');
       });
 
+      let tasks016Visible = false;
       await test.step('Verify "Update DOC Decision Proposal" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_UPDATE_PROPOSAL })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Update DOC Decision Proposal" task not visible — test user may not be Digital Risk Lead or no DOC in that rework state.');
-          return;
-        }
-
+        tasks016Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks016Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks016Visible, '"Update DOC Decision Proposal" task not visible — test user may not be Digital Risk Lead or no DOC in that rework state.');
     });
 
   // ── DOC-TASKS-017 ───────────────────────────────────────────────────────────────
@@ -600,21 +571,18 @@ test.describe('DOC - My Tasks Lifecycle (11.17) @regression', () => {
         await landingPage.searchTasksByName('Update the ITS Risk Summary');
       });
 
+      let tasks017Visible = false;
       await test.step('Verify "Update the ITS Risk Summary" task', async () => {
         const taskRow = landingPage.grid
           .getByRole('row')
           .filter({ hasText: TASK_UPDATE_RISK_SUMMARY })
           .first();
 
-        const taskVisible = await taskRow.isVisible().catch(() => false);
-
-        if (!taskVisible) {
-          test.skip(true, '"Update the ITS Risk Summary" task not visible — test user may not be Digital Risk Lead or no DOC in rework state.');
-          return;
-        }
-
+        tasks017Visible = await taskRow.isVisible().catch(() => false);
+        if (!tasks017Visible) return;
         await expect(taskRow).toBeVisible({ timeout: 15_000 });
       });
+      test.skip(!tasks017Visible, '"Update the ITS Risk Summary" task not visible — test user may not be Digital Risk Lead or no DOC in rework state.');
     });
 
   // ── DOC-TASKS-018 ───────────────────────────────────────────────────────────────
