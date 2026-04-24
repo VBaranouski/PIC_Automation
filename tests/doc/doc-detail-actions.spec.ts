@@ -590,27 +590,24 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 		// Use the seed DOC which may have no actions in a fresh environment
 		const seedDocUrl = '/GRC_PICASso_DOC/DOCDetail?DOCId=538&ProductId=944';
 
+		let actions022TabVisible = false;
 		await test.step('Navigate to DOC and switch to Action Plan', async () => {
 			await page.goto(seedDocUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
 			await docDetailsPage.waitForOSLoad();
 
 			const actionPlanTab = page.getByRole('tab', { name: 'Action Plan' });
-			const isTabVisible = await actionPlanTab.isVisible().catch(() => false);
-			if (!isTabVisible) {
-				test.skip(true, 'Action Plan tab not visible on this DOC.');
-				return;
-			}
+			actions022TabVisible = await actionPlanTab.isVisible().catch(() => false);
+			if (!actions022TabVisible) return;
 			await docDetailsPage.clickActionPlanTab();
 		});
+		test.skip(!actions022TabVisible, 'Action Plan tab not visible on this DOC.');
 
+		let actions022HasExistingRows = false;
 		await test.step('Check for empty state message or existing actions', async () => {
 			const hasNoActions = await docDetailsPage.hasActionPlanNoActionsMessage();
-			const hasRows = await docDetailsPage.hasActionPlanRows();
+			actions022HasExistingRows = await docDetailsPage.hasActionPlanRows();
 
-			if (hasRows) {
-				test.skip(true, 'DOC has existing actions — cannot verify empty state. Test requires a DOC with no actions.');
-				return;
-			}
+			if (actions022HasExistingRows) return;
 
 			if (hasNoActions) {
 				await docDetailsPage.expectActionPlanNoActionsMessageVisible();
@@ -620,5 +617,6 @@ test.describe('DOC - Action Plan Tab (11.9) @regression', () => {
 				expect(rowCount, 'Action Plan grid should show 0 rows when no actions exist').toBe(0);
 			}
 		});
+		test.skip(actions022HasExistingRows, 'DOC has existing actions — cannot verify empty state. Test requires a DOC with no actions.');
 	});
 });

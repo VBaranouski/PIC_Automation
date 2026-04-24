@@ -22,10 +22,8 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
       'LANDING-REPORTS-DATA-001: Verify the Reports & Dashboards grid displays Responsible Users columns (Product Owner, Security Manager, etc.).',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports & Dashboards grid is not rendered in current QA state.');
-    });
+    const isGridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!isGridVisible, 'Reports & Dashboards grid is not rendered in current QA state.');
 
     await test.step('Verify responsible user columns are present in headers', async () => {
       const headers = await landingPage.getColumnHeaders();
@@ -43,18 +41,22 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
       'LANDING-REPORTS-DATA-003: Verify that clicking the Product Name link in the Reports & Dashboards grid navigates to the Product Detail page.',
     );
 
+    let gridVisible003 = false;
     await test.step('Verify the grid is visible and has rows', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports & Dashboards grid not rendered — skipping.');
+      gridVisible003 = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+      if (!gridVisible003) return;
       await landingPage.waitForGridDataRows();
     });
+    test.skip(!gridVisible003, 'Reports & Dashboards grid not rendered — skipping.');
 
+    let hasProductLink = false;
     await test.step('Click the first Product Name link in the grid', async () => {
       const productLink = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
-      const hasLink = await productLink.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!hasLink, 'No product link found in first row — skipping.');
+      hasProductLink = await productLink.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!hasProductLink) return;
       await productLink.click();
     });
+    test.skip(!hasProductLink, 'No product link found in first row — skipping.');
 
     await test.step('Verify navigation to Product Detail page', async () => {
       await page.waitForURL(/ProductDetail/, { timeout: 30_000 });
@@ -70,14 +72,16 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
       'LANDING-REPORTS-DATA-004: Verify that clicking the Release link in the Reports & Dashboards grid navigates to the Release Detail page.',
     );
 
+    let gridVisible004 = false;
     await test.step('Verify the grid is visible and has rows', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports & Dashboards grid not rendered — skipping.');
+      gridVisible004 = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+      if (!gridVisible004) return;
       await landingPage.waitForGridDataRows();
     });
+    test.skip(!gridVisible004, 'Reports & Dashboards grid not rendered — skipping.');
 
+    let releaseLink: import('@playwright/test').Locator | null = null;
     await test.step('Find and click a Release link in the grid', async () => {
-      let releaseLink: import('@playwright/test').Locator | null = null;
       const rowCount = await landingPage.getGridRowCount();
       for (let r = 1; r <= Math.min(rowCount, 10); r++) {
         const links = landingPage.grid.getByRole('row').nth(r).getByRole('link');
@@ -91,9 +95,10 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
         }
         if (releaseLink) break;
       }
-      test.skip(!releaseLink, 'No Release link found in first 10 rows — skipping.');
-      await releaseLink!.click();
+      if (!releaseLink) return;
+      await releaseLink.click();
     });
+    test.skip(!releaseLink, 'No Release link found in first 10 rows — skipping.');
 
     await test.step('Verify navigation to Release Detail page', async () => {
       await page.waitForURL(/ReleaseDetail/, { timeout: 30_000 });
@@ -109,14 +114,16 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
       'LANDING-REPORTS-DATA-005: Verify that clicking the Number of Open Actions/Conditions link navigates to the Actions Summary page.',
     );
 
+    let gridVisible005 = false;
     await test.step('Verify the grid is visible and has rows', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports & Dashboards grid not rendered — skipping.');
+      gridVisible005 = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+      if (!gridVisible005) return;
       await landingPage.waitForGridDataRows();
     });
+    test.skip(!gridVisible005, 'Reports & Dashboards grid not rendered — skipping.');
 
+    let actionsLink: import('@playwright/test').Locator | null = null;
     await test.step('Find and click an Open Actions or Open Conditions numeric link', async () => {
-      let actionsLink: import('@playwright/test').Locator | null = null;
       const rowCount = await landingPage.getGridRowCount();
       for (let r = 1; r <= Math.min(rowCount, 10); r++) {
         const links = landingPage.grid.getByRole('row').nth(r).getByRole('link');
@@ -131,9 +138,10 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
         }
         if (actionsLink) break;
       }
-      test.skip(!actionsLink, 'No Open Actions numeric link found — may require data with open actions.');
-      await actionsLink!.click();
+      if (!actionsLink) return;
+      await actionsLink.click();
     });
+    test.skip(!actionsLink, 'No Open Actions numeric link found — may require data with open actions.');
 
     await test.step('Verify navigation away from landing page (Actions Summary)', async () => {
       await page.waitForURL(/GRC_PICASso/, { timeout: 30_000 });
@@ -149,11 +157,13 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
       'LANDING-REPORTS-DATA-002: Verify that the Last BU Level FCSR Date column value is highlighted (e.g., red/orange CSS class) when the value is "Unknown" or the date is older than 12 months.',
     );
 
+    let gridVisible002 = false;
     await test.step('Verify the grid is visible and has rows', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports & Dashboards grid not rendered — skipping.');
+      gridVisible002 = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+      if (!gridVisible002) return;
       await landingPage.waitForGridDataRows();
     });
+    test.skip(!gridVisible002, 'Reports & Dashboards grid not rendered — skipping.');
 
     await test.step('Check for any highlighted FCSR date cells in the grid', async () => {
       const result = await landingPage.grid.evaluate((grid: any) => {
@@ -175,9 +185,10 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
         }
         return found;
       });
-      // This is a soft assertion — pass if highlighted cell found, or skip if no data applies
+      // This is a soft assertion — pass if highlighted cell found, or warn and skip assertion if no applicable data
       if (!result) {
-        test.skip(true, 'No FCSR Date cell with highlighting found — may require data with Unknown or old dates.');
+        console.warn('[LANDING-REPORTS-DATA-002] No FCSR Date cell with highlighting found — may require data with Unknown or old dates.');
+        return;
       }
       expect(result).toBe(true);
     });
@@ -191,9 +202,10 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
       'LANDING-REPORTS-DATA-006: Verify the "Access Tableau" link in the Reports & Dashboards tab is visible and points to a Tableau URL.',
     );
 
+    const tableauVisible = await landingPage.reportsAccessTableauLink.isVisible({ timeout: 10_000 }).catch(() => false);
+    test.skip(!tableauVisible, '"Access Tableau" link not present in current QA environment — skipping.');
+
     await test.step('Verify Access Tableau link is visible', async () => {
-      const isVisible = await landingPage.reportsAccessTableauLink.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!isVisible, '"Access Tableau" link not present in current QA environment — skipping.');
       await landingPage.expectAccessTableauLinkVisible();
     });
 
@@ -226,15 +238,14 @@ test.describe('Landing Page - Reports & Dashboards Filters @regression', () => {
       'LANDING-REPORTS-FILTER-001: Verify that selecting an Org Level 1 value filters the Reports grid results.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const f001GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!f001GridVisible, 'Reports grid not rendered — skipping.');
 
+    let f001Option: string | null = null;
     await test.step('Select the first available Org Level 1 option', async () => {
-      const optionText = await landingPage.filterReportsByOrgLevel1();
-      test.skip(!optionText, 'No Org Level 1 options available to select.');
+      f001Option = await landingPage.filterReportsByOrgLevel1();
     });
+    test.skip(!f001Option, 'No Org Level 1 options available to select.');
 
     await test.step('Verify grid is still visible after filter', async () => {
       await landingPage.expectGridVisible();
@@ -253,20 +264,20 @@ test.describe('Landing Page - Reports & Dashboards Filters @regression', () => {
       'LANDING-REPORTS-FILTER-002: Verify that Org Level 2 becomes populated/enabled after an Org Level 1 value is selected.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const f002GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!f002GridVisible, 'Reports grid not rendered — skipping.');
 
+    let f002Level1: string | null = null;
     await test.step('Apply Org Level 1 filter first', async () => {
-      const optionText = await landingPage.filterReportsByOrgLevel1();
-      test.skip(!optionText, 'No Org Level 1 options available — cannot test Level 2 dependency.');
+      f002Level1 = await landingPage.filterReportsByOrgLevel1();
     });
+    test.skip(!f002Level1, 'No Org Level 1 options available — cannot test Level 2 dependency.');
 
+    let f002Level2: string | null = null;
     await test.step('Apply Org Level 2 filter (should now have options)', async () => {
-      const optionText = await landingPage.filterReportsByOrgLevel2();
-      test.skip(!optionText, 'No Org Level 2 options available after Org Level 1 selection.');
+      f002Level2 = await landingPage.filterReportsByOrgLevel2();
     });
+    test.skip(!f002Level2, 'No Org Level 2 options available after Org Level 1 selection.');
 
     await test.step('Verify grid is still visible', async () => {
       await landingPage.expectGridVisible();
@@ -285,20 +296,20 @@ test.describe('Landing Page - Reports & Dashboards Filters @regression', () => {
       'LANDING-REPORTS-FILTER-003: Verify the Product dropdown in Reports shows products that match the selected Org Level filters.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const f003GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!f003GridVisible, 'Reports grid not rendered — skipping.');
 
+    let f003Level1: string | null = null;
     await test.step('Apply Org Level 1 to narrow product options', async () => {
-      const optionText = await landingPage.filterReportsByOrgLevel1();
-      test.skip(!optionText, 'No Org Level 1 options available — skipping.');
+      f003Level1 = await landingPage.filterReportsByOrgLevel1();
     });
+    test.skip(!f003Level1, 'No Org Level 1 options available — skipping.');
 
+    let f003Product: string | null = null;
     await test.step('Apply Product filter using first available option', async () => {
-      const optionText = await landingPage.filterReportsByProduct();
-      test.skip(!optionText, 'No Product options available after Org Level 1 — skipping.');
+      f003Product = await landingPage.filterReportsByProduct();
     });
+    test.skip(!f003Product, 'No Product options available after Org Level 1 — skipping.');
 
     await test.step('Verify grid is still visible', async () => {
       await landingPage.expectGridVisible();
@@ -317,20 +328,20 @@ test.describe('Landing Page - Reports & Dashboards Filters @regression', () => {
       'LANDING-REPORTS-FILTER-004: Verify the Release Number dropdown in Reports shows releases for the selected product.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const f004GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!f004GridVisible, 'Reports grid not rendered — skipping.');
 
+    let f004Product: string | null = null;
     await test.step('Apply Product filter first to enable Release Number', async () => {
-      const optionText = await landingPage.filterReportsByProduct();
-      test.skip(!optionText, 'No Product options available — cannot test Release Number filter.');
+      f004Product = await landingPage.filterReportsByProduct();
     });
+    test.skip(!f004Product, 'No Product options available — cannot test Release Number filter.');
 
+    let f004Release: string | null = null;
     await test.step('Apply Release Number filter', async () => {
-      const optionText = await landingPage.filterReportsByReleaseNumber();
-      test.skip(!optionText, 'No Release Number options available after product selection — skipping.');
+      f004Release = await landingPage.filterReportsByReleaseNumber();
     });
+    test.skip(!f004Release, 'No Release Number options available after product selection — skipping.');
 
     await test.step('Verify grid is still visible', async () => {
       await landingPage.expectGridVisible();
@@ -349,15 +360,14 @@ test.describe('Landing Page - Reports & Dashboards Filters @regression', () => {
       'LANDING-REPORTS-FILTER-005: Verify that clicking the Reset button on Reports & Dashboards clears all applied filters and restores the default state.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const f005GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!f005GridVisible, 'Reports grid not rendered — skipping.');
 
+    let f005Option: string | null = null;
     await test.step('Apply an Org Level 1 filter to change state', async () => {
-      const optionText = await landingPage.filterReportsByOrgLevel1();
-      test.skip(!optionText, 'No Org Level 1 options available — skipping filter+reset test.');
+      f005Option = await landingPage.filterReportsByOrgLevel1();
     });
+    test.skip(!f005Option, 'No Org Level 1 options available — skipping filter+reset test.');
 
     await test.step('Click Reset', async () => {
       await landingPage.resetFilters();
@@ -391,21 +401,18 @@ test.describe('Landing Page - Reports & Dashboards Date & Type Filters @regressi
       'LANDING-REPORTS-DATEFILTER-001: Verify that setting a Product Creation Period date range narrows the Reports & Dashboards grid results.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const df001GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!df001GridVisible, 'Reports grid not rendered — skipping.');
 
-    await test.step('Verify the date range picker inputs are visible in the Reports tab', async () => {
-      const pickerVisible = await landingPage.reportsDateRangePicker.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!pickerVisible, 'No date range picker found in Reports tab — skipping.');
-    });
+    const df001PickerVisible = await landingPage.reportsDateRangePicker.isVisible({ timeout: 10_000 }).catch(() => false);
+    test.skip(!df001PickerVisible, 'No date range picker found in Reports tab — skipping.');
 
+    let df001InputCount = 0;
     await test.step('Enter a narrow date range to filter (this year only)', async () => {
       const activePanel = landingPage['page'].locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
       const dateInputs = activePanel.getByRole('textbox');
-      const inputCount = await dateInputs.count();
-      test.skip(inputCount < 2, 'Less than 2 date inputs found — cannot set a date range.');
+      df001InputCount = await dateInputs.count();
+      if (df001InputCount < 2) return;
 
       // Fill start date and end date to current year
       const today = new Date();
@@ -416,6 +423,7 @@ test.describe('Landing Page - Reports & Dashboards Date & Type Filters @regressi
       await dateInputs.nth(1).fill(endDate);
       await dateInputs.nth(1).press('Enter');
     });
+    test.skip(df001InputCount < 2, 'Less than 2 date inputs found — cannot set a date range.');
 
     await test.step('Verify grid is still visible after filtering', async () => {
       await landingPage.expectGridVisible();
@@ -434,17 +442,18 @@ test.describe('Landing Page - Reports & Dashboards Date & Type Filters @regressi
       'LANDING-REPORTS-DATEFILTER-002: Verify that selecting a Product Type value in the Reports multi-select filter narrows the grid results.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const df002GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!df002GridVisible, 'Reports grid not rendered — skipping.');
 
+    let df002ProductType: string | null = null;
     await test.step('Apply Product Type filter using first available option', async () => {
-      const optionText = await landingPage.filterReportsByProductType();
-      test.skip(!optionText, 'No Product Type options available to select.');
-      // Dismiss the virtual combobox dropdown before interacting with other elements
-      await page.keyboard.press('Escape');
+      df002ProductType = await landingPage.filterReportsByProductType();
+      if (df002ProductType) {
+        // Dismiss the virtual combobox dropdown before interacting with other elements
+        await page.keyboard.press('Escape');
+      }
     });
+    test.skip(!df002ProductType, 'No Product Type options available to select.');
 
     await test.step('Verify grid is still visible', async () => {
       await landingPage.expectGridVisible();
@@ -477,27 +486,30 @@ test.describe('Landing Page - Reports & Dashboards Role Filters @regression', ()
       'LANDING-REPORTS-ROLE-001: Verify that the Product Owner filter narrows the Reports & Dashboards results to products/releases with the selected owner.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const r001GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!r001GridVisible, 'Reports grid not rendered — skipping.');
 
+    let r001MoreFiltersVisible = false;
     await test.step('Click More Filters to reveal role-based filters', async () => {
-      const moreFiltersVisible = await landingPage.reportsMoreFiltersLink.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!moreFiltersVisible, '"More Filters" link not found in Reports tab — skipping.');
+      r001MoreFiltersVisible = await landingPage.reportsMoreFiltersLink.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!r001MoreFiltersVisible) return;
       await landingPage.clickReportsMoreFilters();
     });
+    test.skip(!r001MoreFiltersVisible, '"More Filters" link not found in Reports tab — skipping.');
 
+    let r001OwnerOption: string | null = null;
+    let r001ComboboxCount = 0;
     await test.step('Apply Product Owner filter using first available option', async () => {
       // Product Owner filter is exposed after More Filters — use combobox index 6 (after org1, org2, org3, product, productType, releaseNumber)
       const activePanel = landingPage['page'].locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
       const comboboxes = activePanel.getByRole('combobox');
-      const count = await comboboxes.count();
-      test.skip(count < 7, `Expected at least 7 comboboxes after More Filters, found ${count} — skipping.`);
+      r001ComboboxCount = await comboboxes.count();
+      if (r001ComboboxCount < 7) return;
       const ownerDropdown = comboboxes.nth(6);
-      const optionText = await landingPage.selectFirstVirtualComboboxOption(ownerDropdown);
-      test.skip(!optionText, 'No Product Owner options available to select.');
+      r001OwnerOption = await landingPage.selectFirstVirtualComboboxOption(ownerDropdown);
     });
+    test.skip(r001ComboboxCount < 7, `Expected at least 7 comboboxes after More Filters, found ${r001ComboboxCount} — skipping.`);
+    test.skip(!r001OwnerOption, 'No Product Owner options available to select.');
 
     await test.step('Verify grid is still visible after filter', async () => {
       await landingPage.expectGridVisible();
@@ -516,29 +528,33 @@ test.describe('Landing Page - Reports & Dashboards Role Filters @regression', ()
       'LANDING-REPORTS-ROLE-002: Verify that multiple user role filters (e.g. Product Owner + Security Manager) can be applied simultaneously on the Reports tab.',
     );
 
-    await test.step('Verify grid is visible', async () => {
-      const isVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, 'Reports grid not rendered — skipping.');
-    });
+    const r002GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!r002GridVisible, 'Reports grid not rendered — skipping.');
 
+    let r002MoreFiltersVisible = false;
     await test.step('Click More Filters to reveal role-based filters', async () => {
-      const moreFiltersVisible = await landingPage.reportsMoreFiltersLink.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!moreFiltersVisible, '"More Filters" link not found — skipping.');
+      r002MoreFiltersVisible = await landingPage.reportsMoreFiltersLink.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!r002MoreFiltersVisible) return;
       await landingPage.clickReportsMoreFilters();
     });
+    test.skip(!r002MoreFiltersVisible, '"More Filters" link not found — skipping.');
 
+    let r002ComboboxCount = 0;
+    let r002OwnerOption: string | null = null;
     await test.step('Apply Product Owner and a second role filter', async () => {
       const activePanel = landingPage['page'].locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
       const comboboxes = activePanel.getByRole('combobox');
-      const count = await comboboxes.count();
-      test.skip(count < 8, `Expected at least 8 comboboxes for multi-role test, found ${count} — skipping.`);
+      r002ComboboxCount = await comboboxes.count();
+      if (r002ComboboxCount < 8) return;
       const ownerDropdown = comboboxes.nth(6);
-      const ownerOption = await landingPage.selectFirstVirtualComboboxOption(ownerDropdown);
-      test.skip(!ownerOption, 'No Product Owner options available — skipping multi-filter test.');
+      r002OwnerOption = await landingPage.selectFirstVirtualComboboxOption(ownerDropdown);
+      if (!r002OwnerOption) return;
 
       const secManagerDropdown = comboboxes.nth(7);
       await landingPage.selectFirstVirtualComboboxOption(secManagerDropdown);
     });
+    test.skip(r002ComboboxCount < 8, `Expected at least 8 comboboxes for multi-role test, found ${r002ComboboxCount} — skipping.`);
+    test.skip(!r002OwnerOption, 'No Product Owner options available — skipping multi-filter test.');
 
     await test.step('Verify grid is still visible with multiple filters applied', async () => {
       await landingPage.expectGridVisible();
@@ -571,10 +587,8 @@ test.describe('Landing Page - Reports & Dashboards Configure Columns @regression
       'LANDING-REPORTS-CONFIG-001: Verify the "Configure Columns" button is visible and opens a column selection panel/dropdown.',
     );
 
-    await test.step('Verify Configure Columns button is visible', async () => {
-      const isVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isVisible, '"Configure Columns" button not found in Reports & Dashboards tab — skipping.');
-    });
+    const cfg001ButtonVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 15_000 }).catch(() => false);
+    test.skip(!cfg001ButtonVisible, '"Configure Columns" button not found in Reports & Dashboards tab — skipping.');
 
     await test.step('Click Configure Columns button', async () => {
       await landingPage.clickReportsConfigureColumns();
@@ -598,28 +612,33 @@ test.describe('Landing Page - Reports & Dashboards Configure Columns @regression
     );
 
     let initialColumnCount: number;
-
+    let cfg002GridVisible = false;
     await test.step('Capture initial column count', async () => {
-      const isGridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isGridVisible, 'Reports grid not rendered — skipping.');
+      cfg002GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+      if (!cfg002GridVisible) return;
       const headers = await landingPage.getColumnHeaders();
       initialColumnCount = headers.length;
     });
+    test.skip(!cfg002GridVisible, 'Reports grid not rendered — skipping.');
 
+    let cfg002ButtonVisible = false;
     await test.step('Open Configure Columns', async () => {
-      const isVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!isVisible, '"Configure Columns" button not found — skipping.');
+      cfg002ButtonVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!cfg002ButtonVisible) return;
       await landingPage.clickReportsConfigureColumns();
       await landingPage.expectReportsColumnConfigVisible();
     });
+    test.skip(!cfg002ButtonVisible, '"Configure Columns" button not found — skipping.');
 
+    let cfg002CheckboxCount = 0;
     await test.step('Toggle the first available column checkbox', async () => {
       const activePanel = landingPage['page'].locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
       const checkboxes = activePanel.getByRole('checkbox');
-      const checkboxCount = await checkboxes.count();
-      test.skip(checkboxCount === 0, 'No column checkboxes found in config panel — skipping.');
+      cfg002CheckboxCount = await checkboxes.count();
+      if (cfg002CheckboxCount === 0) return;
       await checkboxes.first().click();
     });
+    test.skip(cfg002CheckboxCount === 0, 'No column checkboxes found in config panel — skipping.');
 
     await test.step('Click Done to apply changes', async () => {
       await landingPage.clickReportsColumnConfigDone();
@@ -653,19 +672,22 @@ test.describe('Landing Page - Reports & Dashboards Configure Columns @regression
       'LANDING-REPORTS-CONFIG-003: Verify the "Restore Default" button in column configuration reverts the column selection to the default set.',
     );
 
+    let cfg003ButtonVisible = false;
     await test.step('Open Configure Columns', async () => {
-      const isVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!isVisible, '"Configure Columns" button not found — skipping.');
+      cfg003ButtonVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!cfg003ButtonVisible) return;
       await landingPage.clickReportsConfigureColumns();
       await landingPage.expectReportsColumnConfigVisible();
     });
+    test.skip(!cfg003ButtonVisible, '"Configure Columns" button not found — skipping.');
 
+    let cfg003HasRestore = false;
     await test.step('Verify Restore Default button is visible', async () => {
       const activePanel = landingPage['page'].locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
       const restoreBtn = activePanel.getByRole('button', { name: /restore default/i });
-      const hasRestore = await restoreBtn.isVisible({ timeout: 5_000 }).catch(() => false);
-      test.skip(!hasRestore, '"Restore Default" button not found in column config panel — skipping.');
+      cfg003HasRestore = await restoreBtn.isVisible({ timeout: 5_000 }).catch(() => false);
     });
+    test.skip(!cfg003HasRestore, '"Restore Default" button not found in column config panel — skipping.');
 
     await test.step('Click Restore Default', async () => {
       await landingPage.clickReportsColumnConfigRestoreDefault();
@@ -686,26 +708,31 @@ test.describe('Landing Page - Reports & Dashboards Configure Columns @regression
     );
 
     let initialColumnCount: number;
-
+    let cfg004GridVisible = false;
     await test.step('Capture initial column count', async () => {
-      const isGridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
-      test.skip(!isGridVisible, 'Reports grid not rendered — skipping.');
+      cfg004GridVisible = await landingPage.grid.isVisible({ timeout: 15_000 }).catch(() => false);
+      if (!cfg004GridVisible) return;
       const headers = await landingPage.getColumnHeaders();
       initialColumnCount = headers.length;
     });
+    test.skip(!cfg004GridVisible, 'Reports grid not rendered — skipping.');
 
+    let cfg004ButtonVisible = false;
+    let cfg004CheckboxCount = 0;
     await test.step('Open Configure Columns and toggle a checkbox', async () => {
-      const isVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!isVisible, '"Configure Columns" button not found — skipping.');
+      cfg004ButtonVisible = await landingPage.reportsConfigureColumnsButton.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!cfg004ButtonVisible) return;
       await landingPage.clickReportsConfigureColumns();
       await landingPage.expectReportsColumnConfigVisible();
 
       const activePanel = landingPage['page'].locator('[role="tabpanel"]:not([aria-hidden="true"])').first();
       const checkboxes = activePanel.getByRole('checkbox');
-      const checkboxCount = await checkboxes.count();
-      test.skip(checkboxCount === 0, 'No column checkboxes found — skipping.');
+      cfg004CheckboxCount = await checkboxes.count();
+      if (cfg004CheckboxCount === 0) return;
       await checkboxes.first().click();
     });
+    test.skip(!cfg004ButtonVisible, '"Configure Columns" button not found — skipping.');
+    test.skip(cfg004CheckboxCount === 0, 'No column checkboxes found — skipping.');
 
     await test.step('Click Cancel', async () => {
       await landingPage.clickReportsColumnConfigCancel();
