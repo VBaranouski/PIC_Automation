@@ -43,17 +43,17 @@ No `RELEASE-SCA-*` scenarios exist yet.
 
 | Subsection | New IDs | Count |
 |------------|---------|-------|
-| 6.4a SCA — Add Scan Results Modal | 001–005 | 5 |
-| 6.4b SCA — BDBA Import Flow | 006–014 | 9 |
-| 6.4c SCA — Manual Scan Entry | 015–021 | 7 |
-| 6.4d SCA — Imported Scan View | 022–027 | 6 |
-| 6.4e SCA — Refresh Imported Scan | 028–033 | 6 |
-| 6.4f SCA — Edit & Delete Scan | 034–039 | 6 |
-| 6.4g SCA — Collapse & Expand | 040–043 | 4 |
-| 6.4h SCA — 3rd Party Components Table | 044–049 | 6 |
-| 6.4i SCA — CVSS Version Toggle | 050–052 | 3 |
-| 6.4j SCA — RBAC & Privilege | 053–054 | 2 |
-| 6.4k SCA — Release History Logging | 055 | 1 |
+| 6.4.1 SCA — Add Scan Results Modal | 001–005 | 5 |
+| 6.4.2 SCA — BDBA Import Flow | 006–014 | 9 |
+| 6.4.3 SCA — Manual Scan Entry | 015–021 | 7 |
+| 6.4.4 SCA — Imported Scan View | 022–027 | 6 |
+| 6.4.5 SCA — Refresh Imported Scan | 028–033 | 6 |
+| 6.4.6 SCA — Edit & Delete Scan | 034–039 | 6 |
+| 6.4.7 SCA — Collapse & Expand | 040–043 | 4 |
+| 6.4.8 SCA — 3rd Party Components Table | 044–049 | 6 |
+| 6.4.9 SCA — CVSS Version Toggle | 050–052 | 3 |
+| 6.4.10 SCA — RBAC & Privilege | 053–054 | 2 |
+| 6.4.11 SCA — Release History Logging | 055 | 1 |
 
 ### Priority Breakdown
 
@@ -77,7 +77,7 @@ No true duplicates found.
 
 ## 4. Test Case Specifications
 
-### Subsection: 6.4a SCA — Add Scan Results Modal
+### Subsection: 6.4.1 SCA — Add Scan Results Modal
 
 ---
 
@@ -155,7 +155,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4b SCA — BDBA Import Flow
+### Subsection: 6.4.2 SCA — BDBA Import Flow
 
 ---
 
@@ -296,7 +296,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4c SCA — Manual Scan Entry
+### Subsection: 6.4.3 SCA — Manual Scan Entry
 
 ---
 
@@ -415,7 +415,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4d SCA — Imported Scan View
+### Subsection: 6.4.4 SCA — Imported Scan View
 
 ---
 
@@ -506,7 +506,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4e SCA — Refresh Imported Scan
+### Subsection: 6.4.5 SCA — Refresh Imported Scan
 
 ---
 
@@ -600,7 +600,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4f SCA — Edit & Delete Scan
+### Subsection: 6.4.6 SCA — Edit & Delete Scan
 
 ---
 
@@ -696,7 +696,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4g SCA — Collapse & Expand
+### Subsection: 6.4.7 SCA — Collapse & Expand
 
 ---
 
@@ -756,7 +756,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4h SCA — 3rd Party Components Table
+### Subsection: 6.4.8 SCA — 3rd Party Components Table
 
 ---
 
@@ -845,7 +845,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4i SCA — CVSS Version Toggle
+### Subsection: 6.4.9 SCA — CVSS Version Toggle
 
 ---
 
@@ -895,7 +895,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4j SCA — RBAC & Privilege
+### Subsection: 6.4.10 SCA — RBAC & Privilege
 
 ---
 
@@ -929,7 +929,7 @@ No true duplicates found.
 
 ---
 
-### Subsection: 6.4k SCA — Release History Logging
+### Subsection: 6.4.11 SCA — Release History Logging
 
 ---
 
@@ -953,17 +953,17 @@ No true duplicates found.
 
 | Subsection | Scenario IDs |
 |------------|-------------|
-| 6.4a SCA — Add Scan Results Modal | RELEASE-SCA-001 through RELEASE-SCA-005 |
-| 6.4b SCA — BDBA Import Flow | RELEASE-SCA-006 through RELEASE-SCA-014 |
-| 6.4c SCA — Manual Scan Entry | RELEASE-SCA-015 through RELEASE-SCA-021 |
-| 6.4d SCA — Imported Scan View | RELEASE-SCA-022 through RELEASE-SCA-027 |
-| 6.4e SCA — Refresh Imported Scan | RELEASE-SCA-028 through RELEASE-SCA-033 |
-| 6.4f SCA — Edit & Delete Scan | RELEASE-SCA-034 through RELEASE-SCA-039 |
-| 6.4g SCA — Collapse & Expand | RELEASE-SCA-040 through RELEASE-SCA-043 |
-| 6.4h SCA — 3rd Party Components Table | RELEASE-SCA-044 through RELEASE-SCA-049 |
-| 6.4i SCA — CVSS Version Toggle | RELEASE-SCA-050 through RELEASE-SCA-052 |
-| 6.4j SCA — RBAC & Privilege | RELEASE-SCA-053, RELEASE-SCA-054 |
-| 6.4k SCA — Release History Logging | RELEASE-SCA-055 |
+| 6.4.1 SCA — Add Scan Results Modal | RELEASE-SCA-001 through RELEASE-SCA-005 |
+| 6.4.2 SCA — BDBA Import Flow | RELEASE-SCA-006 through RELEASE-SCA-014 |
+| 6.4.3 SCA — Manual Scan Entry | RELEASE-SCA-015 through RELEASE-SCA-021 |
+| 6.4.4 SCA — Imported Scan View | RELEASE-SCA-022 through RELEASE-SCA-027 |
+| 6.4.5 SCA — Refresh Imported Scan | RELEASE-SCA-028 through RELEASE-SCA-033 |
+| 6.4.6 SCA — Edit & Delete Scan | RELEASE-SCA-034 through RELEASE-SCA-039 |
+| 6.4.7 SCA — Collapse & Expand | RELEASE-SCA-040 through RELEASE-SCA-043 |
+| 6.4.8 SCA — 3rd Party Components Table | RELEASE-SCA-044 through RELEASE-SCA-049 |
+| 6.4.9 SCA — CVSS Version Toggle | RELEASE-SCA-050 through RELEASE-SCA-052 |
+| 6.4.10 SCA — RBAC & Privilege | RELEASE-SCA-053, RELEASE-SCA-054 |
+| 6.4.11 SCA — Release History Logging | RELEASE-SCA-055 |
 
 ---
 

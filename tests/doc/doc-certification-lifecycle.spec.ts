@@ -1,5 +1,5 @@
 /**
- * Spec 11.14a — DOC Certification Lifecycle
+ * Spec 11.14.1 — DOC Certification Lifecycle
  *
  * Covers P1 + P2 scenarios for DOC certification stages:
  *   DOC-LIFECYCLE-035: Completing Risk Summary Review advances to Issue Certification
@@ -38,7 +38,7 @@ const ACTIONS_CLOSURE_DOC_URL =
 const COMPLETED_DOC_URL =
   '/GRC_PICASso_DOC/DOCDetail?DOCId=273&ProductId=898';
 
-test.describe('DOC - Certification Lifecycle (11.14a) @regression', () => {
+test.describe('DOC - Certification Lifecycle (11.14.1) @regression', () => {
   test.setTimeout(180_000);
 
   // ── DOC-LIFECYCLE-035 ─────────────────────────────────────────────────────────────
