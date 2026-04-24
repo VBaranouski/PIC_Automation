@@ -1,6 +1,10 @@
 import { test, expect } from '../../src/fixtures';
 import * as allure from 'allure-js-commons';
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // WORKFLOW 2.5 — Reports & Dashboards tab: data, filters, column config
 // ────────────────────────────────────────────────────────────────────────────
@@ -122,30 +126,50 @@ test.describe('Landing Page - Reports & Dashboards Tab Data @regression', () => 
     });
     test.skip(!gridVisible005, 'Reports & Dashboards grid not rendered — skipping.');
 
+    let actionsColumnIndex = -1;
+    await test.step('Locate the Open Actions or Open Conditions column', async () => {
+      const headers = await landingPage.getColumnHeaders();
+      actionsColumnIndex = headers.findIndex((header) => /open actions|open conditions/i.test(header));
+    });
+    test.skip(actionsColumnIndex === -1, 'No Open Actions or Open Conditions column is visible in the Reports grid.');
+
     let actionsLink: import('@playwright/test').Locator | null = null;
+    let actionsHref: string | null = null;
     await test.step('Find and click an Open Actions or Open Conditions numeric link', async () => {
       const rowCount = await landingPage.getGridRowCount();
       for (let r = 1; r <= Math.min(rowCount, 10); r++) {
-        const links = landingPage.grid.getByRole('row').nth(r).getByRole('link');
-        const count = await links.count();
-        for (let l = 0; l < count; l++) {
-          const text = ((await links.nth(l).textContent().catch(() => '')) ?? '').trim();
-          const href = await links.nth(l).getAttribute('href').catch(() => null);
-          if (/^\d+$/.test(text) && href && !/ProductDetail|ReleaseDetail|DOCDetail/i.test(href)) {
-            actionsLink = links.nth(l);
-            break;
-          }
-        }
+        const targetCell = landingPage.grid.getByRole('row').nth(r).getByRole('gridcell').nth(actionsColumnIndex);
+        const candidateLink = targetCell.getByRole('link').first();
+        const isVisible = await candidateLink.isVisible({ timeout: 1_000 }).catch(() => false);
+        if (!isVisible) continue;
+
+        const text = ((await candidateLink.textContent().catch(() => '')) ?? '').trim();
+        if (!/^\d+$/.test(text)) continue;
+
+        actionsHref = await candidateLink.getAttribute('href').catch(() => null);
+        actionsLink = candidateLink;
         if (actionsLink) break;
       }
       if (!actionsLink) return;
       await actionsLink.click();
     });
-    test.skip(!actionsLink, 'No Open Actions numeric link found — may require data with open actions.');
+    test.skip(!actionsLink, 'No Open Actions or Open Conditions numeric link was found in the matching column.');
 
-    await test.step('Verify navigation away from landing page (Actions Summary)', async () => {
-      await page.waitForURL(/GRC_PICASso/, { timeout: 30_000 });
-      expect(page.url()).not.toMatch(/GRC_PICASso\/$/);
+    await test.step('Verify navigation follows the selected action-count link target', async () => {
+      if (actionsHref && actionsHref !== '#') {
+        await page.waitForURL(new RegExp(escapeRegExp(actionsHref)), { timeout: 30_000 });
+      } else {
+        await page.waitForURL(/GRC_PICASso\/(?!$)/, { timeout: 30_000 });
+      }
+
+      const currentUrl = page.url();
+      expect(currentUrl).not.toMatch(/GRC_PICASso\/?$/);
+      await Promise.any([
+        page.getByRole('heading', { name: /actions?/i }).first().waitFor({ state: 'visible', timeout: 10_000 }),
+        page.getByRole('button', { name: /create action/i }).first().waitFor({ state: 'visible', timeout: 10_000 }),
+        page.getByText(/actions management/i).first().waitFor({ state: 'visible', timeout: 10_000 }),
+      ]).catch(() => undefined);
+      expect(/action|condition/i.test(currentUrl), `Expected an action-related destination URL, received: ${currentUrl}`).toBe(true);
     });
   });
 

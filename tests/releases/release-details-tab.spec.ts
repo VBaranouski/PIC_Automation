@@ -310,8 +310,8 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
       await releaseDetailPage.expectReleaseDetailsCoreFieldsVisible();
     });
 
-let rdtAddSeButtonAvailable = false;
-      await test.step('Attempt to open Add SE Product dialog', async () => {
+    let rdtAddSeButtonAvailable = false;
+    await test.step('Attempt to open Add SE Product dialog', async () => {
         try {
           await releaseDetailPage.openAddSeProductDialog();
           rdtAddSeButtonAvailable = true;
@@ -320,8 +320,8 @@ let rdtAddSeButtonAvailable = false;
         }
         if (!rdtAddSeButtonAvailable) return;
         await releaseDetailPage.expectAddSeProductDialogVisible();
-      });
-      test.skip(!rdtAddSeButtonAvailable, 'Add SE Product button not available on sampled release');
+    });
+    test.skip(!rdtAddSeButtonAvailable, 'Add SE Product button not available on sampled release');
 
     await test.step('Dismiss Add SE Product dialog', async () => {
       const dialog = page
@@ -568,15 +568,19 @@ let rdtAddSeButtonAvailable = false;
     test.skip(!rdtRemoveRowVisible, `Added dependency ${addedDependencyLabel} is not present in Included SE Components.`);
     test.skip(!rdtRemoveButtonVisible, 'Remove action is not available for the added Included SE Component row.');
 
+    let rdtCsrrVisible = false;
+    let rdtCsrrDisabled = false;
     await test.step('Verify the dependency no longer appears under CSRR content', async () => {
       const csrrTab = releaseDetailPage.getTopLevelTab('Cybersecurity Residual Risks');
-      const csrrVisible = await csrrTab.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!csrrVisible, 'CSRR tab is not visible on the sampled release.');
-      const csrrDisabled = await releaseDetailPage.isTopLevelTabDisabled('Cybersecurity Residual Risks');
-      test.skip(csrrDisabled, 'CSRR tab is disabled on the sampled release.');
+      rdtCsrrVisible = await csrrTab.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!rdtCsrrVisible) return;
+      rdtCsrrDisabled = await releaseDetailPage.isTopLevelTabDisabled('Cybersecurity Residual Risks');
+      if (rdtCsrrDisabled) return;
       const csrrText = await releaseDetailPage.getTopLevelTabPanelText('Cybersecurity Residual Risks');
       expect(csrrText).not.toContain(addedDependencyLabel);
     });
+    test.skip(!rdtCsrrVisible, 'CSRR tab is not visible on the sampled release.');
+    test.skip(rdtCsrrDisabled, 'CSRR tab is disabled on the sampled release.');
   });
 
   test('should show a warning icon when Included SE Component release number differs from latest release number', async ({
@@ -595,11 +599,13 @@ let rdtAddSeButtonAvailable = false;
       await releaseDetailPage.expectReleaseDetailsTabSelected();
     });
 
+    let warningVisible = false;
     await test.step('Verify warning icon visibility when mismatch rows exist', async () => {
       const warningIcon = page.locator('[title*="Latest Release Number"], [aria-label*="warning" i], .fa-warning, .icon-warning').first();
-      const warningVisible = await warningIcon.isVisible({ timeout: 10_000 }).catch(() => false);
-      test.skip(!warningVisible, 'No Included SE Component release-version mismatch warning is visible on the sampled QA release.');
+      warningVisible = await warningIcon.isVisible({ timeout: 10_000 }).catch(() => false);
+      if (!warningVisible) return;
       await expect(warningIcon).toBeVisible({ timeout: 10_000 });
     });
+    test.skip(!warningVisible, 'No Included SE Component release-version mismatch warning is visible on the sampled QA release.');
   });
 });

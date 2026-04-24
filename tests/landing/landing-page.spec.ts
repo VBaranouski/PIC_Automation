@@ -49,10 +49,8 @@ test.describe('Landing Page @smoke', () => {
         await landingPage.clickTab(tabName);
         await landingPage.expectTabActive(tabName);
         await landingPage.expectTabpanelVisible();
-        if (!(await landingPage.grid.isVisible().catch(() => false))) {
-          console.warn(`[LANDING-HOME-002] ${tabName} grid is not rendered in current QA state — skipping column check for this tab.`);
-          return;
-        }
+        const isGridVisible = await landingPage.grid.isVisible().catch(() => false);
+        expect(isGridVisible, `${tabName} grid is not rendered in current QA state.`).toBe(true);
         await landingPage.expectColumnHeadersExist();
       });
     }
