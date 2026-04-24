@@ -9,3 +9,10 @@
 | backoffice.admin.inactivate | Inactivate products / releases | active | BACKOFFICE-INACTIVATE-* | — | — | — | — |
 | backoffice.banner.config | Informative Banner — Custom Banners Configuration in BackOffice (Create/Edit/Delete/Filter/Display) | active | BACKOFFICE-BANNER-* | — | 497457251 | — | 2026-04-24 |
 | backoffice.sast.config | SAST Tools — SCA Tool severity inputs configuration in BackOffice (Add/Edit/Deactivate/CSRR reflection) | active | BACKOFFICE-SAST-* | — | 493626639 | — | 2026-04-24 |
+
+## Knowledge Files
+
+| Feature ID | Knowledge File |
+|---|---|
+| backoffice.banner.config | [knowledge/informative-banner.md](../knowledge/informative-banner.md) |
+| backoffice.sast.config | [knowledge/sast-tools-config.md](../knowledge/sast-tools-config.md) |
