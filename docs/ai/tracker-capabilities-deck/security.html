@@ -308,7 +308,8 @@ body {
   <p class="hero-sub">
     The PICASso automation platform was architected with security as a first-class constraint:
     enterprise-grade AI with zero data leakage, automated OWASP vulnerability gates on every
-    change, and a public repository that holds zero secrets.
+    change, a public repository that holds zero secrets, and all Schneider Electric data sources
+    gated behind corporate VPN and SSO — with no publicly reachable attack surface.
   </p>
 
   <div class="trust-row">
@@ -325,7 +326,7 @@ body {
       <div class="trust-label">Top 10 scan on every automation session</div>
     </div>
     <div class="trust-item">
-      <div class="trust-val orange">3</div>
+      <div class="trust-val orange">4</div>
       <div class="trust-label">Independent security layers</div>
     </div>
   </div>
@@ -374,6 +375,11 @@ body {
       <div class="cap-icon"><span class="material-symbols-outlined">hub</span></div>
       <h3>Isolated from Consumer Copilot</h3>
       <p>Enterprise accounts use dedicated, isolated model endpoints. The public free and Pro tiers — which have different data handling policies — are entirely separate infrastructure and are not involved in any Schneider Electric automation work.</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon cyan"><span class="material-symbols-outlined">vpn_lock</span></div>
+      <h3>VPN + SSO — All Data Sources Gated</h3>
+      <p>Every Schneider Electric data source used by this automation platform — Jira, Confluence, and all PICASso application environments (DEV, QA, PPR) — is reachable exclusively via the Schneider Electric corporate VPN combined with SSO credentials. No endpoint is publicly accessible. An attacker without VPN access and a valid corporate identity cannot reach any test target, issue tracker, or knowledge base — regardless of whether they obtain repository contents.</p>
     </div>
   </div>
 
@@ -572,8 +578,8 @@ body {
   <div class="cap-grid" style="margin-top: 40px;">
     <div class="cap-card">
       <div class="cap-icon"><span class="material-symbols-outlined">psychology</span></div>
-      <h3>Layer 1 — AI Isolation</h3>
-      <p>GitHub Copilot Enterprise via Schneider Electric. Data never leaves the enterprise boundary. No training on company prompts or code. Full audit trail. Corporate SSO-gated access.</p>
+      <h3>Layer 1 — AI Isolation &amp; Network Security</h3>
+      <p>GitHub Copilot Enterprise via Schneider Electric. Data never leaves the enterprise boundary. No training on company prompts or code. Full audit trail. All PICASso environments, Jira, and Confluence are accessible only over corporate VPN + SSO — zero public attack surface.</p>
     </div>
     <div class="cap-card">
       <div class="cap-icon cyan"><span class="material-symbols-outlined">security_update_good</span></div>
