@@ -2,8 +2,9 @@
 /**
  * Jira Stories Index Generator
  *
- * Fetches user-story metadata for project PIC, excluding `On-hold` and `Rejected`
- * statuses, and writes docs/ai/knowledge-base/corpus/jira-stories-index.md.
+ * Fetches user-story metadata for project PIC, excluding backlog / non-implemented
+ * states that should not pollute the KB corpus index, and writes
+ * docs/ai/knowledge-base/corpus/jira-stories-index.md.
  *
  * Metadata only: key, summary, status, priority, fixVersions, labels, assignee,
  * updated. Bodies/ACs are fetched on demand via jira_get_issue(key=…).
@@ -45,6 +46,14 @@ interface StoryMeta {
   assignee: string;
   updated: string;
 }
+
+const DEFAULT_EXCLUDED_STATUSES = [
+  'On-hold',
+  'On Hold',
+  'New',
+  'Validated',
+  'Rejected',
+];
 
 function parseArgs(argv: string[]): Args {
   const args: Args = { project: 'PIC', jql: null, limit: 10000, dryRun: false };
@@ -151,7 +160,7 @@ async function main(): Promise<void> {
 
   const jql =
     args.jql ??
-    `project = ${args.project} AND issuetype = Story AND status NOT IN ("On-hold", "Rejected") ORDER BY updated DESC`;
+    `project = ${args.project} AND issuetype = Story AND status NOT IN (${DEFAULT_EXCLUDED_STATUSES.map((status) => `"${status}"`).join(', ')}) ORDER BY updated DESC`;
 
   console.log(`Fetching stories via JQL (limit=${args.limit}):\n  ${jql}\n`);
 
