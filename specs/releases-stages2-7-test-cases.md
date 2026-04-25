@@ -2761,4 +2761,4 @@ npx tsx scripts/tracker.ts add -i RELEASE-ACCEPT-002 -t "Cancel Release at Final
 1. **Verify tracker state:** Run audit query for missing steps on newly added scenarios.
 2. **Export for review (optional):** `npx tsx scripts/export-scenarios.ts --workflow "Release — Stage 4: SA & PQL Sign Off"`.
 3. **Automate:** Use `create-auto-tests` skill starting with P1 scenarios (RELEASE-DPP-PRIVACY-005, RELEASE-FCSR-EXCEPTION-001–0085, RELEASE-FCSR-OUTCOME-004–0031, RELEASE-ACCEPT-DECISION-001).
-4. **Update registry:** Add `releases.signoff.privacy` and `releases.fcsr.exception` feature IDs to `docs/ai/knowledge-base/feature-registry/releases.md`.
+4. **Update registry:** Add `releases.signoff.privacy` and `releases.fcsr.exception` feature IDs to `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/releases.md`.

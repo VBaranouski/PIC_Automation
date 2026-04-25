@@ -2,7 +2,7 @@
 
 > Generated: 2026-04-22 — Gap analysis session
 > Area: `landing` | Workflow: `Landing Page & Home Navigation`
-> Feature Registry: `docs/ai/knowledge-base/feature-registry/landing.md`
+> Feature Registry: `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/landing.md`
 
 ---
 

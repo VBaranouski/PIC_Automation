@@ -1,7 +1,7 @@
 # WF3. Product Management — Test Case Specifications
 
 > **Area:** `products` · **Tracker feature_area:** `products` · **Generated:** 2026-04-22
-> **Registry:** `docs/ai/knowledge-base/feature-registry/products.md`
+> **Registry:** `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/products.md`
 
 ---
 

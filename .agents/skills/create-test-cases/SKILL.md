@@ -25,13 +25,13 @@ Load these files before starting:
 1. `.github/instructions/test-case-design.instructions.md` — **The canonical rules** for agent-compatible language, measurable assertions, exploratory testing, and zero-regression coverage. This is the authoritative reference. Read it first.
 2. `.github/instructions/testing-patterns.instructions.md` — Locator priority, web-first assertions (informs what's technically feasible)
 3. `.github/instructions/outsystems-picasso.instructions.md` — OSUI widget patterns (informs which UI elements need special handling)
-4. `docs/ai/knowledge-base/knowledge/access-privileges.md` — **Canonical role list, role groups, and privilege-to-role mapping.** Read this before writing any role-based test case. Use it to pick the exact role name and privilege code, and to identify the correct denied-access role for negative scenarios.
+4. `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/knowledge/access-privileges.md` — **Canonical role list, role groups, and privilege-to-role mapping.** Read this before writing any role-based test case. Use it to pick the exact role name and privilege code, and to identify the correct denied-access role for negative scenarios.
 
 ## The 8-Step Design Workflow
 
 ### Step 1: Identify Feature Area & Load Knowledge
 
-Match the user's request to a feature area using `docs/ai/knowledge-base/feature-areas.md`:
+Match the user's request to a feature area using `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-areas.md`:
 
 ```
 auth | landing | products | releases | doc | reports | backoffice | integrations | other
@@ -39,10 +39,10 @@ auth | landing | products | releases | doc | reports | backoffice | integrations
 
 Then load Tier 2 context (read only what's needed — don't load everything):
 
-1. **Feature registry:** `docs/ai/knowledge-base/feature-registry/<area>.md` — existing feature IDs, scenario prefixes, POM methods
-2. **Exploration findings:** `docs/ai/knowledge-base/exploration-findings.md` — actual UI elements from DOM snapshot (canonical element names)
-3. **Knowledge file:** `docs/ai/knowledge-base/knowledge/<topic>.md` — business rules, workflows, edge cases (if exists for this area)
-4. **Access privileges reference:** `docs/ai/knowledge-base/knowledge/access-privileges.md` — **always load this**; look up:
+1. **Feature registry:** `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/<area>.md` — existing feature IDs, scenario prefixes, POM methods
+2. **Exploration findings:** `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/exploration-findings.md` — actual UI elements from DOM snapshot (canonical element names)
+3. **Knowledge file:** `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/knowledge/<topic>.md` — business rules, workflows, edge cases (if exists for this area)
+4. **Access privileges reference:** `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/knowledge/access-privileges.md` — **always load this**; look up:
    - The **exact role name** (e.g., `Security Manager`, not `SecurityManager`) for every actor in the test cases
    - The **privilege code** that gates the feature under test (e.g., `SCOPE_SUBMIT`, `EDIT_DOC_DETAILS`)
    - The **denied-access role** for negative scenarios — pick a role in a different group that does NOT hold the required privilege (cross-reference the Role Groups table)
@@ -113,10 +113,10 @@ The gap analysis from Step 3 identifies *what's missing*. This step fills those 
 
 Systematically cross-reference these sources against the existing tracker scenarios to find features with ZERO test coverage:
 
-1. **User Guide** — read via corpus index (`docs/ai/knowledge-base/corpus/user-guide-index.md`), then surgical `read_file(startLine, endLine)`. Every described UI action, button, toggle, dialog, validation message, and empty state is a candidate feature.
-2. **Exploration findings** — DOM snapshot (`docs/ai/knowledge-base/exploration-findings.md`) reveals actual UI elements. Any element visible in the DOM but absent from the tracker is a gap.
-3. **Feature registry** — `docs/ai/knowledge-base/feature-registry/<area>.md` may list feature IDs with NO scenarios (e.g., a prefix like `RELEASE-ROLES-*` with 0 rows in the DB).
-4. **Change impact** — `docs/ai/knowledge-base/change-impact.md` lists recent changes that may need new coverage.
+1. **User Guide** — read via corpus index (`/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/corpus/user-guide-index.md`), then surgical `read_file(startLine, endLine)`. Every described UI action, button, toggle, dialog, validation message, and empty state is a candidate feature.
+2. **Exploration findings** — DOM snapshot (`/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/exploration-findings.md`) reveals actual UI elements. Any element visible in the DOM but absent from the tracker is a gap.
+3. **Feature registry** — `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/<area>.md` may list feature IDs with NO scenarios (e.g., a prefix like `RELEASE-ROLES-*` with 0 rows in the DB).
+4. **Change impact** — `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/change-impact.md` lists recent changes that may need new coverage.
 
 For each uncovered feature, ask: *"If this feature broke, would any existing test catch it?"* If NO → it needs a new scenario.
 
@@ -137,7 +137,7 @@ Follow the naming convention from `feature-registry/<area>.md`:
 >
 > **Validation:** Before inserting ANY new ID, run: `sqlite3 config/scenarios.db "SELECT MAX(CAST(SUBSTR(id, LENGTH('<PREFIX>-') + 1) AS INTEGER)) FROM scenarios WHERE id LIKE '<PREFIX>-%'"`  to find the next available number.
 >
-> **Never use placeholder IDs like `WF07-0026`, `WF14-0015`, or `WF##-####`.** Those were a legacy import pattern that caused 790+ scenarios to require bulk renaming. They are NOT valid for new scenarios. Every new ID must come from — or extend — the feature registry. If no existing prefix fits, create one and add it to `docs/ai/knowledge-base/feature-registry/<area>.md` in the same change.
+> **Never use placeholder IDs like `WF07-0026`, `WF14-0015`, or `WF##-####`.** Those were a legacy import pattern that caused 790+ scenarios to require bulk renaming. They are NOT valid for new scenarios. Every new ID must come from — or extend — the feature registry. If no existing prefix fits, create one and add it to `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/<area>.md` in the same change.
 >
 > **Description field rule:** Do NOT prefix the description with the scenario ID (e.g., `"PRODUCT-DETAIL-009: Verify the …"`). The tracker UI renders the ID separately; repeating it in description causes visible duplication. Write the description as a plain sentence starting with a capital letter.
 
@@ -273,7 +273,7 @@ Use the **exact** element name from the DOM snapshot (exploration findings). One
 
 #### Rule 0: Role & Privilege Naming (apply before writing any precondition or step)
 
-Consult `docs/ai/knowledge-base/knowledge/access-privileges.md` for every actor and permission in each test case:
+Consult `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/knowledge/access-privileges.md` for every actor and permission in each test case:
 
 1. **Role names** must match the canonical list exactly — copy-paste, don't paraphrase:
    - ✅ `Security Manager`, `BU Security Officer`, `SuperUser`, `Viewer Global / Viewer Product`
@@ -597,7 +597,7 @@ When the test cases are approved:
 1. **Tracker DB already updated:** Step 9 was executed as part of this skill — all new scenarios have IDs, titles, priorities, subsections, steps, and expected results in the DB.
 2. **Export for review (optional):** Use the `tracker-scenario-import-export` skill to export to xlsx for stakeholder review.
 3. **Automate:** Use the `create-auto-tests` skill to convert test case specs into Playwright code.
-4. **Update registry:** Add any new feature IDs or prefixes to `docs/ai/knowledge-base/feature-registry/<area>.md`.
+4. **Update registry:** Add any new feature IDs or prefixes to `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/<area>.md`.
 
 ## Tips for High-Quality Test Cases
 

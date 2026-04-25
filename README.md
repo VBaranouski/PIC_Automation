@@ -96,10 +96,10 @@ npm run test:chromium           # Chromium only
 | `npm run tracker -- sync` | Reconcile tracker `spec_file` mappings against current specs |
 | `npm run tracker -- sync --import-missing` | Reconcile mappings and create missing tracker rows from spec metadata |
 | `npm run tracker:export` | Export tracker data to `config/scenarios-export.json` |
-| `npm run index:all` | Regenerate all corpus indexes (scenario + user-guide + confluence) |
-| `npm run index:jira-stories` | Fetch active Jira stories → `corpus/jira-stories-index.md` |
-| `npm run index:jira-tests` | Fetch Jira test items → `corpus/jira-tests-index.md` |
-| `npm run sync:knowledge` | Re-sync stale Confluence pages for a specific area |
+| `npm run index:all` | Regenerate all corpus indexes (scenario + user-guide + confluence) to `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/corpus/` |
+| `npm run index:jira-stories` | Fetch active Jira stories → `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/corpus/jira-stories-index.md` |
+| `npm run index:jira-tests` | Fetch Jira test items → `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/corpus/jira-tests-index.md` |
+| `npm run sync:knowledge` | Re-sync stale Confluence pages to `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/` for a specific area |
 
 ## Tracker UI Capabilities
 
@@ -172,7 +172,7 @@ Set `TEST_ENV=qa` (or `dev`/`ppr`) in `.env` or as an environment variable.
 - [PICASso Overview](docs/ai/picasso-overview.md) — application overview, roles, technical notes
 - [Branching Strategy](docs/ai/branching-strategy.md) — Git workflow, PR rules, commit format
 - [Exploration Plan](docs/ai/exploration-plan.md) — application mapping progress tracker
-- [Knowledge Base](docs/ai/knowledge-base/README.md) — token-efficient documentation store (feature registry, knowledge topics, corpus indexes)
+- [Knowledge Base](/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/README.md) — token-efficient documentation store (feature registry, knowledge topics, corpus indexes)
 - [Tracker REST API](docs/api/swagger.json) — OpenAPI 3.0.3 spec for the tracker backend
 - [System Design Reference](.github/instructions/system-design-automation.instructions.md) — design-system for tracker UI, dashboards, and documentation pages
 

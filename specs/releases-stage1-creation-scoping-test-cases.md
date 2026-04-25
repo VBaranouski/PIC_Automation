@@ -2,7 +2,7 @@
 
 > Generated: 2026-04-22
 > Area: `releases` | Workflow: `Release — Stage 1: Creation & Scoping`
-> Feature Registry: `docs/ai/knowledge-base/feature-registry/releases.md`
+> Feature Registry: `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/releases.md`
 
 ---
 

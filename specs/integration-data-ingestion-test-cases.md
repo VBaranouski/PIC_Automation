@@ -2,9 +2,9 @@
 
 > Generated: 2026-04-22 — Complete rewrite based on API v1.3 (Sep 2025)
 > Area: `integrations` | Workflow: `Integration: Data Ingestion API`
-> Feature Registry: `docs/ai/knowledge-base/feature-registry/integrations.md`
-> Knowledge File: `docs/ai/knowledge-base/knowledge/data-ingestion-api.md`
-> API Docs: `docs/ai/knowledge-base/user-guides/PICASso Data Ingestion API (4) (1).docx`
+> Feature Registry: `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/feature-registry/integrations.md`
+> Knowledge File: `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/knowledge/data-ingestion-api.md`
+> API Docs: `/Users/Uladzislau_Baranouski/.picasso-kb/context/knowledge-base/user-guides/PICASso Data Ingestion API (4) (1).docx`
 
 ---
 
