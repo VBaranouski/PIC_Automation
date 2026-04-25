@@ -1,0 +1,32 @@
+# .copilotignore — Restrict GitHub Copilot file indexing scope
+# CTS058_025 (Restrict data sources) | CTS058_002 (Data segregation)
+# Prevents generated artefacts, test outputs, and sensitive config from
+# being included in Copilot's context window.
+
+# Test execution artefacts
+allure-results/
+allure-report/
+playwright-report/
+test-results/
+
+# Local scratch / diagnostic files
+tmp/
+
+# Tracker database (binary — no value for code completion)
+config/scenarios.db
+config/scenarios.db-wal
+config/scenarios.db-shm
+
+# Test case input files (contain internal workflow identifiers)
+docs/ai/test-cases/input/
+
+# Authentication and state files (should also be gitignored, belt-and-braces)
+.auth/
+.auth-state.json
+.doc-state.json
+.product-state.json
+
+# Environment files
+.env
+.env.*
+!.env.example

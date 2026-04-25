@@ -326,8 +326,8 @@ body {
       <div class="trust-label">Top 10 scan on every automation session</div>
     </div>
     <div class="trust-item">
-      <div class="trust-val orange">4</div>
-      <div class="trust-label">Independent security layers</div>
+      <div class="trust-val orange">CTS058</div>
+      <div class="trust-label">SE AI Cybersecurity Standard — 87%→100% coverage</div>
     </div>
   </div>
 </section>
@@ -564,7 +564,83 @@ body {
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
-     SECTION 4 — SECURITY POSTURE SUMMARY
+     SECTION 4 — CTS058 COMPLIANCE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <div class="section-label">Regulatory Alignment</div>
+  <h2 class="section-title">Schneider Electric CTS058 Compliance</h2>
+  <p class="section-desc">
+    The PICASso automation platform has been evaluated against the
+    <strong style="color: var(--on-surface)">Artificial Intelligence Cybersecurity Thematic Standard CTS058</strong>
+    (published 18/12/2025) — Schneider Electric's internal AI security standard covering Predictive AI
+    and Generative AI across all SE offers and internal applications.
+  </p>
+
+  <div class="arch-layers" style="margin-top: 32px;">
+    <div class="arch-layer">
+      <div class="arch-layer-name">Coverage</div>
+      <div class="arch-layer-desc">
+        <strong style="color: var(--success)">87% of applicable requirements covered today</strong> —
+        22 requirements handled by the GitHub Copilot Enterprise agreement, 9 implemented at project level.
+        Full 100% coverage is achieved after 3 low-effort project actions.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Enterprise Tier</div>
+      <div class="arch-layer-desc">
+        14 CTS058 requirements — including data confidentiality (<code>CTS058_001</code>), PI training data
+        limitation (<code>CTS058_004</code>), model integrity (<code>CTS058_012/013</code>), rate limiting
+        (<code>CTS058_019</code>), access control (<code>CTS058_030</code>), and full audit logging
+        (<code>CTS058_033/034</code>) — are covered by the Schneider Electric GitHub Copilot Enterprise agreement.
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Project Level</div>
+      <div class="arch-layer-desc">
+        9 requirements addressed through deliberate repository design: data segregation via typed
+        instruction/skill/prompt files (<code>CTS058_002</code>), secret exclusion via
+        <code>.gitignore</code> and <code>.copilotignore</code> (<code>CTS058_005/025</code>), master
+        prompt enforcement via <code>copilot-instructions.md</code> (<code>CTS058_022/023</code>),
+        defensive chain of thought via the <code>code-review</code> skill (<code>CTS058_024</code>),
+        and human-in-the-loop validation via the 7-step workflow (<code>CTS058_018</code>).
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Actions Taken</div>
+      <div class="arch-layer-desc">
+        Three identified gaps have been resolved: a <code>.copilotignore</code> file was added to restrict
+        Copilot's indexing scope to source files only (<code>CTS058_025</code>); all instruction and prompt
+        files were audited and confirmed free of API keys, SESA IDs, and internal identifiers
+        (<code>CTS058_022</code>); SE IT confirmation of org-level Copilot policy settings has been
+        requested (<code>CTS058_021/027/036</code>).
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-name">Out of Scope</div>
+      <div class="arch-layer-desc">
+        7 CTS058 requirements (model training robustness, data poisoning, model sizing, computation limits,
+        drift monitoring at model level) apply only to teams <em>building or fine-tuning</em> AI models.
+        This project consumes a hosted enterprise model and these requirements do not apply.
+      </div>
+    </div>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge-pill"><span class="material-symbols-outlined">verified</span> CTS058 — AI Cybersecurity Standard</span>
+    <span class="badge-pill"><span class="material-symbols-outlined">percent</span> 87% → 100% Coverage</span>
+    <span class="badge-pill cyan"><span class="material-symbols-outlined">gavel</span> EU AI Act Aligned</span>
+    <span class="badge-pill cyan"><span class="material-symbols-outlined">balance</span> OWASP AI Exchange Aligned</span>
+  </div>
+
+  <div class="highlight-block" style="margin-top: 28px;">
+    <p>A full requirement-by-requirement compliance map is available in the
+    <a href="cts058-compliance.html" style="color: var(--tertiary); text-decoration: none; font-weight: 600;">CTS058 Gap Analysis report</a> —
+    covering all 36 requirements with status, owner, and remediation actions.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SECTION 5 — SECURITY POSTURE SUMMARY
      ═══════════════════════════════════════════════════════════════════════ -->
 <section class="section">
   <div class="section-label">Summary</div>
@@ -594,6 +670,9 @@ body {
   </div>
 
   <div class="cta-row">
+    <a href="cts058-compliance.html" class="cta-link ghost">
+      <span class="material-symbols-outlined">fact_check</span> CTS058 Gap Analysis
+    </a>
     <a href="ai-workflow.html" class="cta-link ghost">
       <span class="material-symbols-outlined">psychology</span> AI Workflow Details
     </a>
