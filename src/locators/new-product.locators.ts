@@ -168,7 +168,7 @@ export const newProductLocators = (page: Page) => ({
   testConnectionButton:    page.getByRole('button', { name: 'Test Connection' }),
 
   // "Status Mapping Configuration" link — appears next to each active tracking tool
-  statusMappingConfigLinks: page.getByRole('link', { name: /Status Mapping Configuration/i }),
+  statusMappingConfigLinks: page.getByText(/Status Mapping Configuration/i),
 
   // Warning message shown when any tracking tool is enabled without mapping configured
   trackingToolsWarning:    page.getByText(/Please update the mapping configuration/i),

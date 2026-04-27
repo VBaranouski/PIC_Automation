@@ -1,4 +1,4 @@
-import { test } from '../../src/fixtures';
+import { test, expect } from '../../src/fixtures';
 import type { Page } from '@playwright/test';
 import type { LandingPage, NewProductPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
@@ -315,6 +315,38 @@ test.describe.serial('Products - Edit Existing Product (PIC-108, PIC-109) @regre
     });
 
     await test.step('Cancel without changes — view mode is restored without leave dialog', async () => {
+      await newProductPage.clickCancelAndReturnToViewMode();
+    });
+  });
+});
+
+test.describe('Products - Product Configuration @regression', () => {
+  test.setTimeout(120_000);
+
+  test('PRODUCT-CONFIG-001 — "Show Process sub-requirements" toggle is visible in Product Configuration section in edit mode', async ({ newProductPage, page }) => {
+    await allure.suite('Products - Configuration');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'PRODUCT-CONFIG-001: On Product Detail in edit mode, the "Show the Process sub-requirements within ' +
+      'Release Management process" toggle is rendered in the Product Configuration section. Non-destructive — ' +
+      'edit mode is cancelled without saving.',
+    );
+
+    await test.step('Navigate to Product Detail and enter edit mode', async () => {
+      await page.goto('/GRC_PICASso/ProductDetail?ProductId=1162');
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickEditProductAndWaitForForm();
+    });
+
+    await test.step('Verify the Show Process sub-requirements toggle is visible', async () => {
+      await newProductPage.productConfigurationTab.click();
+      await page.waitForTimeout(1_000);
+      await newProductPage.showProcessSubReqsCheckbox.scrollIntoViewIfNeeded();
+      await expect(newProductPage.showProcessSubReqsCheckbox).toBeVisible({ timeout: 15_000 });
+    });
+
+    await test.step('Cancel edit without saving', async () => {
       await newProductPage.clickCancelAndReturnToViewMode();
     });
   });

@@ -427,9 +427,11 @@ test.describe('Product Configuration — Tracking Tools @regression', () => {
 
       await test.step('Click Save and observe validation error', async () => {
         await newProductPage.clickSave();
-        // OutSystems shows "Required field!" for empty mandatory fields
-        const requiredError = page.getByText(/Required field!?/i).first();
-        await expect(requiredError).toBeVisible({ timeout: 15_000 });
+        // OutSystems shows a top-of-page alert when required fields are empty.
+        // (Per-field "Required field!" spans exist in DOM permanently — hidden by default —
+        // so we assert the visible alert banner instead.)
+        const validationAlert = page.getByRole('alert').filter({ hasText: /review the necessary fields/i }).first();
+        await expect(validationAlert).toBeVisible({ timeout: 15_000 });
       });
 
       await test.step('Cancel edit mode (validation blocked the save — no changes persisted)', async () => {

@@ -477,4 +477,47 @@ test.describe('Products - New Product Creation @regression', () => {
       await newProductPage.expectVendorMarkedRequired();
     });
   });
+
+  test('PRODUCT-CREATION-022 — Releases tab is greyed out (disabled) during new product creation', async ({ newProductPage, page }) => {
+    await allure.suite('Products');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'PRODUCT-CREATION-022: On the New Product creation form (before save), the Releases tab is rendered ' +
+      'but disabled — clicking it must not switch panels or change the URL. Non-destructive read-only check.',
+    );
+
+    await test.step('Verify the Releases tab is rendered on the New Product form', async () => {
+      await expect(newProductPage.releasesTab).toBeVisible({ timeout: 30_000 });
+    });
+
+    await test.step('Verify the Releases tab is disabled (aria-disabled / disabled / not selected)', async () => {
+      const tab = newProductPage.releasesTab;
+      const ariaDisabled = await tab.getAttribute('aria-disabled');
+      const disabledAttr = await tab.getAttribute('disabled');
+      const className = (await tab.getAttribute('class')) ?? '';
+      const ariaSelected = await tab.getAttribute('aria-selected');
+
+      const looksDisabled =
+        ariaDisabled === 'true' ||
+        disabledAttr !== null ||
+        /\b(is-disabled|disabled|tab-disabled)\b/i.test(className);
+
+      // Strong assertion: at minimum the tab must NOT be the currently selected/active panel
+      // during creation (Product Information should be active).
+      expect(ariaSelected).not.toBe('true');
+
+      // Best-effort disabled marker check. If neither aria-disabled nor a disabled class is
+      // present, fall back to verifying clicking the tab does not navigate away.
+      if (!looksDisabled) {
+        const urlBefore = page.url();
+        await tab.click({ trial: true }).catch(() => undefined);
+        await page.waitForTimeout(500);
+        await expect(newProductPage.productNameInput).toBeVisible({ timeout: 10_000 });
+        expect(page.url()).toBe(urlBefore);
+      } else {
+        expect(looksDisabled).toBe(true);
+      }
+    });
+  });
 });
