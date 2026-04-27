@@ -170,4 +170,100 @@ test.describe('Product Inactivation @regression', () => {
       });
     },
   );
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PRODUCT-INACTIVATE-005..013 — All on-hold (destructive / RBAC / data-dependent)
+  //
+  // These scenarios require either:
+  //   (a) destructively inactivating a shared QA product/release (PRODUCT-INACTIVATE-007/008/009/010),
+  //   (b) a product in a specific pre-existing state — already inactive, has-active-releases,
+  //       or has DOCs (PRODUCT-INACTIVATE-005/006/011/012),
+  //   (c) an authenticated session for a user role other than the default automation user
+  //       (PRODUCT-INACTIVATE-013 — RBAC for Product Owner).
+  //
+  // Authored as test.fixme stubs for traceability. Each will be lifted as soon as:
+  //   — disposable test products / RBAC fixtures are available, OR
+  //   — a non-destructive observation-only path is confirmed by QA.
+  // ────────────────────────────────────────────────────────────────────────────
+
+  test('PRODUCT-INACTIVATE-005 — Inactivate button is disabled with tooltip when product has active releases or DOCs', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-005: Requires a known QA product that has active releases/DOCs to verify the disabled state. Awaiting a stable test product in this state.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-006 — Three-dot menu on Product Details page shows Inactivate option for eligible product', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-006: Knowledge gap — three-dot menu location/identification on Product Details page is undocumented; awaiting QA confirmation of the menu locator.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-007 — Clicking Inactivate on Product Details opens confirmation modal', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-007: Destructive flow — opening the Inactivate modal requires interacting with a real shared QA product. Deferred until disposable test products are available.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-008 — Justification field is mandatory: submit blocked when empty', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-008: Depends on PRODUCT-INACTIVATE-007 (opening the modal). Deferred — destructive prerequisite.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-009 — Cancel closes confirmation modal without changing product status', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-009: Depends on PRODUCT-INACTIVATE-007 (opening the modal). Deferred — destructive prerequisite.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-010 — Full E2E: submitting inactivation modal sets product status to Inactive', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-010: Destructive E2E — would permanently inactivate a shared QA product. Deferred until disposable test products are available.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-011 — Inactive product is read-only: edit and release creation blocked', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-011: Requires a known inactive product on QA to verify read-only enforcement. Awaiting a stable inactive test product.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-012 — Tooltip on Inactive status badge shows inactivation justification', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-012: Requires a known inactive product on QA. Awaiting a stable inactive test product with a known justification text.');
+    await page.goto('/');
+  });
+
+  test('PRODUCT-INACTIVATE-013 — RBAC: Product Owner does not see Actions column in My Products grid', async ({ page }) => {
+    await allure.suite('Products - Inactivation');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    test.fixme(true, 'PRODUCT-INACTIVATE-013: RBAC scenario — requires authenticated session for a Product Owner role user. Awaiting RBAC fixture / additional user storageState.');
+    await page.goto('/');
+  });
 });

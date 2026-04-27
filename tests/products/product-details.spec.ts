@@ -1,4 +1,4 @@
-import { test } from '../../src/fixtures';
+import { test, expect } from '../../src/fixtures';
 import type { Page } from '@playwright/test';
 import type { LandingPage, NewProductPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
@@ -741,5 +741,125 @@ test.describe('Product Details - Digital Offer Certification Tab @regression', (
     await test.step('Verify tab is active', async () => {
       await newProductPage.expectDigitalOfferCertificationTabActive();
     });
+  });
+
+  test('PRODUCT-DETAIL-001-b — should display product name and PIC-XXXX ID in the page header', async ({ landingPage, newProductPage, page }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-DETAIL-001-b: Verify the product name and a PIC-XXXX format product ID are visible in the Product Detail page header.',
+    );
+
+    let openedName = '';
+    await test.step('Navigate to My Products and open first product', async () => {
+      await landingPage.openMyProductsTab();
+      openedName = await landingPage.getFirstProductName();
+      await landingPage.clickProductAtRow(1);
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Verify Product Details top tab and product name in header', async () => {
+      await expect(newProductPage.productDetailsTab).toBeVisible({ timeout: 30_000 });
+      await newProductPage.expectProductNameVisible(openedName);
+      expect(openedName.trim().length, 'Product name must not be empty').toBeGreaterThan(0);
+    });
+
+    await test.step('Verify PIC-XXXX ID is visible in header area', async () => {
+      const picIdMatch = page.getByText(/\bPIC-\d+\b/).first();
+      await expect(picIdMatch).toBeVisible({ timeout: 30_000 });
+    });
+  });
+
+  test('PRODUCT-DETAIL-001-c — should display Active status badge in the page header', async ({ landingPage, newProductPage }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-DETAIL-001-c: Verify the Active/Inactive status badge is displayed in the Product Detail header for an active product.',
+    );
+
+    await test.step('Open first product (assumed Active) from My Products', async () => {
+      await landingPage.openMyProductsTab();
+      await landingPage.clickProductAtRow(1);
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Verify Active status badge is displayed', async () => {
+      await newProductPage.expectProductStatusBadge('Active');
+    });
+  });
+
+  test('PRODUCT-DETAIL-013 — should show Security Summary section with Oversight Level, Last BU FCSR Date, and Last Full Pen Test Date fields', async ({ page }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-DETAIL-013: The Security Summary section on the Product Detail page must expose the Minimum Oversight Level, Last BU Security FCSR Date, and Last Full Pen Test Date fields.',
+    );
+
+    test.fixme(true, 'PRODUCT-DETAIL-013: Knowledge gap — the exact UI labels for "Minimum Oversight Level", ' +
+      '"Last BU Security FCSR Date", and "Last Full Pen Test Date" in the Security Summary section ' +
+      'differ from the spec wording on QA. Awaiting confirmation of the actual section layout and field labels.');
+
+    await page.goto('/');
+  });
+
+  test('PRODUCT-DETAIL-014 — Releases tab is enabled and clickable on Product Detail', async ({ landingPage, newProductPage }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-DETAIL-014: The Releases top-tab on the Product Detail page must be enabled and clickable, navigating to a releases view.',
+    );
+
+    await test.step('Open first product from My Products', async () => {
+      await landingPage.openMyProductsTab();
+      await landingPage.clickProductAtRow(1);
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Verify Releases tab is visible and enabled, then click it', async () => {
+      await expect(newProductPage.releasesTab).toBeVisible({ timeout: 30_000 });
+      await expect(newProductPage.releasesTab).toBeEnabled();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesTabActive();
+    });
+  });
+
+  test('PRODUCT-DETAIL-015 — DOC-related columns visible in My Products grid for users with DOC permissions', async ({ page }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-DETAIL-015: When the logged-in user has DOC permissions, the My Products grid should expose the Vesta ID, DOC Lead, and Security Advisor columns.',
+    );
+
+    test.fixme(true, 'PRODUCT-DETAIL-015: Requires authenticated session for a user role with DOC permissions. ' +
+      'The default automation user (PICEMDEPQL) does not consistently expose the DOC columns in QA. ' +
+      'Awaiting RBAC fixture for a DOC-permissioned user before this scenario can be automated.');
+
+    await page.goto('/');
+  });
+
+  test('PRODUCT-DETAIL-016 — Digital Offer Certification tab shows empty-state message for products without DOC', async ({ page }) => {
+    await allure.suite('Products - Product Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-DETAIL-016: For a Digital Offer product that has no DOC yet, opening the Digital Offer Certification bottom tab must display an empty-state message indicating no DOC exists.',
+    );
+
+    test.fixme(true, 'PRODUCT-DETAIL-016: Knowledge gap — product ProductId=1162 either no longer qualifies as a ' +
+      'Digital Offer product without DOC, or the empty-state message uses different wording than expected. ' +
+      'Awaiting QA confirmation of a stable test product (Digital Offer + no DOC) and the exact empty-state copy.');
+
+    await page.goto('/');
   });
 });
