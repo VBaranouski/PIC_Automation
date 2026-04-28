@@ -130,4 +130,57 @@ test.describe.serial('Releases - Roles & Responsibilities Tab @regression', () =
       await expect(assignmentUi).toBeVisible({ timeout: 20_000 });
     });
   });
+
+  test('RELEASE-ROLES-004 / RELEASE-ROLES-007 — assigning Product Team user populates email and location', async ({
+    page,
+    disposableRelease,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-ROLES-004 and RELEASE-ROLES-007: On a disposable Scoping release, assigning a Product Team user through lookup persists the user and auto-populates email/location.',
+    );
+
+    const assigneeName = 'Uladzislau Baranouski';
+    const assigneeEmail = 'uladzislau.baranouski@non.se.com';
+
+    await test.step('Open Product Team edit mode for the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickTopLevelTab('Roles & Responsibilities');
+      await releaseDetailPage.expectTopLevelTabSelected('Roles & Responsibilities');
+      await page.getByRole('button', { name: /^Edit$/ }).click();
+      await releaseDetailPage.waitForOSLoad();
+    });
+
+    await test.step('Add a user to the ARCHITECT Product Team role', async () => {
+      const architectRow = page.getByRole('row').filter({ hasText: /^ARCHITECT/i }).first();
+      await architectRow.getByRole('link', { name: /\+?\s*Add User/i }).click();
+      await releaseDetailPage.waitForOSLoad();
+      await architectRow.getByRole('link').last().click();
+
+      const userLookup = architectRow.getByRole('searchbox', { name: /Type 4 letters/i });
+      await expect(userLookup).toBeVisible({ timeout: 20_000 });
+      await userLookup.pressSequentially('Ulad', { delay: 150 });
+      await architectRow.getByText(assigneeName, { exact: true }).first().click();
+      await releaseDetailPage.waitForOSLoad();
+    });
+
+    await test.step('Verify email and location auto-populate for the selected user', async () => {
+      const architectRow = page.getByRole('row').filter({ hasText: /^ARCHITECT/i }).first();
+      await expect(architectRow).toContainText(assigneeName, { timeout: 20_000 });
+      await expect(architectRow).toContainText(assigneeEmail, { timeout: 20_000 });
+      await expect(architectRow).toContainText('LT', { timeout: 20_000 });
+    });
+
+    await test.step('Save and verify the assignment persists', async () => {
+      await page.getByRole('button', { name: /^Save$/ }).click();
+      await releaseDetailPage.waitForOSLoad();
+      const architectRow = page.getByRole('row').filter({ hasText: /^ARCHITECT/i }).first();
+      await expect(architectRow).toContainText(assigneeName, { timeout: 20_000 });
+      await expect(architectRow).toContainText(assigneeEmail, { timeout: 20_000 });
+    });
+  });
 });
