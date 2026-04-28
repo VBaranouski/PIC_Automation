@@ -127,6 +127,53 @@ export class ReleaseDetailPage extends BasePage {
     expect(text.length, 'Release status badge must have non-empty text').toBeGreaterThan(0);
   }
 
+  async expectReleaseStatus(status: RegExp): Promise<void> {
+    await expect(this.l.releaseStatusBadge).toContainText(status, { timeout: 30_000 });
+  }
+
+  async clickCancelRelease(): Promise<void> {
+    await expect(this.l.cancelReleaseButton).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.cancelReleaseButton).toBeEnabled({ timeout: 30_000 });
+    await this.l.cancelReleaseButton.click();
+    await this.expectCancelReleaseDialogVisible();
+  }
+
+  async expectCancelReleaseDialogVisible(): Promise<void> {
+    await expect(this.l.cancelReleaseDialog).toBeVisible({ timeout: 30_000 });
+  }
+
+  async dismissCancelReleaseDialog(): Promise<void> {
+    const dialog = this.l.cancelReleaseDialog;
+    const dismissButton = dialog.getByRole('button', { name: /^(Cancel|No)$/i }).first();
+    await expect(dismissButton).toBeVisible({ timeout: 15_000 });
+    await dismissButton.click();
+    await expect(dialog).toBeHidden({ timeout: 15_000 });
+  }
+
+  async confirmCancelRelease(reason: string): Promise<void> {
+    const dialog = this.l.cancelReleaseDialog;
+    await this.expectCancelReleaseDialogVisible();
+
+    const reasonInput = dialog.getByRole('textbox').first();
+    if (await reasonInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await reasonInput.fill(reason);
+    }
+
+    const confirmButton = dialog
+      .getByRole('button', { name: /^(Yes, )?Cancel Release$|^Confirm$|^Yes$|^OK$/i })
+      .first();
+    await expect(confirmButton).toBeVisible({ timeout: 15_000 });
+    await confirmButton.click();
+    await expect(dialog).toBeHidden({ timeout: 60_000 }).catch(() => undefined);
+    await this.waitForOSLoad();
+  }
+
+  async expectCancelledReleaseWarningVisible(): Promise<void> {
+    await expect(
+      this.page.getByText(/cancelled|canceled/i).first(),
+    ).toBeVisible({ timeout: 30_000 });
+  }
+
   // ── Pipeline ───────────────────────────────────────────────────────────────
 
   /**

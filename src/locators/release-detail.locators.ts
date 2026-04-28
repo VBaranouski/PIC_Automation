@@ -83,6 +83,12 @@ export function releaseDetailLocators(page: Page) {
     partOfSeProductsTab: page.getByRole('tab', { name: /^Part of SE Products$/i }).first(),
     /** Action button shown in Included SE Components area */
     addSeProductButton: page.getByRole('button', { name: /Add SE Product/i }).first(),
+    /** Header action for cancelling a Scoping release */
+    cancelReleaseButton: page.getByRole('button', { name: /^Cancel Release$/i }).first(),
+    /** Confirmation dialog opened by Cancel Release */
+    cancelReleaseDialog: page.locator('[role="dialog"], .osui-popup, .popup-dialog')
+      .filter({ hasText: /Cancel Release|cancel release|justification|reason/i })
+      .last(),
     /** Modal opened from Included SE Components */
     addSeProductDialog: page.getByRole('dialog').filter({ has: page.getByText(/Add SE Component/i) }).first(),
     /** Inline edit trigger in Release Details */

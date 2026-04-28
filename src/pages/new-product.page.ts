@@ -2,6 +2,10 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { newProductLocators, type NewProductLocators } from '@locators/new-product.locators';
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 type TeamRole =
   | 'Product Owner'
   | 'Security Manager'
@@ -997,6 +1001,19 @@ export class NewProductPage extends BasePage {
     await Promise.all([
       this.page.waitForURL(url => url.href !== currentUrl, { timeout: 30_000 }),
       firstLink.click(),
+    ]);
+    await this.waitForOSLoad();
+  }
+
+  async clickReleaseLinkByVersion(releaseVersion: string): Promise<void> {
+    const link = this.l.releasesGrid.getByRole('link', {
+      name: new RegExp(escapeRegExp(releaseVersion), 'i'),
+    }).first();
+    await link.waitFor({ state: 'visible', timeout: 30_000 });
+
+    await Promise.all([
+      this.page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+      link.click(),
     ]);
     await this.waitForOSLoad();
   }

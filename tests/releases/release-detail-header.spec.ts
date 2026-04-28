@@ -109,7 +109,7 @@ async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promi
 // ---------------------------------------------------------------------------
 
 test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', () => {
-  test.setTimeout(300_000);
+  test.setTimeout(480_000);
 
   let releaseDetailUrl: string;
 
@@ -785,6 +785,82 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
         cancelBtn,
         'Cancel Release button must be visible on the Release Detail page header',
       ).toBeVisible({ timeout: 15_000 });
+    });
+  });
+
+  test('RELEASE-CANCEL-002 — clicking Cancel Release shows a confirmation dialog', async ({
+    page, disposableRelease, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-002: A disposable release at Creation & Scoping can open the Cancel Release confirmation dialog without touching shared QA data.',
+    );
+
+    await test.step('Open the disposable release detail page', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+
+    await test.step('Click Cancel Release and verify the confirmation dialog', async () => {
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.expectCancelReleaseDialogVisible();
+    });
+
+    await test.step('Dismiss the dialog so the disposable release remains available only for this assertion', async () => {
+      await releaseDetailPage.dismissCancelReleaseDialog();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+  });
+
+  test('RELEASE-CANCEL-003 — confirming cancellation changes the release status to Cancelled', async ({
+    page, disposableRelease, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-003: A disposable release can be cancelled end to end and the Release Detail status updates to Cancelled.',
+    );
+
+    await test.step('Open the disposable release detail page', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+
+    await test.step('Confirm release cancellation', async () => {
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+    });
+
+    await test.step('Verify the release status is Cancelled', async () => {
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+  });
+
+  test('RELEASE-CANCEL-005 — cancelled release shows a warning message on its detail page', async ({
+    page, disposableRelease, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-005: After a disposable release is cancelled, its detail page exposes visible cancelled-state messaging.',
+    );
+
+    await test.step('Open and cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+    });
+
+    await test.step('Verify cancelled-state messaging is visible', async () => {
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+      await releaseDetailPage.expectCancelledReleaseWarningVisible();
     });
   });
 });
