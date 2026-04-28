@@ -901,4 +901,41 @@ test.describe('Releases - Disposable Create Release Coverage @regression', () =>
       await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
     });
   });
+
+  test('RELEASE-CREATE-020 — Existing Product Release without Last Full Pen Test Date reaches optional-warning path', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    test.fail(true, 'Known defect: Existing Product Release onboarding remains blocked before the optional Last Full Pen Test Date warning can be verified.');
+    await allure.description(
+      'RELEASE-CREATE-020: Existing Product Release onboarding should allow Last Full Pen Test Date to be omitted and show the expected warning path instead of blocking submission.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 21);
+    const fcsrDate = new Date();
+    fcsrDate.setDate(fcsrDate.getDate() - 14);
+
+    await test.step('Open Create Release for a disposable product with no releases', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectNoReleasesStateVisible();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Submit Existing Product Release without Last Full Pen Test Date', async () => {
+      await newProductPage.createExistingProductRelease({
+        releaseVersion: `PIC100-EPR-WARN-${Date.now()}`,
+        targetDate,
+        changeSummary: `Existing Product Release optional Last Full Pen Test Date warning for ${disposableProduct.name}`,
+        lastBuSecurityOfficerFcsrDate: fcsrDate,
+      });
+    });
+  });
 });
