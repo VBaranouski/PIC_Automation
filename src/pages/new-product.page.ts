@@ -1018,6 +1018,38 @@ export class NewProductPage extends BasePage {
     await this.waitForOSLoad();
   }
 
+  async expectReleasesShowActiveOnlyChecked(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyCheckbox).toBeChecked({ timeout: 15_000 });
+  }
+
+  async expectReleasesShowActiveOnlyUnchecked(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyCheckbox).not.toBeChecked({ timeout: 15_000 });
+  }
+
+  async expectReleasesShowActiveOnlyToggleVisible(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyLabel).toBeVisible({ timeout: 15_000 });
+  }
+
+  async toggleReleasesShowActiveOnly(): Promise<void> {
+    await this.l.releasesShowActiveOnlyCheckbox.click();
+    await this.waitForOSLoad();
+  }
+
+  async expectReleaseHiddenInReleasesGrid(releaseVersion: string): Promise<void> {
+    await expect(
+      this.l.releasesGrid.getByRole('row').filter({ hasText: new RegExp(escapeRegExp(releaseVersion), 'i') }).first(),
+    ).toBeHidden({ timeout: 30_000 });
+  }
+
+  async expectReleaseVisibleInReleasesGrid(releaseVersion: string, status: RegExp): Promise<void> {
+    const releaseRow = this.l.releasesGrid
+      .getByRole('row')
+      .filter({ hasText: new RegExp(escapeRegExp(releaseVersion), 'i') })
+      .first();
+    await expect(releaseRow).toBeVisible({ timeout: 30_000 });
+    await expect(releaseRow).toContainText(status, { timeout: 15_000 });
+  }
+
   /**
    * Returns the full text content of the first data row in the Releases tab grid.
    * Used to verify status badge / release version text is present.

@@ -863,4 +863,130 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
       await releaseDetailPage.expectCancelledReleaseWarningVisible();
     });
   });
+
+  test('RELEASE-CANCEL-004 — cancelled release is shown in Product Releases only when Show Active Only is OFF', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-004: After a disposable release is cancelled, Product Detail > Releases hides it while Show Active Only is ON and shows it with Cancelled status when OFF.',
+    );
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Open the parent product Releases tab', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesTabActive();
+    });
+
+    await test.step('Verify the cancelled release is hidden while Show Active Only is ON', async () => {
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+    });
+
+    await test.step('Toggle Show Active Only OFF and verify the cancelled release appears', async () => {
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Cancelled|Canceled/i);
+    });
+  });
+
+  test('RELEASE-DETAILS-012 — Show Active Only filter is visible and active releases are shown by default', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Product Detail / Releases Tab');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-012: Product Detail > Releases shows the Show Active Only filter and keeps the disposable Scoping release visible by default.',
+    );
+
+    await test.step('Verify the disposable release starts at Scoping', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+
+    await test.step('Open Product Detail Releases tab and verify default active filter behavior', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesShowActiveOnlyToggleVisible();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Scoping/i);
+    });
+  });
+
+  test('RELEASE-DETAILS-013 — toggling Show Active Only OFF reveals a cancelled release', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Product Detail / Releases Tab');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-013: A disposable cancelled release becomes visible in Product Detail > Releases after Show Active Only is toggled OFF.',
+    );
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Open Product Releases with Show Active Only defaulted on', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesShowActiveOnlyToggleVisible();
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+    });
+
+    await test.step('Toggle Show Active Only OFF and verify the cancelled release appears', async () => {
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Cancelled|Canceled/i);
+    });
+  });
+
+  test('RELEASE-DETAILS-014 — toggling Show Active Only back ON hides a cancelled release again', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Product Detail / Releases Tab');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-014: After showing all releases, toggling Show Active Only back ON hides the disposable cancelled release again.',
+    );
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Show the cancelled release by toggling Show Active Only OFF', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Cancelled|Canceled/i);
+    });
+
+    await test.step('Toggle Show Active Only back ON and verify the cancelled release is hidden', async () => {
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+    });
+  });
 });

@@ -14,8 +14,9 @@ Task input: `$1`
 
 1. Read `.agents/skills/create-auto-tests/SKILL.md` before making automation changes.
 2. Also read `.agents/skills/playwright-best-practices/SKILL.md` before writing or changing Playwright tests.
-3. Follow the skill workflow for tracker query, test design, locator/POM/spec updates, headed browser validation, terminal test execution, and tracker updates.
-4. Do not commit, push, or open a pull request unless the user explicitly asks for it.
+3. Also read `.agents/skills/typescript-style-checker/SKILL.md` before writing or changing TypeScript automation files.
+4. Follow the skill workflow for tracker query, test design, locator/POM/spec updates, headed browser validation, terminal test execution, and tracker updates.
+5. Do not commit, push, or open a pull request unless the user explicitly asks for it.
 
 ## Final response
 

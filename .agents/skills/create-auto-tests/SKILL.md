@@ -19,8 +19,9 @@ Proven workflow for automating any PICASso test scenarios, from tracker query to
 
 ## Prerequisites
 
-**Also load this skill before generating any test code:**
+**Also load these skills before generating or changing automation code:**
 - `.agents/skills/playwright-best-practices/SKILL.md` — canonical Playwright patterns (locators, assertions, POM, flaky-test prevention, CI/CD)
+- `.agents/skills/typescript-style-checker/SKILL.md` — TypeScript code style, imports, async patterns, and type-safety rules for `.ts` automation files
 
 Read these instruction files before starting:
 - `.github/instructions/automation-workflow.instructions.md` — master 7-step workflow
@@ -51,6 +52,8 @@ git checkout -b feature/<area>-<scope>-scenarios
 Use the feature area as prefix: `feature/doc-lifecycle-p1-scenarios`, `feature/releases-detail-tab`, `feature/products-history-edge`.
 
 ### Step 2: Identify & Script Test Scenarios
+
+Before editing any `.ts` file, confirm `.agents/skills/typescript-style-checker/SKILL.md` has been read and apply its guidance for type-only imports, async patterns, naming, inferred types, and time consistency.
 
 **Query tracker for pending scenarios:**
 ```bash
