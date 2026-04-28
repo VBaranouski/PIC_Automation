@@ -748,4 +748,43 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
       await expect(dppTab).toBeVisible({ timeout: 15_000 });
     });
   });
+
+  // ── RELEASE-CANCEL-001 ────────────────────────────────────────────────────
+  test('RELEASE-CANCEL-001 — should expose Cancel Release button on Release Detail page at Scoping stage', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-001: A release in the Creation & Scoping stage must expose ' +
+      'a "Cancel Release" button on the Release Detail page header. This test ' +
+      'verifies button presence only — clicking is destructive and out of scope.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Verify the release is at the Scoping stage', async () => {
+      const status = await releaseDetailPage.getReleaseStatusText();
+      expect(
+        /Scoping/i.test(status),
+        `Release status badge must indicate Scoping stage; saw "${status}"`,
+      ).toBe(true);
+    });
+
+    await test.step('Verify the Cancel Release button is visible', async () => {
+      const cancelBtn = page.getByRole('button', { name: /^\s*Cancel\s+Release\s*$/i }).first();
+      await expect(
+        cancelBtn,
+        'Cancel Release button must be visible on the Release Detail page header',
+      ).toBeVisible({ timeout: 15_000 });
+    });
+  });
 });
