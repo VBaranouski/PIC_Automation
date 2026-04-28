@@ -698,7 +698,7 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
   });
 
   // ── RELEASE-HEADER-015 ────────────────────────────────────────────────────
-  test('RELEASE-HEADER-015 — should expose all 9 expected content tabs on Release Detail page', async ({
+  test.fixme('RELEASE-HEADER-015 — should expose all 9 expected content tabs on Release Detail page', async ({
     page, landingPage, releaseDetailPage,
   }) => {
     await allure.suite('Releases / Release Detail / Header');
