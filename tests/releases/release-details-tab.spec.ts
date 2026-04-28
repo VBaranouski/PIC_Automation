@@ -221,6 +221,85 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     }
   });
 
+  test('RELEASE-DETAILS-EDIT-003 — dismissing Leave Page confirmation returns to Release Details edit mode', async ({
+    page,
+    disposableRelease,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Release Details');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    test.fail(true, 'Known defect: Cancel in Release Details edit mode exits without showing Leave Page confirmation for unsaved changes.');
+    await allure.description(
+      'RELEASE-DETAILS-EDIT-003: Clicking Cancel in Release Details edit mode with unsaved changes shows the Leave Page confirmation; dismissing it keeps the user in edit mode with the unsaved value still present.',
+    );
+
+    const unsavedSummary = `Dismiss leave confirmation ${Date.now()}`;
+
+    await test.step('Open a disposable release in Release Details edit mode', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.openReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsEditModeVisible();
+    });
+
+    await test.step('Make an unsaved Change Summary update and click Cancel', async () => {
+      await releaseDetailPage.fillReleaseDetailsChangeSummary(unsavedSummary);
+      await releaseDetailPage.clickCancelReleaseDetailsAndExpectLeaveDialog();
+    });
+
+    await test.step('Dismiss Leave Page confirmation and verify edit mode remains active', async () => {
+      await releaseDetailPage.dismissLeavePageDialog();
+      await releaseDetailPage.expectReleaseDetailsEditModeVisible();
+      await releaseDetailPage.expectEditModeChangeSummaryValue(unsavedSummary);
+    });
+
+    await test.step('Confirm leaving edit mode to restore clean state', async () => {
+      await releaseDetailPage.clickCancelReleaseDetailsAndExpectLeaveDialog();
+      await releaseDetailPage.confirmLeavePageDialog();
+      await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
+    });
+  });
+
+  test('RELEASE-DETAILS-EDIT-004 — confirming Leave Page discards unsaved Release Details changes', async ({
+    page,
+    disposableRelease,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Release Details');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    test.fail(true, 'Known defect: Cancel in Release Details edit mode exits without showing Leave Page confirmation, so unsaved-change discard cannot be confirmed.');
+    await allure.description(
+      'RELEASE-DETAILS-EDIT-004: Confirming the Leave Page dialog from Release Details edit mode exits edit mode and discards the unsaved Change Summary update.',
+    );
+
+    let originalSummary = '';
+    const unsavedSummary = `Discarded release details change ${Date.now()}`;
+
+    await test.step('Open a disposable release and capture original Change Summary', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.openReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsEditModeVisible();
+      originalSummary = await releaseDetailPage.getEditModeChangeSummaryValue();
+    });
+
+    await test.step('Make an unsaved edit and confirm Leave Page', async () => {
+      await releaseDetailPage.fillReleaseDetailsChangeSummary(unsavedSummary);
+      await releaseDetailPage.clickCancelReleaseDetailsAndExpectLeaveDialog();
+      await releaseDetailPage.confirmLeavePageDialog();
+      await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
+    });
+
+    await test.step('Reopen edit mode and verify the original summary is preserved', async () => {
+      await releaseDetailPage.openReleaseDetailsEditMode();
+      await releaseDetailPage.expectEditModeChangeSummaryValue(originalSummary);
+      await releaseDetailPage.cancelReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
+    });
+  });
+
   // ── RELEASE-DETAILS-CANCEL-LEAVE-001 ─────────────────────────────────────
   test('RELEASE-DETAILS-CANCEL-LEAVE-001 — should show Leave Page dialog when navigating away with unsaved Release Details changes', async ({
     page, landingPage, releaseDetailPage,

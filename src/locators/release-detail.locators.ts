@@ -98,6 +98,7 @@ export function releaseDetailLocators(page: Page) {
     cancelReleaseDetailsButton: page.getByRole('button', { name: /^Cancel$/ }).first(),
     targetReleaseDateInput: page.getByRole('textbox', { name: 'Select a date.' }).first(),
     changeSummaryTextarea: page.getByRole('textbox', { name: /Change Summary/i }).first(),
+    leavePageDialog: page.getByRole('dialog').filter({ hasText: /Leave Page|leave|unsaved|discard/i }).last(),
     /** Empty state observed when no related SE products are associated */
     includedSeComponentsEmptyState: page.getByText(/No Components Associated yet|There are no SE products included in this product/i).first(),
 

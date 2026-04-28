@@ -468,6 +468,31 @@ export class ReleaseDetailPage extends BasePage {
     await this.waitForOSLoad();
   }
 
+  async clickCancelReleaseDetailsAndExpectLeaveDialog(): Promise<void> {
+    await this.l.cancelReleaseDetailsButton.click();
+    await this.expectLeavePageDialogVisible();
+  }
+
+  async expectLeavePageDialogVisible(): Promise<void> {
+    await expect(this.l.leavePageDialog).toBeVisible({ timeout: 20_000 });
+  }
+
+  async dismissLeavePageDialog(): Promise<void> {
+    const stayButton = this.l.leavePageDialog.getByRole('button', { name: /Cancel|Stay/i }).first();
+    await expect(stayButton).toBeVisible({ timeout: 10_000 });
+    await stayButton.click();
+    await expect(this.l.leavePageDialog).toBeHidden({ timeout: 10_000 });
+    await this.waitForOSLoad();
+  }
+
+  async confirmLeavePageDialog(): Promise<void> {
+    const leaveButton = this.l.leavePageDialog.getByRole('button', { name: /Leave|Discard/i }).first();
+    await expect(leaveButton).toBeVisible({ timeout: 10_000 });
+    await leaveButton.click();
+    await expect(this.l.leavePageDialog).toBeHidden({ timeout: 10_000 });
+    await this.waitForOSLoad();
+  }
+
   async expectReleaseDetailsReadOnlyModeVisible(): Promise<void> {
     await expect(this.l.editReleaseDetailsButton).toBeVisible({ timeout: 20_000 });
     await expect(this.l.saveReleaseDetailsButton).toBeHidden({ timeout: 20_000 });
