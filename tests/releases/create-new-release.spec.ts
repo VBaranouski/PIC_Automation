@@ -740,3 +740,113 @@ test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression'
     });
   });
 });
+
+test.describe('Releases - Disposable Create Release Coverage @regression', () => {
+  test.setTimeout(360_000);
+
+  test('RELEASE-CREATE-002-b — newly created release appears in the product Releases tab list', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-002-b: A release created for a disposable product appears in the product Releases tab list.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 7);
+    const releaseVersion = `PIC100-LIST-${Date.now()}`;
+
+    await test.step('Open disposable product Releases tab', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectNoReleasesStateVisible();
+    });
+
+    await test.step('Create a release for the disposable product', async () => {
+      await newProductPage.clickCreateRelease();
+      await newProductPage.createFirstRelease({
+        releaseVersion,
+        targetDate,
+        changeSummary: `Disposable release list coverage for ${disposableProduct.name}`,
+      });
+    });
+
+    await test.step('Verify the release is visible in the Releases tab list', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+  });
+
+  test('RELEASE-CREATE-016 — created release starts with Scoping status', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-016: A newly created disposable release has Scoping as its initial status.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 10);
+    const releaseVersion = `PIC100-SCOPE-${Date.now()}`;
+
+    await test.step('Create a release for a disposable product', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.createFirstRelease({
+        releaseVersion,
+        targetDate,
+        changeSummary: `Disposable release initial status coverage for ${disposableProduct.name}`,
+      });
+    });
+
+    await test.step('Verify Scoping status in the product Releases tab', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+  });
+
+  test('RELEASE-CREATE-017 — Target Release Date picker prevents selecting past dates', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-017: The Create Release Target Release Date picker disables dates before today.',
+    );
+
+    await test.step('Open Create Release dialog for a disposable product', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Verify past dates are disabled', async () => {
+      await newProductPage.expectTargetDatePickerPreventsYesterday();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+});
