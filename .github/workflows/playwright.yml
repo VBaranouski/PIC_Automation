@@ -80,6 +80,9 @@ jobs:
         env:
           TEST_ENV: ${{ inputs.test_env || 'qa' }}
           TEST_ROLE: ${{ inputs.test_role || 'process_quality_leader' }}
+          PICASSO_LOGIN: ${{ secrets.PICASSO_LOGIN }}
+          PICASSO_PASSWORD: ${{ secrets.PICASSO_PASSWORD }}
+          PICASSO_USER_NAME: ${{ secrets.PICASSO_USER_NAME }}
           CI: true
 
       - name: Upload Allure results
