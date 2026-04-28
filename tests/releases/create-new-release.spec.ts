@@ -849,4 +849,56 @@ test.describe('Releases - Disposable Create Release Coverage @regression', () =>
       await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
     });
   });
+
+  test('RELEASE-CREATE-018 — cancelled release version cannot be reused for a new release', async ({
+    page,
+    disposableRelease,
+    newProductPage,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-018: After a disposable release is cancelled, creating another release with the same version shows duplicate-version validation.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 21);
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated duplicate-name setup for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Open Create Release on the same product', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+
+      const createAsNewVisible = await newProductPage.createAsNewRadio.isVisible({ timeout: 5_000 }).catch(() => false);
+      if (createAsNewVisible) {
+        await newProductPage.clickCreateAsNewRadio();
+      }
+    });
+
+    await test.step('Attempt to create a new release with the cancelled release version', async () => {
+      await newProductPage.fillReleaseVersion(disposableRelease.version);
+      await newProductPage.selectReleaseTargetDate(targetDate);
+      await newProductPage.fillReleaseChangeSummary(`Duplicate cancelled release version check for ${disposableRelease.version}`);
+      await newProductPage.clickCreateAndScope();
+    });
+
+    await test.step('Verify duplicate release version validation is shown', async () => {
+      await expect(newProductPage.createReleaseDialog).toBeVisible({ timeout: 15_000 });
+      await newProductPage.expectDuplicateReleaseVersionValidationVisible();
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
 });
