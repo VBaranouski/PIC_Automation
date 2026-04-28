@@ -38,55 +38,70 @@ import * as path from 'path';
 // ---------------------------------------------------------------------------
 
 async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promise<string> {
-  // Prefer the cached product URL written by create-new-release.spec.ts
-  const stateFile = path.resolve(__dirname, '../../.product-state.json');
-  let productUrl: string | null = null;
-  if (fs.existsSync(stateFile)) {
-    try {
-      const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-      productUrl = state.productWithReleasesUrl || null;
-    } catch { /* fall through */ }
-  }
-
-  if (!productUrl) {
-    // Fallback: scan My Products for a product with releases
+  // Primary path — My Releases tab. This is resilient because it lists every
+  // release the test user can see, regardless of which product they belong to.
+  try {
     await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
-    await landingPage.clickTab('My Products');
-    await landingPage.grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
-    const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
-    productUrl = await link.getAttribute('href') ?? null;
-    if (!productUrl) throw new Error('No product links found on My Products tab');
-    // Playwright resolves relative paths against baseURL from config
-  }
+    await landingPage.clickTab('My Releases');
+    await landingPage.waitForGridDataRows(30_000);
 
-  // Navigate to Product Detail page
-  await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
-  // Wait for product detail to load
-  await page.waitForURL(/ProductDetail/, { timeout: 60_000 });
-  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-  await page.waitForTimeout(2_000);
+    const firstReleaseLink = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
+    await expect(firstReleaseLink).toBeVisible({ timeout: 30_000 });
 
-  // Click the Releases tab on the Product Detail page
-  const releasesTab = page.getByRole('tab', { name: /^Releases$/i }).first();
-  const releasesTabCount = await releasesTab.count();
-  if (releasesTabCount > 0) {
-    await releasesTab.click();
+    await Promise.all([
+      page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+      firstReleaseLink.click(),
+    ]);
+    return page.url();
+  } catch (myReleasesError) {
+    // Fallback path — cached product URL or My Products tab → first product → Releases tab.
+    const stateFile = path.resolve(__dirname, '../../.product-state.json');
+    let productUrl: string | null = null;
+    if (fs.existsSync(stateFile)) {
+      try {
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        productUrl = state.productWithReleasesUrl || null;
+      } catch { /* fall through */ }
+    }
+
+    if (!productUrl) {
+      await landingPage.goto();
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+      await landingPage.clickTab('My Products');
+      await landingPage.grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
+      const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
+      productUrl = await link.getAttribute('href') ?? null;
+      if (!productUrl) {
+        throw new Error(
+          `Unable to open a Release Detail page. My Releases path: ${
+            myReleasesError instanceof Error ? myReleasesError.message : String(myReleasesError)
+          }; My Products had no product link.`,
+        );
+      }
+    }
+
+    await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
+    await page.waitForURL(/ProductDetail/, { timeout: 60_000 });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2_000);
+
+    const releasesTab = page.getByRole('tab', { name: /^Releases$/i }).first();
+    if ((await releasesTab.count()) > 0) {
+      await releasesTab.click();
+      await page.waitForTimeout(2_000);
+    }
+
+    const firstLink = page.getByRole('grid').getByRole('row').nth(1).getByRole('link').first()
+      .or(page.locator('table tbody tr').nth(0).getByRole('link').first());
+    await firstLink.waitFor({ state: 'visible', timeout: 30_000 });
+
+    await Promise.all([
+      page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+      firstLink.click(),
+    ]);
+    return page.url();
   }
-
-  // Click the first release-name link in the grid
-  const firstLink = page.getByRole('grid').getByRole('row').nth(1).getByRole('link').first()
-    .or(page.locator('table tbody tr').nth(0).getByRole('link').first());
-
-  await firstLink.waitFor({ state: 'visible', timeout: 30_000 });
-
-  await Promise.all([
-    page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
-    firstLink.click(),
-  ]);
-
-  return page.url();
 }
 
 // ---------------------------------------------------------------------------
@@ -679,6 +694,97 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
           `Stage "${stage}" submission line "${summary}" must contain a digit`,
         ).toBe(true);
       }
+    });
+  });
+
+  // ── RELEASE-HEADER-015 ────────────────────────────────────────────────────
+  test.fixme('RELEASE-HEADER-015 — should expose all 9 expected content tabs on Release Detail page', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-015: A Release Detail page must render all 9 content tabs: ' +
+      'Release Details, Roles & Responsibilities, Questionnaire, Process Requirements, ' +
+      'Product Requirements, Review & Confirm, Data Protection and Privacy Review, ' +
+      'Cybersecurity Residual Risks, and FCSR Decision. Tabs may be enabled or ' +
+      'disabled depending on stage / questionnaire submission, but each must be present.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    const expectedTabs = [
+      'Release Details',
+      'Roles & Responsibilities',
+      'Questionnaire',
+      'Process Requirements',
+      'Product Requirements',
+      'Review & Confirm',
+      // Tab label varies between "Data Protection and Privacy Review" and "Data Protection & Privacy Review";
+      // assert via regex below.
+      'Cybersecurity Residual Risks',
+      'FCSR Decision',
+    ];
+
+    await test.step('Verify each named content tab is visible', async () => {
+      for (const tabName of expectedTabs) {
+        const visible = await releaseDetailPage.isTopLevelTabVisible(tabName);
+        expect(visible, `Content tab "${tabName}" must be visible on the Release Detail page`).toBe(true);
+      }
+    });
+
+    await test.step('Verify the Data Protection & Privacy Review tab is visible (label varies)', async () => {
+      const dppTab = page
+        .getByRole('tab', { name: /Data Protection\s*(and|&)\s*Privacy Review/i })
+        .first();
+      await expect(dppTab).toBeVisible({ timeout: 15_000 });
+    });
+  });
+
+  // ── RELEASE-CANCEL-001 ────────────────────────────────────────────────────
+  test('RELEASE-CANCEL-001 — should expose Cancel Release button on Release Detail page at Scoping stage', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-001: A release in the Creation & Scoping stage must expose ' +
+      'a "Cancel Release" button on the Release Detail page header. This test ' +
+      'verifies button presence only — clicking is destructive and out of scope.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Verify the release is at the Scoping stage', async () => {
+      const status = await releaseDetailPage.getReleaseStatusText();
+      expect(
+        /Scoping/i.test(status),
+        `Release status badge must indicate Scoping stage; saw "${status}"`,
+      ).toBe(true);
+    });
+
+    await test.step('Verify the Cancel Release button is visible', async () => {
+      const cancelBtn = page.getByRole('button', { name: /^\s*Cancel\s+Release\s*$/i }).first();
+      await expect(
+        cancelBtn,
+        'Cancel Release button must be visible on the Release Detail page header',
+      ).toBeVisible({ timeout: 15_000 });
     });
   });
 });
