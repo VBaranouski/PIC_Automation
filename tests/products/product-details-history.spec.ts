@@ -279,6 +279,76 @@ test.describe('Product Details - View History @regression', () => {
     });
   });
 
+  test('PRODUCT-HISTORY-003-b — should narrow Product Change History rows to the selected Activity type @regression', async ({ landingPage, newProductPage, page }) => {
+    test.fixme(true, 'Knowledge gap: PICASso Activity dropdown labels (e.g. "Data Protection & Privacy details editing") do not match the Activity column text in history rows (e.g. "Product details editing"). Awaiting QA confirmation of the label\u2194row-text mapping before this scenario can assert per-row activity correctness.');
+    await allure.suite('Products - View History');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.tag('PIC-110');
+    await allure.description(
+      'PRODUCT-HISTORY-003-b: Selecting a specific value in the Activity dropdown filter must narrow the ' +
+      'Product Change History grid to rows whose Activity column matches that value, and Reset must restore ' +
+      'the original row count.',
+    );
+
+    let initialCount = 0;
+    let selectedActivity = '';
+
+    await test.step('Navigate to a product with at least 2 history rows and open View History dialog', async () => {
+      const productUrl = await findProductWithMinimumHistoryRowsOrSkip(
+        page,
+        landingPage,
+        newProductPage,
+        2,
+        'QA data does not currently expose a product with enough Product History rows for activity-filter narrowing.',
+      );
+      await page.goto(productUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickViewHistory();
+      await newProductPage.expectHistoryDialogVisible();
+      await newProductPage.expectHistoryGridHasRows();
+      initialCount = await newProductPage.getHistoryRowCount();
+      expect(initialCount, 'Expected at least one Product History row before applying the activity filter').toBeGreaterThan(0);
+    });
+
+    await test.step('Select a specific (non-default) value in the Activity dropdown filter', async () => {
+      const activityOptions = await newProductPage.getHistoryActivityFilterOptionLabels();
+      const candidate = activityOptions.find(
+        (option) => option && !/^(all|select activity)$/i.test(option),
+      );
+      expect(candidate, 'Expected at least one non-default Product History activity option').toBeTruthy();
+      selectedActivity = candidate!;
+
+      await newProductPage.selectHistoryActivityFilter(selectedActivity);
+      await expect.poll(() => newProductPage.getSelectedHistoryActivityFilterLabel(), { timeout: 15_000 }).toBe(selectedActivity);
+    });
+
+    await test.step('Verify visible rows belong to the selected Activity type', async () => {
+      // STRONG ASSERTION (currently fixme): the Activity column text in each visible row
+      // should match the selected dropdown label. Pending QA mapping confirmation.
+      await page.waitForTimeout(500);
+      const rowTexts = await newProductPage.getHistoryRowTexts(20);
+      const dataRows = rowTexts.filter((text) => text && !/no\s+(data|records?|results?)\s+available/i.test(text));
+      const escaped = selectedActivity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const activityRegex = new RegExp(escaped, 'i');
+      for (const rowText of dataRows) {
+        expect(rowText).toMatch(activityRegex);
+      }
+    });
+
+    await test.step('Reset filters and verify row count is restored', async () => {
+      await newProductPage.clickHistoryResetFilters();
+      await expect.poll(() => newProductPage.getSelectedHistoryActivityFilterLabel(), { timeout: 15_000 })
+        .not.toBe(selectedActivity);
+      await expect.poll(() => newProductPage.getHistoryRowCount(), { timeout: 15_000 })
+        .toBeGreaterThanOrEqual(initialCount);
+    });
+
+    await test.step('Close history dialog', async () => {
+      await newProductPage.closeHistoryDialog();
+    });
+  });
+
   test('PRODUCT-HISTORY-004 — should show Product Change History entries sorted by newest date first @regression', async ({ landingPage, newProductPage, page }) => {
     await allure.suite('Products - View History');
     await allure.severity('normal');

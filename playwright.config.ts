@@ -52,7 +52,7 @@ export default defineConfig({
 			testMatch: /.*\.setup\.ts/,
 			// Exclude the DOC-specific state setup — it has its own project with dependencies
 			testIgnore: [exactSpec('tests', 'doc', 'doc-state.setup.ts')],
-			use: { storageState: undefined },
+			use: { storageState: { cookies: [], origins: [] } },
 		},
 		{
 			name: 'release-detail-header',

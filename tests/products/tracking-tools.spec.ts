@@ -427,9 +427,11 @@ test.describe('Product Configuration — Tracking Tools @regression', () => {
 
       await test.step('Click Save and observe validation error', async () => {
         await newProductPage.clickSave();
-        // OutSystems shows "Required field!" for empty mandatory fields
-        const requiredError = page.getByText(/Required field!?/i).first();
-        await expect(requiredError).toBeVisible({ timeout: 15_000 });
+        // OutSystems shows a top-of-page alert when required fields are empty.
+        // (Per-field "Required field!" spans exist in DOM permanently — hidden by default —
+        // so we assert the visible alert banner instead.)
+        const validationAlert = page.getByRole('alert').filter({ hasText: /review the necessary fields/i }).first();
+        await expect(validationAlert).toBeVisible({ timeout: 15_000 });
       });
 
       await test.step('Cancel edit mode (validation blocked the save — no changes persisted)', async () => {
@@ -476,6 +478,93 @@ test.describe('Product Configuration — Tracking Tools @regression', () => {
       );
 
       test.fixme(true, 'TRACKING-TOOLS-012: Deferred — destructive test requiring a product with pre-configured Jira/Jama.');
+
+      await page.goto(PRODUCT_URL);
+    },
+  );
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // TRACKING-TOOLS-013 — Jira Test Connection with invalid credentials shows red error
+  // ────────────────────────────────────────────────────────────────────────────
+  test(
+    'TRACKING-TOOLS-013: Jira Test Connection — invalid credentials or URL shows a red error message',
+    async ({ newProductPage, page }) => {
+      await allure.suite('Products - Tracking Tools Configuration');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TRACKING-TOOLS-013: After enabling Jira and entering an invalid URL + invalid Project Key, ' +
+        'clicking Test Connection must surface a visible error indicator.',
+      );
+
+      await test.step('Navigate to product in edit mode → Product Configuration tab', async () => {
+        await page.goto(PRODUCT_URL);
+        await newProductPage.expectProductDetailLoaded();
+        await newProductPage.clickEditProductAndWaitForForm();
+        await newProductPage.clickProductConfigurationTab();
+      });
+
+      await test.step('Enable Jira toggle and enter invalid Source Link + Project Key', async () => {
+        await newProductPage.enableJiraToggle();
+        await newProductPage.jiraSourceLinkInput.fill('https://invalid-jira.example.invalid');
+        await newProductPage.jiraProjectKeyInput.fill('INVALIDKEY-DOES-NOT-EXIST');
+      });
+
+      await test.step('Click Test Connection and verify an error indicator is visible', async () => {
+        await newProductPage.testConnectionButton.click();
+        // PICASso surfaces an error via an OutSystems alert/banner. Match the alert role and known wording.
+        const errorAlert = page.getByRole('alert').filter({
+          hasText: /unable to connect|connection (failed|error|could not|unsuccessful)|invalid (url|credentials|project key)/i,
+        }).first();
+        await expect(errorAlert).toBeVisible({ timeout: 30_000 });
+      });
+
+      await test.step('Cancel edit mode (validation/error state — no save attempted)', async () => {
+        await newProductPage.clickCancelAndConfirmLeave();
+      });
+    },
+  );
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // TRACKING-TOOLS-014 — Activating Jama reveals Email Notifications Recipients pre-filled with PO + SM
+  // ────────────────────────────────────────────────────────────────────────────
+  test(
+    'TRACKING-TOOLS-014: Activating Jama toggle reveals Email Notifications Recipients with at least 2 default entries',
+    async ({ newProductPage, page }) => {
+      await allure.suite('Products - Tracking Tools Configuration');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TRACKING-TOOLS-014: After enabling Jama, the Email Notifications Recipients section is visible ' +
+        'and is pre-filled with at least the Product Owner and Security Manager entries.',
+      );
+
+      test.fixme(true, 'TRACKING-TOOLS-014: Knowledge gap — the "Email Notifications Recipients" section ' +
+        'is not surfaced by the Jama toggle on the shared exploration product (ProductId=1133). ' +
+        'Awaiting QA confirmation of the exact UI wording / location of the recipients section ' +
+        'and whether it requires a saved Jama configuration to appear.');
+
+      await page.goto(PRODUCT_URL);
+    },
+  );
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // TRACKING-TOOLS-016 — Jira Test Connection with valid credentials (skipped — needs real Jira)
+  // ────────────────────────────────────────────────────────────────────────────
+  test(
+    'TRACKING-TOOLS-016: Jira Test Connection — valid credentials show success confirmation',
+    async ({ newProductPage, page }) => {
+      await allure.suite('Products - Tracking Tools Configuration');
+      await allure.severity('normal');
+      await allure.tag('regression');
+      await allure.description(
+        'TRACKING-TOOLS-016: With valid Jira Source Link and Project Key, clicking ' +
+        '"Test Connection" must show a success confirmation message. ' +
+        'Skipped: requires valid Jira server URL and credentials configured on QA env.',
+      );
+
+      test.skip(true, 'TRACKING-TOOLS-016: Skipped — requires valid Jira server URL and credentials. ' +
+        'Test Connection success depends on external Jira availability on QA env.');
 
       await page.goto(PRODUCT_URL);
     },
