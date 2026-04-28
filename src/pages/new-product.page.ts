@@ -824,6 +824,17 @@ export class NewProductPage extends BasePage {
     await this.l.changeSummaryInput.fill(summary);
   }
 
+  async expectReleaseChangeSummaryValue(summary: string): Promise<void> {
+    await expect(this.l.changeSummaryInput).toHaveValue(summary, { timeout: 10_000 });
+  }
+
+  async expectCreateReleaseFormCleared(): Promise<void> {
+    await expect(this.l.releaseVersionInput).toHaveValue('', { timeout: 10_000 });
+    await expect(this.l.targetReleaseDateInput).toHaveValue('', { timeout: 10_000 });
+    await expect(this.l.changeSummaryInput).toHaveValue('', { timeout: 10_000 });
+    await this.expectNewProductReleaseRadioSelected();
+  }
+
   async getRequiredFieldErrorCount(): Promise<number> {
     return this.l.requiredFieldError.count();
   }

@@ -1,5 +1,6 @@
 import { test } from '../../src/fixtures';
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import type { LandingPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
 import { readProductState, writeProductState } from '../../src/helpers/product-state.helper';
@@ -198,7 +199,7 @@ async function findProductWithAnyRelease(
   throw new Error('No product with existing releases found in the first 100 My Products rows.');
 }
 
-test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () => {
+test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression', () => {
   test.setTimeout(400_000);
 
   // Shared product URL — discovered once by the first test in the serial block
@@ -655,6 +656,87 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
       await newProductPage.expectProductDetailLoaded();
       await newProductPage.clickReleasesTab();
       await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+  });
+
+  test('RELEASE-CREATE-014 — should clear create release fields when Reset Form is clicked', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-014: The Create Release dialog Reset Form button clears entered release version, target date, and change summary values.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 14);
+
+    await test.step('Open Create Release dialog for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Populate the create release form', async () => {
+      await newProductPage.fillReleaseVersion(`PIC100-RESET-${Date.now()}`);
+      await newProductPage.selectReleaseTargetDate(targetDate);
+      await newProductPage.fillReleaseChangeSummary('Reset Form should clear this change summary.');
+    });
+
+    await test.step('Reset the form and verify default empty values are restored', async () => {
+      await newProductPage.clickResetReleaseForm();
+      await newProductPage.expectCreateReleaseFormCleared();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  test('RELEASE-CREATE-015 — should accept multiline text in Change Summary', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-015: The Create Release dialog Change Summary field accepts and preserves multiline text input.',
+    );
+
+    const multilineSummary = [
+      'Automated multiline change summary.',
+      'Second line verifies newline preservation.',
+      'Third line covers longer release notes entry.',
+    ].join('\n');
+
+    await test.step('Open Create Release dialog for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Fill multiline Change Summary and verify value is preserved', async () => {
+      await newProductPage.fillReleaseChangeSummary(multilineSummary);
+      await newProductPage.expectReleaseChangeSummaryValue(multilineSummary);
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
     });
   });
 });
