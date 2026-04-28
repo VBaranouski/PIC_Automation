@@ -1,4 +1,5 @@
 import { test as setup, expect } from '../../src/fixtures';
+import fs from 'fs';
 import path from 'path';
 
 const AUTH_FILE = path.join(__dirname, '../../.auth/user.json');
@@ -14,5 +15,6 @@ setup('authenticate', async ({ page, loginPage, landingPage, userCredentials }) 
   await landingPage.expectPageLoaded({ timeout: 60_000 });
 
   // Persist auth state to disk for reuse across all test projects
+  fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
   await page.context().storageState({ path: AUTH_FILE });
 });
