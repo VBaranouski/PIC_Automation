@@ -19,7 +19,7 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 ## Default workflow — 7-Step Canonical Process
 
 > Full rules in `.github/instructions/automation-workflow.instructions.md`
-> Entry prompt: `.github/prompts/run-full-automation-workflow.prompt.md`
+> Entry command: `/create-auto-tests`
 
 1. **PLAN** — Identify the next `[ ]` scenario from `docs/ai/automation-testing-plan.md`; record TC ID, WF, spec file, POM.
 2. **STEPS** — Write numbered test steps + expected results; update plan marker to `[~]`; apply role codes from `picasso-roles-and-access.md`.
@@ -29,7 +29,7 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 6. **UPDATE PLAN** — Change `[ ]` to `[x]`/`[~]`; update runtime status table; update coverage matrix; sync `.html` version.
 7. **PROPOSE NEXT** — Output a structured Next Scope Proposal with TC IDs, priorities, effort, and a parallel agent plan if batch ≥ 3.
 
-**Multi-agent rule:** spawn one agent per spec file for batches of 3+ scenarios; agents share plan reads, never share write access to the same file.
+**Subagent rule:** do not spawn subagents unless the user explicitly asks for them. When a batch is large, propose a split plan first.
 
 ## Read before generating automation assets
 
@@ -46,16 +46,13 @@ PICASso Automation is a dedicated Playwright + TypeScript test automation reposi
 - `.github/instructions/quality-checklist.instructions.md` ← Pre-commit checklist, common pitfalls, flaky-test prevention
 - `.github/instructions/picasso-roles-and-access.md` ← Role codes, privilege names, and access-based test scenarios (78 roles, 157 privileges)
 
-## Prompt entry points
+## Copilot slash commands
 
-- `.github/prompts/run-full-automation-workflow.prompt.md` ← **PRIMARY ENTRY POINT — use for all new test creation sessions**
-- `.github/prompts/run-automation-pipeline.prompt.md`
-- `.github/prompts/generate-automation-test-cases.prompt.md`
-- `.github/prompts/generate-playwright-tests.prompt.md`
-- `.github/prompts/validate-browser-locators.prompt.md`
-- `.github/prompts/generate-tests.prompt.md`
-- `.github/prompts/generate-doc-certification-tests.prompt.md` ← WF 11.14 DOC Certification Decision
-- `.github/prompts/generate-doc-release-linkage-tests.prompt.md` ← WF 11.16 DOC–Release Linkage
+- `/create-test-cases` — design or refactor tracker-ready test case specifications before code.
+- `/create-auto-tests` — implement, validate, run, and update tracker state for Playwright automation.
+- `/pr-review` — review the active PR, current branch, diff, or files for merge risk.
+
+The canonical workflow details live in `.agents/skills/`. The `.github/prompts/` files are thin slash-command wrappers so the commands are easy to find in GitHub Copilot.
 
 ## Core rules
 

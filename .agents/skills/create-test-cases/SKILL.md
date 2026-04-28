@@ -1,6 +1,8 @@
 ---
 name: create-test-cases
 description: "Design agent-compatible test cases for PICASso feature areas with zero-regression coverage guarantees. Use this skill whenever the user asks to create, write, refactor, review, or improve test cases, test scenarios, or test specifications — BEFORE any Playwright code is written. Also triggers for: 'write test cases for X', 'design tests for this feature', 'what tests do we need for X', 'refactor test cases', 'review test coverage for X', 'coverage gap analysis', 'are we testing everything', 'zero regression', or when the user mentions a feature area and wants test case specs rather than code. This skill produces structured test case documents that feed directly into the create-auto-tests skill for implementation."
+argument-hint: "<feature area, workflow, requirement, scenario IDs, or coverage question>"
+user-invocable: true
 ---
 
 # Test Case Design for PICASso Automation
