@@ -92,4 +92,42 @@ test.describe.serial('Releases - Roles & Responsibilities Tab @regression', () =
       });
     },
   );
+
+  test('RELEASE-ROLES-003 — Product Team Add User action opens an assignment row or popup', async ({
+    page,
+    disposableRelease,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Roles & Responsibilities');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-ROLES-003: On a disposable Scoping release, the Product Team +Add User action opens the user assignment UI without mutating shared QA data.',
+    );
+
+    await test.step('Open Roles & Responsibilities for the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickTopLevelTab('Roles & Responsibilities');
+      await releaseDetailPage.expectTopLevelTabSelected('Roles & Responsibilities');
+      await expect(page.getByText(/Product Team/i).first()).toBeVisible({ timeout: 15_000 });
+    });
+
+    await test.step('Enter Roles edit mode and click Product Team Add User action', async () => {
+      await page.getByRole('button', { name: /^Edit$/ }).click();
+      await releaseDetailPage.waitForOSLoad();
+      const addUserButton = page.getByRole('link', { name: /\+?\s*Add User/i }).first();
+      await expect(addUserButton).toBeVisible({ timeout: 20_000 });
+      await addUserButton.click();
+      await releaseDetailPage.waitForOSLoad();
+    });
+
+    await test.step('Verify a user assignment row or popup is available', async () => {
+      const assignmentUi = page
+        .locator('[role="dialog"], .osui-popup, [role="row"], tr')
+        .filter({ hasText: /User Role|Team Members|Email|Location|Search|Name/i })
+        .last();
+      await expect(assignmentUi).toBeVisible({ timeout: 20_000 });
+    });
+  });
 });
