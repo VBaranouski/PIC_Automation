@@ -221,6 +221,70 @@ test.describe.serial('Releases - Release Details Tab @regression', () => {
     }
   });
 
+  test('RELEASE-DETAILS-EDIT-001 — edit release details exposes editable Target Release Date and Change Summary', async ({
+    page,
+    disposableRelease,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Release Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-EDIT-001: A disposable Scoping release can enter Release Details edit mode and expose editable Target Release Date and Change Summary fields.',
+    );
+
+    await test.step('Open the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseDetailsTabSelected();
+    });
+
+    await test.step('Enter Release Details edit mode and verify editable controls', async () => {
+      await releaseDetailPage.openReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsEditModeVisible();
+    });
+
+    await test.step('Cancel edit mode without saving', async () => {
+      await releaseDetailPage.cancelReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
+    });
+  });
+
+  test('RELEASE-DETAILS-EDIT-002 — saving Change Summary persists the updated value', async ({
+    page,
+    disposableRelease,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Release Details');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-EDIT-002: A disposable Scoping release persists an updated Change Summary after Save.',
+    );
+
+    const updatedSummary = `Disposable release details update ${Date.now()}`;
+
+    await test.step('Open the disposable release in edit mode', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.openReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsEditModeVisible();
+    });
+
+    await test.step('Save an updated Change Summary', async () => {
+      await releaseDetailPage.fillReleaseDetailsChangeSummary(updatedSummary);
+      await releaseDetailPage.saveReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
+    });
+
+    await test.step('Reopen edit mode and verify the updated value persisted', async () => {
+      await releaseDetailPage.openReleaseDetailsEditMode();
+      await releaseDetailPage.expectEditModeChangeSummaryValue(updatedSummary);
+      await releaseDetailPage.cancelReleaseDetailsEditMode();
+      await releaseDetailPage.expectReleaseDetailsReadOnlyModeVisible();
+    });
+  });
+
   test('RELEASE-DETAILS-EDIT-003 — dismissing Leave Page confirmation returns to Release Details edit mode', async ({
     page,
     disposableRelease,
