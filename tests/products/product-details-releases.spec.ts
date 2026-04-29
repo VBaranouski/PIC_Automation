@@ -2,9 +2,13 @@ import { test, expect } from '../../src/fixtures';
 import type { Page } from '@playwright/test';
 import type { LandingPage } from '../../src/pages';
 import type { NewProductPage } from '../../src/pages';
+import type { ReleaseDetailPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
 import { readProductState } from '../../src/helpers/product-state.helper';
+import { readWF3ProductState } from '../../src/helpers/wf3-product-state.helper';
+import { createDisposableProduct } from '../../src/helpers/disposable-test-data.helper';
 import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Product Detail — Releases Tab
@@ -15,8 +19,37 @@ import * as fs from 'fs';
  * - Viewing existing releases in the grid
  * - Empty-state for a product without releases
  * - Required-field validation when opening the Create Release dialog
- * - (P2) Full release creation — covered by create-new-release.spec.ts
+ * - Release creation from the WF3 pre-req product
+ *
+ * Pre-req: Run the `wf3-pre-req` Playwright project before release creation
+ * coverage that reads .wf3-product-state.json.
  */
+
+function uniqueWF3ReleaseVersion(): string {
+  return `WF3-REL-${Date.now()}-${Math.floor(Math.random() * 10_000)}`;
+}
+
+function futureDate(daysFromToday: number): Date {
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + daysFromToday);
+  return targetDate;
+}
+
+async function returnToProductReleasesTabIfOnReleaseDetail(
+  page: Page,
+  newProductPage: NewProductPage,
+  releaseDetailPage: ReleaseDetailPage,
+  productUrl: string,
+): Promise<void> {
+  if (!/ReleaseDetail/i.test(page.url())) {
+    return;
+  }
+
+  await releaseDetailPage.waitForPageLoad();
+  await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
+  await newProductPage.expectProductDetailLoaded();
+  await newProductPage.clickReleasesTab();
+}
 
 /**
  * Dynamically scans My Products to find the first product that HAS at least one
@@ -72,6 +105,44 @@ async function findProductWithReleases(
   throw new Error(`No product with releases found in the first ${maxProductsToCheck} My Products rows.`);
 }
 
+async function resolveProductWithReleasesUrl(
+  page: Page,
+  landingPage: LandingPage,
+  newProductPage: NewProductPage,
+): Promise<string> {
+  try {
+    return readWF3ProductState().productUrl;
+  } catch {
+    const PRODUCT_STATE_FILE = path.resolve(__dirname, '../../.product-state.json');
+    return fs.existsSync(PRODUCT_STATE_FILE)
+      ? readProductState().productWithReleasesUrl
+      : await findProductWithReleases(page, landingPage, newProductPage);
+  }
+}
+
+async function resolveReleaseCreationProductUrl(
+  page: Page,
+  newProductPage: NewProductPage,
+): Promise<string> {
+  const wf3State = readWF3ProductState();
+  const candidateUrl = wf3State.releaseCreationProduct?.productUrl;
+
+  if (candidateUrl) {
+    await page.goto(candidateUrl, { waitUntil: 'domcontentloaded' });
+    await newProductPage.expectProductDetailLoaded();
+    await newProductPage.clickReleasesTab();
+
+    if (await newProductPage.isNoReleasesMessageVisible()) {
+      return candidateUrl;
+    }
+  }
+
+  const product = await createDisposableProduct(page, newProductPage, {
+    prefix: 'WF3 Release Creation Product Fallback',
+  });
+  return product.url;
+}
+
 async function findProductWithoutReleases(
   page: Page,
   landingPage: LandingPage,
@@ -90,11 +161,13 @@ async function findProductWithoutReleases(
       return { productName: name, productUrl: page.url() };
     }
   }
+
   throw new Error(`No product without releases found in the first ${maxProductsToCheck} My Products rows.`);
 }
 
 test.describe('Product Details - Releases Tab @regression', () => {
   test.setTimeout(300_000);
+
   test('PRODUCT-RELEASES-001 — should display releases grid with at least one row for a product with existing releases', async ({ page, landingPage, newProductPage }) => {
     await allure.suite('Products - Releases');
     await allure.severity('critical');
@@ -109,10 +182,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     await test.step('Navigate to the product with known releases (from persisted state or dynamic scan)', async () => {
       // Prefer the URL written by create-new-release.spec.ts (RELEASE-CREATE-002).
       // Fall back to a dynamic scan of My Products when the state file does not exist.
-      const PRODUCT_STATE_FILE = require('path').resolve(__dirname, '../../.product-state.json');
-      const productUrl = fs.existsSync(PRODUCT_STATE_FILE)
-        ? readProductState().productWithReleasesUrl
-        : await findProductWithReleases(page, landingPage, newProductPage);
+      const productUrl = await resolveProductWithReleasesUrl(page, landingPage, newProductPage);
       await page.goto(productUrl);
       await newProductPage.expectProductDetailLoaded();
     });
@@ -186,18 +256,56 @@ test.describe('Product Details - Releases Tab @regression', () => {
     });
   });
 
-  test.fixme('PRODUCT-RELEASES-004 — should create a new release and verify it appears in the grid', async ({ landingPage, newProductPage }) => {
+  test('PRODUCT-RELEASES-004 — should create a new release and verify it appears in the grid', async ({
+    page, newProductPage, releaseDetailPage,
+  }) => {
     await allure.suite('Products - Releases');
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.tag('PIC-108');
     await allure.description(
       'PRODUCT-RELEASES-004: Create a new release with valid data and verify it appears in the releases grid ' +
-      'with the correct version and an appropriate initial status. ' +
-      'NOTE: Full end-to-end release creation is covered by create-new-release.spec.ts ' +
-      '(RELEASE-CREATE-002); this stub is retained as a cross-reference placeholder.',
+      'with the correct version and an appropriate initial status. Pre-req: run the wf3-pre-req Playwright ' +
+      'project first so .wf3-product-state.json contains the reusable WF3 release-creation product URL. ' +
+      'If that product was already consumed by a prior run, the test creates a fresh disposable fallback product.',
     );
-    // End-to-end creation is covered by tests/releases/create-new-release.spec.ts
+
+    const releaseVersion = uniqueWF3ReleaseVersion();
+    let releaseCreationProductUrl = '';
+
+    await test.step('Navigate to the WF3 release-creation product Releases tab', async () => {
+      releaseCreationProductUrl = await resolveReleaseCreationProductUrl(page, newProductPage);
+      await page.goto(releaseCreationProductUrl, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesTabActive();
+    });
+
+    await test.step('Create a unique release from the Product Releases tab', async () => {
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+      await newProductPage.createFirstRelease({
+        releaseVersion,
+        targetDate: futureDate(21),
+        changeSummary: `WF3 pre-req release creation coverage: ${releaseVersion}`,
+      });
+    });
+
+    await test.step('Return to the WF3 release-creation product Releases tab when creation navigates to Release Detail', async () => {
+      await returnToProductReleasesTabIfOnReleaseDetail(
+        page,
+        newProductPage,
+        releaseDetailPage,
+        releaseCreationProductUrl,
+      );
+    });
+
+    await test.step('Verify the newly created release is visible in the releases grid', async () => {
+      await expect(newProductPage.releasesGrid).toBeVisible({ timeout: 30_000 });
+      const releaseRow = newProductPage.releasesGrid.getByRole('row').filter({ hasText: releaseVersion }).first();
+      await expect(releaseRow).toBeVisible({ timeout: 30_000 });
+      await expect(releaseRow).toContainText(/Scoping|Creation|Active|In Progress/i);
+    });
   });
 
   // ── PRODUCT-RELEASES-005 ──────────────────────────────────────────────────
@@ -214,10 +322,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     );
 
     await test.step('Navigate to a product with releases', async () => {
-      const PRODUCT_STATE_FILE = require('path').resolve(__dirname, '../../.product-state.json');
-      const productUrl = fs.existsSync(PRODUCT_STATE_FILE)
-        ? readProductState().productWithReleasesUrl
-        : await findProductWithReleases(page, landingPage, newProductPage);
+      const productUrl = await resolveProductWithReleasesUrl(page, landingPage, newProductPage);
       await page.goto(productUrl);
       await newProductPage.expectProductDetailLoaded();
     });
@@ -253,10 +358,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     );
 
     await test.step('Navigate to a product with releases', async () => {
-      const PRODUCT_STATE_FILE = require('path').resolve(__dirname, '../../.product-state.json');
-      const productUrl = fs.existsSync(PRODUCT_STATE_FILE)
-        ? readProductState().productWithReleasesUrl
-        : await findProductWithReleases(page, landingPage, newProductPage);
+      const productUrl = await resolveProductWithReleasesUrl(page, landingPage, newProductPage);
       await page.goto(productUrl);
       await newProductPage.expectProductDetailLoaded();
     });
@@ -286,10 +388,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     );
 
     await test.step('Navigate to a product with releases', async () => {
-      const PRODUCT_STATE_FILE = require('path').resolve(__dirname, '../../.product-state.json');
-      const productUrl = fs.existsSync(PRODUCT_STATE_FILE)
-        ? readProductState().productWithReleasesUrl
-        : await findProductWithReleases(page, landingPage, newProductPage);
+      const productUrl = await resolveProductWithReleasesUrl(page, landingPage, newProductPage);
       await page.goto(productUrl);
       await newProductPage.expectProductDetailLoaded();
     });
@@ -326,10 +425,7 @@ test.describe('Product Details - Releases Tab @regression', () => {
     );
 
     await test.step('Navigate to a product with releases', async () => {
-      const PRODUCT_STATE_FILE = require('path').resolve(__dirname, '../../.product-state.json');
-      const productUrl = fs.existsSync(PRODUCT_STATE_FILE)
-        ? readProductState().productWithReleasesUrl
-        : await findProductWithReleases(page, landingPage, newProductPage);
+      const productUrl = await resolveProductWithReleasesUrl(page, landingPage, newProductPage);
       await page.goto(productUrl);
       await newProductPage.expectProductDetailLoaded();
     });

@@ -50,9 +50,18 @@ export default defineConfig({
 		{
 			name: 'setup',
 			testMatch: /.*\.setup\.ts/,
-			// Exclude the DOC-specific state setup — it has its own project with dependencies
-			testIgnore: [exactSpec('tests', 'doc', 'doc-state.setup.ts')],
+			// Exclude workflow-specific setup specs — each has its own project with dependencies
+			testIgnore: [
+				exactSpec('tests', 'doc', 'doc-state.setup.ts'),
+				exactSpec('tests', 'products', 'product-management.pre-req.setup.ts'),
+			],
 			use: { storageState: { cookies: [], origins: [] } },
+		},
+		{
+			name: 'wf3-pre-req',
+			testMatch: exactSpec('tests', 'products', 'product-management.pre-req.setup.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
 		},
 		{
 			name: 'release-detail-header',
@@ -209,6 +218,7 @@ export default defineConfig({
 				exactSpec('tests', 'doc', 'doc-certification-lifecycle.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-release-linkage.spec.ts'),
 				exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
+				exactSpec('tests', 'products', 'product-management.pre-req.setup.ts'),
 			],
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],

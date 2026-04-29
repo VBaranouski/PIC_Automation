@@ -19,7 +19,7 @@ function uniqueSuffix(): string {
 export async function createDisposableProduct(
   page: Page,
   newProductPage: NewProductPage,
-  options?: { prefix?: string },
+  options?: { dataProtection?: boolean; prefix?: string },
 ): Promise<DisposableProduct> {
   const suffix = uniqueSuffix();
   const name = `${options?.prefix ?? 'PW Disposable Product'} ${suffix}`;
@@ -35,6 +35,10 @@ export async function createDisposableProduct(
     type: 'Embedded Device',
     description,
   });
+
+  if (options?.dataProtection) {
+    await newProductPage.toggleDataProtection();
+  }
 
   await newProductPage.fillProductOrganization({
     level1: 'Energy Management',

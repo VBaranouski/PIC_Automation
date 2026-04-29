@@ -24,6 +24,7 @@ dist/
 # Persisted state (generated at runtime)
 .doc-state.json
 .product-state.json
+.wf3-product-state.json
 .auth-state.json
 .auth/
 

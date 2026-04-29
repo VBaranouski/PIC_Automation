@@ -176,6 +176,36 @@
 
 ## 6. New Scenarios — Tracking Tools (3.8)
 
+#### `TRACKING-TOOLS-006` — Mapping warning after enabling Jira [P2]
+
+**Automation status:** Automated but skipped. Current QA no longer renders the mapping-configuration warning after enabling Jira on the WF3 pre-req product. Keep on hold until product AC/UI copy is reconfirmed.
+
+---
+
+#### `TRACKING-TOOLS-007` — Enabling Jama reveals Project Id input [P2]
+
+**Automation status:** Automated and passed. The test enables Jama in Product Configuration, verifies the `Jama Project Id` field is visible with the expected placeholder, and cancels without saving.
+
+---
+
+#### `TRACKING-TOOLS-008` — Enabling Jama auto-selects Product requirements [P2]
+
+**Automation status:** Automated but skipped. Current QA enables Jama fields but leaves Product requirements at `Not Applicable` instead of auto-selecting Jama. Keep on hold until expected auto-selection behavior is reconfirmed.
+
+---
+
+#### `TRACKING-TOOLS-009` — Jira radio disabled when Jama is enabled [P2]
+
+**Automation status:** Automated and passed. The test enables Jama and verifies the Product requirements `Jira` radio is disabled, then cancels without saving.
+
+---
+
+#### `TRACKING-TOOLS-010` — Empty Jira fields block save [P2]
+
+**Automation status:** Automated and passed. The test enables Jira with empty Source Link and Project Key, clicks Save, verifies validation blocks saving, and cancels without persisted changes.
+
+---
+
 #### `TRACKING-TOOLS-016` — Jira "Test Connection" success shows confirmation [P2]
 
 | Step | Action | Expected Result |
@@ -341,7 +371,7 @@
 
 #### `RELEASE-INACTIVATE-001` — Actions column on Product's Releases tab shows Inactivate + Clone for Creation & Scoping release [P1]
 
-**Preconditions:** Logged in as `ProductAdmin`. Navigate to Product Details > Releases tab. A release in "Creation & Scoping" stage exists.
+**Preconditions:** Logged in as `ProductAdmin`. A disposable release in "Creation & Scoping" stage exists.
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
@@ -351,6 +381,7 @@
 | 4 | Verify the dropdown options | Both `Inactivate` and `Clone` options are visible and enabled |
 
 **Coverage dimension:** Happy Path
+**Note:** Automated in `tests/products/release-inactivation.spec.ts` using a fresh disposable release. This scenario is non-destructive: it verifies Product Releases row action availability only.
 
 ---
 
@@ -430,7 +461,7 @@
 
 #### `RELEASE-INACTIVATE-007` — Clicking Inactivate on a release opens confirmation modal [P1]
 
-**Preconditions:** Logged in as `ProductAdmin`. A release in "Creation & Scoping" stage is accessible.
+**Preconditions:** Logged in as `ProductAdmin`. A disposable release in "Creation & Scoping" stage is accessible.
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
@@ -438,14 +469,16 @@
 | 2 | Click the three-dot (⋮) icon for a release in "Creation & Scoping" stage | The Actions dropdown opens |
 | 3 | Click the `Inactivate` option | The `Inactivate Release` confirmation modal opens |
 | 4 | Verify the modal contents | The modal title reads "Inactivate Release"; the confirmation prompt reads "Are you sure you want to inactivate this Release? This action is irreversible."; a `Justification` text input is visible; `Cancel` and `Inactivate Release` buttons are present |
+| 5 | Click `Cancel` | The modal closes and the release remains unchanged |
 
 **Coverage dimension:** Happy Path
+**Note:** Automated in `tests/products/release-inactivation.spec.ts` using a fresh disposable release. This scenario is non-destructive: it opens and cancels the confirmation modal without submitting inactivation.
 
 ---
 
 #### `RELEASE-INACTIVATE-008` — Justification field is mandatory in release inactivation modal [P2]
 
-**Preconditions:** Logged in as `ProductAdmin`. The `Inactivate Release` confirmation modal is open.
+**Preconditions:** Logged in as `ProductAdmin`. A disposable release in "Creation & Scoping" stage is accessible.
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
@@ -454,12 +487,13 @@
 | 3 | Click the `Inactivate Release` button without entering justification | The inactivation is not submitted; the modal remains open with a validation error or disabled state |
 
 **Coverage dimension:** Negative / Validation
+**Note:** Automated in `tests/products/release-inactivation.spec.ts` using a fresh disposable release. This scenario is non-destructive: it verifies mandatory justification enforcement without submitting inactivation.
 
 ---
 
 #### `RELEASE-INACTIVATE-009` — Cancel closes release inactivation modal without status change [P2]
 
-**Preconditions:** Logged in as `ProductAdmin`. The `Inactivate Release` confirmation modal is open.
+**Preconditions:** Logged in as `ProductAdmin`. A disposable release in "Creation & Scoping" stage is accessible.
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
@@ -469,6 +503,7 @@
 | 4 | Verify the release status in the Releases grid | The release status is unchanged (not Inactive) |
 
 **Coverage dimension:** Negative / Validation
+**Note:** Automated in `tests/products/release-inactivation.spec.ts` using a fresh disposable release. This scenario is non-destructive: it cancels the confirmation modal and verifies the release remains active in the Product Releases grid.
 
 ---
 

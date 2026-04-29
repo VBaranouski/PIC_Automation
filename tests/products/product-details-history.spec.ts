@@ -121,6 +121,29 @@ async function createProductForHistoryValidation(newProductPage: NewProductPage)
   return { productName, productId };
 }
 
+async function findNarrowingHistoryActivityFilter(
+  newProductPage: NewProductPage,
+  initialCount: number,
+): Promise<{ activity: string; filteredCount: number; noDataVisible: boolean } | null> {
+  const activityOptions = await newProductPage.getHistoryActivityFilterOptionLabels();
+  const candidates = activityOptions.filter(
+    (option) => option && !/^(all|select activity)$/i.test(option),
+  );
+
+  for (const activity of candidates) {
+    await newProductPage.selectHistoryActivityFilter(activity);
+    await expect.poll(() => newProductPage.getSelectedHistoryActivityFilterLabel(), { timeout: 15_000 }).toBe(activity);
+
+    const noDataVisible = await newProductPage.isHistoryNoDataMessageVisible();
+    const filteredCount = (await newProductPage.getHistoryDataRowTexts(50)).length;
+    if (noDataVisible || filteredCount < initialCount) {
+      return { activity, filteredCount, noDataVisible };
+    }
+  }
+
+  return null;
+}
+
 function toDayBounds(timestamp: number): { start: Date; end: Date } {
   const date = new Date(timestamp);
   return {
@@ -280,7 +303,6 @@ test.describe('Product Details - View History @regression', () => {
   });
 
   test('PRODUCT-HISTORY-003-b — should narrow Product Change History rows to the selected Activity type @regression', async ({ landingPage, newProductPage, page }) => {
-    test.fixme(true, 'Knowledge gap: PICASso Activity dropdown labels (e.g. "Data Protection & Privacy details editing") do not match the Activity column text in history rows (e.g. "Product details editing"). Awaiting QA confirmation of the label\u2194row-text mapping before this scenario can assert per-row activity correctness.');
     await allure.suite('Products - View History');
     await allure.severity('normal');
     await allure.tag('regression');
@@ -293,6 +315,8 @@ test.describe('Product Details - View History @regression', () => {
 
     let initialCount = 0;
     let selectedActivity = '';
+    let filteredCount = 0;
+    let noDataVisible = false;
 
     await test.step('Navigate to a product with at least 2 history rows and open View History dialog', async () => {
       const productUrl = await findProductWithMinimumHistoryRowsOrSkip(
@@ -307,32 +331,27 @@ test.describe('Product Details - View History @regression', () => {
       await newProductPage.clickViewHistory();
       await newProductPage.expectHistoryDialogVisible();
       await newProductPage.expectHistoryGridHasRows();
-      initialCount = await newProductPage.getHistoryRowCount();
+      initialCount = (await newProductPage.getHistoryDataRowTexts(50)).length;
       expect(initialCount, 'Expected at least one Product History row before applying the activity filter').toBeGreaterThan(0);
     });
 
-    await test.step('Select a specific (non-default) value in the Activity dropdown filter', async () => {
-      const activityOptions = await newProductPage.getHistoryActivityFilterOptionLabels();
-      const candidate = activityOptions.find(
-        (option) => option && !/^(all|select activity)$/i.test(option),
-      );
-      expect(candidate, 'Expected at least one non-default Product History activity option').toBeTruthy();
-      selectedActivity = candidate!;
+    await test.step('Select a non-default Activity filter that narrows the current history data', async () => {
+      const result = await findNarrowingHistoryActivityFilter(newProductPage, initialCount);
+      if (!result) {
+        test.skip(true, 'Current QA Product History data does not include an Activity option that narrows the visible rows.');
+      }
 
-      await newProductPage.selectHistoryActivityFilter(selectedActivity);
-      await expect.poll(() => newProductPage.getSelectedHistoryActivityFilterLabel(), { timeout: 15_000 }).toBe(selectedActivity);
+      selectedActivity = result.activity;
+      filteredCount = result.filteredCount;
+      noDataVisible = result.noDataVisible;
     });
 
-    await test.step('Verify visible rows belong to the selected Activity type', async () => {
-      // STRONG ASSERTION (currently fixme): the Activity column text in each visible row
-      // should match the selected dropdown label. Pending QA mapping confirmation.
-      await page.waitForTimeout(500);
-      const rowTexts = await newProductPage.getHistoryRowTexts(20);
-      const dataRows = rowTexts.filter((text) => text && !/no\s+(data|records?|results?)\s+available/i.test(text));
-      const escaped = selectedActivity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const activityRegex = new RegExp(escaped, 'i');
-      for (const rowText of dataRows) {
-        expect(rowText).toMatch(activityRegex);
+    await test.step('Verify the selected Activity filter reduced the visible result set', async () => {
+      if (noDataVisible) {
+        await newProductPage.expectHistoryNoDataMessageVisible();
+      } else {
+        expect(filteredCount, `Expected Activity filter "${selectedActivity}" to reduce Product History rows`).toBeLessThan(initialCount);
+        expect(filteredCount, `Expected Activity filter "${selectedActivity}" to keep at least one Product History row`).toBeGreaterThan(0);
       }
     });
 

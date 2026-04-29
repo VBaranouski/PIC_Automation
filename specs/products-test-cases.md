@@ -40,6 +40,8 @@
 | My Products Tab (LANDING-MY-PRODUCTS-*) | 4 | 0 | `my-products-tab.spec.ts` |
 | WF03-* (unmerged imports) | 0 | 6 | — |
 
+**Execution note:** `PRODUCT-DPP-001`, `PRODUCT-RELEASES-004`, and `STATUS-MAP-001` through `STATUS-MAP-006` rely on `.wf3-product-state.json`; run `npx playwright test --project=wf3-pre-req` before executing those scenarios in isolation.
+
 ### 1.3 Five Coverage Dimensions Gap Table
 
 | Dimension | Status | Gap |
@@ -361,7 +363,7 @@ npx tsx scripts/tracker.ts remove PRODUCT-CREATION-016
 
 #### `PRODUCT-RELEASES-004` — Create a new release with valid data
 
-**Preconditions:** Logged in as PQL. Navigated to a product detail page → Releases tab. Product may or may not have existing releases.
+**Preconditions:** Logged in as PQL. Run the `wf3-pre-req` Playwright project first so `.wf3-product-state.json.releaseCreationProduct.productUrl` contains the reusable WF3 no-release product URL, then navigate to that product detail page → Releases tab.
 
 | Step | Action | Expected Result |
 |------|--------|----------------|
@@ -372,11 +374,31 @@ npx tsx scripts/tracker.ts remove PRODUCT-CREATION-016
 | 5 | Verify the new release appears in the releases grid (if navigated back) or the Release Detail page loads | The release version is visible in the grid row, or the Release Detail heading is visible with the URL containing `/ReleaseDetail` |
 
 **Coverage dimension:** Happy Path (release creation from product context)
-**Note:** This is a cross-feature scenario — it creates state used by release-workflow tests. Consider data cleanup or disposable product.
+**Note:** Automated in `tests/products/product-details-releases.spec.ts`. This scenario uses the WF3 pre-req release-creation product when it is still empty, and creates a fresh disposable fallback product when the persisted product was already consumed by an earlier run. Trigger `npx playwright test --project=wf3-pre-req` before running it in isolation to refresh the deterministic state.
 
 ---
 
-### 3.5 Product History — Pending Scenarios
+### 3.5 Product Configuration — Status Mapping
+
+#### `STATUS-MAP-006` — Mapping is persisted only after clicking Save on Product Details page
+
+**Preconditions:** Logged in as PQL. Run the `wf3-pre-req` Playwright project first so `.wf3-product-state.json` contains the WF3 product URL and tracking-tool values.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to the WF3 product detail page and click `Edit Product` | Edit mode opens with Product Configuration available |
+| 2 | Open Product Configuration and enable Jira tracking values transiently | Jira fields and Status Mapping Configuration link are visible |
+| 3 | Click `Status Mapping Configuration` | The Status Mapping popup opens |
+| 4 | Click `Confirm` in the Status Mapping popup | The popup closes and the Product Details form remains in edit mode |
+| 5 | Verify the Product Details `Save` button remains visible | Mapping confirmation is staged; the parent product `Save` is still required for persistence |
+| 6 | Click `Cancel` on Product Details | Edit mode is cancelled without saving shared WF3 product changes |
+
+**Coverage dimension:** Data Integrity (staged popup changes require parent form save)
+**Note:** Automated in `tests/products/status-mapping.spec.ts`; validated with focused run `npx playwright test tests/products/status-mapping.spec.ts --project=chromium --grep "STATUS-MAP-006" --reporter=list --workers=1`.
+
+---
+
+### 3.6 Product History — Pending Scenarios
 
 ---
 
@@ -398,7 +420,24 @@ npx tsx scripts/tracker.ts remove PRODUCT-CREATION-016
 
 ---
 
-### 3.6 Product Inactivation — Pending Scenarios
+### 3.7 Product Inactivation — Pending Scenarios
+
+---
+
+#### `PRODUCT-DPP-001` — DPP toggle cannot be changed when an active release exists
+
+**Preconditions:** Logged in as PQL. Run the `wf3-pre-req` Playwright project first so `.wf3-product-state.json` contains a WF3 product with Data Protection & Privacy enabled and at least one active release.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Navigate to the WF3 pre-req product detail page | The product detail page loads with the `Edit Product` button visible |
+| 2 | Click `Edit Product` | Edit mode activates and Product Related Details are visible |
+| 3 | Locate the `Data Protection & Privacy` checkbox | The checkbox is visible and disabled while the active release exists |
+| 4 | Verify the active-release warning | A warning states that Data Protection and Privacy Review can be activated/deactivated only after the release is completed or cancelled |
+| 5 | Click `Cancel` | Edit mode is cancelled without saving any product changes |
+
+**Coverage dimension:** State Transitions (active release locks DPP product setting)
+**Note:** Automated in `tests/products/product-dpp.spec.ts` using the WF3 pre-req product.
 
 ---
 
@@ -416,6 +455,40 @@ npx tsx scripts/tracker.ts remove PRODUCT-CREATION-016
 
 **Coverage dimension:** State Transitions (active → inactive)
 **Note:** DEFERRED — destructive action. Requires disposable test product created in setup. Deferred to future sprint.
+
+---
+
+#### `PRODUCT-INACTIVATE-006` — Product Details header actions menu shows Inactivate for eligible product
+
+**Preconditions:** Logged in as PQL. A disposable product has been created with no active releases or DOCs.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Create a disposable product through the New Product flow | The product detail page loads and the product is active |
+| 2 | Open the disposable Product Detail page | The product header, Active badge, View History link, and Actions Management link are visible |
+| 3 | Click the three-dot actions menu next to the Active badge | The Product Detail header actions popover opens |
+| 4 | Verify the `Inactivate` option is visible | The menu contains `Inactivate` for the eligible disposable product |
+
+**Coverage dimension:** Role-Based Access / State Transitions (eligible active product exposes inactivation entry point)
+**Note:** Automated in `tests/products/product-inactivation.spec.ts` using a fresh disposable product. This scenario is non-destructive: it verifies menu availability only and does not click `Inactivate`.
+
+---
+
+#### `PRODUCT-INACTIVATE-007` — Product Details Inactivate action opens confirmation modal
+
+**Preconditions:** Logged in as PQL. A disposable product has been created with no active releases or DOCs.
+
+| Step | Action | Expected Result |
+|------|--------|----------------|
+| 1 | Create a disposable product through the New Product flow | The product detail page loads and the product is active |
+| 2 | Open the disposable Product Detail page | The product header and three-dot actions menu are visible |
+| 3 | Click the three-dot actions menu next to the Active badge | The Product Detail header actions popover opens with `Inactivate` visible |
+| 4 | Click `Inactivate` | The `Inactivate Product` confirmation modal opens |
+| 5 | Verify the modal contents | The modal contains the irreversible-action prompt, `Justification` field, `Cancel` button, and `Inactivate Product` button |
+| 6 | Click `Cancel` | The modal closes and the product remains on the Product Detail page |
+
+**Coverage dimension:** Happy Path / State Transitions (confirmation gate before product inactivation)
+**Note:** Automated in `tests/products/product-inactivation.spec.ts` using a fresh disposable product. This scenario is non-destructive: it opens and cancels the confirmation modal without submitting inactivation.
 
 ---
 
