@@ -1134,6 +1134,8 @@ These 4 meta-scenarios (RELEASE-REVIEW-001 through RELEASE-REVIEW-004) in subsec
 
 #### 3.12 Subsection: 6.5 Action Items — Create & Manage
 
+**Automation status (2026-04-29):** `RELEASE-MANAGE-ACTION-001`, `RELEASE-MANAGE-ACTION-002`, and `RELEASE-MANAGE-ACTION-003` are covered by `tests/releases/csrr-actions.spec.ts` and the `wf6-csrr-actions` Playwright project. The `wf6-manage-pre-req` setup creates a fresh release, submits its questionnaire, retries delayed login redirects, and now completes tolerant scoped requirement status prep before reaching the Scoping-to-Review transition gate. Current QA still does not produce `.wf6-manage-release-state.json`, so the downstream CSRR action checks skip unless that state exists. Set `MANAGE_RELEASE_URL` to a valid Manage-or-later release detail URL to execute the popup checks directly.
+
 ---
 
 #### `RELEASE-MANAGE-ACTION-001` — "Add Action" button is visible on CSRR tab

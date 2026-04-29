@@ -54,6 +54,7 @@ export default defineConfig({
 			testIgnore: [
 				exactSpec('tests', 'doc', 'doc-state.setup.ts'),
 				exactSpec('tests', 'products', 'product-management.pre-req.setup.ts'),
+				exactSpec('tests', 'releases', 'manage-release.pre-req.setup.ts'),
 			],
 			use: { storageState: { cookies: [], origins: [] } },
 		},
@@ -68,6 +69,18 @@ export default defineConfig({
 			testMatch: exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
 			use: { ...devices['Desktop Chrome'] },
 			dependencies: ['setup'],
+		},
+		{
+			name: 'wf6-manage-pre-req',
+			testMatch: exactSpec('tests', 'releases', 'manage-release.pre-req.setup.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['setup'],
+		},
+		{
+			name: 'wf6-csrr-actions',
+			testMatch: exactSpec('tests', 'releases', 'csrr-actions.spec.ts'),
+			use: { ...devices['Desktop Chrome'] },
+			dependencies: ['wf6-manage-pre-req'],
 		},
 		{
 			name: 'doc-product-setup',
@@ -218,6 +231,8 @@ export default defineConfig({
 				exactSpec('tests', 'doc', 'doc-certification-lifecycle.spec.ts'),
 				exactSpec('tests', 'doc', 'doc-release-linkage.spec.ts'),
 				exactSpec('tests', 'releases', 'release-detail-header.spec.ts'),
+				exactSpec('tests', 'releases', 'manage-release.pre-req.setup.ts'),
+				exactSpec('tests', 'releases', 'csrr-actions.spec.ts'),
 				exactSpec('tests', 'products', 'product-management.pre-req.setup.ts'),
 			],
 			use: { ...devices['Desktop Chrome'] },

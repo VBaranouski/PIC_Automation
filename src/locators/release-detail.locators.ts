@@ -12,6 +12,12 @@ import type { Page } from '@playwright/test';
  *   - Need Help:    [data-block="Release.ReleaseHelp"] a
  */
 export function releaseDetailLocators(page: Page) {
+  const activeTabPanel = page.locator('[role="tabpanel"]:visible').first();
+  const releaseActionDialog = page
+    .getByRole('dialog')
+    .filter({ hasText: /Action|Name|Description|Category|Due Date|Assignee/i })
+    .last();
+
   return {
     // ── Breadcrumb ──────────────────────────────────────────────────────────
     /** Full breadcrumb nav element */
@@ -85,6 +91,8 @@ export function releaseDetailLocators(page: Page) {
     addSeProductButton: page.getByRole('button', { name: /Add SE Product/i }).first(),
     /** Header action for cancelling a Scoping release */
     cancelReleaseButton: page.getByRole('button', { name: /^Cancel Release$/i }).first(),
+    /** Header action that moves a post-questionnaire Scoping release into Review & Confirm. */
+    submitForReviewButton: page.getByRole('button', { name: /Submit for Review/i }).first(),
     /** Confirmation dialog opened by Cancel Release */
     cancelReleaseDialog: page.locator('[role="dialog"], .osui-popup, .popup-dialog')
       .filter({ hasText: /Cancel Release|cancel release|justification|reason/i })
@@ -291,6 +299,35 @@ export function releaseDetailLocators(page: Page) {
     processReqProgressIndicator: page
       .locator('[class*="progress"], [class*="completion"], [class*="percentage"]')
       .filter({ hasText: /%/ })
+      .first(),
+
+    /** Visible top-level tab panel after selecting a release content tab. */
+    activeTabPanel,
+
+    /** Edit action for the currently selected CSRR section. */
+    csrrEditButton: activeTabPanel.getByRole('button', { name: /^Edit$/i }).first(),
+
+    /** Add Action button scoped to the currently selected CSRR section. */
+    csrrAddActionButton: activeTabPanel.getByRole('button', { name: /^(\+\s*)?Add Action$/i }).first(),
+
+    /** Add/Edit Action popup opened from release CSRR or review sections. */
+    releaseActionDialog,
+    releaseActionNameField: releaseActionDialog
+      .getByRole('textbox', { name: /Name/i })
+      .or(releaseActionDialog.locator('input[placeholder*="Name" i]'))
+      .first(),
+    releaseActionDescriptionField: releaseActionDialog
+      .getByRole('textbox', { name: /Description/i })
+      .or(releaseActionDialog.locator('textarea[placeholder*="Description" i]'))
+      .first(),
+    releaseActionStateField: releaseActionDialog.getByText(/^State\b/i).first(),
+    releaseActionCategoryField: releaseActionDialog.getByText(/^Category\b/i).first(),
+    releaseActionAssigneeField: releaseActionDialog.getByText(/^Assignee\b/i).first(),
+    releaseActionDueDateField: releaseActionDialog.getByText(/Due Date/i).first(),
+    releaseActionEvidenceField: releaseActionDialog.getByText(/^Evidence\b/i).first(),
+    releaseActionClosureCommentField: releaseActionDialog.getByText(/Closure Comment/i).first(),
+    releaseActionCancelButton: releaseActionDialog
+      .getByRole('button', { name: /^(Cancel|Close)$/i })
       .first(),
 
     // ── FCSR Decision Tab ──────────────────────────────────────────────────
