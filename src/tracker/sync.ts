@@ -97,6 +97,10 @@ export function resolveScenarioSpecFile(scenario: Scenario, index: SpecMappingIn
     return currentSpecFile;
   }
 
+  if (scenario.automation_state === 'pending') {
+    return '';
+  }
+
   if (scenario.workflow && scenario.subsection) {
     const subsectionSpecFile = index.subsectionToSpecFile.get(`${scenario.workflow}::${scenario.subsection}`);
     if (subsectionSpecFile) return subsectionSpecFile;

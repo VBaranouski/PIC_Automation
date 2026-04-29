@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-29T06:58:31.165Z",
+  "exported_at": "2026-04-29T14:11:08.825Z",
   "scenarios": [
     {
       "id": "PRODUCT-ACTIONS-003",
@@ -22677,7 +22677,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab",
@@ -22711,7 +22711,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Landing Page and open the `My Releases` tab",
@@ -22737,7 +22737,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab",
@@ -22763,7 +22763,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab with \"Show Active Only\" toggled OFF",
@@ -22789,7 +22789,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab with \"Show Active Only\" toggled OFF",
@@ -22815,7 +22815,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab with \"Show Active Only\" toggled OFF",
@@ -22895,7 +22895,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab",
@@ -22923,7 +22923,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the `My Releases` tab with \"Show Active Only\" toggled OFF",
@@ -22951,7 +22951,7 @@
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-27 20:27:51",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Navigate to the Landing Page and open the `My Releases` tab",
@@ -26590,7 +26590,7 @@
       "workflow": "Product Management",
       "subsection": "WF3 Pre-Req Test Data",
       "created_at": "2026-04-28 15:54:30",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-29 14:11:06",
       "groups": [],
       "steps": [
         "Run the setup authentication project.",
@@ -38649,15 +38649,15 @@
       "id": "RELEASE-MANAGE-ACTION-001",
       "title": "CSRR tab or action panel shows an \"Add Action\" button to create a new action item",
       "description": "",
-      "automation_state": "pending",
-      "execution_status": "not-executed",
+      "automation_state": "automated",
+      "execution_status": "skipped",
       "priority": "P2",
       "feature_area": "releases",
-      "spec_file": "",
+      "spec_file": "tests/releases/csrr-actions.spec.ts",
       "workflow": "Release — Stage 3: Manage",
       "subsection": "6.5 Action Items — Create & Manage",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-22 18:35:51",
+      "updated_at": "2026-04-29 12:54:10",
       "groups": [],
       "steps": [
         "Navigate to the CSRR tab and click `Edit`",
@@ -38667,21 +38667,21 @@
         "The section enters edit mode",
         "The `Add Action` button (or `+Add Action`) is visible in the actions area"
       ],
-      "execution_notes": ""
+      "execution_notes": "Skipped: data-fixture - wf6-manage-pre-req creates a fresh release, submits the questionnaire, retries delayed login redirects, completes tolerant scoped requirement-status prep, and reaches the Scoping-to-Review transition gate, but current QA still does not produce .wf6-manage-release-state.json. Run with MANAGE_RELEASE_URL pointing to a valid Manage-or-later release to execute CSRR action checks."
     },
     {
       "id": "RELEASE-MANAGE-ACTION-002",
       "title": "Action creation popup requires: Name, Description, State (dropdown), Category (dropdown)",
       "description": "",
-      "automation_state": "pending",
-      "execution_status": "not-executed",
+      "automation_state": "automated",
+      "execution_status": "skipped",
       "priority": "P2",
       "feature_area": "releases",
-      "spec_file": "",
+      "spec_file": "tests/releases/csrr-actions.spec.ts",
       "workflow": "Release — Stage 3: Manage",
       "subsection": "6.5 Action Items — Create & Manage",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-22 18:35:51",
+      "updated_at": "2026-04-29 12:54:10",
       "groups": [],
       "steps": [
         "Click `Add Action`",
@@ -38691,21 +38691,21 @@
         "The action creation popup opens",
         "`Name`, `Description`, `State` (dropdown), and `Category` (dropdown) fields are visible with mandatory indicators"
       ],
-      "execution_notes": ""
+      "execution_notes": "Skipped: data-fixture - wf6-manage-pre-req creates a fresh release, submits the questionnaire, retries delayed login redirects, completes tolerant scoped requirement-status prep, and reaches the Scoping-to-Review transition gate, but current QA still does not produce .wf6-manage-release-state.json. Run with MANAGE_RELEASE_URL pointing to a valid Manage-or-later release to execute CSRR action checks."
     },
     {
       "id": "RELEASE-MANAGE-ACTION-003",
       "title": "Optional fields: Assignee (lookup), Due Date, Evidence (link), Closure Comment",
       "description": "",
-      "automation_state": "pending",
-      "execution_status": "not-executed",
+      "automation_state": "automated",
+      "execution_status": "skipped",
       "priority": "P2",
       "feature_area": "releases",
-      "spec_file": "",
+      "spec_file": "tests/releases/csrr-actions.spec.ts",
       "workflow": "Release — Stage 3: Manage",
       "subsection": "6.5 Action Items — Create & Manage",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-22 18:35:51",
+      "updated_at": "2026-04-29 12:54:10",
       "groups": [],
       "steps": [
         "Verify optional fields in the popup"
@@ -38713,7 +38713,7 @@
       "expected_results": [
         "`Assignee` (user lookup), `Due Date` (date picker), `Evidence` (link input), and `Closure Comment` (text area) are all visible"
       ],
-      "execution_notes": ""
+      "execution_notes": "Skipped: data-fixture - wf6-manage-pre-req creates a fresh release, submits the questionnaire, retries delayed login redirects, completes tolerant scoped requirement-status prep, and reaches the Scoping-to-Review transition gate, but current QA still does not produce .wf6-manage-release-state.json. Run with MANAGE_RELEASE_URL pointing to a valid Manage-or-later release to execute CSRR action checks."
     },
     {
       "id": "RELEASE-MANAGE-ACTION-004",

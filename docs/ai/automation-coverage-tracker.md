@@ -68,6 +68,16 @@ Current WF3 Tracking Tools state:
 | `TRACKING-TOOLS-009` | automated | passed | Jira radio is disabled when Jama is enabled. |
 | `TRACKING-TOOLS-010` | automated | passed | Empty Jira fields block Save with validation. |
 
+Current WF6 CSRR Action Items state:
+
+| Scenario | Automation state | Execution status | Note |
+| --- | --- | --- | --- |
+| `RELEASE-MANAGE-ACTION-001` | automated | skipped | CSRR Add Action button test is implemented in `tests/releases/csrr-actions.spec.ts`; latest `wf6-manage-pre-req` validation creates a fresh release, submits the questionnaire, completes tolerant scoped requirement-status prep, and reaches the Scoping-to-Review transition gate, but no Manage-stage state file is produced yet. |
+| `RELEASE-MANAGE-ACTION-002` | automated | skipped | Add Action mandatory-field popup test is implemented; blocked until `wf6-manage-pre-req` can produce `.wf6-manage-release-state.json` or a valid Manage-or-later release URL is supplied. Current blocker: Scoping transition still skips after requirement prep. |
+| `RELEASE-MANAGE-ACTION-003` | automated | skipped | Add Action optional-field popup test is implemented; blocked until `wf6-manage-pre-req` can produce `.wf6-manage-release-state.json` or a valid Manage-or-later release URL is supplied. Current blocker: Scoping transition still skips after requirement prep. |
+
+WF6 execution note: run `npx playwright test --project=wf6-csrr-actions --reporter=list --workers=1`. The project first attempts `wf6-manage-pre-req`; when that setup reaches Manage it writes `.wf6-manage-release-state.json`. Until the stage gate is automated, set `MANAGE_RELEASE_URL` to a known Manage-or-later release detail URL to execute the CSRR action checks directly.
+
 ## Command Contract
 
 When the user gives a short instruction, follow this contract automatically.
@@ -126,7 +136,7 @@ Keep this section short and update it after each completed batch.
 | ---: | --- | --- | --- |
 | 1 | WF3 Tracking Tools bookkeeping | Current slice just validated; tracker/docs/export should stay aligned. | Low |
 | 2 | WF5 review summaries | Read-only candidates such as `RELEASE-REVIEW-PREVFCSR-*` and `RELEASE-REVIEW-SUMMARY-*`. | Low/Medium |
-| 3 | WF6 CSRR and Actions visibility | Candidate IDs include `RELEASE-CSRR-001` and `RELEASE-MANAGE-ACTION-001/002/003`. | Medium |
+| 3 | WF6 CSRR and Actions visibility | `RELEASE-MANAGE-ACTION-001/002/003` have automation shells plus `wf6-manage-pre-req`; latest validation now completes tolerant Process/Product requirement-status prep and reaches the Scoping-to-Review transition gate, but still skips before writing `.wf6-manage-release-state.json`. Next unblock is capturing the exact remaining stage-submission prerequisite or seeding a valid Manage-or-later release, then continue with `RELEASE-CSRR-001/002`. | Medium |
 | 4 | WF4 release early-stage checks | Release creation/clone/stage-sidebar checks after confirming disposable release setup. | Medium |
 | 5 | DOC lifecycle scout | Large setup chain; do read-only inventory before implementation. | Medium/High |
 
@@ -239,3 +249,7 @@ Read-only exploration. Compare tests, specs, config/scenarios.db, and config/sce
 | Date | Update |
 | --- | --- |
 | 2026-04-29 | Created master automation coverage tracker from session plan and current tracker report. |
+| 2026-04-29 | Added WF6 CSRR Action Items automation for `RELEASE-MANAGE-ACTION-001/002/003`; current QA validation skips due missing Manage-stage release fixture, with `MANAGE_RELEASE_URL` supported for seeded runs. |
+| 2026-04-29 | Added `wf6-manage-pre-req` setup project for deterministic Manage-stage release data; validation shows fresh release + questionnaire submission succeeds, but `Submit for Review` remains gated at Scoping by incomplete scoped requirements/status evidence. |
+| 2026-04-29 | Refined WF6 Manage pre-req validation: setup now retries delayed login redirects and attempts scoped requirement status prep, but `Submit for Review` leaves the fresh release in Creation & Scoping with `0 from 1 submission`, so downstream CSRR Action Items skip cleanly until a Manage-or-later fixture is available. |
+| 2026-04-29 | Continued WF6 blocker resolution: `requirement-status-flow` now tolerates uneditable rows and the pre-req reaches the Scoping-to-Review transition gate after requirement prep; validation still skips before Manage state creation, so the next step is to diagnose the remaining stage-submission prerequisite or use a seeded Manage URL. |

@@ -94,7 +94,7 @@ export class ReleaseDetailPage extends BasePage {
   /** Clicks the Home link in the breadcrumb and waits for navigation. */
   async clickBreadcrumbHome(): Promise<void> {
     await Promise.all([
-      this.page.waitForNavigation({ timeout: 30_000 }),
+      this.page.waitForURL(/GRC_PICASso\/?(?:$|HomePage|Landing)/, { timeout: 30_000 }),
       this.l.breadcrumbHomeLink.click(),
     ]);
     await this.waitForOSLoad();
@@ -103,7 +103,7 @@ export class ReleaseDetailPage extends BasePage {
   /** Clicks the Product link in the breadcrumb and waits for navigation. */
   async clickBreadcrumbProduct(): Promise<void> {
     await Promise.all([
-      this.page.waitForNavigation({ timeout: 30_000 }),
+      this.page.waitForURL(/ProductDetail/, { timeout: 30_000 }),
       this.l.breadcrumbProductLink.click(),
     ]);
     await this.waitForOSLoad();
@@ -683,6 +683,12 @@ export class ReleaseDetailPage extends BasePage {
     return /^Manage$/i.test(label);
   }
 
+  /** Returns true if the release is at Review & Confirm stage. */
+  async isAtReviewConfirmStage(): Promise<boolean> {
+    const label = await this.getActiveStageName();
+    return /Review\s*&\s*Confirm/i.test(label);
+  }
+
   /**
    * Returns true if the release is at or past the Manage stage.
    * Accepts: Manage, SA & PQL Sign Off (any alias), FCSR Review, Post FCSR Actions, Final Acceptance.
@@ -737,6 +743,88 @@ export class ReleaseDetailPage extends BasePage {
   /** Asserts the SBOM Status label is visible on the CSRR SDL Processes Summary. */
   async expectSbomStatusLabelVisible(): Promise<void> {
     await expect(this.l.sbomStatusLabel).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Clicks Submit for Review on a post-questionnaire Scoping release. */
+  async submitForReview(): Promise<void> {
+    await expect(this.l.submitForReviewButton).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.submitForReviewButton).toBeEnabled({ timeout: 20_000 });
+    await this.l.submitForReviewButton.click();
+    await this.waitForOSLoad();
+  }
+
+  /** Selects the Scope Review Decision value when the Review & Confirm dropdown is editable. */
+  async selectScopeReviewDecision(decision: string): Promise<void> {
+    await expect(this.l.scopeReviewDecisionDropdown).toBeVisible({ timeout: 20_000 });
+    await this.l.scopeReviewDecisionDropdown.selectOption({ label: decision });
+    await this.waitForOSLoad();
+  }
+
+  /** Submits the Review & Confirm stage to advance the release into Manage. */
+  async submitReviewConfirm(): Promise<void> {
+    await expect(this.l.reviewConfirmSubmitButton).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.reviewConfirmSubmitButton).toBeEnabled({ timeout: 20_000 });
+    await this.l.reviewConfirmSubmitButton.click();
+    await this.waitForOSLoad();
+  }
+
+  /** Opens edit mode for the current CSRR section when the Edit button is available. */
+  async openCurrentCsrrSectionEditMode(): Promise<void> {
+    await expect(this.l.activeTabPanel).toBeVisible({ timeout: 20_000 });
+    const editVisible = await this.l.csrrEditButton.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!editVisible) {
+      return;
+    }
+
+    await this.l.csrrEditButton.click();
+    await this.waitForOSLoad();
+  }
+
+  /** Returns true when the CSRR Add Action button is visible in the active section. */
+  async isCsrrAddActionButtonVisible(): Promise<boolean> {
+    return this.l.csrrAddActionButton.isVisible({ timeout: 15_000 }).catch(() => false);
+  }
+
+  /** Asserts the CSRR Add Action button is visible. */
+  async expectCsrrAddActionButtonVisible(): Promise<void> {
+    await expect(this.l.csrrAddActionButton).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Opens the CSRR Add Action dialog. */
+  async clickCsrrAddActionButton(): Promise<void> {
+    await this.expectCsrrAddActionButtonVisible();
+    await this.l.csrrAddActionButton.click();
+    await expect(this.l.releaseActionDialog).toBeVisible({ timeout: 20_000 });
+  }
+
+  /** Asserts the release action dialog shows mandatory create-action fields. */
+  async expectReleaseActionDialogMandatoryFieldsVisible(): Promise<void> {
+    await expect(this.l.releaseActionDialog).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.releaseActionNameField).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseActionDescriptionField).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseActionStateField).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseActionCategoryField).toBeVisible({ timeout: 10_000 });
+  }
+
+  /** Asserts the release action dialog shows optional create-action fields. */
+  async expectReleaseActionDialogOptionalFieldsVisible(): Promise<void> {
+    await expect(this.l.releaseActionDialog).toBeVisible({ timeout: 20_000 });
+    await expect(this.l.releaseActionAssigneeField).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseActionDueDateField).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseActionEvidenceField).toBeVisible({ timeout: 10_000 });
+    await expect(this.l.releaseActionClosureCommentField).toBeVisible({ timeout: 10_000 });
+  }
+
+  /** Dismisses the release action dialog without saving. */
+  async closeReleaseActionDialog(): Promise<void> {
+    const cancelVisible = await this.l.releaseActionCancelButton.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (cancelVisible) {
+      await this.l.releaseActionCancelButton.click();
+    } else {
+      await this.page.keyboard.press('Escape');
+    }
+
+    await expect(this.l.releaseActionDialog).toBeHidden({ timeout: 15_000 }).catch(() => undefined);
   }
 
   /** Clicks the FCSR Decision tab and waits for content to load. */
