@@ -71,11 +71,11 @@ export class ReleaseDetailPage extends BasePage {
     const nav = this.l.breadcrumbNav;
     await nav.waitFor({ state: 'visible', timeout: 20_000 });
 
-    // Poll until the link count stabilises (handles async breadcrumb rendering)
     const links = nav.locator('a');
-    await expect(links).not.toHaveCount(0, { timeout: 15_000 });
-    // Give AJAX-rendered breadcrumb segments a moment to appear
-    await this.page.waitForTimeout(1_500);
+    await expect.poll(async () => {
+      const texts = await links.allTextContents();
+      return texts.map((text) => text.trim()).filter(Boolean).length;
+    }, { timeout: 15_000 }).toBeGreaterThanOrEqual(2);
 
     const texts = await links.allTextContents();
     return texts.map((t) => t.trim()).filter((t) => t.length > 0);
@@ -228,8 +228,7 @@ export class ReleaseDetailPage extends BasePage {
   async clickViewFlowToggleAndExpand(): Promise<void> {
     await this.l.viewFlowToggle.waitFor({ state: 'visible', timeout: 15_000 });
     await this.l.viewFlowToggle.click();
-    // Wait briefly for the animation / DOM toggle
-    await this.page.waitForTimeout(800);
+    await expect(this.l.pipelineExpandableArea).toBeVisible({ timeout: 10_000 });
   }
 
   /** Asserts the pipeline expandable area is visible (expanded state). */

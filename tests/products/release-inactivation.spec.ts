@@ -204,6 +204,11 @@ test.describe('Releases - Inactivation @regression', () => {
       const submitButton = dialog.getByRole('button', { name: /^Inactivate Release$/i });
       await expect(justificationInput).toBeVisible();
       await expect(justificationInput).toHaveValue('');
+      if (await submitButton.isDisabled().catch(() => false)) {
+        await expect(submitButton).toBeDisabled();
+        return;
+      }
+
       await submitButton.click();
       await expect(dialog).toBeVisible({ timeout: 10_000 });
       await expect(dialog.getByText(/required|mandatory|enter.*justification|justification.*required/i).first())

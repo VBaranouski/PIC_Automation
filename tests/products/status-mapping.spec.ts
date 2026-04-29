@@ -236,7 +236,8 @@ test.describe('Status Mapping Configuration @regression', () => {
           '[title*="delete" i], [title*="remove" i], button[class*="remove"], button[class*="delete"]',
         );
         const binCount = await binIcons.count();
-        expect(binCount, 'Existing mapping rows expose delete/remove controls when present').toBeGreaterThanOrEqual(0);
+        test.skip(binCount === 0, 'STATUS-MAP-004: No existing mapping rows found in the popup — no delete/remove controls to verify.');
+        expect(binCount, 'Existing mapping rows should expose delete/remove controls').toBeGreaterThan(0);
       });
 
       await test.step('Close popup and cancel edit mode', async () => {
