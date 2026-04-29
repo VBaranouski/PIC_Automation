@@ -71,11 +71,11 @@ export class ReleaseDetailPage extends BasePage {
     const nav = this.l.breadcrumbNav;
     await nav.waitFor({ state: 'visible', timeout: 20_000 });
 
-    // Poll until the link count stabilises (handles async breadcrumb rendering)
     const links = nav.locator('a');
-    await expect(links).not.toHaveCount(0, { timeout: 15_000 });
-    // Give AJAX-rendered breadcrumb segments a moment to appear
-    await this.page.waitForTimeout(1_500);
+    await expect.poll(async () => {
+      const texts = await links.allTextContents();
+      return texts.map((text) => text.trim()).filter(Boolean).length;
+    }, { timeout: 15_000 }).toBeGreaterThanOrEqual(2);
 
     const texts = await links.allTextContents();
     return texts.map((t) => t.trim()).filter((t) => t.length > 0);
@@ -125,6 +125,53 @@ export class ReleaseDetailPage extends BasePage {
     await expect(this.l.releaseStatusBadge).toBeVisible({ timeout: 10_000 });
     const text = await this.getReleaseStatusText();
     expect(text.length, 'Release status badge must have non-empty text').toBeGreaterThan(0);
+  }
+
+  async expectReleaseStatus(status: RegExp): Promise<void> {
+    await expect(this.l.releaseStatusBadge).toContainText(status, { timeout: 30_000 });
+  }
+
+  async clickCancelRelease(): Promise<void> {
+    await expect(this.l.cancelReleaseButton).toBeVisible({ timeout: 30_000 });
+    await expect(this.l.cancelReleaseButton).toBeEnabled({ timeout: 30_000 });
+    await this.l.cancelReleaseButton.click();
+    await this.expectCancelReleaseDialogVisible();
+  }
+
+  async expectCancelReleaseDialogVisible(): Promise<void> {
+    await expect(this.l.cancelReleaseDialog).toBeVisible({ timeout: 30_000 });
+  }
+
+  async dismissCancelReleaseDialog(): Promise<void> {
+    const dialog = this.l.cancelReleaseDialog;
+    const dismissButton = dialog.getByRole('button', { name: /^(Cancel|No)$/i }).first();
+    await expect(dismissButton).toBeVisible({ timeout: 15_000 });
+    await dismissButton.click();
+    await expect(dialog).toBeHidden({ timeout: 15_000 });
+  }
+
+  async confirmCancelRelease(reason: string): Promise<void> {
+    const dialog = this.l.cancelReleaseDialog;
+    await this.expectCancelReleaseDialogVisible();
+
+    const reasonInput = dialog.getByRole('textbox').first();
+    if (await reasonInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await reasonInput.fill(reason);
+    }
+
+    const confirmButton = dialog
+      .getByRole('button', { name: /^(Yes, )?Cancel Release$|^Confirm$|^Yes$|^OK$/i })
+      .first();
+    await expect(confirmButton).toBeVisible({ timeout: 15_000 });
+    await confirmButton.click();
+    await expect(dialog).toBeHidden({ timeout: 60_000 }).catch(() => undefined);
+    await this.waitForOSLoad();
+  }
+
+  async expectCancelledReleaseWarningVisible(): Promise<void> {
+    await expect(
+      this.page.getByText(/cancelled|canceled/i).first(),
+    ).toBeVisible({ timeout: 30_000 });
   }
 
   // ── Pipeline ───────────────────────────────────────────────────────────────
@@ -181,8 +228,7 @@ export class ReleaseDetailPage extends BasePage {
   async clickViewFlowToggleAndExpand(): Promise<void> {
     await this.l.viewFlowToggle.waitFor({ state: 'visible', timeout: 15_000 });
     await this.l.viewFlowToggle.click();
-    // Wait briefly for the animation / DOM toggle
-    await this.page.waitForTimeout(800);
+    await expect(this.l.pipelineExpandableArea).toBeVisible({ timeout: 10_000 });
   }
 
   /** Asserts the pipeline expandable area is visible (expanded state). */
@@ -418,6 +464,31 @@ export class ReleaseDetailPage extends BasePage {
 
   async cancelReleaseDetailsEditMode(): Promise<void> {
     await this.l.cancelReleaseDetailsButton.click();
+    await this.waitForOSLoad();
+  }
+
+  async clickCancelReleaseDetailsAndExpectLeaveDialog(): Promise<void> {
+    await this.l.cancelReleaseDetailsButton.click();
+    await this.expectLeavePageDialogVisible();
+  }
+
+  async expectLeavePageDialogVisible(): Promise<void> {
+    await expect(this.l.leavePageDialog).toBeVisible({ timeout: 20_000 });
+  }
+
+  async dismissLeavePageDialog(): Promise<void> {
+    const stayButton = this.l.leavePageDialog.getByRole('button', { name: /Cancel|Stay/i }).first();
+    await expect(stayButton).toBeVisible({ timeout: 10_000 });
+    await stayButton.click();
+    await expect(this.l.leavePageDialog).toBeHidden({ timeout: 10_000 });
+    await this.waitForOSLoad();
+  }
+
+  async confirmLeavePageDialog(): Promise<void> {
+    const leaveButton = this.l.leavePageDialog.getByRole('button', { name: /Leave|Discard/i }).first();
+    await expect(leaveButton).toBeVisible({ timeout: 10_000 });
+    await leaveButton.click();
+    await expect(this.l.leavePageDialog).toBeHidden({ timeout: 10_000 });
     await this.waitForOSLoad();
   }
 

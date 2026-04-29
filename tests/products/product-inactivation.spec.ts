@@ -1,5 +1,21 @@
+import type { Page } from '@playwright/test';
+
 import { test, expect } from '../../src/fixtures';
 import * as allure from 'allure-js-commons';
+
+import { createDisposableProduct } from '../../src/helpers/disposable-test-data.helper';
+
+async function openProductDetailHeaderActionsMenu(page: Page): Promise<void> {
+  const headerActionsButton = page.locator('.content-top-title .popover-top').first();
+  await headerActionsButton.waitFor({ state: 'visible', timeout: 15_000 });
+  await headerActionsButton.click();
+}
+
+function productDetailInactivateOption(page: Page) {
+  return page.locator('.popover-content, .popover, [class*="popover"], [role="menu"]')
+    .getByText(/^\s*Inactivate\s*$/i)
+    .first();
+}
 
 /**
  * Product Inactivation (Section 3.7)
@@ -67,14 +83,14 @@ test.describe('Product Inactivation @regression', () => {
 
       await test.step('Close the actions menu by pressing Escape', async () => {
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+        await expect(page.locator('.popover-expanded')).toBeHidden({ timeout: 5_000 });
       });
     },
   );
 
   test.fixme(
     'PRODUCT-INACTIVATE-002: After inactivation, product status changes to Inactive',
-    async ({ newProductPage, landingPage, page }) => {
+    async () => {
       await allure.suite('Products - Product Inactivation');
       await allure.severity('critical');
       await allure.tag('regression');
@@ -172,12 +188,12 @@ test.describe('Product Inactivation @regression', () => {
   );
 
   // ────────────────────────────────────────────────────────────────────────────
-  // PRODUCT-INACTIVATE-005..013 — All on-hold (destructive / RBAC / data-dependent)
+  // PRODUCT-INACTIVATE-005..013 — Product Detail inactivation coverage
   //
-  // These scenarios require either:
-  //   (a) destructively inactivating a shared QA product/release (PRODUCT-INACTIVATE-007/008/009/010),
+  // Remaining deferred scenarios require either:
+  //   (a) destructively inactivating a shared QA product/release (PRODUCT-INACTIVATE-008/009/010),
   //   (b) a product in a specific pre-existing state — already inactive, has-active-releases,
-  //       or has DOCs (PRODUCT-INACTIVATE-005/006/011/012),
+  //       or has DOCs (PRODUCT-INACTIVATE-005/011/012),
   //   (c) an authenticated session for a user role other than the default automation user
   //       (PRODUCT-INACTIVATE-013 — RBAC for Product Owner).
   //
@@ -195,22 +211,82 @@ test.describe('Product Inactivation @regression', () => {
     await page.goto('/');
   });
 
-  test('PRODUCT-INACTIVATE-006 — Three-dot menu on Product Details page shows Inactivate option for eligible product', async ({ page }) => {
+  test('PRODUCT-INACTIVATE-006 — Three-dot menu on Product Details page shows Inactivate option for eligible product', async ({
+    newProductPage, page,
+  }) => {
     await allure.suite('Products - Inactivation');
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.tag('PIC-110');
-    test.fixme(true, 'PRODUCT-INACTIVATE-006: Knowledge gap — three-dot menu location/identification on Product Details page is undocumented; awaiting QA confirmation of the menu locator.');
-    await page.goto('/');
+
+    const product = await test.step('Create an eligible disposable product', async () => {
+      return createDisposableProduct(page, newProductPage, {
+        prefix: 'PW Inactivation Access Product',
+      });
+    });
+
+    await test.step('Open the disposable Product Detail page', async () => {
+      await page.goto(product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Open the Product Detail header actions menu', async () => {
+      await openProductDetailHeaderActionsMenu(page);
+    });
+
+    await test.step('Verify the Product Detail actions menu exposes Inactivate', async () => {
+      const inactivateOption = productDetailInactivateOption(page);
+
+      await expect(inactivateOption).toBeVisible({ timeout: 10_000 });
+      await expect(page).toHaveURL(/ProductDetail/);
+    });
   });
 
-  test('PRODUCT-INACTIVATE-007 — Clicking Inactivate on Product Details opens confirmation modal', async ({ page }) => {
+  test('PRODUCT-INACTIVATE-007 — Clicking Inactivate on Product Details opens confirmation modal', async ({
+    newProductPage, page,
+  }) => {
     await allure.suite('Products - Inactivation');
     await allure.severity('critical');
     await allure.tag('regression');
     await allure.tag('PIC-110');
-    test.fixme(true, 'PRODUCT-INACTIVATE-007: Destructive flow — opening the Inactivate modal requires interacting with a real shared QA product. Deferred until disposable test products are available.');
-    await page.goto('/');
+
+    const product = await test.step('Create an eligible disposable product', async () => {
+      return createDisposableProduct(page, newProductPage, {
+        prefix: 'PW Inactivation Modal Product',
+      });
+    });
+
+    await test.step('Open the disposable Product Detail page', async () => {
+      await page.goto(product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+    });
+
+    await test.step('Open the Product Detail header actions menu', async () => {
+      await openProductDetailHeaderActionsMenu(page);
+    });
+
+    await test.step('Open the Inactivate Product confirmation modal', async () => {
+      const inactivateOption = productDetailInactivateOption(page);
+      await expect(inactivateOption).toBeVisible({ timeout: 10_000 });
+      await inactivateOption.click();
+    });
+
+    await test.step('Verify the confirmation modal contents', async () => {
+      const dialog = page.getByRole('dialog').filter({ hasText: /Inactivate Product/i }).first();
+      await expect(dialog).toBeVisible({ timeout: 10_000 });
+      await expect(dialog.getByText(/Are you sure you want to inactivate this Product\? This action is irreversible\./i))
+        .toBeVisible();
+      await expect(dialog.getByRole('textbox', { name: /Justification/i })).toBeVisible();
+      await expect(dialog.getByRole('button', { name: /^Cancel$/i })).toBeVisible();
+      await expect(dialog.getByRole('button', { name: /^Inactivate Product$/i })).toBeVisible();
+    });
+
+    await test.step('Cancel the modal without inactivating the product', async () => {
+      const dialog = page.getByRole('dialog').filter({ hasText: /Inactivate Product/i }).first();
+      await dialog.getByRole('button', { name: /^Cancel$/i }).click();
+      await expect(dialog).toBeHidden({ timeout: 10_000 });
+      await expect(page).toHaveURL(/ProductDetail/);
+    });
   });
 
   test('PRODUCT-INACTIVATE-008 — Justification field is mandatory: submit blocked when empty', async ({ page }) => {

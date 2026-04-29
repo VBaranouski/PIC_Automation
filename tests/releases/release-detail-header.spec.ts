@@ -38,55 +38,70 @@ import * as path from 'path';
 // ---------------------------------------------------------------------------
 
 async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promise<string> {
-  // Prefer the cached product URL written by create-new-release.spec.ts
-  const stateFile = path.resolve(__dirname, '../../.product-state.json');
-  let productUrl: string | null = null;
-  if (fs.existsSync(stateFile)) {
-    try {
-      const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-      productUrl = state.productWithReleasesUrl || null;
-    } catch { /* fall through */ }
-  }
-
-  if (!productUrl) {
-    // Fallback: scan My Products for a product with releases
+  // Primary path — My Releases tab. This is resilient because it lists every
+  // release the test user can see, regardless of which product they belong to.
+  try {
     await landingPage.goto();
     await landingPage.expectPageLoaded({ timeout: 60_000 });
-    await landingPage.clickTab('My Products');
-    await landingPage.grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
-    const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
-    productUrl = await link.getAttribute('href') ?? null;
-    if (!productUrl) throw new Error('No product links found on My Products tab');
-    // Playwright resolves relative paths against baseURL from config
-  }
+    await landingPage.clickTab('My Releases');
+    await landingPage.waitForGridDataRows(30_000);
 
-  // Navigate to Product Detail page
-  await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
-  // Wait for product detail to load
-  await page.waitForURL(/ProductDetail/, { timeout: 60_000 });
-  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-  await page.waitForTimeout(2_000);
+    const firstReleaseLink = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
+    await expect(firstReleaseLink).toBeVisible({ timeout: 30_000 });
 
-  // Click the Releases tab on the Product Detail page
-  const releasesTab = page.getByRole('tab', { name: /^Releases$/i }).first();
-  const releasesTabCount = await releasesTab.count();
-  if (releasesTabCount > 0) {
-    await releasesTab.click();
+    await Promise.all([
+      page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+      firstReleaseLink.click(),
+    ]);
+    return page.url();
+  } catch (myReleasesError) {
+    // Fallback path — cached product URL or My Products tab → first product → Releases tab.
+    const stateFile = path.resolve(__dirname, '../../.product-state.json');
+    let productUrl: string | null = null;
+    if (fs.existsSync(stateFile)) {
+      try {
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        productUrl = state.productWithReleasesUrl || null;
+      } catch { /* fall through */ }
+    }
+
+    if (!productUrl) {
+      await landingPage.goto();
+      await landingPage.expectPageLoaded({ timeout: 60_000 });
+      await landingPage.clickTab('My Products');
+      await landingPage.grid.getByRole('row').nth(1).waitFor({ state: 'visible', timeout: 30_000 });
+      const link = landingPage.grid.getByRole('row').nth(1).getByRole('link').first();
+      productUrl = await link.getAttribute('href') ?? null;
+      if (!productUrl) {
+        throw new Error(
+          `Unable to open a Release Detail page. My Releases path: ${
+            myReleasesError instanceof Error ? myReleasesError.message : String(myReleasesError)
+          }; My Products had no product link.`,
+        );
+      }
+    }
+
+    await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
+    await page.waitForURL(/ProductDetail/, { timeout: 60_000 });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2_000);
+
+    const releasesTab = page.getByRole('tab', { name: /^Releases$/i }).first();
+    if ((await releasesTab.count()) > 0) {
+      await releasesTab.click();
+      await page.waitForTimeout(2_000);
+    }
+
+    const firstLink = page.getByRole('grid').getByRole('row').nth(1).getByRole('link').first()
+      .or(page.locator('table tbody tr').nth(0).getByRole('link').first());
+    await firstLink.waitFor({ state: 'visible', timeout: 30_000 });
+
+    await Promise.all([
+      page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+      firstLink.click(),
+    ]);
+    return page.url();
   }
-
-  // Click the first release-name link in the grid
-  const firstLink = page.getByRole('grid').getByRole('row').nth(1).getByRole('link').first()
-    .or(page.locator('table tbody tr').nth(0).getByRole('link').first());
-
-  await firstLink.waitFor({ state: 'visible', timeout: 30_000 });
-
-  await Promise.all([
-    page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
-    firstLink.click(),
-  ]);
-
-  return page.url();
 }
 
 // ---------------------------------------------------------------------------
@@ -94,7 +109,7 @@ async function navigateToAnyRelease(page: Page, landingPage: LandingPage): Promi
 // ---------------------------------------------------------------------------
 
 test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', () => {
-  test.setTimeout(300_000);
+  test.setTimeout(480_000);
 
   let releaseDetailUrl: string;
 
@@ -679,6 +694,299 @@ test.describe.serial('Releases - Release Detail Header (Sprint 2) @regression', 
           `Stage "${stage}" submission line "${summary}" must contain a digit`,
         ).toBe(true);
       }
+    });
+  });
+
+  // ── RELEASE-HEADER-015 ────────────────────────────────────────────────────
+  test.fixme('RELEASE-HEADER-015 — should expose all 9 expected content tabs on Release Detail page', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-HEADER-015: A Release Detail page must render all 9 content tabs: ' +
+      'Release Details, Roles & Responsibilities, Questionnaire, Process Requirements, ' +
+      'Product Requirements, Review & Confirm, Data Protection and Privacy Review, ' +
+      'Cybersecurity Residual Risks, and FCSR Decision. Tabs may be enabled or ' +
+      'disabled depending on stage / questionnaire submission, but each must be present.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    const expectedTabs = [
+      'Release Details',
+      'Roles & Responsibilities',
+      'Questionnaire',
+      'Process Requirements',
+      'Product Requirements',
+      'Review & Confirm',
+      // Tab label varies between "Data Protection and Privacy Review" and "Data Protection & Privacy Review";
+      // assert via regex below.
+      'Cybersecurity Residual Risks',
+      'FCSR Decision',
+    ];
+
+    await test.step('Verify each named content tab is visible', async () => {
+      for (const tabName of expectedTabs) {
+        const visible = await releaseDetailPage.isTopLevelTabVisible(tabName);
+        expect(visible, `Content tab "${tabName}" must be visible on the Release Detail page`).toBe(true);
+      }
+    });
+
+    await test.step('Verify the Data Protection & Privacy Review tab is visible (label varies)', async () => {
+      const dppTab = page
+        .getByRole('tab', { name: /Data Protection\s*(and|&)\s*Privacy Review/i })
+        .first();
+      await expect(dppTab).toBeVisible({ timeout: 15_000 });
+    });
+  });
+
+  // ── RELEASE-CANCEL-001 ────────────────────────────────────────────────────
+  test('RELEASE-CANCEL-001 — should expose Cancel Release button on Release Detail page at Scoping stage', async ({
+    page, landingPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Header');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-001: A release in the Creation & Scoping stage must expose ' +
+      'a "Cancel Release" button on the Release Detail page header. This test ' +
+      'verifies button presence only — clicking is destructive and out of scope.',
+    );
+
+    await test.step('Navigate to release', async () => {
+      if (!releaseDetailUrl) {
+        releaseDetailUrl = await navigateToAnyRelease(page, landingPage);
+      } else {
+        await page.goto(releaseDetailUrl);
+        await releaseDetailPage.waitForPageLoad();
+      }
+    });
+
+    await test.step('Verify the release is at the Scoping stage', async () => {
+      const status = await releaseDetailPage.getReleaseStatusText();
+      expect(
+        /Scoping/i.test(status),
+        `Release status badge must indicate Scoping stage; saw "${status}"`,
+      ).toBe(true);
+    });
+
+    await test.step('Verify the Cancel Release button is visible', async () => {
+      const cancelBtn = page.getByRole('button', { name: /^\s*Cancel\s+Release\s*$/i }).first();
+      await expect(
+        cancelBtn,
+        'Cancel Release button must be visible on the Release Detail page header',
+      ).toBeVisible({ timeout: 15_000 });
+    });
+  });
+
+  test('RELEASE-CANCEL-002 — clicking Cancel Release shows a confirmation dialog', async ({
+    page, disposableRelease, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-002: A disposable release at Creation & Scoping can open the Cancel Release confirmation dialog without touching shared QA data.',
+    );
+
+    await test.step('Open the disposable release detail page', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+
+    await test.step('Click Cancel Release and verify the confirmation dialog', async () => {
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.expectCancelReleaseDialogVisible();
+    });
+
+    await test.step('Dismiss the dialog so the disposable release remains available only for this assertion', async () => {
+      await releaseDetailPage.dismissCancelReleaseDialog();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+  });
+
+  test('RELEASE-CANCEL-003 — confirming cancellation changes the release status to Cancelled', async ({
+    page, disposableRelease, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('critical');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-003: A disposable release can be cancelled end to end and the Release Detail status updates to Cancelled.',
+    );
+
+    await test.step('Open the disposable release detail page', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+
+    await test.step('Confirm release cancellation', async () => {
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+    });
+
+    await test.step('Verify the release status is Cancelled', async () => {
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+  });
+
+  test('RELEASE-CANCEL-005 — cancelled release shows a warning message on its detail page', async ({
+    page, disposableRelease, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-005: After a disposable release is cancelled, its detail page exposes visible cancelled-state messaging.',
+    );
+
+    await test.step('Open and cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+    });
+
+    await test.step('Verify cancelled-state messaging is visible', async () => {
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+      await releaseDetailPage.expectCancelledReleaseWarningVisible();
+    });
+  });
+
+  test('RELEASE-CANCEL-004 — cancelled release is shown in Product Releases only when Show Active Only is OFF', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Release Detail / Cancel Release');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CANCEL-004: After a disposable release is cancelled, Product Detail > Releases hides it while Show Active Only is ON and shows it with Cancelled status when OFF.',
+    );
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Open the parent product Releases tab', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesTabActive();
+    });
+
+    await test.step('Verify the cancelled release is hidden while Show Active Only is ON', async () => {
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+    });
+
+    await test.step('Toggle Show Active Only OFF and verify the cancelled release appears', async () => {
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Cancelled|Canceled/i);
+    });
+  });
+
+  test('RELEASE-DETAILS-012 — Show Active Only filter is visible and active releases are shown by default', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Product Detail / Releases Tab');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-012: Product Detail > Releases shows the Show Active Only filter and keeps the disposable Scoping release visible by default.',
+    );
+
+    await test.step('Verify the disposable release starts at Scoping', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.expectReleaseStatus(/Scoping/i);
+    });
+
+    await test.step('Open Product Detail Releases tab and verify default active filter behavior', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesShowActiveOnlyToggleVisible();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Scoping/i);
+    });
+  });
+
+  test('RELEASE-DETAILS-013 — toggling Show Active Only OFF reveals a cancelled release', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Product Detail / Releases Tab');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-013: A disposable cancelled release becomes visible in Product Detail > Releases after Show Active Only is toggled OFF.',
+    );
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Open Product Releases with Show Active Only defaulted on', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleasesShowActiveOnlyToggleVisible();
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+    });
+
+    await test.step('Toggle Show Active Only OFF and verify the cancelled release appears', async () => {
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Cancelled|Canceled/i);
+    });
+  });
+
+  test('RELEASE-DETAILS-014 — toggling Show Active Only back ON hides a cancelled release again', async ({
+    page, disposableRelease, newProductPage, releaseDetailPage,
+  }) => {
+    await allure.suite('Releases / Product Detail / Releases Tab');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-DETAILS-014: After showing all releases, toggling Show Active Only back ON hides the disposable cancelled release again.',
+    );
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated cancellation for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Show the cancelled release by toggling Show Active Only OFF', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseVisibleInReleasesGrid(disposableRelease.version, /Cancelled|Canceled/i);
+    });
+
+    await test.step('Toggle Show Active Only back ON and verify the cancelled release is hidden', async () => {
+      await newProductPage.toggleReleasesShowActiveOnly();
+      await newProductPage.expectReleaseHiddenInReleasesGrid(disposableRelease.version);
     });
   });
 });

@@ -2,6 +2,10 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { newProductLocators, type NewProductLocators } from '@locators/new-product.locators';
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 type TeamRole =
   | 'Product Owner'
   | 'Security Manager'
@@ -820,6 +824,17 @@ export class NewProductPage extends BasePage {
     await this.l.changeSummaryInput.fill(summary);
   }
 
+  async expectReleaseChangeSummaryValue(summary: string): Promise<void> {
+    await expect(this.l.changeSummaryInput).toHaveValue(summary, { timeout: 10_000 });
+  }
+
+  async expectCreateReleaseFormCleared(): Promise<void> {
+    await expect(this.l.releaseVersionInput).toHaveValue('', { timeout: 10_000 });
+    await expect(this.l.targetReleaseDateInput).toHaveValue('', { timeout: 10_000 });
+    await expect(this.l.changeSummaryInput).toHaveValue('', { timeout: 10_000 });
+    await this.expectNewProductReleaseRadioSelected();
+  }
+
   async getRequiredFieldErrorCount(): Promise<number> {
     return this.l.requiredFieldError.count();
   }
@@ -1001,6 +1016,51 @@ export class NewProductPage extends BasePage {
     await this.waitForOSLoad();
   }
 
+  async clickReleaseLinkByVersion(releaseVersion: string): Promise<void> {
+    const link = this.l.releasesGrid.getByRole('link', {
+      name: new RegExp(escapeRegExp(releaseVersion), 'i'),
+    }).first();
+    await link.waitFor({ state: 'visible', timeout: 30_000 });
+
+    await Promise.all([
+      this.page.waitForURL(/ReleaseDetail/, { timeout: 60_000 }),
+      link.click(),
+    ]);
+    await this.waitForOSLoad();
+  }
+
+  async expectReleasesShowActiveOnlyChecked(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyCheckbox).toBeChecked({ timeout: 15_000 });
+  }
+
+  async expectReleasesShowActiveOnlyUnchecked(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyCheckbox).not.toBeChecked({ timeout: 15_000 });
+  }
+
+  async expectReleasesShowActiveOnlyToggleVisible(): Promise<void> {
+    await expect(this.l.releasesShowActiveOnlyLabel).toBeVisible({ timeout: 15_000 });
+  }
+
+  async toggleReleasesShowActiveOnly(): Promise<void> {
+    await this.l.releasesShowActiveOnlyCheckbox.click();
+    await this.waitForOSLoad();
+  }
+
+  async expectReleaseHiddenInReleasesGrid(releaseVersion: string): Promise<void> {
+    await expect(
+      this.l.releasesGrid.getByRole('row').filter({ hasText: new RegExp(escapeRegExp(releaseVersion), 'i') }).first(),
+    ).toBeHidden({ timeout: 30_000 });
+  }
+
+  async expectReleaseVisibleInReleasesGrid(releaseVersion: string, status: RegExp): Promise<void> {
+    const releaseRow = this.l.releasesGrid
+      .getByRole('row')
+      .filter({ hasText: new RegExp(escapeRegExp(releaseVersion), 'i') })
+      .first();
+    await expect(releaseRow).toBeVisible({ timeout: 30_000 });
+    await expect(releaseRow).toContainText(status, { timeout: 15_000 });
+  }
+
   /**
    * Returns the full text content of the first data row in the Releases tab grid.
    * Used to verify status badge / release version text is present.
@@ -1029,11 +1089,68 @@ export class NewProductPage extends BasePage {
   private async selectCreateReleaseDateInputByIndex(index: number, targetDate: Date): Promise<void> {
     const monthName = NewProductPage.monthNames[targetDate.getMonth()];
     const year = targetDate.getFullYear();
+    const monthIndex = targetDate.getMonth();
     const day = targetDate.getDate();
     const dateLabel = `${monthName} ${day}, ${year}`;
     const typedValue = `${day} ${monthName.slice(0, 3)} ${year}`;
     const input = this.l.createReleaseDateInputs.nth(index);
     const dayCell = this.page.locator(`[aria-label="${dateLabel}"]`).last();
+
+    await input.waitFor({ state: 'visible', timeout: 15_000 });
+
+    const flatpickrSet = await input.evaluate((element, dateParts) => {
+      interface FlatpickrInstance {
+        altInput?: HTMLInputElement;
+        close?: () => void;
+        input?: HTMLInputElement;
+        setDate?: (date: Date, triggerChange?: boolean) => void;
+      }
+
+      type FlatpickrInput = HTMLInputElement & { _flatpickr?: FlatpickrInstance };
+
+      const field = element as FlatpickrInput;
+      const target = new Date(dateParts.year, dateParts.monthIndex, dateParts.day);
+      const candidates = new Set<FlatpickrInput>([field]);
+      const relatedContainers = [field.parentElement, field.closest('.flatpickr-wrapper')].filter(Boolean);
+
+      for (const container of relatedContainers) {
+        for (const relatedInput of Array.from(container.querySelectorAll<HTMLInputElement>('input'))) {
+          candidates.add(relatedInput as FlatpickrInput);
+        }
+      }
+
+      const allInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input')) as FlatpickrInput[];
+      const relatedInstance = allInputs
+        .map(candidate => candidate._flatpickr)
+        .find(instance => instance?.input === field || instance?.altInput === field);
+      const instance = Array.from(candidates).map(candidate => candidate._flatpickr).find(Boolean) ?? relatedInstance;
+
+      if (!instance?.setDate) {
+        return false;
+      }
+
+      instance.setDate(target, true);
+
+      for (const targetInput of new Set([field, instance.input, instance.altInput].filter(Boolean))) {
+        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+        targetInput.blur();
+      }
+
+      instance.close?.();
+      return Boolean(field.value || instance.input?.value || instance.altInput?.value);
+    }, { day, monthIndex, year }).catch(() => false);
+
+    if (flatpickrSet) {
+      await this.page.keyboard.press('Escape').catch(() => undefined);
+      await this.page.locator('.flatpickr-calendar.open').waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => undefined);
+      await this.waitForOSLoad();
+    }
+
+    let inputValue = await input.inputValue().catch(() => '');
+    if (inputValue) {
+      return;
+    }
 
     await input.click().catch(() => undefined);
     await input.fill(typedValue).catch(() => undefined);
@@ -1041,7 +1158,7 @@ export class NewProductPage extends BasePage {
     await input.press('Tab').catch(() => undefined);
     await this.waitForOSLoad();
 
-    let inputValue = await input.inputValue().catch(() => '');
+    inputValue = await input.inputValue().catch(() => '');
     if (inputValue) {
       return;
     }
@@ -1117,7 +1234,14 @@ export class NewProductPage extends BasePage {
     }
 
     if (!inputValue) {
-      throw new Error(`Failed to set create-release date input at index ${index}.`);
+      const dialogText = (await this.l.createReleaseDialog.innerText().catch(() => ''))
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 500);
+      throw new Error(
+        `Failed to set create-release date input at index ${index}; ` +
+        `visibleValue="${inputValue}", targetDate="${typedValue}", dialogText="${dialogText}".`,
+      );
     }
   }
 
@@ -1574,6 +1698,11 @@ export class NewProductPage extends BasePage {
     return values;
   }
 
+  async getHistoryDataRowTexts(limit = 5): Promise<string[]> {
+    const rowTexts = await this.getHistoryRowTexts(limit);
+    return rowTexts.filter((text) => text && !/no\s+(data|records?|results?)\s+(matching|available|found)/i.test(text));
+  }
+
   async getProductIdText(): Promise<string> {
     const value = await this.l.productId.textContent();
     return value?.replace(/\s+/g, ' ').trim() ?? '';
@@ -1714,6 +1843,10 @@ export class NewProductPage extends BasePage {
     await expect(this.l.historyNoDataMessage).toBeVisible({ timeout: 15_000 });
   }
 
+  async isHistoryNoDataMessageVisible(): Promise<boolean> {
+    return this.l.historyNoDataMessage.isVisible({ timeout: 2_000 }).catch(() => false);
+  }
+
   async expectHistoryGridColumnHeaders(): Promise<void> {
     const expected = ['Date', 'User', 'Activity', 'Description'];
     for (const header of expected) {
@@ -1751,6 +1884,16 @@ export class NewProductPage extends BasePage {
    */
   async expectDigitalOfferCheckboxDisabledInEditMode(): Promise<void> {
     await expect(this.l.digitalOfferCheckbox).toBeDisabled({ timeout: 30_000 });
+  }
+
+  async expectDataProtectionCheckboxDisabledInEditMode(): Promise<void> {
+    await expect(this.l.dataProtectionCheckbox).toBeDisabled({ timeout: 30_000 });
+  }
+
+  async expectDataProtectionActiveReleaseWarningVisible(): Promise<void> {
+    await expect(this.page.getByText(/An active release exists.*Data Protection and Privacy Review/i)).toBeVisible({
+      timeout: 15_000,
+    });
   }
 
   /** DOC-SETUP-010: The Inactivate button must be visible on the product detail header. */

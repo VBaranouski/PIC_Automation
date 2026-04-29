@@ -1,11 +1,13 @@
 ---
 name: create-auto-tests
-description: End-to-end Playwright test automation workflow for any PICASso feature area — DOC lifecycle, products, releases, landing, auth, reports, backoffice, integrations. Use whenever the user asks to create, fix, extend, or batch-automate test scenarios from the tracker DB. Also triggers for fixing test failures, updating locators after OutSystems UI changes, running headed browser validation, or updating the tracker. Covers the full 8-step process: branch → tracker query → test scripting → headed browser validation → locator fixes → headless run → tracker update → commit. Applies to any scenario ID pattern (WF*-*, DOC-PRIV-*, PRODUCT-*, RELEASE-*, AUTH-*, LANDING-*, etc.).
+description: "End-to-end Playwright test automation workflow for any PICASso feature area. Use when the user asks to create, fix, extend, validate, or batch-automate test scenarios from the tracker DB, update locators after OutSystems UI changes, run headed browser validation, execute headless tests, or update tracker status. Slash command: /create-auto-tests."
+argument-hint: "<scenario IDs, feature area, workflow, or next pending batch>"
+user-invocable: true
 ---
 
 # PICASso Test Automation Workflow
 
-Proven 8-step workflow for automating any PICASso test scenarios — from tracker query to committed, passing tests.
+Proven workflow for automating any PICASso test scenarios, from tracker query to validated tests and tracker updates.
 
 ## When to Use
 
@@ -17,8 +19,9 @@ Proven 8-step workflow for automating any PICASso test scenarios — from tracke
 
 ## Prerequisites
 
-**Also load this skill before generating any test code:**
+**Also load these skills before generating or changing automation code:**
 - `.agents/skills/playwright-best-practices/SKILL.md` — canonical Playwright patterns (locators, assertions, POM, flaky-test prevention, CI/CD)
+- `.agents/skills/typescript-style-checker/SKILL.md` — TypeScript code style, imports, async patterns, and type-safety rules for `.ts` automation files
 
 Read these instruction files before starting:
 - `.github/instructions/automation-workflow.instructions.md` — master 7-step workflow
@@ -49,6 +52,8 @@ git checkout -b feature/<area>-<scope>-scenarios
 Use the feature area as prefix: `feature/doc-lifecycle-p1-scenarios`, `feature/releases-detail-tab`, `feature/products-history-edge`.
 
 ### Step 2: Identify & Script Test Scenarios
+
+Before editing any `.ts` file, confirm `.agents/skills/typescript-style-checker/SKILL.md` has been read and apply its guidance for type-only imports, async patterns, naming, inferred types, and time consistency.
 
 **Query tracker for pending scenarios:**
 ```bash
@@ -300,7 +305,20 @@ npx tsx scripts/tracker.ts auto-state <SCENARIO-ID> on-hold
 # exec-status stays not-executed — correct for on-hold
 ```
 
-### Step 7: Commit & Push
+### Step 7: Prepare Change Summary
+
+Do not commit, push, or open a pull request unless the user explicitly asks for it.
+
+Prepare a concise summary instead:
+
+- Scenario IDs automated or changed
+- Spec, locator, page object, fixture, and tracker files changed
+- Validation commands run and their result
+- Tracker states updated (`automation_state`, `execution_status`, and notes)
+- Product defects, on-hold cases, or blockers
+
+If the user explicitly asks for a commit, use the repository's normal git workflow:
+
 ```bash
 git add tests/<area>/<spec>.spec.ts playwright.config.ts
 git add src/locators/<locator-file>.ts src/pages/<page-file>.ts  # if modified

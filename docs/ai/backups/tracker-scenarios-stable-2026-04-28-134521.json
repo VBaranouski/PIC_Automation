@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-29T06:58:31.165Z",
+  "exported_at": "2026-04-28T10:45:03.633Z",
   "scenarios": [
     {
       "id": "PRODUCT-ACTIONS-003",
@@ -19646,15 +19646,15 @@
       "id": "LANDING-PRODS-SORT-001",
       "title": "Sortable My Products columns sort ascending / descending when sorting is available",
       "description": "Verify clicking a sortable My Products column header toggles sort direction.",
-      "automation_state": "automated",
-      "execution_status": "skipped",
+      "automation_state": "updated",
+      "execution_status": "not-executed",
       "priority": "P3",
       "feature_area": "landing",
       "spec_file": "tests/landing/landing-my-products.spec.ts",
       "workflow": "Landing Page & Home Navigation",
       "subsection": "2.3 My Products Tab",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 12:46:55",
+      "updated_at": "2026-04-22 09:37:21",
       "groups": [
         "edge"
       ],
@@ -19670,7 +19670,7 @@
         "Sort direction toggles",
         "Org Level 1 column shows sort indicator"
       ],
-      "execution_notes": "Skipped: Automated My Products sort check is scripted, but the Product column header did not expose both ascending and descending sortable orders in current QA state."
+      "execution_notes": "Skip if sorting is not supported"
     },
     {
       "id": "LANDING-PRODS-DOCLEAD-001",
@@ -22613,15 +22613,15 @@
       "id": "RELEASE-INACTIVATE-001",
       "title": "Actions column on Product Releases tab shows Inactivate and Clone for Creation and Scoping release",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P1",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-28 19:58:27",
+      "updated_at": "2026-04-27 20:27:51",
       "groups": [],
       "steps": [
         "Navigate to the Product Details page and click the `Releases` tab",
@@ -22635,21 +22635,21 @@
         "A dropdown opens",
         "Both `Inactivate` and `Clone` options are visible and enabled"
       ],
-      "execution_notes": "Passed: RELEASE-INACTIVATE-001 now creates a disposable product/release in Creation and Scoping, opens the Product Releases row actions menu, and verifies Inactivate and Clone are visible without submitting any action. Validated with focused run: npx playwright test tests/products/release-inactivation.spec.ts --project=chromium --grep RELEASE-INACTIVATE-00[1|7] --reporter=list --workers=1 (3 passed, including auth setup)."
+      "execution_notes": "On-hold (test.fixme): Requires a Creation & Scoping release with stable Inactivate+Clone visible state."
     },
     {
       "id": "RELEASE-INACTIVATE-007",
       "title": "Clicking Inactivate on a release opens confirmation modal",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P1",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-28 19:58:27",
+      "updated_at": "2026-04-27 20:27:51",
       "groups": [],
       "steps": [
         "Navigate to the Product Details > `Releases` tab",
@@ -22663,7 +22663,7 @@
         "The `Inactivate Release` confirmation modal opens",
         "The modal title reads \"Inactivate Release\"; the confirmation prompt reads \"Are you sure you want to inactivate this Release? This action is irreversible.\"; a `Justification` text input is visible; `Cancel` and `Inactivate Release` buttons are present"
       ],
-      "execution_notes": "Passed: RELEASE-INACTIVATE-007 now creates a disposable product/release in Creation and Scoping, opens the Product Releases row actions menu, clicks Inactivate, verifies the Inactivate Release confirmation modal contents, and cancels without submitting. Validated with focused run: npx playwright test tests/products/release-inactivation.spec.ts --project=chromium --grep RELEASE-INACTIVATE-00[1|7] --reporter=list --workers=1 (3 passed, including auth setup)."
+      "execution_notes": "On-hold (test.fixme): Destructive — opens release Inactivate modal on shared QA release."
     },
     {
       "id": "RELEASE-INACTIVATE-010",
@@ -22673,7 +22673,7 @@
       "execution_status": "not-executed",
       "priority": "P1",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22707,7 +22707,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22733,7 +22733,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22759,7 +22759,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22785,7 +22785,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22811,7 +22811,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22833,15 +22833,15 @@
       "id": "RELEASE-INACTIVATE-008",
       "title": "Justification field is mandatory in release inactivation modal",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-29 06:18:22",
+      "updated_at": "2026-04-27 20:27:51",
       "groups": [],
       "steps": [
         "Open the `Inactivate Release` confirmation modal",
@@ -22853,21 +22853,21 @@
         "The `Inactivate Release` submit button is disabled or a validation indicator is present",
         "The inactivation is not submitted; the modal remains open with a validation error or disabled state"
       ],
-      "execution_notes": "Passed: RELEASE-INACTIVATE-008 now creates a disposable product/release in Creation and Scoping, opens the Inactivate Release modal, verifies the Justification field is empty and mandatory, and confirms inactivation cannot submit without justification. Validated with focused run: npx playwright test tests/products/release-inactivation.spec.ts --project=chromium --grep RELEASE-INACTIVATE-00[8-9] --reporter=list --workers=1 (3 passed, including auth setup)."
+      "execution_notes": "On-hold (test.fixme): Depends on RELEASE-INACTIVATE-007."
     },
     {
       "id": "RELEASE-INACTIVATE-009",
       "title": "Cancel closes release inactivation modal without status change",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-29 06:18:22",
+      "updated_at": "2026-04-27 20:27:51",
       "groups": [],
       "steps": [
         "Open the `Inactivate Release` confirmation modal",
@@ -22881,7 +22881,7 @@
         "The modal closes",
         "The release status is unchanged (not Inactive)"
       ],
-      "execution_notes": "Passed: RELEASE-INACTIVATE-009 now creates a disposable product/release in Creation and Scoping, opens the Inactivate Release modal, enters justification text, cancels without submitting, and verifies the release row remains active/not Inactive. Validated with focused run: npx playwright test tests/products/release-inactivation.spec.ts --project=chromium --grep RELEASE-INACTIVATE-00[8-9] --reporter=list --workers=1 (3 passed, including auth setup)."
+      "execution_notes": "On-hold (test.fixme): Depends on RELEASE-INACTIVATE-007."
     },
     {
       "id": "RELEASE-INACTIVATE-011",
@@ -22891,7 +22891,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22919,7 +22919,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -22947,7 +22947,7 @@
       "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/release-inactivation.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.10 Release Inactivation",
       "created_at": "2026-04-24 19:03:26",
@@ -23389,15 +23389,15 @@
       "id": "PRODUCT-RELEASES-004",
       "title": "Create a new release with valid data and verify it appears in the releases grid with the correct version and an appropriate initial status. NOTE",
       "description": "Create a new release with valid data and verify it appears in the releases grid with the correct version and an appropriate initial status. NOTE: Full end-to-end release creation is covered by create-new-release.spec.ts",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
       "spec_file": "tests/products/product-details-releases.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.2 Product Detail — View Mode",
       "created_at": "2026-04-15 19:34:55",
-      "updated_at": "2026-04-28 18:40:19",
+      "updated_at": "2026-04-27 18:51:40",
       "groups": [],
       "steps": [
         "Navigate to the Product Detail page and click the Releases top tab",
@@ -23413,7 +23413,7 @@
         "The dialog closes; the page navigates to the Release Detail page or the releases grid refreshes",
         "The release version is visible in the grid row, or the Release Detail heading is visible with the URL containing /ReleaseDetail"
       ],
-      "execution_notes": "Passed: PRODUCT-RELEASES-004 now uses the WF3 pre-req release-creation product when it is still empty and creates a fresh disposable fallback product when that persisted product was already consumed by an earlier run. Validated with focused run: npx playwright test tests/products/product-details-releases.spec.ts --project=chromium --grep \"PRODUCT-RELEASES-004\" --reporter=list --workers=1, and WF3 focused set: PRODUCT-DPP-001, PRODUCT-RELEASES-004, STATUS-MAP-001 through STATUS-MAP-005 all passed (8 passed). Pre-req refresh command: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: deferred (test.fixme) — release creation E2E requires disposable test product; pending future sprint."
     },
     {
       "id": "PRODUCT-RELEASES-005",
@@ -23614,15 +23614,15 @@
       "id": "PRODUCT-HISTORY-003-b",
       "title": "Activity dropdown filter narrows records by activity type",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "skipped",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
       "spec_file": "tests/products/product-details-history.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.3 Product Change History",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 12:46:55",
+      "updated_at": "2026-04-27 19:57:43",
       "groups": [],
       "steps": [
         "Navigate to a product detail page and click the View History link",
@@ -23640,7 +23640,7 @@
         "The row count changes; all visible rows show the selected activity type in the Activity column",
         "The grid restores to the initial row count"
       ],
-      "execution_notes": "Skipped: Automated activity-filter narrowing check is scripted, but current QA Product History data has no Activity option that reduces the visible rows. Requires a product with mixed Product Change History activity types."
+      "execution_notes": "On-hold (test.fixme): PICASso Activity dropdown labels (e.g. \"Data Protection & Privacy details editing\") do not match the Activity column text in history rows (e.g. \"Product details editing\"). Awaiting QA confirmation of label↔row-text mapping before per-row activity assertion can be enabled."
     },
     {
       "id": "PRODUCT-HISTORY-002",
@@ -24040,15 +24040,15 @@
       "id": "PRODUCT-DPP-001",
       "title": "DPP toggle cannot be disabled when an active release exists",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P2",
       "feature_area": "products",
-      "spec_file": "tests/products/product-dpp.spec.ts",
+      "spec_file": "",
       "workflow": "Product Management",
       "subsection": "3.4 Product Edit",
       "created_at": "2026-04-22 12:39:53",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-27 20:52:34",
       "groups": [],
       "steps": [
         "Navigate to Product Detail for a product with DPP enabled and an active release (not cancelled/inactive).",
@@ -24058,7 +24058,7 @@
       "expected_results": [
         "The Data Protection & Privacy toggle is disabled or shows a warning preventing deactivation."
       ],
-      "execution_notes": "Passed in latest focused WF3 run: test reads .wf3-product-state.json, opens the WF3 pre-req product in edit mode, verifies the Data Protection & Privacy checkbox is disabled while an active release exists, verifies the active-release warning, and cancels without saving. Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "On-hold: requires a dedicated seed product with DPP=true AND an active (non-cancelled, non-inactive) release. No deterministic seed identified; defer to seeded test data sprint."
     },
     {
       "id": "PRODUCT-EDIT-002",
@@ -24202,14 +24202,14 @@
       "title": "\"Status Mapping Configuration\" link is accessible in edit mode under Product Configuration tab (gracefully skips when Jira not activated)",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P3",
       "feature_area": "products",
       "spec_file": "tests/products/status-mapping.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.5 Status Mapping Configuration",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product detail page.",
@@ -24220,21 +24220,21 @@
       "expected_results": [
         "The 'Status Mapping Configuration' link is visible in the Product Configuration tab when the Jira tracking tool is activated for the product."
       ],
-      "execution_notes": "Passed in latest focused WF3 run: test reads .wf3-product-state.json, opens the WF3 product in edit mode, enables Jira transiently, fills persisted placeholder Jira fields, and verifies the Status Mapping Configuration control is visible. Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: STATUS-MAP-001: \"Status Mapping Configuration\" link not found — Jira tool may not be activated on this product.\n\nSkips gracefully when Jira tool is not activated on the test product — the link will be absent."
     },
     {
       "id": "STATUS-MAP-002",
       "title": "Status Mapping popup opens for Jira (when Jira tool is activated)",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P3",
       "feature_area": "products",
       "spec_file": "tests/products/status-mapping.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.5 Status Mapping Configuration",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode.",
@@ -24247,21 +24247,21 @@
         "The Status Mapping popup opens and shows a mapping table or column structure.",
         "The popup is accessible for products where the Jira tool is activated."
       ],
-      "execution_notes": "Passed in latest focused WF3 run: test enables Jira transiently on the WF3 product and verifies the Status Mapping popup shell opens with Confirm and Cancel controls. Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: STATUS-MAP-002: Jira tool not activated on this product — skipping.\n\nSkips gracefully when Jira tool is not activated on the test product."
     },
     {
       "id": "STATUS-MAP-003",
       "title": "Adding a PICASso Status → Jira Status mapping row and confirming adds it to the table",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P3",
       "feature_area": "products",
       "spec_file": "tests/products/status-mapping.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.5 Status Mapping Configuration",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode.",
@@ -24272,21 +24272,21 @@
       "expected_results": [
         "The Status Mapping popup provides a control (button, link, or row trigger) for adding a new PICASso Status → Jira Status mapping row."
       ],
-      "execution_notes": "Passed in latest focused WF3 run with current QA behavior guarded: test opens the Status Mapping popup and handles Add/New row control availability without saving product changes. If QA exposes no Add/New control, the spec documents that state with a runtime skip. Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: STATUS-MAP-003: Jira tool not activated — skipping.\n\nSkips gracefully when Jira tool is not activated on the test product."
     },
     {
       "id": "STATUS-MAP-004",
       "title": "Incorrect mapping row can be removed via bin icon",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P3",
       "feature_area": "products",
       "spec_file": "tests/products/status-mapping.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.5 Status Mapping Configuration",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode.",
@@ -24298,21 +24298,21 @@
         "Existing mapping rows in the Status Mapping popup have a remove/delete icon.",
         "This allows incorrect mapping rows to be deleted without saving the form."
       ],
-      "execution_notes": "Passed in latest focused WF3 run: test opens the Status Mapping popup and verifies remove-control discovery logic for existing mapping rows without saving product changes. Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: STATUS-MAP-004: Jira tool not activated — skipping.\n\nSkips gracefully when Jira tool is not activated or when no existing mapping rows are found."
     },
     {
       "id": "STATUS-MAP-005",
       "title": "\"Confirm\" saves the configuration; \"Cancel\" discards it",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P3",
       "feature_area": "products",
       "spec_file": "tests/products/status-mapping.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.5 Status Mapping Configuration",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 17:56:12",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode.",
@@ -24325,21 +24325,21 @@
         "The Status Mapping popup has a 'Confirm' (or 'Save') button to persist changes and a 'Cancel' button to discard them.",
         "Clicking Cancel closes the popup without saving."
       ],
-      "execution_notes": "Passed in latest focused WF3 run: test verifies Confirm/Save and Cancel controls are present in the Status Mapping popup, cancels the popup, and cancels product edit mode without saving. Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: STATUS-MAP-005: Jira tool not activated — skipping.\n\nSkips gracefully when Jira tool is not activated."
     },
     {
       "id": "STATUS-MAP-006",
       "title": "Mapping is persisted only after clicking \"Save\" on the Product Details page",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P3",
       "feature_area": "products",
       "spec_file": "tests/products/status-mapping.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.5 Status Mapping Configuration",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-28 19:03:42",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode.",
@@ -24352,7 +24352,7 @@
         "After confirming the Status Mapping popup, the mapping is staged but not yet committed to the database.",
         "The user must still click 'Save' on the Product Details page to persist the mapping changes."
       ],
-      "execution_notes": "Passed: STATUS-MAP-006 now confirms the Status Mapping popup, verifies the parent Product Details Save button remains visible, and cancels product edit mode without saving shared WF3 product changes. Validated with full focused Status Mapping run: npx playwright test tests/products/status-mapping.spec.ts --project=chromium --grep STATUS-MAP-00[1-6] --reporter=list --workers=1 (7 passed, including auth setup). Pre-req required: npx playwright test --project=wf3-pre-req."
+      "execution_notes": "Skipped: STATUS-MAP-006: Jira tool not activated — skipping.\n\nSkips gracefully when Jira tool is not activated."
     },
     {
       "id": "RISK-PROFILE-CALC-010",
@@ -25608,15 +25608,15 @@
       "id": "PRODUCT-INACTIVATE-006",
       "title": "Three-dot menu on Product Details page shows Inactivate option for eligible product",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P1",
       "feature_area": "products",
       "spec_file": "tests/products/product-inactivation.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.7 Product Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-28 19:41:30",
+      "updated_at": "2026-04-28 10:44:38",
       "groups": [],
       "steps": [
         "Navigate to the Product Details page for an eligible product",
@@ -25628,21 +25628,21 @@
         "A dropdown opens",
         "The `Inactivate` menu item is visible and enabled"
       ],
-      "execution_notes": "Passed: PRODUCT-INACTIVATE-006 now creates a disposable eligible product, opens the Product Detail header actions popover via the verified .content-top-title .popover-top selector, and asserts the Inactivate option is visible without clicking it. Validated with focused run: npx playwright test tests/products/product-inactivation.spec.ts --project=chromium --grep PRODUCT-INACTIVATE-006 --reporter=list --workers=1 (2 passed, including auth setup)."
+      "execution_notes": "On-hold (test.fixme): Knowledge gap — three-dot menu locator on Product Details page undocumented."
     },
     {
       "id": "PRODUCT-INACTIVATE-007",
       "title": "Clicking Inactivate on Product Details opens confirmation modal",
       "description": "",
-      "automation_state": "automated",
-      "execution_status": "passed",
+      "automation_state": "on-hold",
+      "execution_status": "not-executed",
       "priority": "P1",
       "feature_area": "products",
       "spec_file": "tests/products/product-inactivation.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.7 Product Inactivation",
       "created_at": "2026-04-24 19:03:26",
-      "updated_at": "2026-04-28 19:49:07",
+      "updated_at": "2026-04-28 10:44:38",
       "groups": [],
       "steps": [
         "Navigate to the Product Details page for an eligible product (no active releases/DOCs)",
@@ -25656,7 +25656,7 @@
         "The `Inactivate Product` confirmation modal opens",
         "The modal title reads \"Inactivate Product\"; a confirmation prompt is visible reading \"Are you sure you want to inactivate this Product? This action is irreversible.\"; a `Justification` text input is visible; `Cancel` and `Inactivate Product` buttons are present"
       ],
-      "execution_notes": "Passed: PRODUCT-INACTIVATE-007 now creates a disposable eligible product, opens the Product Detail header actions popover, clicks Inactivate, verifies the Inactivate Product confirmation modal contents, and cancels without submitting. Validated with focused run: npx playwright test tests/products/product-inactivation.spec.ts --project=chromium --grep PRODUCT-INACTIVATE-007 --reporter=list --workers=1 (2 passed, including auth setup)."
+      "execution_notes": "On-hold (test.fixme): Destructive — opens Inactivate modal on a real shared QA product."
     },
     {
       "id": "PRODUCT-INACTIVATE-010",
@@ -26106,7 +26106,7 @@
       "workflow": "Product Management",
       "subsection": "3.8 Product Configuration — Tracking Tools (Jira & Jama)",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-29 06:58:24",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode and open the Product Configuration tab.",
@@ -26117,21 +26117,21 @@
       "expected_results": [
         "After enabling any tracking tool toggle, a warning message appears urging the user to update the status mapping configuration."
       ],
-      "execution_notes": "Skipped: current QA no longer renders the mapping-configuration warning after enabling Jira on the WF3 pre-req product. Test now explicitly skips until product AC/UI copy is reconfirmed. Focused slice run after patch: 4 passed, 2 skipped, including auth setup."
+      "execution_notes": ""
     },
     {
       "id": "TRACKING-TOOLS-007",
       "title": "Activating Jama toggle reveals Jama Project ID field",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P2",
       "feature_area": "products",
       "spec_file": "tests/products/tracking-tools.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.8 Product Configuration — Tracking Tools (Jira & Jama)",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-29 06:58:24",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode and open the Product Configuration tab.",
@@ -26143,7 +26143,7 @@
       "expected_results": [
         "The 'Jama Project Id' text input field (placeholder: 'Insert project id') appears after the Jama toggle is enabled."
       ],
-      "execution_notes": "Passed: TRACKING-TOOLS-007 enables Jama in Product Configuration, verifies Jama Project Id becomes visible with Insert project id placeholder, then cancels without saving. Focused slice run after patch: 4 passed, 2 skipped, including auth setup."
+      "execution_notes": ""
     },
     {
       "id": "TRACKING-TOOLS-008",
@@ -26157,7 +26157,7 @@
       "workflow": "Product Management",
       "subsection": "3.8 Product Configuration — Tracking Tools (Jira & Jama)",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-29 06:58:24",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode and open the Product Configuration tab.",
@@ -26170,21 +26170,21 @@
         "Enabling Jama sets the 'Product requirements tracking tool' to Jama.",
         "The 'Process requirements and issues tracking tool' radio stays at 'Not Applicable' — Jama is not available for Process requirements."
       ],
-      "execution_notes": "Skipped: current QA enables Jama fields but leaves Product requirements at Not Applicable instead of auto-selecting Jama. Test now explicitly skips until expected auto-selection behavior is reconfirmed. Focused slice run after patch: 4 passed, 2 skipped, including auth setup."
+      "execution_notes": ""
     },
     {
       "id": "TRACKING-TOOLS-009",
       "title": "Jira radio for Product requirements is disabled when Jama is active",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P2",
       "feature_area": "products",
       "spec_file": "tests/products/tracking-tools.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.8 Product Configuration — Tracking Tools (Jira & Jama)",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-29 06:58:24",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode and open the Product Configuration tab.",
@@ -26195,21 +26195,21 @@
       "expected_results": [
         "When Jama is enabled, the 'Jira' option in the Product requirements radio group is disabled — the user cannot assign both Jama and Jira to Product requirements simultaneously."
       ],
-      "execution_notes": "Passed: TRACKING-TOOLS-009 enables Jama and verifies the Product requirements Jira radio is disabled, then cancels without saving. Focused slice run after patch: 4 passed, 2 skipped, including auth setup."
+      "execution_notes": ""
     },
     {
       "id": "TRACKING-TOOLS-010",
       "title": "Saving with Jira activated but empty Jira Source Link or Jira Project Key shows validation error",
       "description": "",
       "automation_state": "automated",
-      "execution_status": "passed",
+      "execution_status": "skipped",
       "priority": "P2",
       "feature_area": "products",
       "spec_file": "tests/products/tracking-tools.spec.ts",
       "workflow": "Product Management",
       "subsection": "3.8 Product Configuration — Tracking Tools (Jira & Jama)",
       "created_at": "2026-04-15 15:00:22",
-      "updated_at": "2026-04-29 06:58:24",
+      "updated_at": "2026-04-15 22:12:52",
       "groups": [],
       "steps": [
         "Navigate to a product in edit mode and open the Product Configuration tab.",
@@ -26221,7 +26221,7 @@
         "After enabling Jira without filling in Jira Source Link and Jira Project Key, clicking Save shows a 'Required field!' validation error.",
         "The save is blocked until the required fields are provided."
       ],
-      "execution_notes": "Passed: TRACKING-TOOLS-010 enables Jira with empty Jira Source Link and Project Key, clicks Save, verifies the validation alert blocks saving, then cancels without persisted changes. Focused slice run after patch: 4 passed, 2 skipped, including auth setup."
+      "execution_notes": ""
     },
     {
       "id": "TRACKING-TOOLS-011",
@@ -26577,40 +26577,6 @@
         "Deferred until Phase 2 Data Extraction API is available"
       ],
       "execution_notes": "Skipped: Phase 2 scope — Data Extraction API Cross-Org export deferred until Phase 2 API is delivered."
-    },
-    {
-      "id": "PRODUCT-PRE-REQ-001",
-      "title": "WF3 pre-req creates reusable product, release, and verifies Jira/Jama configuration fields",
-      "description": "PRODUCT-PRE-REQ-001: Dedicated WF3 pre-requisite setup creates an automation-owned product and release, verifies Product Configuration Jira/Jama fields are reachable, and writes .wf3-product-state.json for downstream WF3 tests.",
-      "automation_state": "automated",
-      "execution_status": "passed",
-      "priority": "P1",
-      "feature_area": "products",
-      "spec_file": "",
-      "workflow": "Product Management",
-      "subsection": "WF3 Pre-Req Test Data",
-      "created_at": "2026-04-28 15:54:30",
-      "updated_at": "2026-04-28 17:56:12",
-      "groups": [],
-      "steps": [
-        "Run the setup authentication project.",
-        "Create a unique WF3 pre-req product with product information, organization, team assignments, and Data Protection & Privacy enabled.",
-        "Create an initial Scoping release for the WF3 pre-req product.",
-        "Create a second WF3 release-creation product without an initial release.",
-        "Open Product Configuration and verify Jira fields can be revealed and populated.",
-        "Open Product Configuration and verify Jama fields can be revealed and populated.",
-        "Persist product/release/configuration data and releaseCreationProduct metadata to .wf3-product-state.json."
-      ],
-      "expected_results": [
-        "Authentication state is available for the setup run.",
-        "A product detail URL is created for an automation-owned WF3 product with DPP enabled.",
-        "A release detail URL is created for an initial Scoping release.",
-        "A second product detail URL is created and its Releases tab shows the no-releases state.",
-        "Jira Source Link, Jira Project Key, and Test Connection controls are visible and accept deterministic values.",
-        "Jama Project Id is visible and accepts a deterministic value.",
-        "Downstream WF3 specs can read productName, productUrl, releaseVersion, releaseUrl, trackingTools, and releaseCreationProduct metadata from .wf3-product-state.json."
-      ],
-      "execution_notes": "Passed: wf3-pre-req creates a reusable automation-owned WF3 product with Data Protection & Privacy enabled, creates an initial release, creates a separate no-release release-creation product, verifies Jira/Jama configuration fields are reachable, and writes .wf3-product-state.json for downstream specs. Validated with npx playwright test --project=wf3-pre-req --reporter=list --workers=1."
     },
     {
       "id": "MANAGE-008",

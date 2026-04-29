@@ -1,24 +1,23 @@
 ---
-name: code-review
-description: Review code changes for security, performance, and correctness. Trigger with a PR URL or diff, "review this before I merge", "is this code safe?", or when checking a change for N+1 queries, injection risks, missing edge cases, or error handling gaps.
+name: pr-review
+description: "Review code changes for merge risk, correctness, regressions, security, performance, maintainability, and missing tests. Use with an active PR, PR URL, diff, file path, current branch, or requests like 'review this before I merge', 'is this code safe?', or 'check this PR'. Slash command: /pr-review."
 argument-hint: "<PR URL, diff, or file path>"
+user-invocable: true
 ---
 
-# /code-review
-
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
+# /pr-review
 
 Review code changes with a structured lens on security, performance, correctness, and maintainability.
 
 ## Usage
 
 ```
-/code-review <PR URL or file path>
+/pr-review <PR URL, file path, diff, or focus area>
 ```
 
 Review the provided code changes: @$1
 
-If no specific file or URL is provided, ask what to review.
+If no specific file or URL is provided, review the active pull request or current branch changes when available.
 
 ## How It Works
 
@@ -78,38 +77,22 @@ If no specific file or URL is provided, ask what to review.
 ```markdown
 ## Code Review: [PR title or file]
 
-### Summary
-[1-2 sentence overview of the changes and overall quality]
-
 ### Critical Issues
 | # | File | Line | Issue | Severity |
 |---|------|------|-------|----------|
-| 1 | [file] | [line] | [description] | 🔴 Critical |
+| 1 | [file] | [line] | [description] | Critical |
 
 ### Suggestions
 | # | File | Line | Suggestion | Category |
 |---|------|------|------------|----------|
 | 1 | [file] | [line] | [description] | Performance |
 
-### What Looks Good
-- [Positive observations]
+### Open Questions
+- [Questions or assumptions, if any]
 
-### Verdict
-[Approve / Request Changes / Needs Discussion]
+### Summary
+[Brief change summary and residual risk]
 ```
-
-## If Connectors Available
-
-If **~~source control** is connected:
-- Pull the PR diff automatically from the URL
-- Check CI status and test results
-
-If **~~project tracker** is connected:
-- Link findings to related tickets
-- Verify the PR addresses the stated requirements
-
-If **~~knowledge base** is connected:
-- Check changes against team coding standards and style guides
 
 ## Tips
 

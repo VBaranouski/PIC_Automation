@@ -19,6 +19,9 @@ export const newProductLocators = (page: Page) => ({
   releasesGrid:           page.getByRole('tabpanel').locator('[role="grid"], table').first(),
   releaseValidationAlert: page.getByRole('alert'),
   requiredFieldError:     page.getByText(/Required field!?|Field is required/i),
+  releasesShowActiveOnlyLabel: page.getByText('Show active only', { exact: true }),
+  releasesShowActiveOnlyCheckbox: page.getByText('Show active only', { exact: true })
+    .locator('xpath=following::*[self::input[@type="checkbox"] or @role="checkbox"][1]'),
 
   // Create Release dialog
   createReleaseDialog:                  page.getByRole('dialog'),

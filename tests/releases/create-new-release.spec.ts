@@ -1,5 +1,6 @@
 import { test } from '../../src/fixtures';
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import type { LandingPage } from '../../src/pages';
 import * as allure from 'allure-js-commons';
 import { readProductState, writeProductState } from '../../src/helpers/product-state.helper';
@@ -198,7 +199,7 @@ async function findProductWithAnyRelease(
   throw new Error('No product with existing releases found in the first 100 My Products rows.');
 }
 
-test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () => {
+test.describe.serial('Releases - Create Release Dialog UI (PIC-100) @regression', () => {
   test.setTimeout(400_000);
 
   // Shared product URL — discovered once by the first test in the serial block
@@ -655,6 +656,286 @@ test.describe('Releases - Create Release Dialog UI (PIC-100) @regression', () =>
       await newProductPage.expectProductDetailLoaded();
       await newProductPage.clickReleasesTab();
       await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+  });
+
+  test('RELEASE-CREATE-014 — should clear create release fields when Reset Form is clicked', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-014: The Create Release dialog Reset Form button clears entered release version, target date, and change summary values.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 14);
+
+    await test.step('Open Create Release dialog for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Populate the create release form', async () => {
+      await newProductPage.fillReleaseVersion(`PIC100-RESET-${Date.now()}`);
+      await newProductPage.selectReleaseTargetDate(targetDate);
+      await newProductPage.fillReleaseChangeSummary('Reset Form should clear this change summary.');
+    });
+
+    await test.step('Reset the form and verify default empty values are restored', async () => {
+      await newProductPage.clickResetReleaseForm();
+      await newProductPage.expectCreateReleaseFormCleared();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  test('RELEASE-CREATE-015 — should accept multiline text in Change Summary', async ({
+    page, landingPage, newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-015: The Create Release dialog Change Summary field accepts and preserves multiline text input.',
+    );
+
+    const multilineSummary = [
+      'Automated multiline change summary.',
+      'Second line verifies newline preservation.',
+      'Third line covers longer release notes entry.',
+    ].join('\n');
+
+    await test.step('Open Create Release dialog for a product without releases', async () => {
+      if (!noReleaseProductUrl) {
+        const product = await findProductReadyForReleaseCreation(page, landingPage);
+        noReleaseProductUrl = product.productUrl;
+      }
+      await page.goto(noReleaseProductUrl);
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Fill multiline Change Summary and verify value is preserved', async () => {
+      await newProductPage.fillReleaseChangeSummary(multilineSummary);
+      await newProductPage.expectReleaseChangeSummaryValue(multilineSummary);
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+});
+
+test.describe('Releases - Disposable Create Release Coverage @regression', () => {
+  test.setTimeout(360_000);
+
+  test('RELEASE-CREATE-002-b — newly created release appears in the product Releases tab list', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-002-b: A release created for a disposable product appears in the product Releases tab list.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 7);
+    const releaseVersion = `PIC100-LIST-${Date.now()}`;
+
+    await test.step('Open disposable product Releases tab', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectNoReleasesStateVisible();
+    });
+
+    await test.step('Create a release for the disposable product', async () => {
+      await newProductPage.clickCreateRelease();
+      await newProductPage.createFirstRelease({
+        releaseVersion,
+        targetDate,
+        changeSummary: `Disposable release list coverage for ${disposableProduct.name}`,
+      });
+    });
+
+    await test.step('Verify the release is visible in the Releases tab list', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+  });
+
+  test('RELEASE-CREATE-016 — created release starts with Scoping status', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-016: A newly created disposable release has Scoping as its initial status.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 10);
+    const releaseVersion = `PIC100-SCOPE-${Date.now()}`;
+
+    await test.step('Create a release for a disposable product', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.createFirstRelease({
+        releaseVersion,
+        targetDate,
+        changeSummary: `Disposable release initial status coverage for ${disposableProduct.name}`,
+      });
+    });
+
+    await test.step('Verify Scoping status in the product Releases tab', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectReleaseListed(releaseVersion, 'Scoping');
+    });
+  });
+
+  test('RELEASE-CREATE-017 — Target Release Date picker prevents selecting past dates', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-017: The Create Release Target Release Date picker disables dates before today.',
+    );
+
+    await test.step('Open Create Release dialog for a disposable product', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Verify past dates are disabled', async () => {
+      await newProductPage.expectTargetDatePickerPreventsYesterday();
+    });
+
+    await test.step('Close dialog', async () => {
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  test('RELEASE-CREATE-018 — cancelled release version cannot be reused for a new release', async ({
+    page,
+    disposableRelease,
+    newProductPage,
+    releaseDetailPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    await allure.description(
+      'RELEASE-CREATE-018: After a disposable release is cancelled, creating another release with the same version shows duplicate-version validation.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 21);
+
+    await test.step('Cancel the disposable release', async () => {
+      await page.goto(disposableRelease.url, { waitUntil: 'domcontentloaded' });
+      await releaseDetailPage.waitForPageLoad();
+      await releaseDetailPage.clickCancelRelease();
+      await releaseDetailPage.confirmCancelRelease(`Automated duplicate-name setup for ${disposableRelease.version}`);
+      await releaseDetailPage.expectReleaseStatus(/Cancelled|Canceled/i);
+    });
+
+    await test.step('Open Create Release on the same product', async () => {
+      await page.goto(disposableRelease.product.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+
+      const createAsNewVisible = await newProductPage.createAsNewRadio.isVisible({ timeout: 5_000 }).catch(() => false);
+      if (createAsNewVisible) {
+        await newProductPage.clickCreateAsNewRadio();
+      }
+    });
+
+    await test.step('Attempt to create a new release with the cancelled release version', async () => {
+      await newProductPage.fillReleaseVersion(disposableRelease.version);
+      await newProductPage.selectReleaseTargetDate(targetDate);
+      await newProductPage.fillReleaseChangeSummary(`Duplicate cancelled release version check for ${disposableRelease.version}`);
+      await newProductPage.clickCreateAndScope();
+    });
+
+    await test.step('Verify duplicate release version validation is shown', async () => {
+      await expect(newProductPage.createReleaseDialog).toBeVisible({ timeout: 15_000 });
+      await newProductPage.expectDuplicateReleaseVersionValidationVisible();
+      await newProductPage.cancelReleaseFormButton.click();
+      await newProductPage.createReleaseDialog.waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => undefined);
+    });
+  });
+
+  test('RELEASE-CREATE-020 — Existing Product Release without Last Full Pen Test Date reaches optional-warning path', async ({
+    page,
+    disposableProduct,
+    newProductPage,
+  }) => {
+    await allure.suite('Releases');
+    await allure.severity('normal');
+    await allure.tag('regression');
+    test.fail(true, 'Known defect: Existing Product Release onboarding remains blocked before the optional Last Full Pen Test Date warning can be verified.');
+    await allure.description(
+      'RELEASE-CREATE-020: Existing Product Release onboarding should allow Last Full Pen Test Date to be omitted and show the expected warning path instead of blocking submission.',
+    );
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 21);
+    const fcsrDate = new Date();
+    fcsrDate.setDate(fcsrDate.getDate() - 14);
+
+    await test.step('Open Create Release for a disposable product with no releases', async () => {
+      await page.goto(disposableProduct.url, { waitUntil: 'domcontentloaded' });
+      await newProductPage.expectProductDetailLoaded();
+      await newProductPage.clickReleasesTab();
+      await newProductPage.expectNoReleasesStateVisible();
+      await newProductPage.clickCreateRelease();
+      await newProductPage.expectCreateReleaseDialogVisible();
+    });
+
+    await test.step('Submit Existing Product Release without Last Full Pen Test Date', async () => {
+      await newProductPage.createExistingProductRelease({
+        releaseVersion: `PIC100-EPR-WARN-${Date.now()}`,
+        targetDate,
+        changeSummary: `Existing Product Release optional Last Full Pen Test Date warning for ${disposableProduct.name}`,
+        lastBuSecurityOfficerFcsrDate: fcsrDate,
+      });
     });
   });
 });

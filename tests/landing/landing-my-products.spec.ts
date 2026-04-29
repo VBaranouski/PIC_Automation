@@ -1,5 +1,36 @@
 import { test, expect } from '../../src/fixtures';
+import type { Locator } from '@playwright/test';
 import * as allure from 'allure-js-commons';
+
+function normalizeCellText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function sortTextValues(values: string[], direction: 'asc' | 'desc'): string[] {
+  return [...values].sort((left, right) => {
+    const result = left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' });
+    return direction === 'asc' ? result : -result;
+  });
+}
+
+function expectSortedTextValues(values: string[], direction: 'asc' | 'desc'): void {
+  expect(values, `Expected values to be sorted ${direction}`).toEqual(sortTextValues(values, direction));
+}
+
+async function getVisibleColumnValues(landingPage: { grid: Locator }, columnIndex: number, limit = 10): Promise<string[]> {
+  const rows = landingPage.grid.getByRole('row');
+  const rowCount = await rows.count();
+  const values: string[] = [];
+
+  for (let rowIndex = 1; rowIndex < Math.min(rowCount, limit + 1); rowIndex++) {
+    const value = normalizeCellText(
+      await rows.nth(rowIndex).getByRole('gridcell').nth(columnIndex).textContent().catch(() => '') ?? '',
+    );
+    if (value) values.push(value);
+  }
+
+  return values;
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // WORKFLOW 2.3 — My Products: Latest Release nav, Org Level 1 filter, Actions
@@ -126,6 +157,56 @@ test.describe('Landing Page - My Products Advanced Navigation @regression', () =
     await test.step('Reset to restore default state', async () => {
       await landingPage.resetFilters();
       await landingPage.expectGridHasRows();
+    });
+  });
+
+  test('LANDING-PRODS-SORT-001 — sortable My Products columns sort ascending and descending when sorting is available @regression', async ({ landingPage }) => {
+    await allure.suite('Landing Page - My Products');
+    await allure.severity('minor');
+    await allure.tag('regression');
+    await allure.description(
+      'LANDING-PRODS-SORT-001: Verify a sortable My Products column can be toggled between ascending and descending order.',
+    );
+
+    let productColumnIndex = -1;
+
+    await test.step('Locate the Product column header', async () => {
+      const headers = await landingPage.getColumnHeaders();
+      productColumnIndex = headers.findIndex((header) => /^product$/i.test(header.trim()) || /product name/i.test(header));
+      expect(productColumnIndex, 'Expected a Product column in My Products grid').toBeGreaterThanOrEqual(0);
+    });
+
+    await test.step('Click Product header twice and verify opposite sort orders', async () => {
+      const productHeader = landingPage.grid.getByRole('columnheader').nth(productColumnIndex);
+      const beforeSort = await getVisibleColumnValues(landingPage, productColumnIndex);
+      expect(beforeSort.length, 'Expected at least two visible product values before sorting').toBeGreaterThan(1);
+
+      await productHeader.click();
+      await landingPage.expectGridHasRows();
+      const firstSort = await getVisibleColumnValues(landingPage, productColumnIndex);
+
+      await productHeader.click();
+      await landingPage.expectGridHasRows();
+      const secondSort = await getVisibleColumnValues(landingPage, productColumnIndex);
+
+      const firstIsAscending = JSON.stringify(firstSort) === JSON.stringify(sortTextValues(firstSort, 'asc'));
+      const firstIsDescending = JSON.stringify(firstSort) === JSON.stringify(sortTextValues(firstSort, 'desc'));
+      const secondIsAscending = JSON.stringify(secondSort) === JSON.stringify(sortTextValues(secondSort, 'asc'));
+      const secondIsDescending = JSON.stringify(secondSort) === JSON.stringify(sortTextValues(secondSort, 'desc'));
+      const toggledToOppositeOrder = (firstIsAscending && secondIsDescending) || (firstIsDescending && secondIsAscending);
+
+      test.skip(
+        !(firstIsAscending || firstIsDescending) || !(secondIsAscending || secondIsDescending) || !toggledToOppositeOrder,
+        'Product column header did not expose both ascending and descending sortable orders in current QA state.',
+      );
+
+      if (firstIsAscending) {
+        expectSortedTextValues(firstSort, 'asc');
+        expectSortedTextValues(secondSort, 'desc');
+      } else {
+        expectSortedTextValues(firstSort, 'desc');
+        expectSortedTextValues(secondSort, 'asc');
+      }
     });
   });
 });

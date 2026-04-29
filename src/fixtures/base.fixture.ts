@@ -1,7 +1,12 @@
 import { test as base } from '@playwright/test';
 import { getUser, getDefaultUser } from '../../config/users';
 import type { UserCredentials, UserRole } from '../../config/users/user.types';
+import type { DisposableProduct, DisposableRelease } from '../helpers/disposable-test-data.helper';
 import { LoginPage, LandingPage, NewProductPage, DocDetailsPage, ControlDetailPage, ReleaseDetailPage } from '../pages';
+import {
+  createDisposableProduct,
+  createDisposableRelease,
+} from '../helpers/disposable-test-data.helper';
 
 type CustomFixtures = {
   /** Credentials for the current test role (from TEST_ROLE env var, defaults to 'admin') */
@@ -20,6 +25,10 @@ type CustomFixtures = {
   controlDetailPage: ControlDetailPage;
   /** ReleaseDetailPage instance */
   releaseDetailPage: ReleaseDetailPage;
+  /** Fresh automation-created product that can be safely mutated by the current test */
+  disposableProduct: DisposableProduct;
+  /** Fresh automation-created release that can be safely mutated by the current test */
+  disposableRelease: DisposableRelease;
 };
 
 export const test = base.extend<CustomFixtures>({
@@ -54,6 +63,16 @@ export const test = base.extend<CustomFixtures>({
 
   releaseDetailPage: async ({ page }, use) => {
     await use(new ReleaseDetailPage(page));
+  },
+
+  disposableProduct: async ({ page, newProductPage }, use) => {
+    const product = await createDisposableProduct(page, newProductPage);
+    await use(product);
+  },
+
+  disposableRelease: async ({ page, newProductPage, releaseDetailPage, disposableProduct }, use) => {
+    const release = await createDisposableRelease(page, newProductPage, releaseDetailPage, disposableProduct);
+    await use(release);
   },
 });
 
