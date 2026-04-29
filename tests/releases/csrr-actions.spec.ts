@@ -17,13 +17,13 @@ function getManageReleaseUrl(): string | undefined {
   return process.env.MANAGE_RELEASE_URL ?? tryReadWF6ManageReleaseState()?.releaseUrl;
 }
 
-async function getManageReleaseSkipReason(
+async function navigateToManageRelease(
   page: import('@playwright/test').Page,
   landingPage: Parameters<typeof openManageStageRelease>[1],
-): Promise<string> {
-  return openManageStageRelease(page, landingPage, getManageReleaseUrl()).then(() => '').catch((error) => {
-    return `No Manage-stage release available for CSRR action checks: ${error instanceof Error ? error.message : String(error)}`;
-  });
+): Promise<void> {
+  const releaseUrl = getManageReleaseUrl();
+  test.skip(!releaseUrl, 'No deterministic Manage-stage release source is available. Run wf6-manage-pre-req successfully or set MANAGE_RELEASE_URL.');
+  await openManageStageRelease(page, landingPage, releaseUrl);
 }
 
 test.describe('Releases - CSRR Action Items (Workflow 6) @regression', () => {
@@ -50,14 +50,11 @@ test.describe('Releases - CSRR Action Items (Workflow 6) @regression', () => {
       'and exposes an Add Action button for action item creation.',
     );
 
-    let skipReason = '';
     await test.step('Navigate to a Manage-stage release and open CSRR', async () => {
-      skipReason = await getManageReleaseSkipReason(page, landingPage);
-      if (skipReason) return;
+      await navigateToManageRelease(page, landingPage);
       await releaseDetailPage.waitForPageLoad();
       await releaseDetailPage.clickCsrrTab();
     });
-    test.skip(Boolean(skipReason), skipReason);
 
     await test.step('Enter CSRR edit mode when available', async () => {
       await releaseDetailPage.openCurrentCsrrSectionEditMode();
@@ -84,15 +81,12 @@ test.describe('Releases - CSRR Action Items (Workflow 6) @regression', () => {
       'Name, Description, State, and Category. The popup is dismissed without saving.',
     );
 
-    let skipReason = '';
     await test.step('Navigate to a Manage-stage release and open CSRR edit mode', async () => {
-      skipReason = await getManageReleaseSkipReason(page, landingPage);
-      if (skipReason) return;
+      await navigateToManageRelease(page, landingPage);
       await releaseDetailPage.waitForPageLoad();
       await releaseDetailPage.clickCsrrTab();
       await releaseDetailPage.openCurrentCsrrSectionEditMode();
     });
-    test.skip(Boolean(skipReason), skipReason);
 
     const addActionVisible = await releaseDetailPage.isCsrrAddActionButtonVisible();
     test.skip(!addActionVisible, 'CSRR Add Action button is not visible for the sampled release/user.');
@@ -122,15 +116,12 @@ test.describe('Releases - CSRR Action Items (Workflow 6) @regression', () => {
       'Evidence, and Closure Comment. The popup is dismissed without saving.',
     );
 
-    let skipReason = '';
     await test.step('Navigate to a Manage-stage release and open CSRR edit mode', async () => {
-      skipReason = await getManageReleaseSkipReason(page, landingPage);
-      if (skipReason) return;
+      await navigateToManageRelease(page, landingPage);
       await releaseDetailPage.waitForPageLoad();
       await releaseDetailPage.clickCsrrTab();
       await releaseDetailPage.openCurrentCsrrSectionEditMode();
     });
-    test.skip(Boolean(skipReason), skipReason);
 
     const addActionVisible = await releaseDetailPage.isCsrrAddActionButtonVisible();
     test.skip(!addActionVisible, 'CSRR Add Action button is not visible for the sampled release/user.');

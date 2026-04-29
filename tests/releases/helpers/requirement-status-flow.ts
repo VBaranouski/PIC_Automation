@@ -348,8 +348,18 @@ async function clickRowEllipsisViaDom(
   target: 'action' | 'status',
 ): Promise<boolean> {
   return row.evaluate((element, clickTarget) => {
-    const isVisible = (node: Element) => {
-      const style = window.getComputedStyle(node);
+    type DomNode = {
+      textContent?: string | null;
+      querySelectorAll?: (selector: string) => ArrayLike<DomNode>;
+      getBoundingClientRect(): { width: number; height: number };
+      dispatchEvent(event: unknown): boolean;
+    };
+    const browserGlobal = globalThis as unknown as {
+      getComputedStyle(node: DomNode): { display: string; visibility: string };
+      MouseEvent: new (type: string, init?: Record<string, unknown>) => unknown;
+    };
+    const isVisible = (node: DomNode) => {
+      const style = browserGlobal.getComputedStyle(node);
       const rect = node.getBoundingClientRect();
       return style.display !== 'none'
         && style.visibility !== 'hidden'
@@ -357,7 +367,7 @@ async function clickRowEllipsisViaDom(
         && rect.height > 0;
     };
 
-    const cells = Array.from(element.querySelectorAll('[role="gridcell"], td'));
+    const cells = Array.from(element.querySelectorAll('[role="gridcell"], td')) as DomNode[];
     if (!cells.length) {
       return false;
     }
@@ -371,13 +381,13 @@ async function clickRowEllipsisViaDom(
       return false;
     }
 
-    const iconCandidates = [candidateCell, ...Array.from(candidateCell.querySelectorAll('*'))]
+    const iconCandidates = [candidateCell, ...Array.from(candidateCell.querySelectorAll?.('*') ?? [])]
       .filter((node) => isVisible(node) && /[⋮︙]|\.\.\./.test((node.textContent || '').trim()));
     const clickable = iconCandidates[iconCandidates.length - 1] || candidateCell;
 
-    clickable.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-    clickable.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
-    clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    clickable.dispatchEvent(new browserGlobal.MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    clickable.dispatchEvent(new browserGlobal.MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+    clickable.dispatchEvent(new browserGlobal.MouseEvent('click', { bubbles: true, cancelable: true }));
 
     return true;
   }, target).catch(() => false);
@@ -561,10 +571,19 @@ async function selectStatusInPopup(
 ): Promise<boolean> {
   const statusPattern = new RegExp(`^${escapeRegex(status)}(?:\\b|\\s*-)`, 'i');
   const domClicked = await popup.evaluate((element, targetStatus) => {
-    const normalize = (value: string | null) => (value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const normalize = (value: string | null | undefined) => (value || '').replace(/\s+/g, ' ').trim().toLowerCase();
     const target = normalize(targetStatus);
-    const isVisible = (node: Element) => {
-      const style = window.getComputedStyle(node);
+    type DomNode = {
+      textContent?: string | null;
+      getBoundingClientRect(): { width: number; height: number };
+      dispatchEvent(event: unknown): boolean;
+    };
+    const browserGlobal = globalThis as unknown as {
+      getComputedStyle(node: DomNode): { display: string; visibility: string };
+      MouseEvent: new (type: string, init?: Record<string, unknown>) => unknown;
+    };
+    const isVisible = (node: DomNode) => {
+      const style = browserGlobal.getComputedStyle(node);
       const rect = node.getBoundingClientRect();
       return style.display !== 'none'
         && style.visibility !== 'hidden'
@@ -572,17 +591,18 @@ async function selectStatusInPopup(
         && rect.height > 0;
     };
 
-    const candidates = [element, ...Array.from(element.querySelectorAll('button, [role="button"], [role="menuitem"], [role="option"], li, span, div'))]
+    const candidates = [element, ...Array.from(element.querySelectorAll('button, [role="button"], [role="menuitem"], [role="option"], li, span, div'))] as DomNode[];
+    const visibleCandidates = candidates
       .filter((candidate) => isVisible(candidate) && normalize(candidate.textContent).includes(target))
       .sort((left, right) => normalize(left.textContent).length - normalize(right.textContent).length);
-    const match = candidates.find((candidate) => normalize(candidate.textContent) === target) || candidates[0];
+    const match = visibleCandidates.find((candidate) => normalize(candidate.textContent) === target) || visibleCandidates[0];
     if (!match) {
       return false;
     }
 
-    match.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-    match.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
-    match.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    match.dispatchEvent(new browserGlobal.MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    match.dispatchEvent(new browserGlobal.MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+    match.dispatchEvent(new browserGlobal.MouseEvent('click', { bubbles: true, cancelable: true }));
     return true;
   }, status).catch(() => false);
 
@@ -764,12 +784,14 @@ async function updateRequirementStatus(
   await fillJustificationIfVisible(popup, `${status} status set by WF6 Manage pre-req automation on ${tabName}.`);
   await savePopup(popup, page);
 
-  await expect.poll(async () => getRowText(page, rowIndex), {
+  const statusApplied = await expect.poll(async () => getRowText(page, rowIndex), {
     timeout: 20_000,
     message: `${tabName}: requirement row ${rowIndex + 1} should show status ${status}`,
-  }).toMatch(new RegExp(status.replace(/\s+/g, '\\s+'), 'i')).catch(() => undefined);
+  }).toMatch(new RegExp(status.replace(/\s+/g, '\\s+'), 'i'))
+    .then(() => true)
+    .catch(() => false);
 
-  return true;
+  return statusApplied;
 }
 
 export async function markRequirementsReviewReady(

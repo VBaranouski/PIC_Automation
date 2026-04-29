@@ -92,13 +92,13 @@ export function resolveScenarioSpecFile(scenario: Scenario, index: SpecMappingIn
   const exactSpecFile = index.scenarioIdToSpecFile.get(scenario.id);
   if (exactSpecFile) return exactSpecFile;
 
+  if (scenario.automation_state === 'pending') {
+    return '';
+  }
+
   const currentSpecFile = normalizeSpecFilePath(scenario.spec_file);
   if (currentSpecFile && index.existingSpecFiles.has(currentSpecFile)) {
     return currentSpecFile;
-  }
-
-  if (scenario.automation_state === 'pending') {
-    return '';
   }
 
   if (scenario.workflow && scenario.subsection) {
